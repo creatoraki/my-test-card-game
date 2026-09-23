@@ -8,7 +8,7 @@ import {
   getItemFamily,
   makeItemStack,
   makeRolledItemStack,
-} from "./index";
+} from "./registry";
 import {
   difficultyKey,
   getMapDifficulty,

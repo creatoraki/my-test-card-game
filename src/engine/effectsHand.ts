@@ -1,8 +1,7 @@
 // 手牌操作效果 —— 从 effects.ts 拆出的牌堆、手牌与卡牌实例操作。
 
 import type { Ally, BattleState, Card, EffectDescriptor } from "./types";
-import type { EffectResolution } from "./effects";
-import { resolveEffects } from "./effects";
+import type { EffectResolution, ResolveEffectsFn } from "./effects";
 import { ops } from "./ops";
 import { drawCards, addCardCopyToHand } from "./deck";
 import { partyHandLimit } from "./stats";
@@ -288,11 +287,13 @@ function applyResonate(state: BattleState, effect: EffectDescriptor): void {
   }
 }
 
+// ⚠ resolve 由 effects.ts 注入(就是 resolveEffects 本身): 本文件若直接 import 它, 会与 effects.ts 形成运行时环。
 export function applyHandEffect(
   state: BattleState,
   effect: EffectDescriptor,
   sourceId: string,
   targetIds: string[],
+  resolve: ResolveEffectsFn,
 ): EffectResolution {
   switch (effect.type) {
     case "DISCARD":
@@ -330,7 +331,7 @@ export function applyHandEffect(
         ? Math.min(effect.maxAmount ?? Infinity, Math.max(0, Math.floor(counterOf(state, effect.amountFrom))))
         : Math.max(0, Math.floor(effect.amount ?? 1));
       if (requestedAmount <= 0) {
-        if (effect.followUp?.length) return resolveEffects(state, effect.followUp, sourceId, undefined);
+        if (effect.followUp?.length) return resolve(state, effect.followUp, sourceId, undefined);
         return emptyResolution();
       }
       const candidates = playableHandUids(state).filter((uid) => {
@@ -348,7 +349,7 @@ export function applyHandEffect(
         if (effect.handChoiceAction === "markTarget") state.markTransferSourceUid = null;
         if (["markSource", "markTarget", "devour", "stripMarks"].includes(effect.handChoiceAction ?? ""))
           return emptyResolution();
-        return effect.followUp?.length ? resolveEffects(state, effect.followUp, sourceId, undefined) : emptyResolution();
+        return effect.followUp?.length ? resolve(state, effect.followUp, sourceId, undefined) : emptyResolution();
       }
       if (effect.handChoiceAction) {
         state.pendingChoice = {

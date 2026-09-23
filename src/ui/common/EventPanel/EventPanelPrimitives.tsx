@@ -1,6 +1,6 @@
 import { type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
-import choiceResult from "./styles/eventPanelChoiceResult.module.css";
+import choice from "./styles/eventPanelChoice.module.css";
 import overlay from "./styles/eventPanelOverlay.module.css";
 
 export function EventPanelStage({ children, className }: { children: ReactNode; className?: string }) {
@@ -85,7 +85,7 @@ export function EventPanelPick({
   className,
 }: EventPanelPickProps) {
   const costClass = noteTone
-    ? choiceResult[`cost${noteTone[0].toUpperCase()}${noteTone.slice(1)}`]
+    ? choice[`cost${noteTone[0].toUpperCase()}${noteTone.slice(1)}`]
     : "";
   return (
     <button
@@ -93,19 +93,19 @@ export function EventPanelPick({
       disabled={disabled}
       onClick={onClick}
       style={{ "--option-delay": `${index * 60 + 80}ms` } as CSSProperties}
-      className={cx(choiceResult.option, selected && choiceResult.optionChosen, className)}
+      className={cx(choice.option, selected && choice.optionChosen, className)}
     >
       {leading ? (
-        <span className={choiceResult.optionLeading}>{leading}</span>
+        <span className={choice.optionLeading}>{leading}</span>
       ) : (
-        <span className={choiceResult.optionIndicator} aria-hidden="true" />
+        <span className={choice.optionIndicator} aria-hidden="true" />
       )}
-      <span className={choiceResult.optionMain}>
+      <span className={choice.optionMain}>
         <strong>{name}</strong>
         {desc && <span>{desc}</span>}
         {note && <em className={costClass}><i /> {note}</em>}
       </span>
-      <span className={choiceResult.optionArrow} aria-hidden="true">↗</span>
+      <span className={choice.optionArrow} aria-hidden="true">↗</span>
     </button>
   );
 }

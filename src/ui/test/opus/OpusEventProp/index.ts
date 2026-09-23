@@ -1,1 +1,0 @@
-﻿export { OpusEventProp } from "./OpusEventProp";

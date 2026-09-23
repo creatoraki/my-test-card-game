@@ -1,7 +1,7 @@
-// Zustand store: 包裹纯 TS 探索会话(explore/session.ts), 供 UI 订阅与派发。
+// Zustand store: 包裹纯 TS 探索会话(explore/session/), 供 UI 订阅与派发。
 // 与 battleStore 同模式 —— 每次操作先 structuredClone 再交给纯函数, 对 React 呈现不可变更新。
 //
-// 分工: 本 store 只管一趟远征的会话本身; 「本轮结束 → 真的建一场推进战斗 → 切界面」由
+// 分工: 本 store 只管一趟远征的会话本身; 「会话进入 inBattle → 真的建一场战斗 → 切界面」由
 // runStore 编排, 因为只有它同时认识 battleStore 与界面路由。会话不持久化 —— 远征中途关页面即作废。
 
 import { create } from "zustand";
@@ -16,21 +16,13 @@ import {
   addPendingLoot,
   acceptEquipOffer,
   acceptRelicOffer,
-  arriveNode,
-  chooseEntry,
-  chooseOption,
   confirmNode,
   createSession,
   discardStack,
   dropContext,
   finishBattle,
-  finishGenerating,
-  finishLeaving,
-  finishReveal,
   grantExpTo,
   recordExpGain,
-  leaveRegion,
-  pushOn,
   reorderBackpack as reorderBackpackFn,
   retreat,
   retreatFromBattle,
@@ -38,19 +30,11 @@ import {
   reforgeBackpackItem,
   resolvePendingAction,
   resolvePendingHealing,
-  restEat,
-  restSkip,
-  chooseNpcOption,
-  cheatChangeEnergy,
-  closeShopping,
-  confirmNpc,
   shipHome,
   spendBattleEnergy as spendBattleEnergyFn,
-  startReveal,
   syncPartyVitals as syncPartyVitalsFn,
   takeFromBackpack,
   putIntoBackpack,
-  engageRoundBattle,
   takePendingContamination,
   takePending,
   takeAllLoot,
@@ -58,7 +42,6 @@ import {
   takeUnsettledFallen,
   takePendingExp,
   useItem,
-  applyEffect,
   type ItemUseResult,
 } from "../explore/session";
 import {
@@ -70,7 +53,6 @@ import {
   takeBoon,
   takeCardOffer,
 } from "../explore/boons";
-import { buyFromShop as buyFromShopFn } from "../explore/shop";
 import { EXPLORE_RULES } from "../explore/rules";
 import { useTownStore } from "./townStore";
 
@@ -86,22 +68,8 @@ interface ExploreStore {
     ownedRelicIds?: string[],
     difficulty?: MapDifficulty,
   ) => void;
-  generateDone: () => void; // 浮现演出播完(UI 定时器) → sealed
-  beginReveal: () => void; // 玩家按「探索路线」→ revealing。一轮只生效一次
-  cheatEnergy: (delta: number) => void;
-  revealDone: () => void; // 揭示计时结束(UI 定时器)
-  pickEntry: (lane: number) => void; // 选入口通道 A-E。★ 全轮唯一一次自由选择
-  arrive: () => ExploreState | null; // 推进动画播完 → landed(只落点, 不结算)
-  pickOption: (index: number) => ExploreState | null; // 落点浮层选分支
-  buyFromShop: (slotIndex: number, stockIndex?: number) => boolean;
-  closeShop: () => void;
-  confirmNode: () => void; // 结算浮层「确认」→ atNode 决策
-  pushOn: () => void; // 「继续推进」→ 下一个推进段
-  leaveRegion: () => void; // 「前往下一区域」→ 离场行走演出(leaving), 无路可走则直接披露
-  leaveDone: () => void; // 离场行走演出播完(UI 动画计时器) → roundBattle
-  engageRoundBattle: () => ExploreState | null; // 轮次战斗事件「迎战」→ inBattle
+  confirmNode: () => void; // 结算浮层「确认」→ 回到场景自由行走
   consumePendingContamination: () => { total: number; each: number };
-  fillStoryPlaceholders: (names: { charName: string; cardName: string }[]) => void;
   retreatNow: () => void;
   // 战斗途中主动撤离: 回填战斗内血量, 本场作废并把会话打成 retreated。
   retreatFromBattle: (survivors: BattleSurvivor[]) => void;
@@ -143,10 +111,6 @@ interface ExploreStore {
   openCardOffer: (offers: CardOfferCandidate[]) => void;
   clearCardOffer: () => void;
   abandonBoons: () => void;
-  restEat: (uid: string) => void;
-  restSkip: () => void;
-  chooseNpcOption: (index: number) => void;
-  confirmNpc: () => void;
   grantExpTo: (charId: string) => void;
   recordExpGain: (amount: number) => void;
   resolvePendingHealing: (charId: string, limit: boolean) => void;
@@ -179,60 +143,9 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     set({ session: createSession(mapId, party, seed, initialBackpack, ownedRelicIds, difficulty) });
   },
 
-  generateDone: () => {
-    mutate(get, set, (d) => finishGenerating(d));
-  },
-
-  beginReveal: () => {
-    mutate(get, set, (d) => startReveal(d));
-  },
-
-  cheatEnergy: (delta) => {
-    mutate(get, set, (d) => cheatChangeEnergy(d, delta));
-  },
-
-  revealDone: () => {
-    mutate(get, set, (d) => finishReveal(d));
-  },
-
-  pickEntry: (lane) => {
-    mutate(get, set, (d) => chooseEntry(d, lane));
-  },
-
-  arrive: () => mutate(get, set, (d) => arriveNode(d)),
-
-  pickOption: (index) => mutate(get, set, (d) => chooseOption(d, index)),
-
-  buyFromShop: (slotIndex, stockIndex) => {
-    let ok = false;
-    mutate(get, set, (d) => {
-      ok = buyFromShopFn(d, slotIndex, stockIndex, applyEffect);
-      return ok;
-    });
-    return ok;
-  },
-
-  closeShop: () => {
-    mutate(get, set, (d) => closeShopping(d));
-  },
-
   confirmNode: () => {
     mutate(get, set, (d) => confirmNode(d));
   },
-
-  pushOn: () => {
-    mutate(get, set, (d) => pushOn(d));
-  },
-
-  leaveRegion: () => {
-    mutate(get, set, (d) => leaveRegion(d));
-  },
-
-  leaveDone: () => {
-    mutate(get, set, (d) => finishLeaving(d));
-  },
-
-  engageRoundBattle: () => mutate(get, set, (d) => engageRoundBattle(d)),
 
   consumePendingContamination: () => {
     const s = get().session;
@@ -243,27 +156,6 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     const count = takePendingContamination(draft);
     set({ session: draft });
     return count;
-  },
-
-  fillStoryPlaceholders: (names) => {
-    const s = get().session;
-    if (!s || !names.length) return;
-    const charName = names[0]?.charName ?? "某名队员";
-    const card1 = names[0]?.cardName ?? "未知卡牌";
-    const card2 = names[1]?.cardName ?? card1;
-    const fill = (text: string) =>
-      text
-        .replace(/\{实际角色名\}/g, charName)
-        .replace(/\{实际卡牌名1\}/g, card1)
-        .replace(/\{实际卡牌名2\}/g, card2)
-        .replace(/\{实际卡牌名\}/g, card1);
-    set({
-      session: {
-        ...s,
-        pendingStory: s.pendingStory.map(fill),
-        pendingNotes: s.pendingNotes.map(fill),
-      },
-    });
   },
 
   retreatNow: () => {
@@ -489,22 +381,6 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   abandonBoons: () => {
     mutate(get, set, (d) => abandonBoons(d));
-  },
-
-  restEat: (uid) => {
-    mutate(get, set, (d) => restEat(d, uid));
-  },
-
-  restSkip: () => {
-    mutate(get, set, (d) => restSkip(d));
-  },
-
-  chooseNpcOption: (index) => {
-    mutate(get, set, (d) => chooseNpcOption(d, index));
-  },
-
-  confirmNpc: () => {
-    mutate(get, set, (d) => confirmNpc(d));
   },
 
   grantExpTo: (charId) => {

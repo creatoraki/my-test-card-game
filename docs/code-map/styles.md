@@ -40,4 +40,3 @@
 ## 已知问题
 
 - 生产代码中仍有 85 处小于 18px 的字号（包括 `base.css` 的 14px / 15px），详见 [代码健康度审查](../代码健康度审查.md)。
-- 超过 500 行的样式文件：`eventPanelChoiceResult`、`TripleSlashFx`、`ItemInventoryPanel`、`HandCard`。

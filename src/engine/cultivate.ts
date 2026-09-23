@@ -1,5 +1,5 @@
 import type { BattleState, Card, CultivateStage, Targeting } from "./types";
-import { STATUS_DEFS } from "./statuses";
+import { STATUS_DEFS } from "./hookRegistry";
 import { ctxFor } from "./ops";
 
 export function cultivateStage(card: Card): CultivateStage | null {

@@ -58,7 +58,7 @@
 | [HpBar/](../../src/ui/common/HpBar/HpBar.tsx) / [ShieldBar/](../../src/ui/common/ShieldBar/ShieldBar.tsx) | 敌我共用的血条（材质、三段配色、流光时序只写一份）；护盾条。 |
 | [StatusPips/](../../src/ui/common/StatusPips/StatusPips.tsx) / [QuirkPips/](../../src/ui/common/QuirkPips/QuirkPips.tsx) / [PollutionMeter/](../../src/ui/common/PollutionMeter/PollutionMeter.tsx) | 状态图标、怪癖图标、污染值。 |
 | [ManaCrystal/](../../src/ui/common/ManaCrystal/ManaCrystal.tsx) / [StatIcon/](../../src/ui/common/StatIcon/StatIcon.tsx) | 法力水晶；属性图标。 |
-| [BuffIcon/](../../src/ui/common/BuffIcon/CultivationEmblem.tsx) / [AssembleIcon/](../../src/ui/common/AssembleIcon/AssembleIcon.tsx) | 培育植物的状态徽记（纯 SVG）；炼金组装部件图标。⚠ `emblemGeometry.ts` 引用了 `ui/test` 里的几何常量。 |
+| [BuffIcon/](../../src/ui/common/BuffIcon/CultivationEmblem.tsx) / [AssembleIcon/](../../src/ui/common/AssembleIcon/AssembleIcon.tsx) | 培育植物的状态徽记（纯 SVG）；炼金组装部件图标。线稿版的几何层 `cultivationGeometry.ts` 也放在这里，演示页反向引用它。 |
 | [CardTextRich/](../../src/ui/common/CardTextRich/CardTextRich.tsx) / [CardBack/](../../src/ui/common/CardBack/CardBack.tsx) | 带高亮的卡牌说明；卡背。 |
 | [PartyMemberCard/](../../src/ui/common/PartyMemberCard/PartyMemberCard.tsx) / [CharacterPortrait/](../../src/ui/common/CharacterPortrait/CharacterPortrait.tsx) | 队员卡；角色立绘（统一为 1152×2048、9:16、透明底）。 |
 
@@ -74,8 +74,6 @@
 | [BorderGlow/](../../src/ui/common/BorderGlow/BorderGlow.tsx) / [NeonPlate/](../../src/ui/common/NeonPlate/NeonPlate.tsx) / [DetailFrame/](../../src/ui/common/DetailFrame/DetailFrame.tsx) | 边缘扫光、霓虹切角牌面、纯装饰边框。 |
 | [InteractiveHint/](../../src/ui/common/InteractiveHint/InteractiveHint.tsx) / [HoldButton/](../../src/ui/common/HoldButton/HoldButton.tsx) | 卡牌悬停和选中时四角的呼吸边框；长按确认按钮。 |
 
-## 遗留或无人引用
+## 备注
 
-- `HudPanelShell/`、`tech/TechCostMaterials/`、`techTree/techTreeEdges.ts`：没有任何引用。
-- `SciFiPanel/`：只被一个没有接入的演示页引用。
-- `RouteBoard/RouteEventIcon.tsx`：旧节点事件图标，目前只有结算页的 `EventDropBand` 在用。
+- `RouteBoard/RouteEventIcon.tsx`：结算页 `EventDropBand` 使用的事件图标，目录名沿用了旧路线图的命名。

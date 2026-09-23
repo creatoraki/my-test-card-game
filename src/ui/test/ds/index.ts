@@ -1,10 +1,9 @@
 export { DsEventPanel } from "./DsEventPanel";
-export { DsRouteBoard } from "./DsRouteBoard";
 export { DsTarotArt } from "./DsTarotArt";
 export { DsTarotArtDemo } from "./DsTarotArtDemo";
 export { DsInkSlashFx, INK_SLASH_PRESET, type InkSlashPreset } from "./DsInkSlashFx";
 export { DsInkSlashDemo } from "./DsInkSlashDemo";
-export { DsTripleSlashFx } from "./DsTripleSlashFx";
+export { TripleSlashFx as DsTripleSlashFx } from "@/ui/battle/fx/TripleSlashFx";
 export { DsTripleSlashDemo } from "./DsTripleSlashDemo";
 export { DsFastSlashFx } from "./DsFastSlashFx";
 export { DsFastSlashDemo } from "./DsFastSlashDemo";

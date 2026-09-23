@@ -72,7 +72,6 @@ export const TRAP_CURIO_KINDS: readonly CurioKind[] = ["collapsedCeiling", "leak
 export const CORRIDOR_AMBUSH: NodeEvent = {
   id: "corridor-ambush",
   kind: "battle",
-  category: "battle",
   title: "地底黑影",
   energyDelta: 0,
   description: "地面的黑斑忽然鼓起，无声的轮廓挡住了去路。",
@@ -90,7 +89,6 @@ export function corridorGuardEvent(tier: BattleTier, encounterId: string): NodeE
   return {
     id: `corridor-guard-${encounterId}`,
     kind: "battle",
-    category: "battle",
     title: "地底黑影",
     energyDelta: 0,
     description: "地面的黑斑忽然鼓起，无声的轮廓挡住了去路。",
@@ -109,7 +107,6 @@ export function corridorWandererEvent(tier: BattleTier): NodeEvent {
   return {
     id: `corridor-wanderer-${tier}`,
     kind: "battle",
-    category: "battle",
     title: "游荡杂兵",
     energyDelta: 0,
     description: "走廊深处的杂兵循着粒子波动现身，挡住了前路。",
@@ -129,7 +126,6 @@ export function corridorAlarmEvent(tier: BattleTier): NodeEvent {
   return {
     id: `corridor-alarm-${tier}`,
     kind: "battle",
-    category: "battle",
     title: "警报引来的守卫",
     energyDelta: 0,
     description: "刺耳的警报还没停下，循声而来的守卫已经堵住了队伍。",
@@ -149,7 +145,6 @@ export function curioEvent(kind: CurioKind): NodeEvent {
   return {
     id: `corridor-${kind}`,
     kind: kind === "merchant" ? "merchant" : "loot",
-    category: kind === "merchant" ? "economy" : "growth",
     title: def.name,
     energyDelta: 0,
     description: def.description,

@@ -4,7 +4,7 @@
 
 ## 汇总入口
 
-[data/index.ts](../../src/data/index.ts) 是注册表和工具函数的集合：`ITEM_DEFS`、各类 `getXxx` 查询、`newUid`、`makeItemStack` / `makeRolledItemStack` 等。⚠ 卡牌实例和物品实例的 uid 会随存档写入 localStorage，必须用 `newUid` 生成，不能用内存计数器。
+[data/index.ts](../../src/data/index.ts) 是数据层的聚合入口；注册表和工具函数（`ITEM_DEFS`、各类 `getXxx` 查询、`newUid`、`makeItemStack` / `makeRolledItemStack` 等）实现在 [data/registry.ts](../../src/data/registry.ts)。⚠ data 目录内部的模块直接引 `registry.ts` 或具体文件，不要从 `data/index.ts` 取，否则会形成运行时依赖环。⚠ 卡牌实例和物品实例的 uid 会随存档写入 localStorage，必须用 `newUid` 生成，不能用内存计数器。
 
 ## 地图与难度
 
@@ -30,15 +30,10 @@
 | [curios/growthBalance.ts](../../src/data/curios/growthBalance.ts) | 成长服务的选项，以及哪些难度允许删卡（新手和普通难度禁用）。 |
 | [curios/merchantPricing.ts](../../src/data/curios/merchantPricing.ts) / [critters.ts](../../src/data/curios/critters.ts) | 货商收取的食品和价格档位；机械小动物的喂食偏好。 |
 
-## 旧事件池（部分遗留）
+## 其他探索数据
 
 | 文件 | 作用 |
 | --- | --- |
-| [exploreEvents.ts](../../src/data/exploreEvents.ts) | 节点事件池 `EVENT_POOLS`（1218 行）。⚠ 只有 `battle` 池仍被 `explore/session.ts` 读取，其余属于旧节点路线玩法。 |
-| [exploreEventKit.ts](../../src/data/exploreEventKit.ts) | 编写事件用的简写函数。 |
-| [tutorialEvents.ts](../../src/data/tutorialEvents.ts) / [tutorialRoute.ts](../../src/data/tutorialRoute.ts) / [exploreTrials.ts](../../src/data/exploreTrials.ts) | 旧新手路线、挑战节点契约。有待复核后清理。 |
-| [npcEvents.ts](../../src/data/npcEvents.ts) | 用指定食品触发的隐藏 NPC 事件。 |
-| [tradeServices.ts](../../src/data/tradeServices.ts) / [tradeStock.ts](../../src/data/tradeStock.ts) | 交易终端的服务目录和货品（由旧的 `explore/shop.ts` 使用）。 |
 | [picnicRecipes.ts](../../src/data/picnicRecipes.ts) | 野餐食谱：回复体力极限，或给一件一次性遗物。 |
 
 ## 物品 `items/`

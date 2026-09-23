@@ -22,9 +22,6 @@
 .k-retreat {
   composes: k-retreat from "../../../explore/styles/exploreKit.module.css";
 }
-.k-trial {
-  composes: k-trial from "../../../explore/styles/exploreKit.module.css";
-}
 .k-empty {
   composes: k-empty from "../../../explore/styles/exploreKit.module.css";
 }

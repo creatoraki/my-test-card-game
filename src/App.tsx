@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useRunStore, type Screen } from "./store/runStore";
 import { ScreenTransition } from "@/ui/app/ScreenTransition";
 import { MenuScreen } from "@/ui/menu/MenuScreen";
@@ -12,9 +12,14 @@ import { EndScreen } from "@/ui/result/EndScreen";
 import { startGameAssetPreload } from "@/ui/art/assetPreloader";
 import { useBgm } from "@/ui/hooks/useBgm";
 import { useSfx } from "@/ui/hooks/useSfx";
-import { TestScreen } from "@/ui/test/TestScreen";
 import { GuideSpotlight } from "@/ui/common/GuideSpotlight";
 import { ConfirmDialog } from "@/ui/common/ConfirmDialog";
+
+// 演示页只在开发环境存在: 生产构建里 import.meta.env.DEV 恒为 false, 整个动态 import 分支会被摇树删掉,
+// 约 2.8 万行演示代码不会进入生产包。⚠ 正式代码不得反向引用 ui/test 下的任何文件。
+const TestScreen = import.meta.env.DEV
+  ? lazy(() => import("@/ui/test/TestScreen").then((m) => ({ default: m.TestScreen })))
+  : null;
 
 // 界面 → 组件。抽成纯函数是为了让 ScreenTransition 能在出场期间继续渲染「旧」界面。
 function renderScreen(screen: Screen) {
@@ -42,7 +47,7 @@ function renderScreen(screen: Screen) {
 }
 
 export default function App() {
-  const isTestPage = new URLSearchParams(window.location.search).get("page") === "test";
+  const isTestPage = TestScreen !== null && new URLSearchParams(window.location.search).get("page") === "test";
   useBgm(!isTestPage);
   useSfx(!isTestPage);
 
@@ -52,7 +57,13 @@ export default function App() {
   }, [isTestPage]);
 
   const screen = useRunStore((s) => s.screen);
-  if (isTestPage) return <TestScreen />;
+  if (isTestPage && TestScreen) {
+    return (
+      <Suspense fallback={null}>
+        <TestScreen />
+      </Suspense>
+    );
+  }
 
   return (
     <>

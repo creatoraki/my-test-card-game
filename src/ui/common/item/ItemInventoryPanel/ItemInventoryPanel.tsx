@@ -19,6 +19,7 @@ import { cx } from "@/ui/common/cx";
 import { inventoryThemeVars, type InventoryColorMap } from "@/ui/common/item/inventoryTheme";
 import { techLevels, useTownStore } from "@/store/townStore";
 import s from "./ItemInventoryPanel.module.css";
+import g from "./ItemInventoryPanel.grid.module.css";
 
 export type { InventoryColorMap } from "@/ui/common/item/inventoryTheme";
 
@@ -225,13 +226,13 @@ export default function ItemInventoryPanel({
           </div>
         </header>
 
-        <div className={s["inventory-tray"]}>
-          <div className={s["inventory-grid"]} role="group" aria-label={gridLabel}>
+        <div className={g["inventory-tray"]}>
+          <div className={g["inventory-grid"]} role="group" aria-label={gridLabel}>
             {cells.map((stack, index) =>
               stack ? (
                 <div
                   key={stack.uid}
-                  className={s["inventory-slot-anchor"]}
+                  className={g["inventory-slot-anchor"]}
                   draggable={onReorder ? true : undefined}
                   data-dragging={dragIndex === index ? "true" : undefined}
                   data-drop={dropIndex === index ? "true" : undefined}
@@ -284,16 +285,16 @@ export default function ItemInventoryPanel({
                     showName={false}
                     onClick={() => handleSelect(stack)}
                     className={cx(
-                      s["inventory-slot"],
-                      activeSelectedUid === stack.uid && s["inventory-slot-selected"],
+                      g["inventory-slot"],
+                      activeSelectedUid === stack.uid && g["inventory-slot-selected"],
                     )}
                   />
-                  {slotHint && <InteractiveHint className={s["inventory-slot-hint"]} />}
+                  {slotHint && <InteractiveHint className={g["inventory-slot-hint"]} />}
                 </div>
               ) : (
                 <div
                   key={`empty-${index}`}
-                  className={cx(s["inventory-slot-anchor"], s["inventory-empty-anchor"])}
+                  className={cx(g["inventory-slot-anchor"], g["inventory-empty-anchor"])}
                   data-drop={dropIndex === index ? "true" : undefined}
                   onDragOver={(event) => {
                     if (dragIndex == null || !onReorder) return;
@@ -311,7 +312,7 @@ export default function ItemInventoryPanel({
                     setDropIndex(null);
                   }}
                 >
-                  <EmptySlot className={s["inventory-empty"]} />
+                  <EmptySlot className={g["inventory-empty"]} />
                 </div>
               ),
             )}
@@ -319,11 +320,11 @@ export default function ItemInventoryPanel({
         </div>
 
         {!compact && (
-          <footer className={s["inventory-footer"]}>
-            <div className={s["inventory-selected"]} aria-live="polite">
+          <footer className={g["inventory-footer"]}>
+            <div className={g["inventory-selected"]} aria-live="polite">
               {selectedInfo}
             </div>
-            {footer && <div className={s["inventory-actions"]}>{footer}</div>}
+            {footer && <div className={g["inventory-actions"]}>{footer}</div>}
           </footer>
         )}
       </div>
@@ -341,8 +342,8 @@ function DefaultSelectedInfo({ stack }: { stack: ItemStack | null }) {
   if (!stack) {
     return (
       <>
-        <span className={s["inventory-selected-label"]}>未选择物品</span>
-        <span className={s["inventory-selected-empty"]}>选择一件物品查看详情</span>
+        <span className={g["inventory-selected-label"]}>未选择物品</span>
+        <span className={g["inventory-selected-empty"]}>选择一件物品查看详情</span>
       </>
     );
   }
@@ -351,9 +352,9 @@ function DefaultSelectedInfo({ stack }: { stack: ItemStack | null }) {
   const sellPrice = sellPriceOf(def, levels);
   return (
     <>
-      <span className={s["inventory-selected-label"]}>物品详情</span>
-      <strong className={s["inventory-selected-name"]}>{def.name}</strong>
-      <span className={s["inventory-selected-meta"]}>
+      <span className={g["inventory-selected-label"]}>物品详情</span>
+      <strong className={g["inventory-selected-name"]}>{def.name}</strong>
+      <span className={g["inventory-selected-meta"]}>
         {stack.count > 1 && `数量 ${stack.count} · `}
         {sellPrice > 0 ? `单价 ${sellPrice} 积分` : "待处理物品"}
       </span>

@@ -1,6 +1,6 @@
 import type { Card, DamageCtx } from "../types";
 import { ops } from "../ops";
-import { STATUS_DEFS } from "../statuses";
+import { STATUS_DEFS } from "../hookRegistry";
 import { RULES } from "../rules";
 import { playableHandUids, isPassive } from "../passiveCards";
 import { activeEffectsOf } from "../cardEffects";

@@ -19,7 +19,7 @@
 | 文件 | 作用 |
 | --- | --- |
 | [src/main.tsx](../../src/main.tsx) | 创建 React 根。⚠ `import "./styles/index.css"` 必须写在所有 import 的最前面，保证公共样式先于组件样式注入。同时安装全局光标（`installGameCursor`）和图鉴收集器（`installCodexCollector`）。 |
-| [src/App.tsx](../../src/App.tsx) | 顶层路由：读取 `runStore.screen`，由 `renderScreen` 映射成页面组件，交给 `ScreenTransition` 渲染；常驻挂载 `GuideSpotlight` 与 `ConfirmDialog`；负责启动 BGM、音效和素材预加载。URL 带 `?page=test` 时改为渲染演示页。 |
+| [src/App.tsx](../../src/App.tsx) | 顶层路由：读取 `runStore.screen`，由 `renderScreen` 映射成页面组件，交给 `ScreenTransition` 渲染；常驻挂载 `GuideSpotlight` 与 `ConfirmDialog`；负责启动 BGM、音效和素材预加载。URL 带 `?page=test` 时改为渲染演示页（仅开发环境，演示页以 `React.lazy` 懒加载，生产包不含）。 |
 
 界面枚举 `Screen`：`menu`、`town`、`formation`、`sortie`、`elevator`、`explore`、`battle`、`victory` / `defeat`（后两者都渲染 `EndScreen`）。角色详情不是独立界面，而是编队页内部的一种状态。
 

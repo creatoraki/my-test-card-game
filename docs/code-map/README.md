@@ -34,16 +34,17 @@ data ──▶ engine / explore / items 的类型
 
 - `engine/`、`explore/`、`items/` 都是纯 TypeScript：不引用 React，不引用 store。所有函数都会直接修改传入的状态对象，由 store 层先 `structuredClone` 再调用。
 - `store/` 不引用 `ui/`。`runStore` 单向依赖 `townStore`。
+- 运行时依赖无环。`data/` 内部模块从 `data/registry.ts` 取 getter，不从聚合入口 `data/index.ts` 取。
 - 素材只在 `ui/art/` 中登记，数据层不接触任何图片路径。
 
 ## 使用规则
 
 - 规则真相点（`engine/rules.ts`、`explore/rules.ts`、`explore/energyCost.ts`、`data/mapDifficulty.ts`）优先于组件实现。
-- 文档中标 ⚠ 的是易踩坑点；标“遗留”的是旧节点路线玩法的残留，UI 已不再调用。
+- 文档中标 ⚠ 的是易踩坑点。
 - 设计文档与代码不一致时，以实际代码为准；修改代码后同步更新对应的模块说明。
 - 代码健康度与整改建议见 [代码健康度审查](../代码健康度审查.md)。
 
 ## 不在地图范围内
 
-- `src/ui/test/`：开发用演示与实验页，通过 `?page=test` 进入（见 [App.tsx](../../src/App.tsx)），本地图不记录它。⚠ 正式代码 `ui/common/BuffIcon/emblemGeometry.ts` 仍引用其中的 `opus/CultivationSigil/cultivationGeometry`。
+- `src/ui/test/`：开发用演示与实验页，通过 `?page=test` 进入（见 [App.tsx](../../src/App.tsx)），本地图不记录它。演示页只在开发环境懒加载，不进入生产包；正式代码不得引用 `ui/test` 下的文件。
 - `src/assets/`：美术与音频素材，登记关系见 [ui-app.md](ui-app.md) 的“美术登记表”一节。

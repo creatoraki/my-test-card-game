@@ -6,7 +6,7 @@ import { corridorSlotsFor, corridorWalkMax, corridorWidthFor, CORRIDOR, type Cor
 /**
  * 把一个房间展开成可游玩的横向场景。
  * 房间图(谁连通谁)由 dungeon/ 负责, 这里只负责「房间场景里有什么、玩家站在哪」。
- * board 仍是现有事件结算的索引: 第 i 个物件对应第 i 段, 战斗房末段才是黑影。
+ * sceneEvents 是场景事件的索引: 第 i 个物件对应 sceneEvents[i], 战斗房的黑影排在物件之后。
  */
 export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalDir | null): void {
   const width = corridorWidthFor(room.nearMapVariant);
@@ -38,26 +38,18 @@ export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalD
     standingPortalDir: null,
   };
 
-  const nodes = objects.map((object) => [curioEvent(object.kind)]);
+  s.sceneEvents = objects.map((object) => curioEvent(object.kind));
   if (room.kind === "battle") {
-    nodes.push([room.guard ? corridorGuardEvent(room.guard.tier, room.guard.encounterId) : CORRIDOR_AMBUSH]);
+    s.sceneEvents.push(room.guard ? corridorGuardEvent(room.guard.tier, room.guard.encounterId) : CORRIDOR_AMBUSH);
   }
-  s.board = {
-    round: room.depth + 1, laneCount: 1, rowsPerSegment: 1,
-    segments: nodes.map((_, index) => ({ index, bridges: [] })),
-    nodes, revealDurationMs: 0, blockedLanes: [], hiddenNodes: [],
-  };
-  s.entryLane = null;
-  s.currentLane = 0;
-  s.currentSegment = 0;
+  s.landedIndex = null;
   s.freeNodes = 0;
-  s.shop = null;
   s.pendingNotes = [];
   s.pendingStory = [];
   s.pendingBattleTier = null;
   s.battleSource = null;
   s.chuteOpen = false;
-    s.phase = "atNode";
+  s.phase = "atNode";
 }
 
 /** 落地点: 从哪扇门进来就站在那扇门边上(但不踩在门上), 首次进图站离门最远的槽位。 */
@@ -125,8 +117,7 @@ export function openCorridorObject(s: ExploreState, id: string): boolean {
   const object = nearbyObjects(s.corridor, s.corridor.playerX).find((candidate) => candidate.id === id);
   if (!object) return false;
   s.corridor.activeObjectId = id;
-  s.currentLane = 0;
-  s.currentSegment = object.nodeIndex + 1;
+  s.landedIndex = object.nodeIndex;
   s.pendingNotes = [];
   s.pendingStory = [];
   s.chuteOpen = false;
@@ -141,8 +132,7 @@ export function openForcedCurio(s: ExploreState): boolean {
   if (!object) return false;
   s.corridor.activeObjectId = object.id;
   s.corridor.standingPortalDir = null;
-  s.currentLane = 0;
-  s.currentSegment = object.nodeIndex + 1;
+  s.landedIndex = object.nodeIndex;
   s.pendingNotes = [];
   s.pendingStory = [];
   s.chuteOpen = false;

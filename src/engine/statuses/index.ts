@@ -1,4 +1,5 @@
 import type { StatusDef } from "../types";
+import { registerStatusDefs } from "../hookRegistry";
 import { BUFF_STATUS_DEFS } from "./buffs";
 import { CONTROL_STATUS_DEFS } from "./control";
 import { DEBUFF_STATUS_DEFS } from "./debuffs";
@@ -22,6 +23,9 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
   ...ABANDONED_FLOOR_STATUS_DEFS,
   ...ALCHEMIST_STATUS_DEFS,
 };
+
+// 填入钩子注册表 —— 引擎原语查的是那张表, 不直接 import 本文件(否则成环)。
+registerStatusDefs(STATUS_DEFS);
 
 export function getStatusDef(id: string): StatusDef | undefined {
   return STATUS_DEFS[id];

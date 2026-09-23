@@ -3,7 +3,7 @@ import { cardCost, starlightPayment } from "./cost";
 import { activeEffectsOf } from "./cardEffects";
 import { counterOf } from "./counters";
 import { conditionMet } from "./effects";
-import { previewDamage } from "./ops";
+import { previewDamage } from "./damage";
 import { addMod, attackDamage, damageMasteryOf, hitChance, statOf } from "./stats";
 import { RULES } from "./rules";
 import { getStatusDef } from "./statuses";

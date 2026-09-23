@@ -1,14 +1,11 @@
-// 事件图标 —— 画在**直立投影面板**上的一组纯线框符号。
+// 事件图标 —— 结算页远征记录(EventDropBand)使用的一组纯线框符号。
 //
-// ⛔ 一律 2D 线框, 不做任何等距斜切: 这些图标不在地面上, 而是在一块正对观者的投影面上,
-//   跟着面板一起「立」着 —— 一旦给它们加斜切, 面板就会读成又一块躺倒的贴纸。
-// ★ 全部用 currentColor 描边 ⇒ 颜色由面板上的 color(事件色派生的 --k1)统一给,
+// ★ 全部用 currentColor 描边 ⇒ 颜色由外层的事件色统一给,
 //   新增事件类型只要补一条 path, 不用再碰任何颜色。
-// ⚠ 统一 viewBox 32×32、stroke-width 2、round 端点: 25 块砖同时在画面上, 线宽不齐会立刻看出来。
+// ⚠ 统一 viewBox 32×32、stroke-width 2、round 端点: 多个图标并排时线宽不齐会立刻看出来。
 //
-// ⚠ "unknown" 不是 NodeEventKind 的真实成员 —— 它是**未知节点**的占位类型(走到之前
-//   不知道真实事件, 见 EXPLORE_RULES.hiddenNodesPerBoard)。RouteBoard 渲染未知节点时
-//   把 kind 换成 "unknown" 走同一套图标/配色管线, 因此这里把它与真实类型放在一起。
+// ⚠ "unknown" 不是 NodeEventKind 的真实成员 —— 它是记录缺失事件类型时的兜底占位,
+//   走同一套图标/配色管线, 因此这里把它与真实类型放在一起。
 
 import type { ReactElement } from "react";
 import type { NodeEventKind } from "@/explore/types";
@@ -69,15 +66,6 @@ const PATHS: Record<RouteIconKind, ReactElement> = {
       <path d="M6 6l14 14M26 6 12 20" />
       <path d="M20 20l6 6M12 20l-6 6" />
       <path d="M4 24h4v4H4zM24 24h4v4h-4z" />
-    </>
-  ),
-  // 挑战: 天平 —— 先押上代价, 撑过两轮再换回报, 这个节点的全部意思就是一次称重
-  trial: (
-    <>
-      <path d="M16 6v21M11 27h10" />
-      <path d="M6 11h20" />
-      <path d="M6 11 3 18h6z" />
-      <path d="M26 11l-3 7h6z" />
     </>
   ),
   // 撤离: 门框 + 向外的箭头

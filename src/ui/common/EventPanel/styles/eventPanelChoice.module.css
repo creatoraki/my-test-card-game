@@ -1,0 +1,387 @@
+/* 事件面板·行动选择 —— 场景标签、选项列表与返回按钮。结算结果见 eventPanelResult.module.css。 */
+
+.sceneEyebrow {
+  display: block;
+  color: var(--ui-label);
+  font-family: var(--font-family);
+  font-size: var(--ep-meta);
+  font-weight: var(--ui-weight);
+  line-height: 1.4;
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.choiceScene {
+  --ui-glow-color: var(--event-accent);
+  display: grid;
+  grid-template-columns: minmax(190px, 0.72fr) minmax(0, 1.28fr);
+  height: 100%;
+  min-height: 0;
+  align-items: center;
+  gap: 56px;
+  animation: choiceIn 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+[data-variant="rest"] .choiceScene {
+  align-items: start;
+}
+
+.choiceIntro {
+  padding-left: 9px;
+  border-left: 2px solid var(--event-accent);
+  animation: copyIn 520ms 130ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.choiceIntro h2 {
+  margin: 13px 0 9px;
+  color: var(--ui-value);
+  font-family: var(--font-family);
+  font-size: var(--ep-h2);
+  font-weight: var(--ui-weight);
+  line-height: 1.05;
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.choiceIntro p {
+  max-width: 220px;
+  margin: 0;
+  color: #899b9a;
+  font-size: var(--ep-meta);
+  line-height: 1.8;
+}
+
+.choiceSignal {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 25px;
+  color: var(--ui-label);
+  font-family: var(--font-family);
+  font-size: var(--ep-meta);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.choiceSignal span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d6f238;
+  box-shadow: 0 0 10px #d6f238;
+}
+
+.optionsList {
+  display: grid;
+  min-height: 0;
+  max-height: 100%;
+  gap: 9px;
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: none;
+  animation: optionsIn 520ms 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.optionsList::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+[data-variant="rest"] .optionsList {
+  gap: 7px;
+}
+
+.option {
+  display: grid;
+  position: relative;
+  grid-template-columns: 39px minmax(0, 1fr) 29px;
+  align-items: center;
+  min-height: 91px;
+  padding: 10px 16px 10px 0;
+  overflow: hidden;
+  border: 1px solid #33444a;
+  background: linear-gradient(110deg, #172327, #0e161a);
+  color: #dfe9e4;
+  text-align: left;
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  animation: optionEnter 420ms var(--option-delay, 100ms) both;
+}
+
+[data-variant="rest"] .option {
+  min-height: 78px;
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+.option::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--event-accent);
+  content: "";
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.option:hover:not(:disabled):not([aria-disabled="true"]),
+.option:focus-visible:not(:disabled):not([aria-disabled="true"]) {
+  border-color: color-mix(in srgb, var(--event-accent) 70%, #33444a);
+  background: linear-gradient(110deg, color-mix(in srgb, var(--event-accent) 12%, #172327), #111c20);
+  box-shadow: 0 8px 22px #0005;
+  transform: translateX(5px);
+}
+
+.option:hover:not(:disabled):not([aria-disabled="true"])::before,
+.option:focus-visible:not(:disabled):not([aria-disabled="true"])::before {
+  opacity: 1;
+}
+
+.option:disabled,
+.option[aria-disabled="true"] {
+  border-color: #273337;
+  background: #0d1417;
+  color: #637276;
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.optionIndicator {
+  position: relative;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  border-right: 1px solid #34464b;
+}
+
+.optionIndicator::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #52666a;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #9aaba3 0 8%, #536568 24%, #1d2a2e 64%, #0d1518 100%);
+  content: "";
+  box-shadow:
+    inset 0 1px 2px #ffffff2b,
+    inset 0 -2px 4px #000b,
+    0 0 0 1px #071013;
+  transform: translate(-50%, -50%);
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 220ms ease, transform 220ms ease;
+}
+
+.optionIndicator::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, var(--event-accent) 70%, transparent);
+  border-radius: 50%;
+  content: "";
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.7);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.option:hover:not(:disabled):not([aria-disabled="true"]) .optionIndicator,
+.option:focus-visible:not(:disabled):not([aria-disabled="true"]) .optionIndicator,
+.optionChosen .optionIndicator {
+  border-right-color: color-mix(in srgb, var(--event-accent) 45%, #34464b);
+}
+
+.option:hover:not(:disabled):not([aria-disabled="true"]) .optionIndicator::before,
+.option:focus-visible:not(:disabled):not([aria-disabled="true"]) .optionIndicator::before,
+.optionChosen .optionIndicator::before {
+  border-color: color-mix(in srgb, var(--event-accent) 86%, white 14%);
+  background: radial-gradient(circle at 34% 27%, #fff9d8 0 9%, color-mix(in srgb, var(--event-accent) 92%, white) 20%, color-mix(in srgb, var(--event-accent) 62%, #102025) 58%, #102025 100%);
+  box-shadow:
+    inset 0 1px 2px #ffffff80,
+    inset 0 -2px 4px #0008,
+    0 0 0 1px #071013,
+    0 0 10px color-mix(in srgb, var(--event-accent) 78%, transparent),
+    0 0 24px color-mix(in srgb, var(--event-accent) 34%, transparent);
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.option:hover:not(:disabled):not([aria-disabled="true"]) .optionIndicator::after,
+.option:focus-visible:not(:disabled):not([aria-disabled="true"]) .optionIndicator::after,
+.optionChosen .optionIndicator::after {
+  opacity: 0.78;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.optionLeading {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  min-width: 39px;
+  border-right: 1px solid #34464b;
+}
+
+.optionLeading :global(.item-slot) {
+  width: 70px;
+}
+
+[data-variant="rest"] .optionLeading :global(.item-slot) {
+  width: 56px;
+}
+
+.optionMain {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  padding: 0 14px;
+}
+
+.optionMain strong {
+  color: var(--ui-value);
+  font-size: var(--ep-body);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.optionMain > span {
+  overflow: hidden;
+  color: var(--ui-label);
+  font-size: var(--ep-meta);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optionMain em {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  margin-top: 2px;
+  font-size: var(--ep-meta);
+  font-style: normal;
+  line-height: 1;
+}
+
+.optionMain em i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.costAmber { color: #e2a967; }
+.costCyan { color: #65d4d0; }
+.costRed { color: #e47970; }
+
+.optionArrow {
+  justify-self: end;
+  color: #74888a;
+  font-size: var(--ep-arrow);
+  font-weight: 400;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.option:hover:not(:disabled):not([aria-disabled="true"]) .optionArrow,
+.option:focus-visible:not(:disabled):not([aria-disabled="true"]) .optionArrow {
+  color: var(--event-accent);
+  transform: translate(3px, -3px);
+}
+
+.optionChosen {
+  opacity: 1;
+  border-color: var(--event-accent);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--event-accent) 18%, transparent), #172329e6);
+  box-shadow: 0 18px 34px -24px var(--event-accent), inset 0 1px 0 #ffffff1a;
+  animation: optionCommit 460ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.optionChosen::before {
+  opacity: 1;
+}
+
+.optionChosen::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 38%, #ffffff33 50%, transparent 62%);
+  content: "";
+  pointer-events: none;
+  transform: translateX(-120%);
+  animation: optionSheen 460ms cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
+}
+
+.optionChosen .optionMain strong,
+.optionChosen .optionMain em,
+.optionChosen .optionArrow {
+  color: #07100f;
+}
+
+.optionDimmed {
+  animation: none;
+  opacity: 0.18;
+  transform: translateY(8px);
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+
+.backButton {
+  justify-self: start;
+  margin-top: 20px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ui-label);
+  clip-path: none;
+  font-size: var(--ep-meta);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+[data-variant="rest"] .backButton {
+  margin-top: 10px;
+}
+
+.backButton span {
+  margin-right: 6px;
+  color: var(--event-accent);
+}
+
+.backButton:hover:not(:disabled) {
+  color: #edf5ec;
+}
+
+@keyframes choiceIn {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes copyIn {
+  from { opacity: 0; transform: translateX(26px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes optionsIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes optionEnter {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes optionCommit {
+  from { transform: translateY(0); }
+  35% { transform: translateY(2px); }
+  to { transform: translateY(0); }
+}
+
+@keyframes optionSheen {
+  to { transform: translateX(120%); }
+}

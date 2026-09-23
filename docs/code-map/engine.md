@@ -7,7 +7,8 @@
 | 文件 | 作用 |
 | --- | --- |
 | [rules.ts](../../src/engine/rules.ts) | 战斗与养成的全部数值旋钮（`RULES`），以及卡组升级、抽卡、删卡的费用函数。调平衡只改这里。 |
-| [types.ts](../../src/engine/types.ts) | 引擎与 UI 共用的类型（945 行，只有类型）。分区依次为：目标、效果描述符、卡牌、状态、属性面板、战斗单位、遭遇战改造器、战斗状态、引擎原语、动画帧。 |
+| [types/](../../src/engine/types/index.ts) | 引擎与 UI 共用的类型（只有类型），按领域分文件、由 `types/index.ts` 统一导出：`base`（阵营、挑战、目标）、`effects`（效果描述符）、`cards`、`statuses`、`stats`（属性面板）、`combatants`（战斗单位、遭遇战改造器）、`battleState`、`engineOps`（引擎原语）、`anim`（动画帧）。 |
+| [hookRegistry.ts](../../src/engine/hookRegistry.ts) | 状态定义与行为型遗物的查表入口，不 import 任何运行时模块。`statuses/index`、`relicBehaviors/index` 在加载时注册；ops、属性、伤害管线只查这张表，从而不与状态 / 遗物定义互相引用。⚠ 需先加载引擎入口（`engine/index` 或 `engine/battle`）表才有内容。 |
 | [stats.ts](../../src/engine/stats.ts) | 属性换算的唯一入口：（基础 + 装备固定值）×（1 + 装备百分比）+ 战斗内修正；也提供命中率、暴击率、负重、精通等计算。 |
 | [rng.ts](../../src/engine/rng.ts) | 可复现的随机数（mulberry32），状态存在 `BattleState.rngState` 中。⚠ 规则层禁止使用 `Math.random`。 |
 
@@ -27,7 +28,7 @@
 | 文件 | 作用 |
 | --- | --- |
 | [effects.ts](../../src/engine/effects.ts) | 效果解释器：把声明式的 `EffectDescriptor` 翻译成引擎原语。卡牌和敌人招式共用。新增机制就在 `applyEffect` 里加一个分支。 |
-| [effectsDamage.ts](../../src/engine/effectsDamage.ts) / [effectsHand.ts](../../src/engine/effectsHand.ts) / [effectsReveal.ts](../../src/engine/effectsReveal.ts) / [effectsStatusMove.ts](../../src/engine/effectsStatusMove.ts) / [effectsStrip.ts](../../src/engine/effectsStrip.ts) | 从 `effects.ts` 拆出的效果分支：伤害、手牌与牌堆操作、翻看、状态转移、状态剥除。⚠ `effects` 与 `effectsHand`、`effectsReveal` 之间存在依赖环。 |
+| [effectsDamage.ts](../../src/engine/effectsDamage.ts) / [effectsHand.ts](../../src/engine/effectsHand.ts) / [effectsReveal.ts](../../src/engine/effectsReveal.ts) / [effectsStatusMove.ts](../../src/engine/effectsStatusMove.ts) / [effectsStrip.ts](../../src/engine/effectsStrip.ts) | 从 `effects.ts` 拆出的效果分支：伤害、手牌与牌堆操作、翻看、状态转移、状态剥除。`effectsHand`、`effectsReveal` 需要回调 `resolveEffects` 时由 `effects.ts` 以参数注入，不反向 import。 |
 | [effectConditions.ts](../../src/engine/effectConditions.ts) | 效果的触发条件判定。 |
 | [deck.ts](../../src/engine/deck.ts) | 抽牌堆、手牌、弃牌堆、消耗堆之间的移动；抽空时把弃牌洗回抽牌堆。 |
 | [discard.ts](../../src/engine/discard.ts) | 弃牌的唯一入口：迁移牌堆、统计回合弃牌数、触发“被弃置时”效果。 |
@@ -60,7 +61,7 @@
 | [ai.ts](../../src/engine/ai.ts) | 敌人蓄力、抽招和出手。 |
 | [enemyMovePick.ts](../../src/engine/enemyMovePick.ts) / [enemyScript.ts](../../src/engine/enemyScript.ts) | 招式权重、条件偏好、目标选择，以及首领的状态机脚本。 |
 | [targeting.ts](../../src/engine/targeting.ts) | 敌我查询与嘲讽规则：有嘲讽单位时只能选它，否则在存活单位中随机选。 |
-| [relics.ts](../../src/engine/relics.ts) + [relicBehaviors/](../../src/engine/relicBehaviors/index.ts) | 声明式遗物的触发，以及行为型遗物（分基础、罕见、教程三组）。⚠ `relicBehaviors` 与 `damage/`、`ops` 构成 17 个文件的依赖环。 |
+| [relics.ts](../../src/engine/relics.ts) + [relicBehaviors/](../../src/engine/relicBehaviors/index.ts) | 声明式遗物的触发，以及行为型遗物（分基础、罕见、教程三组）。`runRelicHook` 从 `hookRegistry` 查行为表。`ops.dealDamage` 与 `ops.draw` 等同样是晚绑定：由 `damage/index`、`deck` 等模块加载时挂到 `ops` 上。 |
 | [challenges/defs.ts](../../src/engine/challenges/defs.ts) / [challenges/index.ts](../../src/engine/challenges/index.ts) | 挑战词条：定义表和运行时钩子。完成后的掉落加成会计入探索掉落系数。 |
 | [animHits.ts](../../src/engine/animHits.ts) | 记录多段伤害每一段的命中明细，只给 UI 回放用，不参与结算。 |
 

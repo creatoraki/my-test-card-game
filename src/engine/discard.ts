@@ -23,7 +23,7 @@ import { cardCost } from "./cost";
 import { partyHandLimit } from "./stats";
 import { currentRecorder, ensureCardFxSnapshot, recordCardTrigger, snapshotHp } from "./cardFx";
 import { firePassive } from "./passive";
-import { STATUS_DEFS } from "./statuses";
+import { STATUS_DEFS } from "./hookRegistry";
 import { ctxFor } from "./ops";
 import { CARD_MARK_DEFS } from "./cardMarks";
 

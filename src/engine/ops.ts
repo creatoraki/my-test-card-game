@@ -1,7 +1,8 @@
 // ============================================================================
 // 引擎原语 —— 治疗、护盾、状态施加、状态生命周期、胜负判定。
 // 这些是所有效果/AI/状态最终落地的地方, 都经过事件钩子, 便于组合出复杂联动。
-// 伤害结算管线在 ./damage, 这里只转出, 保持原有导入路径可用。
+// 伤害结算管线在 ./damage; ops.dealDamage 由 damage/index 在加载时注入(与 draw / discard 同一晚绑定模式),
+// 本文件因此不 import 伤害管线, 也不 import 状态定义本体(查 hookRegistry) —— 两者都会反过来调用这里。
 // ============================================================================
 
 import type {
@@ -13,16 +14,13 @@ import type {
   StatusCtx,
   StatusInstance,
 } from "./types";
-import { STATUS_DEFS } from "./statuses";
+import { STATUS_DEFS } from "./hookRegistry";
 import { rngFloat } from "./rng";
 import { addMod, healValue, offenseStatOf, statOf } from "./stats";
 import { checkChallengesOnWin, noteChallengeKill } from "./challenges";
 import { recordHitPart } from "./animHits";
 import { capStatusStacks, mergeStatus, syncSegments } from "./statuses/stacking";
 import { runRelicHook } from "./relicBehaviors/types";
-import { dealDamage, previewDamage } from "./damage";
-
-export { dealDamage, previewDamage };
 
 export function log(state: BattleState, text: string): void {
   state.log.push({ round: state.round, tick: state.tick, text });
@@ -273,7 +271,7 @@ export const ops: EngineOps = {
     const target = state.combatants[targetId];
     return target ? statOf(target, stat) : 0;
   },
-  dealDamage,
+  dealDamage: () => null,
   heal,
   gainShield,
   applyStatus,

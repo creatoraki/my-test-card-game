@@ -1,23 +1,18 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { AttackArtsFx, type AttackArt } from "@/ui/battle/fx/AttackArtsFx";
-import { BladeSlashFx } from "@/ui/battle/fx/BladeSlashFx";
-import { ANIM } from "@/ui/battle/animations";
 import { enemyArt } from "@/ui/art/enemyArt";
+import type { DemoFx } from "./demoFx";
 import s from "./AttackArtsDemo.module.css";
 
-const BLADE = ANIM["blade-slash"];
 const TARGET = enemyArt("scrap-bot");
 
-export function AttackArtsDemo({ art }: { art?: AttackArt }) {
+export function AttackArtsDemo({ fx }: { fx: DemoFx }) {
   const [sequence, setSequence] = useState(0);
   const [rate, setRate] = useState(1);
   const [loop, setLoop] = useState(true);
   const [showTarget, setShowTarget] = useState(true);
   const [scale, setScale] = useState(1);
   const viewport = useRef<HTMLDivElement>(null);
-  const duration = art?.durationMs ?? BLADE.hold;
-  const impact = art?.impactMs ?? BLADE.proc!.impactMs;
-  const color = art?.color ?? BLADE.color;
+  const { durationMs: duration, impactMs: impact, color } = fx;
 
   useEffect(() => {
     const element = viewport.current;
@@ -39,9 +34,9 @@ export function AttackArtsDemo({ art }: { art?: AttackArt }) {
     <div className={s.root} style={{ "--art-color": color } as CSSProperties}>
       <header className={s.header}>
         <div>
-          <p className={s.category}>{art?.category ?? "原版对照"} · 攻击特效</p>
-          <h1>{art?.name ?? "刀光斩"}</h1>
-          <p className={s.description}>{art?.description ?? "原版刀光斩：斜向刀光、粒子回流、沿刃爆裂。作为这批特效的视觉对照。"}</p>
+          <p className={s.category}>{fx.category} · 攻击特效</p>
+          <h1>{fx.name}</h1>
+          <p className={s.description}>{fx.description}</p>
         </div>
         <div className={s.readout}>
           <span>命中 {(impact / 1000).toFixed(2)} 秒</span>
@@ -55,7 +50,7 @@ export function AttackArtsDemo({ art }: { art?: AttackArt }) {
           <div key={`${sequence}-${rate}`} className={s.playback}
             style={{ "--impact-delay": `${impact / rate}ms`, "--reaction-duration": `${360 / rate}ms` } as CSSProperties}>
             {showTarget && TARGET ? <img className={s.target} src={TARGET.src} alt="受击演示用废品机器人" /> : null}
-            {art ? <AttackArtsFx art={art} rate={rate} /> : <BladeSlashFx preset={BLADE.proc!} />}
+            {fx.render(rate)}
             {showTarget ? <span className={s.hit}>命中</span> : null}
           </div>
         </div>

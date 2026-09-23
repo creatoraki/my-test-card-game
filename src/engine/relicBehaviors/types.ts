@@ -1,5 +1,5 @@
 import type { BattleRelic, BattleState, Card, DamageCtx, DamageModifierSink } from "../types";
-import { RELIC_BEHAVIORS } from "./index";
+import { RELIC_BEHAVIORS } from "../hookRegistry";
 
 // 行为型遗物可以触发抽牌等后续钩子，因此与声明式遗物共用同一递归深度上限。
 export const MAX_RELIC_DEPTH = 8;

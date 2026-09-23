@@ -1,5 +1,5 @@
 import type { ItemStack } from "../items/types";
-import { makeItemStack } from "./index";
+import { makeItemStack } from "./registry";
 import { difficultyKey, type MapDifficulty } from "./mapDifficulty";
 
 export interface AidSupplyEntry {

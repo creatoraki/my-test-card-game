@@ -1,6 +1,6 @@
 // ============================================================================
 // 流光·三段斩(triple-strike) —— 程序化 CSS 斩击特效(ds 专属, 纯 CSS 关键帧)。
-// 本副本是战斗正式件, test/ds 下的同名副本是 demo 陈列用, 两者已分家。
+// 战斗正式件; 演示页 ui/test/ds/DsTripleSlashDemo 直接引用本组件, 不再另存副本。
 //
 // 动画设计理念与霓虹数据·交叉斩(opus/NeonCrossFx)相同:
 //   · 时间轴节奏一致: 起手 → 斩击段 → 静默蓄压 → 爆点 → 收尾;
@@ -37,6 +37,7 @@ import {
   TRIPLE_TIMELINE,
 } from "./tripleSlashGeometry";
 import s from "./TripleSlashFx.module.css";
+import m from "./TripleSlashFx.impact.module.css";
 
 // 与 NeonCrossFx 同源的速率钩子: --fx-rate 变大 = 整体加速。
 const timing = (milliseconds: number) =>
@@ -240,7 +241,7 @@ export function TripleSlashFx({ preset }: { preset: ProcFxPreset }) {
         return (
           <div
             key={`scar-${index}`}
-            className={s["triple-scar"]}
+            className={m["triple-scar"]}
             style={asStyle({ "--blade-angle": `${blade.angle}deg` })}
           >
             <i
@@ -258,7 +259,7 @@ export function TripleSlashFx({ preset }: { preset: ProcFxPreset }) {
         return (
           <span
             key={`splinter-${index}`}
-            className={s["triple-splinter"]}
+            className={m["triple-splinter"]}
             style={asStyle({
               "--sp-angle": `${blade.angle}deg`,
               "--sp-along": `${splinter.along}px`,
@@ -277,7 +278,7 @@ export function TripleSlashFx({ preset }: { preset: ProcFxPreset }) {
         return (
           <div
             key={`mantle-${index}`}
-            className={s["triple-mantle"]}
+            className={m["triple-mantle"]}
             style={asStyle({ "--blade-angle": `${blade.angle}deg` })}
           >
             <i
@@ -292,7 +293,7 @@ export function TripleSlashFx({ preset }: { preset: ProcFxPreset }) {
         );
       })}
       <div
-        className={s["triple-shock"]}
+        className={m["triple-shock"]}
         style={asStyle({
           animationDelay: timing(at(TRIPLE_TIMELINE.impact)),
           animationDuration: timing(460),
@@ -301,7 +302,7 @@ export function TripleSlashFx({ preset }: { preset: ProcFxPreset }) {
       {FRAGMENTS.map((fragment, index) => (
         <span
           key={`fragment-${index}`}
-          className={s["triple-fragment"]}
+          className={m["triple-fragment"]}
           data-tone={fragment.tone}
           style={asStyle({
             width: fragment.length,
@@ -316,7 +317,7 @@ export function TripleSlashFx({ preset }: { preset: ProcFxPreset }) {
       {ASHES.map((ash, index) => (
         <span
           key={`ash-${index}`}
-          className={s["triple-ash"]}
+          className={m["triple-ash"]}
           style={asStyle({
             width: ash.size,
             height: ash.size,

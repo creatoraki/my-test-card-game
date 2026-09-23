@@ -11,13 +11,13 @@
 | [rules.ts](../../src/explore/rules.ts) | 探索层的全部数值旋钮（`EXPLORE_RULES`）和粒子档位（`ENERGY_TIERS`）。 |
 | [energyCost.ts](../../src/explore/energyCost.ts) | 粒子计价的唯一入口：换房、交互、战斗、行走四类消耗。UI 的预告和实际扣费都读这里。 |
 | [energy.ts](../../src/explore/energy.ts) | 改写粒子数的唯一入口，负责截断和统计。 |
-| [types.ts](../../src/explore/types.ts) | 探索层类型：会话、阶段、效果、奖励、待办等。⚠ 头部注释和部分类型（`RouteBoard`、`NodeEventKind`）仍在描述旧节点路线玩法。 |
+| [types.ts](../../src/explore/types.ts) | 探索层类型：会话、阶段、效果、奖励、待办等。当前房间的场景事件存在 `sceneEvents`，打开的物件 / 黑影下标是 `landedIndex`。 |
 
 ## 会话主体
 
 | 文件 | 作用 |
 | --- | --- |
-| [session.ts](../../src/explore/session.ts) | 远征会话（2229 行）。分区包括：粒子档位换算与掉落系数、`createSession`、背包占格与负重、拾取与待领奖励、物品使用、效果应用 `applyEffect`、战斗回填 `finishBattle`、UI 查询辅助。⚠ 中段的 `generateRouteRound` 到轮次战斗部分是旧节点路线玩法，UI 已不再调用。 |
+| [session/](../../src/explore/session/index.ts) | 远征会话，按职责分文件，由 `session/index.ts` 统一导出（调用方一律从 `explore/session` 引入）：`energy`（粒子档位换算）、`drops`（掉落系数与上下文）、`create`（建局）、`backpack`（占格、负重、拾取、投递口）、`party`（回血掉血、团灭、战斗回填）、`rewards`（装备 / 遗物候选）、`effects`（`applyEffect`）、`items`（消耗品）、`pending`（待办出队）、`battle`（档位抽取、BOSS 红门、`finishBattle`、撤离）、`scene`（黑影开战、`confirmNode`）、`queries`（UI 查询）、`log`。 |
 | [boons.ts](../../src/explore/boons.ts) | 战斗胜利奖励：治疗露珠、卡牌候选、装备箱、模组箱的生成与领取。 |
 | [picnic.ts](../../src/explore/picnic.ts) | 野餐：用临期食品组合食谱，奖励是回复体力极限或一件一次性遗物。 |
 | [relics.ts](../../src/explore/relics.ts) / [relicBehaviors.ts](../../src/explore/relicBehaviors.ts) / [relicModifiers.ts](../../src/explore/relicModifiers.ts) | 背包中遗物在探索侧的触发时机、行为，以及对负重、货商格数、废料售价、应急信标的修正。 |
@@ -55,14 +55,6 @@
 | [curio/merchant.ts](../../src/explore/curio/merchant.ts) | 流浪货商：生成货架（固定 6 格，只收两种临期食品）、判断能否购买、付款。 |
 | [curio/fusion.ts](../../src/explore/curio/fusion.ts) / [temporaryRelic.ts](../../src/explore/curio/temporaryRelic.ts) / [reveal.ts](../../src/explore/curio/reveal.ts) | 装备融合与遗物升级、发放一次性遗物、揭示整张地图。 |
 
-## 遗留：旧节点路线玩法
-
-下列代码只剩测试和 `ui/test` 在引用，清理计划见 [代码健康度审查](../代码健康度审查.md) 第 4 条。
-
-- [route.ts](../../src/explore/route.ts)：4 段拼接的阿弥陀签路线图的生成与求解。
-- [shop.ts](../../src/explore/shop.ts)：旧交易终端。⚠ 它与 `session.ts` 互相引用。
-- `session.ts` 中的路线生成、揭示、选入口、到达节点、轮次战斗等函数。
-
 ## 测试
 
-`session.test.ts`（房间图结构、背包、奖励）、`curio/curio.test.ts`、`route.test.ts`（旧玩法）。
+`session.rooms.test.ts`（房间图结构、换房、交互扣费）、`session.battle.test.ts`（战斗接缝、粒子档位、背包、撤离）、共用夹具 `session.testkit.ts`，以及 `curio/curio.test.ts`。

@@ -10,7 +10,7 @@ const FOOD_ID_SET = new Set<string>(NEAR_EXPIRY_FOOD_IDS);
 
 /** 野餐只在没有浮层的待决策相开放。 */
 export function canPicnic(s: ExploreState): boolean {
-  return s.phase === "choosingEntry" || s.phase === "atNode";
+  return s.phase === "atNode";
 }
 
 /** 合并背包中跨堆的六种临期食品。 */

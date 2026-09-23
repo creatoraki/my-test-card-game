@@ -11,8 +11,8 @@ import type { ProcFxPreset } from "@/ui/battle/animations";
 import { cx } from "@/ui/common/cx";
 import sceneBackground from "@/assets/占位场景素材.png";
 import placeholderArt from "@/assets/占位素材.png";
-import { NeonCrossFx } from "../NeonCrossFx";
-import { NEON_TIMELINE } from "../NeonCrossFx/neonCrossGeometry";
+import { NeonCrossFx } from "@/ui/battle/fx/NeonCrossFx";
+import { NEON_TIMELINE } from "@/ui/battle/fx/NeonCrossFx/neonCrossGeometry";
 import s from "./OpusNeonSlashDemo.module.css";
 
 const PRESET: ProcFxPreset = {

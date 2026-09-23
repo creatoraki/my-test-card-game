@@ -1,5 +1,5 @@
 import type { BattleState, DamageCtx, StatusCtx, StatusHooks } from "../types";
-import { STATUS_DEFS } from "../statuses";
+import { STATUS_DEFS } from "../hookRegistry";
 import { cleanup, ctxFor } from "../ops";
 import { alliesOf } from "../targeting";
 

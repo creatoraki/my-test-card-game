@@ -7,7 +7,7 @@ import {
   NUTRITION_TECHNOLOGY_CORE,
   nutritionTechnologyNodes,
 } from "./nutritionTechnologyView";
-import s from "./NutritionUpgradePanel.module.css";
+import s from "@/ui/common/techTree/techUpgradePanel.module.css";
 
 export function NutritionUpgradePanel({ onBack }: { onBack: () => void }) {
   const rootRef = useRef<HTMLDivElement>(null);

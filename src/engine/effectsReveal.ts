@@ -8,7 +8,7 @@ import { foesOf } from "./targeting";
 import { addMod, partyHandLimit } from "./stats";
 import { withHitRecorder } from "./animHits";
 import { currentRecorder, ensureCardFxSnapshot, recordCardTrigger, snapshotHp } from "./cardFx";
-import { resolveEffects, type EffectResolution } from "./effects";
+import type { EffectResolution, ResolveEffectsFn } from "./effects";
 import { baseEffectsOf } from "./cardEffects";
 import { resolveFullDraw } from "./fullDraw";
 
@@ -22,7 +22,7 @@ function randomFoeId(state: BattleState, card: Card): string | undefined {
   return foes.length ? rngPick(state, foes).id : undefined;
 }
 
-function autoPlayRevealedCard(state: BattleState, card: Card): void {
+function autoPlayRevealedCard(state: BattleState, card: Card, resolve: ResolveEffectsFn): void {
   const recorder = currentRecorder();
   if (recorder) ensureCardFxSnapshot(state);
   const beforeHp = snapshotHp(state);
@@ -56,7 +56,7 @@ function autoPlayRevealedCard(state: BattleState, card: Card): void {
   let recorded = [] as ReturnType<typeof withHitRecorder>;
   try {
     recorded = withHitRecorder(() => {
-      resolution = resolveEffects(state, baseEffectsOf(card), card.ownerCharId, primaryId);
+      resolution = resolve(state, baseEffectsOf(card), card.ownerCharId, primaryId);
     });
   } finally {
     for (const mod of state.playStatMods.slice(previous.playStatModsLength).reverse()) {
@@ -86,7 +86,7 @@ function moveToDiscard(state: BattleState, uid: string): void {
   if (!state.discard.includes(uid)) state.discard.push(uid);
 }
 
-function revealCostChain(state: BattleState, effect: EffectDescriptor): void {
+function revealCostChain(state: BattleState, effect: EffectDescriptor, resolve: ResolveEffectsFn): void {
   const amount = effect.amountFrom ? counterOf(state, effect.amountFrom) : effect.amount ?? 0;
   const limit = Math.min(Math.max(0, Math.floor(amount)), effect.maxAmount ?? Infinity);
   let previousCost = state.activeCardCost ?? 0;
@@ -100,7 +100,7 @@ function revealCostChain(state: BattleState, effect: EffectDescriptor): void {
     const cost = cardCost(state, card);
     state.draw.shift();
     if (cost < previousCost) {
-      autoPlayRevealedCard(state, card);
+      autoPlayRevealedCard(state, card, resolve);
       previousCost = cost;
     } else {
       moveToDiscard(state, uid);
@@ -109,7 +109,12 @@ function revealCostChain(state: BattleState, effect: EffectDescriptor): void {
   }
 }
 
-function revealAttackOrDraw(state: BattleState, effect: EffectDescriptor, sourceId: string): void {
+function revealAttackOrDraw(
+  state: BattleState,
+  effect: EffectDescriptor,
+  sourceId: string,
+  resolve: ResolveEffectsFn,
+): void {
   const uid = state.draw[0];
   const card = uid ? state.cards[uid] : undefined;
   if (!uid || !card) return;
@@ -125,7 +130,7 @@ function revealAttackOrDraw(state: BattleState, effect: EffectDescriptor, source
   }
   state.draw.shift();
   ops.applyStatus(state, sourceId, "zenithStar", 1);
-  autoPlayRevealedCard(state, card);
+  autoPlayRevealedCard(state, card, resolve);
 }
 
 function revealScryPick(state: BattleState, effect: EffectDescriptor): void {
@@ -141,13 +146,15 @@ function revealScryPick(state: BattleState, effect: EffectDescriptor): void {
   };
 }
 
+// ⚠ resolve 由 effects.ts 注入(就是 resolveEffects 本身): 本文件若直接 import 它, 会与 effects.ts 形成运行时环。
 export function applyRevealEffect(
   state: BattleState,
   effect: EffectDescriptor,
-  _sourceId: string,
+  sourceId: string,
+  resolve: ResolveEffectsFn,
 ): EffectResolution {
-  if (effect.revealMode === "costChain") revealCostChain(state, effect);
-  else if (effect.revealMode === "attackOrDraw") revealAttackOrDraw(state, effect, _sourceId);
+  if (effect.revealMode === "costChain") revealCostChain(state, effect, resolve);
+  else if (effect.revealMode === "attackOrDraw") revealAttackOrDraw(state, effect, sourceId, resolve);
   else if (effect.revealMode === "scryPick") revealScryPick(state, effect);
   return emptyResolution();
 }

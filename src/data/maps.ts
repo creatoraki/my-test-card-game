@@ -1,6 +1,6 @@
 // 地图数据 —— 一张地图 = 一张由若干房间连成的房间图(见 explore/dungeon/)。
 // 房间总数就是这张地图的庞大程度; 没有「层」的概念, 开启 BOSS 红门并挑战成功即通关。
-// 地图提供四样东西: 有几个房间、节点事件从哪个池抽、五个战斗档位各有哪些遭遇战、起始净化粒子。
+// 地图提供三样东西: 有几个房间(及物件配置)、五个战斗档位各有哪些遭遇战、起始净化粒子。
 // ★ 战斗档位只决定「本图该档位从哪几场遭遇战中抽取」—— 不追加敌人、不改敌方面板;
 //   能量档位对战斗的影响仅通过 encounterModifier 注入敌方开局状态(过载层数)与掉落系数。
 //
@@ -9,10 +9,9 @@
 
 import type { DungeonRoomPlan, NearMapVariant } from "../explore/dungeon/types";
 import type { CurioLevel } from "./curios/types";
-import type { BattleTier, RouteBoardPlan } from "../explore/types";
+import type { BattleTier } from "../explore/types";
 import { RARITY_ORDER, type ItemRarity } from "../items/types";
 import { TUTORIAL_DUNGEON_PLAN } from "./tutorialDungeon";
-import { TUTORIAL_ROUND_PLANS } from "./tutorialRoute";
 import type { CurioKind } from "../explore/corridor/types";
 import { ECO_ARK_MAP } from "./maps/ecoArk";
 
@@ -41,21 +40,14 @@ export interface MapDef {
   };
   /** 关闭物件的交互失败(新手关用)。 */
   disableCurioFailure?: boolean;
-  eventPoolId: string; // 节点事件池(见 data/exploreEvents.ts)
-  /** 固定轮次棋盘; 旧路由模式保留字段, 房间制不读取。 */
-  roundPlans?: readonly RouteBoardPlan[];
   /** 通关后不再出现在地图选择带, 但不影响已开始的远征。 */
   hideAfterClear?: boolean;
-  // 推进战斗档位 → 遭遇战候选。轮次到档位的权重是全局表(EXPLORE_RULES.battleTierWeights),
+  // 战斗档位 → 遭遇战候选。房间深度到档位的权重是全局表(EXPLORE_RULES.battleTierWeights),
   // 地图只负责登记每个档位的战斗模板。
   battleEncounters: Record<BattleTier, string[]>;
   /** 可替换 t1-t3 常规战斗的宝箱怪遭遇战。 */
   treasureEncounters?: readonly string[];
   startingEnergy: number; // 起始净化粒子, 默认 100(据点「过滤装置充能台」可升级上限)
-  /** 覆盖全局档位权重; 旧路由模式保留字段, 房间制按房间深度取权重, 不读它。 */
-  battleTierByRound?: readonly BattleTier[];
-  /** 固定「推进战斗」的遭遇战; 旧路由模式保留字段, 房间制不读取。 */
-  battleEncounterByRound?: readonly (string | null)[];
   /** 需要先通关这张地图才开放。 */
   requiresClear?: string;
   /** 内容未就绪, 一律锁死。 */
@@ -74,8 +66,6 @@ export const MAPS: MapDef[] = [
     dungeonPlan: TUTORIAL_DUNGEON_PLAN,
     curioLevelRange: [1, 1],
     disableCurioFailure: true,
-    eventPoolId: "tutorial",
-    roundPlans: TUTORIAL_ROUND_PLANS,
     hideAfterClear: true,
     battleEncounters: {
       t1: ["tut-t1-intro", "tut-t1-scout"],
@@ -84,10 +74,6 @@ export const MAPS: MapDef[] = [
       t4: ["tut-t3-line", "tut-t3-relay"],
       t5: ["n-t5-boss"],
     },
-    battleTierByRound: ["t1", "t1", "t2"],
-    // 前两场推进战斗固定成两套不同的双敌人配置: 先「收音机 + 红绿灯」认识增益与限行,
-    // 再「收音机 + 维修蜘蛛」认识灼烧; 第 3 轮交还给 t2 随机池。
-    battleEncounterByRound: ["tut-t1-intro", "tut-t1-scout", null],
     startingEnergy: 100,
   },
   {
@@ -99,7 +85,6 @@ export const MAPS: MapDef[] = [
     maxEquipRarity: "common",
     roomCount: 12,
     curioLevelRange: [1, 3],
-    eventPoolId: "ruined-floor",
     battleEncounters: {
       t1: ["n-t1-scout", "n-t1-sweep", "n-t1-drift"],
       t2: ["n-t2-crew", "n-t2-beacon", "n-t2-current", "n-t2-duo-crush", "n-t2-duo-torch"],
@@ -121,7 +106,6 @@ export const MAPS: MapDef[] = [
     maxEquipRarity: "common",
     roomCount: 12,
     curioLevelRange: [1, 3],
-    eventPoolId: "",
     battleEncounters: {
       t1: [],
       t2: [],
@@ -141,7 +125,6 @@ export const MAPS: MapDef[] = [
     maxEquipRarity: "common",
     roomCount: 14,
     curioLevelRange: [1, 3],
-    eventPoolId: "",
     battleEncounters: {
       t1: [],
       t2: [],
@@ -161,7 +144,6 @@ export const MAPS: MapDef[] = [
     maxEquipRarity: "common",
     roomCount: 14,
     curioLevelRange: [1, 3],
-    eventPoolId: "",
     battleEncounters: {
       t1: [],
       t2: [],
@@ -181,7 +163,6 @@ export const MAPS: MapDef[] = [
     maxEquipRarity: "common",
     roomCount: 16,
     curioLevelRange: [1, 3],
-    eventPoolId: "",
     battleEncounters: {
       t1: [],
       t2: [],

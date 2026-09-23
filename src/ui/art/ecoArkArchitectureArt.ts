@@ -15,12 +15,12 @@ export interface EcoArkArchitectureArt {
 
 /** 方舟走廊的完整正视建筑立面；尺寸为场景设计像素。 */
 export const ECO_ARK_ARCHITECTURE_ART: readonly EcoArkArchitectureArt[] = [
-  { id: "greenhouse", src: greenhouse, aspectRatio: 1983 / 793, displayHeight: 320, groundTrim: 0 },
-  { id: "seed-archive", src: seedArchive, aspectRatio: 1199 / 1312, displayHeight: 420, groundTrim: 0 },
-  { id: "research-hall", src: researchHall, aspectRatio: 2172 / 724, displayHeight: 300, groundTrim: 0 },
-  { id: "water-station", src: waterStation, aspectRatio: 1774 / 887, displayHeight: 320, groundTrim: 0 },
-  { id: "observatory", src: observatory, aspectRatio: 1024 / 1536, displayHeight: 500, groundTrim: 0 },
-  { id: "restoration-center", src: restorationCenter, aspectRatio: 1774 / 887, displayHeight: 320, groundTrim: 0 },
+  { id: "greenhouse", src: greenhouse, aspectRatio: 1983 / 793, displayHeight: 460, groundTrim: 0 },
+  { id: "seed-archive", src: seedArchive, aspectRatio: 1199 / 1312, displayHeight: 560, groundTrim: 0 },
+  { id: "research-hall", src: researchHall, aspectRatio: 2172 / 724, displayHeight: 440, groundTrim: 0 },
+  { id: "water-station", src: waterStation, aspectRatio: 1774 / 887, displayHeight: 460, groundTrim: 0 },
+  { id: "observatory", src: observatory, aspectRatio: 1024 / 1536, displayHeight: 600, groundTrim: 0 },
+  { id: "restoration-center", src: restorationCenter, aspectRatio: 1774 / 887, displayHeight: 460, groundTrim: 0 },
 ];
 
 export const ECO_ARK_ARCHITECTURE_SOURCES = ECO_ARK_ARCHITECTURE_ART.map(({ src }) => src);

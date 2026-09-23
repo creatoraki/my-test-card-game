@@ -2,7 +2,7 @@
 // 装配/拆卸的幂等重算逻辑集中在 recomputeCardModule, 两类模组共用同一套框架。
 
 import type { Card } from "@/engine/types";
-import { getCardDef } from "../index";
+import { getCardDef } from "../registry";
 import { CHARACTER_CARD_MODULES } from "./character";
 import { GENERIC_T1_CARD_MODULES } from "./genericT1";
 import type { CardModuleDef } from "./types";

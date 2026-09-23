@@ -1,19 +1,18 @@
 import { useState } from "react";
 import { OpusTwinArrowDemo } from "@/ui/test/opus";
-import { AttackArtsDemo } from "@/ui/test/AttackArtsDemo";
-import { ATTACK_ARTS, type AttackArtId } from "@/ui/battle/fx/AttackArtsFx";
+import { AttackArtsDemo, ART_DEMOS, SLASH_DEMOS } from "@/ui/test/AttackArtsDemo";
 import s from "./TestScreen.module.css";
 
-type TestTab = AttackArtId | "blade-reference" | "twin-reference";
-const TABS: { id: TestTab; name: string }[] = [
-  ...ATTACK_ARTS.map(art => ({ id: art.id, name: art.name })),
-  { id: "blade-reference", name: "刀光斩对照" },
-  { id: "twin-reference", name: "原版双箭" },
+const TWIN_TAB = "twin-reference";
+const DEMOS = [...SLASH_DEMOS, ...ART_DEMOS];
+const TABS: { id: string; name: string }[] = [
+  ...DEMOS.map(demo => ({ id: demo.id, name: demo.name })),
+  { id: TWIN_TAB, name: "原版双箭" },
 ];
 
 export function TestScreen() {
-  const [activeTab, setActiveTab] = useState<TestTab>("moon-cleave");
-  const art = ATTACK_ARTS.find(entry => entry.id === activeTab);
+  const [activeTab, setActiveTab] = useState("lunar-ring");
+  const demo = DEMOS.find(entry => entry.id === activeTab);
   const label = TABS.find(entry => entry.id === activeTab)!.name;
 
   return (
@@ -32,7 +31,7 @@ export function TestScreen() {
         ))}
       </nav>
       <section className={s.page} key={activeTab} aria-label={`${label}演示`}>
-        {activeTab === "twin-reference" ? <OpusTwinArrowDemo /> : <AttackArtsDemo art={art} />}
+        {demo ? <AttackArtsDemo fx={demo} /> : <OpusTwinArrowDemo />}
       </section>
     </main>
   );

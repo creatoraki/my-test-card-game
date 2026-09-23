@@ -1,20 +1,13 @@
 // ============================================================================
 // 探索层类型定义 —— 与 engine/types.ts 同惯例: 只定义类型, 不含逻辑, 不 import 实现。
 //
-// 本层描述的是「区域路由图」远征(见 探索模式设计.md):
-//   一趟出击 = 6 轮; 每轮 = 一张 5 通道 × 4 推进段的阿弥陀签拼接图(20 个节点, 其中
-//   固定 3 个为「未知节点」—— 走到之前只显示占位, 落地后才揭示真实事件)
-//   + 一场固定档位的推进战斗。玩家**只在进入区域时选一次入口通道**, 此后信号沿通道向右推进,
-//   遇桥接强制跨到相邻通道, 每跨过一个推进段抵达一个节点; 每个节点结算完由玩家决定
-//   「继续推进」还是「前往下一区域」。净化粒子(energy)是唯一的难度轴与时限, 只降不升。
-//
-// ⚠ 战斗**不是**路由图上的终点(设计文档 §2.4): 它是每轮独立的第二个关卡。
-//   本轮线路走完 → **轮次战斗事件**(从地图事件池抽取, 固定只有「迎战」) → 推进战斗。
-//   档位在生成本轮时抽定并写入 ExploreState.roundBattleTier。
+// 本层描述的是「房间制」远征:
+//   一张地图 = 一张由若干房间连成的房间图(见 dungeon/), 每个房间展开成一段横向场景(见 corridor/)。
+//   玩家在场景里行走、与物件交互(见 curio/)、遭遇黑影; 站上传送门消耗净化粒子换房间。
+//   开启 BOSS 红门并挑战成功即通关。净化粒子(energy)是唯一的难度轴与时限。
 // ============================================================================
 
 import type { DropEntry, EquipSlot, ItemRarity, ItemStack } from "../items/types";
-import type { StatModifier } from "../engine/types";
 import type { MapDifficulty } from "../data/mapDifficulty";
 
 export type BattleBoonKind = "healDew" | "cardOffer" | "equipCrate" | "moduleCrate";
@@ -36,49 +29,10 @@ export interface CardOfferCandidate {
 }
 
 // ---------------------------------------------------------------------------
-// 路由图
+// 场景事件
 // ---------------------------------------------------------------------------
-// 一根桥接连接 leftLane 与 leftLane + 1 两条相邻通道。同一 row 内不得共享端点。
-export interface RouteBridge {
-  row: number;
-  leftLane: number;
-}
-
-// 一个推进段 = 一张独立合法的阿弥陀签。段内「入通道 → 出通道」必为双射。
-export interface RouteSegment {
-  index: number; // 0-3, 即第 1-4 推进段
-  bridges: RouteBridge[]; // 桥接数随 index 递增(设计文档 §2.2)
-}
-
-export interface RouteBoard {
-  round: number; // 本轮轮号(从 1 起)
-  laneCount: number; // 当前棋盘入口通道数
-  rowsPerSegment: number; // 每段内桥接可占用的横向位置数(一屏硬约束, §9.3)
-  segments: RouteSegment[]; // 当前棋盘推进段
-  nodes: NodeEvent[][]; // [segmentIndex][lane]
-  revealDurationMs: number; // 全图桥接一次性揭示的时长
-  blockedLanes: number[]; // 被「塌落的隔断」等 debuff 封锁的入口通道(不可选)
-  // 本轮固定隐藏的节点(全图随机抽 3 个, 见 EXPLORE_RULES.hiddenNodesPerBoard)。
-  // 生成时**只记录坐标**; 真实事件仍留在 nodes 里, UI 在走到之前一律按未知节点渲染。
-  hiddenNodes: { seg: number; lane: number }[];
-}
-
-/** 固定节点图蓝图 —— 有它的轮次不走随机生成，整张图逐格照抄。 */
-export interface RouteBoardPlan {
-  laneCount: number;
-  rowsPerSegment?: number;
-  /** [segIndex] = 该段的固定桥接；数组长度 = 本层推进段数。 */
-  bridges: readonly (readonly RouteBridge[])[];
-  /** [segIndex][lane] = 节点事件 id。 */
-  nodes: readonly (readonly string[])[];
-  revealMs?: number;
-  battleTier?: BattleTier;
-}
-
-// ---------------------------------------------------------------------------
-// 节点事件
-// ---------------------------------------------------------------------------
-// ⚠ 不再有 "battle" / "elite" / "boss" —— 战斗一律走战斗签(设计文档 §2.4)。
+// 远征记录与结算页按它分类着色。房间制下实际写入的只有 loot / heal / merchant / energy / battle,
+// 其余成员是历史遗留的分类, 结算页的配色与图标仍保留对应条目。
 export type NodeEventKind =
   | "retreat"
   | "loot"
@@ -88,27 +42,10 @@ export type NodeEventKind =
   | "energy"
   | "hazard"
   | "battle"
-  | "trial" // 挑战节点: 花粒子接下一份跨轮契约(先付属性代价, 撑过两轮再拿回报)
-  | "empty"; // 空节点: 什么都不会发生, 但每节点固定能量消耗照扣不误
+  | "empty";
 
-// 保底规则按「类别」而非 kind 判定(设计文档 §2.3.2), 且范围是**整张图**而不是每段。
-export type EventCategory =
-  | "survival"
-  | "growth"
-  | "economy"
-  | "route"
-  | "energy"
-  | "hazard"
-  | "battle"
-  | "endgame"
-  | "trial" // 挑战节点的专属类别: 独立保底投放, 不进普通池填充
-  | "empty"; // 空节点(什么都不发生)的专属类别
-
-// 风险标记 —— 位置**全图完全随机**(不限制推进段, 见 rules.ts eventPool.hazard):
-// 数量下限(每图至少 minCount 个)由生成器的保底兜底, 不再按段配额。
-export type EventRisk = "negative" | "highRisk";
-
-// 事件效果。新增一种机制 = 这里加一个成员 + session.ts 的 applyEffect 加一个分支。
+// 事件效果。新增一种机制 = 这里加一个成员 + session/effects.ts 的 applyEffect 加一个分支。
+// ★ 物件效果(data/curios/types.ts CurioEffect)是它的超集, 未识别的物件效果回落到这里结算。
 export type ExploreEffect =
   | { type: "HEAL_PARTY"; percent: number } // 全队按 maxHp 百分比回血(不复活阵亡者)
   | { type: "HEAL_ONE"; percent: number; full?: boolean } // 指定一名存活角色按 maxHp 回血
@@ -123,7 +60,7 @@ export type ExploreEffect =
   | { type: "DISCARD_SLOTS"; slots: number } // 强制丢弃背包若干格(「压力门夹层」)
   | { type: "OPEN_CHUTE" } // 传送投递口: 开启寄件流程(实际寄件由玩家在背包面板里选)
   | { type: "MODIFY_ENERGY"; amount: number } // 净化粒子增减
-  | { type: "SKIP_NODE_COST"; nodes: number } // 「隐匿通道」: 接下来 N 个节点免除基础粒子消耗
+  | { type: "SKIP_NODE_COST"; nodes: number } // 「隐匿通道」: 接下来 N 次交互免除基础粒子消耗
   | { type: "CONTAMINATE_CARDS"; count?: number; each?: boolean } // 记录待处理的个人卡组污染请求
   | { type: "CURE_QUIRK"; scope: "one" | "party"; count?: number }
   | { type: "REDUCE_POLLUTION"; scope: "one" | "party"; amount: number }
@@ -141,47 +78,13 @@ export type ExploreEffect =
   // relicIds 指名候选(教程/剧情用), 缺省则按稀有度随机抽 count 件互不重复的祝福遗物。
   | { type: "RELIC_OFFER"; count?: number; relicIds?: string[]; rarity?: ItemRarity }
   | { type: "REFORGE_BOND"; bias?: BondBias }
-  | { type: "START_TRIAL"; trial: TrialDef } // 接下一份挑战契约(负面修正立即生效, 到期发奖)
-  | { type: "START_NODE_BATTLE"; tier?: BattleTier; encounterId?: string }
-  | { type: "OPEN_SHOP" } // 打开本事件的交易终端, 由落点选项触发
-  | { type: "END_REGION" } // 立即结束本轮推进, 进入本轮战斗(「逆流净化机」)
-  | { type: "RETREAT" }; // 立即结束远征, 收益带回
+  | { type: "START_NODE_BATTLE"; tier?: BattleTier; encounterId?: string };
 
 export type BondBias = "offense" | "defense";
 
 export interface ChoiceCost {
   itemId: string;
   count: number;
-}
-
-// ---------------------------------------------------------------------------
-// 挑战契约(代码里一律叫 trial, 界面文字一律叫「挑战」)
-// ---------------------------------------------------------------------------
-// ⚠ 与 engine/challenges 的「挑战词条」(战斗内掉落系数 K 的加成目标)是**两回事** ——
-//   那一套在 ExploreState.pendingChallengeBonus 名下, 与本结构毫无关系。
-//
-// 玩法: 在挑战节点花 5 粒子接下 → 接下来数场战斗背着 mods 的负面修正 →
-//   打赢第 battles 场时立刻结算 rewards(加权二选一)并移除修正。
-//   中途撤离 / 战斗失利 = 白扛, 不发奖。这就是赌注本身。
-export interface TrialDef {
-  id: string;
-  name: string;
-  penaltyDesc: string; // 一行代价说明, HUD 与结算摘要直接读它, 不各写一份
-  mods: StatModifier; // 负面属性修正
-  battles: number; // 持续**战斗场**数(含接下后的第 1 场), 本期固定 2
-  rewards: EventOutcome[]; // 到期时掷一次, 复用 EventOutcome 的 weight 加权
-}
-
-// 会话里进行中的一份挑战。★ 允许叠加 ⇒ 必须有唯一 uid, 不能拿 defId 当键。
-export interface ActiveTrial {
-  uid: string;
-  defId: string;
-  name: string;
-  penaltyDesc: string;
-  mods: StatModifier;
-  startBattles: number; // 接下时已打赢的场数
-  untilBattles: number; // 含: 打赢到第几场时结算
-  rewards: EventOutcome[];
 }
 
 export interface EventOutcome {
@@ -191,43 +94,16 @@ export interface EventOutcome {
   effects: ExploreEffect[];
 }
 
-// 落点分支选项(设计: 抵达节点后先开浮层, 玩家在两条路里挑一条 —— 落点是运气, 怎么处理是决策)。
-// ⚠ 代价与效果**只认选项自己的这两个字段**: NodeEvent 上的同名字段仅用于节点卡的预览。
+// 事件分支选项。⚠ 代价与效果**只认选项自己的字段**: NodeEvent 上的同名字段只在 choices 缺省时兜底。
 export interface EventChoice {
   id: string;
-  label: string; // 按钮文字, 如「使用」「拆走」
+  label: string; // 按钮文字, 如「迎战黑影」
   desc: string; // 一行代价/收益说明; 当前 UI 不渲染, 选项不预告得失
   story?: string;
-  energyDelta: number; // 选中该项的净化粒子增减(**不含**每节点固定 −3)
+  energyDelta: number; // 选中该项的净化粒子增减(**不含**交互基础消耗)
   cost?: ChoiceCost;
   effects?: ExploreEffect[];
   outcomes?: EventOutcome[];
-}
-
-export type TradeServiceKind = "goods" | "party" | "pending" | "random";
-
-export interface TradeBuffOption {
-  weight: number;
-  relicId: string;
-}
-
-export interface TradeSlotState {
-  serviceId: string;
-  stock: ItemStack[];
-  buffOptions?: TradeBuffOption[];
-  sold: boolean;
-}
-
-export interface ShopState {
-  eventId: string;
-  slots: TradeSlotState[];
-  trades: number;
-  notes: string[];
-}
-
-export interface HiddenRest {
-  foodItemId: string;
-  npcId: string;
 }
 
 export type PendingAction =
@@ -245,33 +121,17 @@ export type PendingAction =
   | { kind: "reducePollution"; scope: "one" | "party"; amount: number }
   | { kind: "purifyCards"; scope: "one" | "party"; count: number };
 
-export interface NpcEventLike {
-  id: string;
-  title: string;
-  description: string;
-  choices: EventChoice[];
-}
-
+// 场景里一件物件或一个黑影对应的事件。物件的真实交互走 curio/ 的决策表, 这里只提供标题与分类;
+// 黑影事件的唯一选项带 START_NODE_BATTLE, 由 session/battle.ts 的 engageRoomThreat 结算。
 export interface NodeEvent {
   id: string;
   kind: NodeEventKind;
-  category: EventCategory;
-  risk?: EventRisk;
   title: string;
   description: string;
-  // ★ 节点卡上给玩家看的**预览**代价 = 主选项(choices[0])的 energyDelta。
-  //   真正结算读的是被选中的那个 EventChoice; 只有 choices 缺省时才回退到这两个字段。
-  //   ⚠ 这是「每节点固定 −3」之外的**额外**增减(设计文档 §8 的 E 列)。
+  // 选项缺省时的兜底代价与效果(等价于一个「继续」选项)。
   energyDelta: number;
   effects?: ExploreEffect[];
-  choices?: EventChoice[]; // 两项。缺省 = 单选项事件(等价于直接用上面的 energyDelta/effects)
-  services?: string[]; // 交易终端服务槽位, 最多两个; 由带 OPEN_SHOP 的选项拉起
-  hiddenRest?: HiddenRest;
-  // 允许出现的推进段区间(1-4, 含两端), 缺省 [1, 4]。深度分层的唯一声明处(设计文档 §2.3.2)。
-  depth?: [number, number];
-  minRound?: number; // 终局类事件的最早出现轮次(第 5 轮起)
-  duration?: number; // 路由/debuff 类事件的持续**轮**数
-  disabled?: boolean; // 尚未实现的事件: 留在池里当占位, 不参与抽取
+  choices?: EventChoice[];
 }
 
 // ---------------------------------------------------------------------------
@@ -286,12 +146,12 @@ export interface EnergyTier {
   rewardMultiplier: number; // 即 K_energy, 同时作用于经验与产出
 }
 
-// 推进战斗档位。轮次只决定抽取权重, 具体结果在生成本轮时写入状态。
+// 战斗档位。战斗房按房间深度抽取, BOSS 房默认 t5。
 export type BattleTier = "t1" | "t2" | "t3" | "t4" | "t5";
 
 // ---------------------------------------------------------------------------
-// 队伍快照 —— 探索层持有的队伍血量, 跨轮与跨战斗继承。
-// ⚠ 形状与上一版完全一致: runStore.partySnapshot() 直接产出它, 不要随意改字段名。
+// 队伍快照 —— 探索层持有的队伍血量, 跨战斗继承。
+// ⚠ 形状由 runStore.partySnapshot() 直接产出, 不要随意改字段名。
 // ---------------------------------------------------------------------------
 export interface PartySnapshot {
   charId: string;
@@ -314,15 +174,15 @@ export interface PartySnapshot {
 }
 
 // ---------------------------------------------------------------------------
-// 远征记录 —— 每结算一个节点一条, 结算页据此回顾整趟远征
+// 远征记录 —— 每结算一件物件或一场战斗一条, 结算页据此回顾整趟远征
 // ---------------------------------------------------------------------------
 export type HistorySlot = "node" | "battle";
 
 export interface NodeHistoryEntry {
   slot: HistorySlot;
-  round: number; // 房间制下 = 事发房间的深度 + 1
-  segment: number; // node: 房内第几件物件; battle: -1
-  lane: number; // battle: -1
+  round: number; // 事发房间的深度 + 1
+  segment: number; // node: 房内第几件物件 / 黑影; battle: -1
+  lane: number; // node: 恒为 0; battle: -1
   /** 事发房间在小地图上的序号; 结算页的条目标签读它。 */
   roomLabel?: number;
   eventId: string;
@@ -346,27 +206,13 @@ export interface ExpeditionStats {
 // ---------------------------------------------------------------------------
 export type ExplorePhase =
   | "encounter" // 黑影破地演出期间锁定探索，结束后进入卡牌战斗
-  | "generating" // 新一轮的路由图正在逐段浮现(2s 演出)。锁死一切交互, 禁开背包
-  | "sealed" // 图已浮现完但**桥接仍遮蔽**; 等玩家按「探索路线」。不限时, 可开背包
-  | "revealing" // 全图桥接一次性揭示中。⚠ 此阶段禁止开背包(设计文档 §6.3 硬约束)
-  | "choosingEntry" // 桥接已隐去, 等玩家选入口通道。★ 全轮唯一一次自由选择
-  | "advancing" // 信号沿通道向右推进中, 动画由 UI 驱动
-  | "landed" // ★ 已抵达节点, **效果尚未结算**, 等玩家在浮层里选分支。不限时
-  | "shopping" // 交易终端浮层开启, 是 landed 之后与 resolving 并列的分叉相
-  | "resolving" // 分支已结算完毕, 等玩家确认
-  | "resting"
-  | "npcEvent"
-  | "npcResolving"
-  | "atNode" // 横向探索的自由行走阶段；旧路由模式用作节点决策阶段
-  // ★ 「前往下一区域」按下之后的**离场演出**: 棋子沿本轮剩余的完整线路一路走到第 4 段终点。
-  //   ⚠ 它是纯演出阶段(与 advancing 同性质): 锁交互、禁开背包、不许撤离, 由 UI 的动画
-  //     播完调 finishLeaving 才进战斗事件。没有剩余路线可走时(0 节点直推 / 已走满 4 段)
-  //     leaveRegion 会跳过这一相直接进 roundBattle。
-  | "leaving"
-  | "roundBattle" // 本轮结束, 展示战斗事件并等待迎战
-  | "inBattle" // 本轮的推进战斗进行中
+  | "landed" // ★ 已打开物件, **效果尚未结算**, 等玩家在浮层里选决策。不限时
+  | "shopping" // 货商货架开启, 是 landed 之后与 resolving 并列的分叉相
+  | "resolving" // 决策已结算完毕, 等玩家确认
+  | "atNode" // 横向场景里的自由行走阶段
+  | "inBattle" // 战斗进行中
   | "cleared" // BOSS 已击杀
-  | "retreated" // 主动撤退 / 走完全部轮次
+  | "retreated" // 主动撤退 / BOSS 战失败
   | "wiped"; // 团灭
 
 export interface ExploreState {
@@ -380,25 +226,22 @@ export interface ExploreState {
   energy: number; // 净化粒子, 唯一难度轴
   loot: number; // 本趟累积的城市居民积分; 仅撤退/通关时转进城镇
 
-  // ★ 房间制下 round 只表示「当前房间的深度 + 1」(起始房 = 1), 不再是层号。
-  //   战斗档位爬升与事件池 minRound 门槛都读它。
+  // ★ round 只表示「当前房间的深度 + 1」(起始房 = 1), 远征记录读它。
   round: number;
   roomCount: number; // 由地图决定的房间总数 = 这张地图的庞大程度
   roundBattleTier: BattleTier; // 最近一次建立的战斗档位, 供 HUD 与结算读取
-  battlesWon: number; // 本趟已打赢的战斗场数; 挑战契约的倒计时按它走
-  board: RouteBoard | null;
+  battlesWon: number; // 本趟已打赢的战斗场数
+
+  // ★ 当前房间场景的事件索引: 第 i 件物件 / 黑影对应 sceneEvents[i](见 CorridorObject.nodeIndex)。
+  //   由 corridor/session.buildRoomScene 按房间重建, 暗雷与警报守卫会追加到末尾。
+  sceneEvents: NodeEvent[];
+  // 当前落点在 sceneEvents 里的下标; null = 没有打开任何物件或黑影。
+  landedIndex: number | null;
 
   party: PartySnapshot[];
   // 出发时记录仓库与背包已拥有的遗物 id，后续投放按 id 去重。
   ownedRelicIds: string[];
-  // ---- 挑战契约(见 TrialDef) ----
-  // 挑战契约允许叠加、到期必须撤掉；背包遗物则按物品实例生命周期生效。
-  trials: ActiveTrial[];
-  // 最近一场推进战斗里到期的挑战, 供战斗胜利面板展示。每次结算战斗时重置。
-  // ⚠ 结果文案刻意留在这里而**不**推进 pendingStory: 那一列由节点浮层消费、只在 confirmNode
-  //   时清空, 战斗后塞进去会漏到下一个落点的结算浮层上。
-  trialReport: { name: string; story: string; notes: string[] }[];
-  // 结算页唯一数据来源; 节点数从 history 的 node 条目、推进轮数从 round 现算。
+  // 结算页唯一数据来源; 交互数从 history 的 node 条目现算。
   stats: ExpeditionStats;
   /** 上一场战斗结束时的累计粒子消耗，用于计算战后暗雷进度。 */
   battleEnergyMark: number;
@@ -419,24 +262,15 @@ export interface ExploreState {
   pendingExp: Record<string, number>;
   pendingActions: PendingAction[];
   pendingStory: string[];
-  shop: ShopState | null;
-  restNpcId: string | null;
-  // 投递口已开启(本节点的 resolving/atNode 阶段内可寄件)。推进到下一个节点即复位。
+  // 投递口已开启(本次交互的 resolving/atNode 阶段内可寄件)。打开下一件物件即复位。
   chuteOpen: boolean;
 
-  // ---- 本轮推进状态 ----
-  entryLane: number | null; // 本轮选定的入口通道, choosingEntry 之后不可再改
-  currentLane: number | null; // 信号当前所处通道
-  currentSegment: number; // 已抵达的推进段数, 0 = 尚未进入第 1 段, 达到棋盘段数 = 已走满
-  freeNodes: number; // 「隐匿通道」: 接下来几个节点免除基础粒子消耗
-  pendingNotes: string[]; // 本节点结算摘要, 供 resolving 浮层展示
+  freeNodes: number; // 「隐匿通道」: 接下来几次交互免除基础粒子消耗
+  pendingNotes: string[]; // 本次交互的结算摘要, 供 resolving 浮层展示
   pendingPollution: { charId: string; amount: number }[];
   pendingContaminationCount: number; // 尚未交给 townStore 应用的污染卡数量
   pendingContaminationEach: number; // 每名角色各污染 N 张, 与上面的全队总数语义分开
 
-  // 侧向跨接(设计文档 §7.2): 整趟出击的剩余次数, 基础 1。
-  // ⚠ 字段先占位, 指令系统是 P1 —— 目前没有任何入口消耗它。
-  lateralShiftsLeft: number;
   // 野餐技能整趟远征只有一次。
   picnicUsed: boolean;
   /** 探索级遗物的运行态计数(新房间数、已返还粒子的房间等)。键由各遗物行为自取。 */
@@ -444,17 +278,12 @@ export interface ExploreState {
   /** 应急信标整趟远征只有一次。 */
   beaconUsed: boolean;
 
-  // ---- 本轮推进战斗 ----
-  roundBattleEventId: string | null; // 本轮展示的战斗事件, 开战后清空
-
+  // ---- 当前战斗 ----
   pendingEncounterId: string | null; // 战斗中: 打的是哪一场
   pendingIsBoss: boolean;
   pendingBattleTier: BattleTier | null; // 当前战斗的档位
-  recentEventIds: string[]; // 最近若干轮已经出现过的事件, 用于生成时软冷却
-  battleSource: "round" | "node" | null;
-  // ★ 下面三项是**开战瞬间的快照**(与负重快照同一时机, 设计文档 §10.1):
-  //   老虎机的结果一旦定下就不该再被后续操作影响, 战斗结算读的必须是这三份。
-  // 挑战奖励只有战斗结算后才知道, 由 finishBattle 写入后供掉落掷点读取。
+  battleSource: "boss" | "room" | null; // BOSS 红门 / 房间内黑影
+  // 挑战词条加成只有战斗结算后才知道, 由 finishBattle 写入后供掉落掷点读取。
   pendingChallengeBonus: number;
 
   phase: ExplorePhase;

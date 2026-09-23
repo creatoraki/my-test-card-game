@@ -11,7 +11,7 @@
 
 import type { BattleState, Combatant, SquadResourceMods, StatBlock, StatModifier } from "./types";
 import { RULES, capProb } from "./rules";
-import { STATUS_DEFS } from "./statuses";
+import { STATUS_DEFS } from "./hookRegistry";
 
 // 全零面板。新增属性时只需在 types.StatBlock 与这里各加一行。
 export const ZERO_STATS: StatBlock = {

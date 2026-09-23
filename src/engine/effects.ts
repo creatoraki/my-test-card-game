@@ -256,14 +256,14 @@ function applyEffect(
     case "COPY_CARD_TO_HAND":
     case "CHOOSE_HAND_CARD":
     case "EXHAUST_HAND_CARDS":
-      return applyHandEffect(state, effect, sourceId, targetIds);
+      return applyHandEffect(state, effect, sourceId, targetIds, resolveEffects);
     case "EXTEND_STATUS":
     case "TRANSFER_STATUS":
     case "TRANSFER_DEBUFFS":
       applyStatusMoveEffect(state, effect, sourceId, targetIds);
       break;
     case "REVEAL_CARDS":
-      return applyRevealEffect(state, effect, sourceId);
+      return applyRevealEffect(state, effect, sourceId, resolveEffects);
     case "APPLY_STATUS": {
       if (!effect.status) break;
       const generatedData = effect.statusDataFrom
@@ -443,6 +443,9 @@ function applyEffect(
   }
   return resolution;
 }
+
+// 子模块(effectsHand / effectsReveal)需要回调结算器时由这里注入, 它们只认这个签名。
+export type ResolveEffectsFn = typeof resolveEffects;
 
 // 依次结算一张卡 / 一个招式的所有效果。
 export function resolveEffects(

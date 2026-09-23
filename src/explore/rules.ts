@@ -1,6 +1,6 @@
 // ============================================================================
 // ★ 可配置探索规则 ★ —— 与 engine/rules.ts 同惯例: 所有旋钮集中在这一个文件。
-// 调探索层平衡(轮数 / 桥接数 / 揭示时长 / 能量档位与收益)只改这里。
+// 调探索层平衡(房间图 / 粒子消耗 / 能量档位与收益)只改这里。
 //
 // ⚠ 上一版的「区域危险度 DANGER_TIERS」与「残片」已废弃, 难度轴只保留净化粒子一条
 //   (设计文档 §4.1 明确禁止再引入第二条并行难度数值)。
@@ -12,57 +12,12 @@ import type { ItemRarity } from "../items/types";
 import type { BattleTier, EnergyTier } from "./types";
 
 export const EXPLORE_RULES = {
-  // ── 路由图规模(设计文档 §2.1 / §9.3) ──
-  laneCount: 5, // 5 条通道 / 5 个入口
-  segmentsPerRound: 4, // 4 个推进段横向拼接
-  // 每段内桥接可占用的横向位置数。★ 上限由「整张图必须一屏内完整可见」倒推而来(§9.3),
-  // 生成器显式按它校验, 不允许 UI 去截断。
-  rowsPerSegment: 4,
-
-  // 轮次 → 每段桥接数区间与揭示时长(设计文档 §2.2 的表)。
-  // bridges[i] = 第 i 个推进段的 [下限, 上限]。**沿推进方向递增** ——
-  // 这是「记忆置信度随深度递减」的唯一实现手段(§2.2): 第 1 段几乎必然记得住, 越往后越模糊。
-  // 每行末尾的注释是该轮次的全图桥接总数区间, 必须落在设计文档给的 8-13 里。
-  // ⚠ 揭示时长下限 2000ms 是硬底线(§11.3): 新图形是 4 段拼接, 旧的 800ms 下限已不适用。
-  rounds: {
-    early: {
-      untilRound: 2,
-      revealMs: 3000,
-      bridges: [
-        [2, 2],
-        [2, 2],
-        [2, 3],
-        [2, 3],
-      ],
-    }, // 全图 8-10 根
-    mid: {
-      untilRound: 4,
-      revealMs: 2500,
-      bridges: [
-        [2, 3],
-        [2, 3],
-        [3, 3],
-        [3, 3],
-      ],
-    }, // 全图 10-12 根
-    late: {
-      untilRound: 6,
-      revealMs: 2000,
-      bridges: [
-        [2, 3],
-        [3, 3],
-        [3, 4],
-        [3, 3],
-      ],
-    }, // 全图 11-13 根
-  },
-
   // ── 净化粒子(设计文档 §4.2) ──
   startingEnergy: 100,
   energyMax: 100,
   // ★ 每交互 1 个事件的消耗, 按物件分类分档(见 explore/energyCost.ts interactionCost):
   //   物品奖励最贵, 治疗次之, 服务最便宜, 货商免费; 陷阱强制触发不收费。
-  //   event 是旧节点事件(非房间物件)的兜底价。「隐匿通道」这类效果仍可免除这一份(见 ExploreState.freeNodes)。
+  //   event 是非物件交互(迎战黑影)的兜底价。「隐匿通道」这类效果仍可免除这一份(见 ExploreState.freeNodes)。
   energyPerInteraction: { loot: 4, heal: 3, service: 2, merchant: 0, event: 2 },
   // 每进行 1 个战斗回合 −1。战斗结算时按 battle.round 一次性扣除(见 runStore.resolveBattle
   // 与 explore/energyCost.spendBattleEnergy), 胜负都扣; **最后一战 BOSS 战豁免** ——
@@ -137,31 +92,6 @@ export const EXPLORE_RULES = {
     chance: 0.15,
     tiers: ["t1", "t2", "t3"] as readonly BattleTier[],
   },
-
-  eventPool: {
-    recentWindowRounds: 1,
-    // 风险事件(带 risk 标记的 hazard 池): **位置完全随机** —— 不再限制推进段,
-    // 只保留全图数量下限 minCount, 防止极端情况下整张图毫无风险。
-    hazard: { minCount: 2 },
-    battleNodes: { count: 2, depth: [2, 4] as readonly [number, number] },
-    // 空节点(什么都不发生, 能量照扣): 每张图固定 N 个, 从空节点池随机抽取、锁在不同深段。
-    emptyNodes: { count: 2 },
-    // 挑战节点(跨轮契约, 见 explore/types.ts TrialDef): 每张图 0-1 个, 按 chance 掷一次。
-    // ⚠ maxRound 是**硬约束**而不是手感旋钮: 挑战要靠「下一轮的推进战斗打完」来结算奖励,
-    //   最后一轮(BOSS 轮)打完远征就结束了, 根本等不到那一拍 —— 故最后一轮一律不投放。
-    trialNodes: {
-      chance: 0.6,
-      count: 1,
-      maxRound: 5,
-      // 倒计时按**战斗场次**走(房间制没有轮次): 接下后第 N 场战斗打完即结算。
-      battles: 2,
-      depth: [1, 4] as readonly [number, number],
-    },
-  },
-
-  // ── 未知节点(设计: 每张图固定隐藏 N 个节点, 走到以后才知道是什么) ──
-  // 全图随机抽取, 与节点类型/深段无关; 走到(落地)后揭示真实事件。
-  hiddenNodesPerBoard: 3,
 
   // ── 团灭惩罚。★ 背包与积分全丢, 经验照发(经验在每场战斗后即时入账, 见 runStore)。
   //   已通过投递口寄回的物品不受影响 —— 那是背包玩法唯一的保险手段(设计文档 §6.5)。──

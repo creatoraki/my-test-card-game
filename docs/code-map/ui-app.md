@@ -50,7 +50,6 @@
 | [useGameAssetPreload.ts](../../src/ui/hooks/useGameAssetPreload.ts) | 订阅素材预加载的进度。 |
 | [useCountUp.ts](../../src/ui/hooks/useCountUp.ts) / [useChangePulse.ts](../../src/ui/hooks/useChangePulse.ts) / [useTypewriter.ts](../../src/ui/hooks/useTypewriter.ts) | 数字从旧值滚动到新值、数值变化时的脉冲、逐字打字机效果。 |
 | [useSwapTransition.ts](../../src/ui/hooks/useSwapTransition.ts) / [useIdleTwitch.ts](../../src/ui/hooks/useIdleTwitch.ts) | 内容切换时的离场和入场阶段；敌人待机时随机抖动。 |
-| [useEntryRise.ts](../../src/ui/hooks/useEntryRise.ts) | ⚠ 已无任何引用。 |
 
 ## 页面
 

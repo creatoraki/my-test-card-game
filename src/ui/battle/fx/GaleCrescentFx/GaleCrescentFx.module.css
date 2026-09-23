@@ -1,0 +1,245 @@
+/* 苍岚剑气(gale-crescent): 零尺寸外层落在目标中心并整体倾斜, 剑气沿局部 X 轴飞行。
+   时间由 GaleCrescentFx.tsx 下发; 关键帧只动 transform / opacity。
+   剑气与刀痕各有两段动画(飞行→贯穿 / 张开→迟发裂开), 靠列表顺序接力。 */
+.wrap {
+  --gale-core: #f2fffa;
+  --jade: #7df5c8;
+  --teal: #2fd6a8;
+  --deep: #0f7f6a;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: rotate(var(--tilt));
+  pointer-events: none;
+}
+
+.wrap > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+/* ── 起手一闪 ── */
+.launch {
+  width: 4px;
+  height: 300px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, transparent, var(--jade) 30%, #fff 50%, var(--jade) 70%, transparent);
+  box-shadow: 0 0 10px 3px #7df5c8b3, 0 0 30px 10px #2fd6a84d;
+  transform: translateX(var(--launch)) translate(-50%, -50%) scaleY(0);
+  opacity: 0;
+  animation-name: launchFlash;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+/* ── 风线 ── */
+.wind {
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, transparent, #7df5c866 40%, #e6fff6cc);
+  transform: translateX(var(--from));
+  opacity: 0;
+  animation-name: windRush;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.45, 0, 0.35, 1);
+}
+
+/* ── 剑气本体与残影 ── */
+.crescent,
+.ghost {
+  width: 0;
+  height: 0;
+  transform: translateX(var(--launch)) scale(0.55);
+  opacity: 0;
+}
+.crescent {
+  animation-name: crescentFly, crescentPierce;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.6), cubic-bezier(0.1, 0.6, 0.3, 1);
+}
+.ghost {
+  animation-name: ghostFly;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.6);
+}
+
+.shape {
+  position: absolute;
+  left: -40px;
+  top: calc(var(--crescent-h) / -2 - 20px);
+  width: 200px;
+  height: calc(var(--crescent-h) + 40px);
+  overflow: visible;
+}
+.shapeGlow {
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 22;
+  stroke-opacity: 0.18;
+  stroke-linejoin: round;
+}
+.shapeMid {
+  fill: none;
+  stroke: var(--jade);
+  stroke-width: 7;
+  stroke-opacity: 0.45;
+  stroke-linejoin: round;
+}
+.shapeFill {
+  fill: var(--jade);
+  fill-opacity: 0.45;
+}
+.ghost .shapeGlow {
+  stroke-opacity: 0.1;
+}
+
+.wake {
+  position: absolute;
+  left: -440px;
+  top: -190px;
+  width: 460px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 100% 50%, #7df5c859 0%, #2fd6a826 35%, transparent 70%);
+}
+
+/* ── 命中: 闪光 / 竖直刀痕 / 压力波 / 气旋 ── */
+.flash {
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f2fffacc 0%, #7df5c859 30%, transparent 65%);
+  transform: translate(-50%, -50%) scale(0.3);
+  opacity: 0;
+  animation-name: flashPop;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.7, 0.3, 1);
+}
+
+.wound {
+  width: 5px;
+  height: var(--wound-h);
+  border-radius: 3px;
+  background: linear-gradient(to bottom, transparent, #bff9e4 15%, #fff 50%, #bff9e4 85%, transparent);
+  box-shadow: 0 0 6px 2px #f2fffae6, 0 0 20px 6px #7df5c8b3, 0 0 54px 14px #2fd6a84d;
+  transform: translate(-50%, -50%) scaleY(0);
+  opacity: 0;
+  animation-name: woundOpen, woundRupture;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: cubic-bezier(0.12, 0.7, 0.2, 1), cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.wave {
+  width: 140px;
+  height: var(--wound-h);
+  border: 2px solid #aaf7dbb3;
+  border-radius: 50%;
+  box-shadow: 0 0 12px 3px #7df5c866;
+  transform: translate(-50%, -50%) scaleX(0.3);
+  opacity: 0;
+  animation-name: waveOut;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.6, 0.25, 1);
+}
+
+.swirl {
+  border: 3px solid transparent;
+  border-top-color: #aaf7dbd9;
+  border-right-color: #7df5c866;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(0deg) scale(0.7);
+  opacity: 0;
+  animation-name: swirlOut;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.15, 0.6, 0.3, 1);
+}
+
+.shard {
+  height: 3px;
+  margin-top: -1.5px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--jade) 50%, #fff);
+  box-shadow: 0 0 6px 1px #7df5c8b3;
+  transform-origin: left center;
+  transform: rotate(var(--dir)) translateX(0);
+  opacity: 0;
+  animation-name: shardFly;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.12, 0.6, 0.3, 1);
+}
+
+.crack {
+  height: 3px;
+  margin-top: -1.5px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #f2fffaf2 30%, #fff 50%, #f2fffaf2 70%, transparent);
+  box-shadow: 0 0 5px 2px #d9fff0e6, 0 0 14px 5px #7df5c88c;
+  transform: translateX(-50%) rotate(var(--skew)) scaleX(0);
+  opacity: 0;
+  animation-name: crackPop;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+@keyframes launchFlash {
+  0% { transform: translateX(var(--launch)) translate(-50%, -50%) scaleY(0); opacity: 1; }
+  35% { transform: translateX(var(--launch)) translate(-50%, -50%) scaleY(1); opacity: 1; }
+  100% { transform: translateX(var(--launch)) translate(-50%, -50%) scaleY(1.1) scaleX(0.3); opacity: 0; }
+}
+@keyframes windRush {
+  0% { transform: translateX(var(--from)) scaleX(0.4); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateX(var(--to)) scaleX(1); opacity: 0; }
+}
+@keyframes crescentFly {
+  0% { transform: translateX(var(--launch)) scale(0.55); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translateX(0) scale(1); opacity: 1; }
+}
+@keyframes crescentPierce {
+  0% { transform: translateX(0) scale(1); opacity: 1; }
+  100% { transform: translateX(170px) scaleX(0.25) scaleY(1.35); opacity: 0; }
+}
+@keyframes ghostFly {
+  0% { transform: translateX(var(--launch)) scale(0.55); opacity: 0; }
+  15% { opacity: 0.45; }
+  85% { opacity: 0.25; }
+  100% { transform: translateX(0) scale(1); opacity: 0; }
+}
+@keyframes flashPop {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+}
+@keyframes woundOpen {
+  0% { transform: translate(-50%, -50%) scaleY(0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scaleY(1); opacity: 0.85; }
+}
+@keyframes woundRupture {
+  0% { transform: translate(-50%, -50%) scaleY(1); opacity: 0.85; }
+  20% { transform: translate(-50%, -50%) scaleX(3.2) scaleY(1.04); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scaleX(0.6) scaleY(1.08); opacity: 0; }
+}
+@keyframes waveOut {
+  0% { transform: translate(-50%, -50%) scaleX(0.3); opacity: 0.9; }
+  100% { transform: translate(calc(-50% + 220px), -50%) scaleX(2.6) scaleY(1.1); opacity: 0; }
+}
+@keyframes swirlOut {
+  0% { transform: translate(-50%, -50%) rotate(0deg) scale(0.7); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--turn)) scale(1.25); opacity: 0; }
+}
+@keyframes shardFly {
+  0% { transform: rotate(var(--dir)) translateX(0) scaleX(1); opacity: 1; }
+  30% { opacity: 1; }
+  100% { transform: rotate(var(--dir)) translateX(var(--dist)) scaleX(0.3); opacity: 0; }
+}
+@keyframes crackPop {
+  0% { transform: translateX(-50%) rotate(var(--skew)) scaleX(0); opacity: 1; }
+  35% { opacity: 1; }
+  100% { transform: translateX(-50%) rotate(var(--skew)) scaleX(1); opacity: 0; }
+}

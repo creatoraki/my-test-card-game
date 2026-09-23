@@ -23,6 +23,10 @@ import {
 } from "./stats";
 import { applyStatus, checkEnd, ctxFor, log, ops } from "./ops";
 import { STATUS_DEFS } from "./statuses";
+// ★ 副作用导入: 遗物行为表与伤害管线在加载时向 hookRegistry / ops 注册自己(见 hookRegistry.ts),
+//   战斗入口必须保证它们已加载 —— 不能指望别处碰巧先 import 过。
+import "./relicBehaviors";
+import "./damage";
 import { allyTempoIds, runAllyTempo, runOwnerTempo } from "./statusLifecycle";
 import { drawCards, rotOverripeCards } from "./deck";
 import { resolveEffects } from "./effects";

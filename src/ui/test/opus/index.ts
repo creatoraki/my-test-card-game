@@ -1,8 +1,7 @@
 export * from "./OpusEventPanel/index";
-export * from "./OpusRoutePanel/index";
 export { OpusArcanaGallery } from "./OpusArcanaGallery/index";
 export { OpusNeonSlashDemo } from "./OpusNeonSlashDemo/index";
-export { NeonCrossFx } from "./NeonCrossFx/index";
+export { NeonCrossFx } from "@/ui/battle/fx/NeonCrossFx";
 export { OpusFrostSlashDemo } from "./OpusFrostSlashDemo/index";
 export { FrostShatterFx } from "./FrostShatterFx/index";
 export { OpusCultivationIconDemo } from "./OpusCultivationIconDemo/index";

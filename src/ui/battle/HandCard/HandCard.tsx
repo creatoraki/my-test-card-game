@@ -16,6 +16,7 @@ import { CardTextRich } from "@/ui/common/CardTextRich";
 import s from "./HandCard.module.css";
 import { TooltipCard } from "@/ui/common/TooltipCard";
 import f from "./HandCard.face.module.css";
+import a from "./HandCard.action.module.css";
 import "./HandCard.motion.module.css";
 import "./HandCard.layout.module.css";
 import "./HandCard.activated.module.css";
@@ -152,7 +153,7 @@ export const HandCard = memo(function HandCard({
       {variant === "hand" && actionBadge && !leaving && (
         <button
           type="button"
-          className={cx(s["hc-action"], s[`hc-action-${actionBadge}`])}
+          className={cx(a["hc-action"], a[`hc-action-${actionBadge}`])}
           aria-label={actionBadge === "redraw" ? "换掉这张牌" : actionBadge === "choose" ? "选择这张牌" : "丢弃这张牌"}
           onClick={(e) => {
             e.stopPropagation();

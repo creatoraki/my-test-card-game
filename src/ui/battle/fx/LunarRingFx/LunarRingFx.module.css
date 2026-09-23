@@ -1,0 +1,289 @@
+/* 圆月轮斩(lunar-ring): 零尺寸外层落在目标中心并整体倾斜, 子元素以 (0,0) 为圆心布置。
+   时间全部由 LunarRingFx.tsx 下发; 关键帧只动 transform / opacity / stroke-dashoffset,
+   不动画 filter, 爆点瞬间的上百个节点都走合成层。 */
+.wrap {
+  --gold-core: #fffaf0;
+  --gold: #ffd27a;
+  --gold-deep: #ff9d2e;
+  --ember: #c8601a;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: rotate(var(--tilt));
+  pointer-events: none;
+}
+
+.wrap > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+/* ── 起笔星芒 ── */
+.flareAnchor {
+  transform: rotate(var(--start)) translateX(var(--r));
+}
+.flare {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  animation-name: flarePop;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.flare::before,
+.flare::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold-core) 50%, var(--gold) 70%, transparent);
+  box-shadow: 0 0 10px 2px #ffd27a99;
+  transform: translate(-50%, -50%);
+}
+.flare::after {
+  transform: translate(-50%, -50%) rotate(90deg) scaleX(0.7);
+}
+
+/* ── 月轮本体 ── */
+.ring,
+.half {
+  width: var(--box);
+  height: var(--box);
+  transform: translate(-50%, -50%);
+}
+.ring {
+  animation-name: ringTighten, ringHide;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: cubic-bezier(0.5, 0, 0.7, 0.4), linear;
+}
+.ringSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(var(--start));
+}
+.ringSvg circle {
+  fill: none;
+}
+.strokeGlow {
+  stroke: var(--ember);
+  stroke-width: 26;
+  stroke-opacity: 0.22;
+}
+.strokeMid {
+  stroke: var(--gold);
+  stroke-width: 9;
+  stroke-opacity: 0.55;
+}
+.strokeCore {
+  stroke: var(--gold-core);
+  stroke-width: 3;
+}
+/* stroke-dasharray / dashoffset 可继承: 挂在 <g> 上即可驱动三层描边同步生长。 */
+.trace {
+  stroke-dasharray: 100 100;
+  stroke-dashoffset: 100;
+  animation-name: ringTrace;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1);
+}
+.ghost {
+  stroke: var(--gold-deep);
+  stroke-width: 2;
+  stroke-opacity: 0.6;
+  stroke-dasharray: 100 100;
+  stroke-dashoffset: 100;
+  animation-name: ghostTrace;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1);
+}
+
+/* ── 刀尖: 与描边同一条缓动, 绕圆心公转 ── */
+.tipOrbit {
+  width: 0;
+  height: 0;
+  transform: rotate(var(--start));
+  opacity: 0;
+  animation-name: tipOrbit;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1);
+}
+.tip {
+  position: absolute;
+  left: var(--r);
+  top: 0;
+  width: 12px;
+  height: 96px;
+  transform: translate(-50%, -100%);
+  border-radius: 50%;
+  background: linear-gradient(to bottom, transparent, #ffd27a80 55%, var(--gold-core));
+}
+.tip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, 50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--gold) 45%, transparent 72%);
+  box-shadow: 0 0 18px 6px #ffd27acc, 0 0 44px 14px #ff9d2e66;
+}
+
+/* ── 回流光点 ── */
+.mote {
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--gold) 50%, transparent 80%);
+  box-shadow: 0 0 8px 2px #ffd27acc;
+  transform: translate(-50%, -50%) rotate(var(--a)) translateX(var(--from));
+  opacity: 0;
+  animation-name: moteConverge;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.5, 0, 0.3, 1);
+}
+
+/* ── 圆心蓄力 → 爆开 ── */
+.core {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #ffeec4 38%, #ffb84a88 64%, transparent 76%);
+  box-shadow: 0 0 20px 8px #ffd27ad9, 0 0 60px 22px #ff9d2e59;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  animation-name: coreCharge, coreBurst;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1), cubic-bezier(0.1, 0.7, 0.3, 1);
+}
+
+/* ── 裂成两半的月轮 ── */
+.half {
+  opacity: 0;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.65, 0.3, 1);
+}
+.halfTop {
+  clip-path: inset(0 0 50% 0);
+  animation-name: halfTop;
+}
+.halfBottom {
+  clip-path: inset(50% 0 0 0);
+  animation-name: halfBottom;
+}
+
+.shock {
+  width: calc(var(--r) * 2);
+  height: calc(var(--r) * 2);
+  border: 2px solid #ffe2a0cc;
+  border-radius: 50%;
+  box-shadow: 0 0 14px 3px #ffc85c80, inset 0 0 14px 3px #ffc85c55;
+  transform: translate(-50%, -50%) scale(0.94);
+  opacity: 0;
+  animation-name: shockOut;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.6, 0.25, 1);
+}
+
+.cut {
+  width: 880px;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, #ffd27acc 12%, #fff 50%, #ffd27acc 88%, transparent);
+  box-shadow: 0 0 6px 2px #fff5dcf2, 0 0 22px 6px #ffc85cb3, 0 0 60px 14px #ff9d2e4d;
+  transform: translate(-50%, -50%) scaleX(0);
+  opacity: 0;
+  animation-name: cutFlash;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.15, 0.8, 0.3, 1);
+}
+
+.spark {
+  height: 3px;
+  margin-top: -1.5px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold) 50%, #fff);
+  box-shadow: 0 0 6px 1px #ffd27acc;
+  transform-origin: left center;
+  transform: translate(var(--x), var(--y)) rotate(var(--dir)) translateX(0);
+  opacity: 0;
+  animation-name: sparkSpin;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.12, 0.6, 0.3, 1);
+}
+
+@keyframes flarePop {
+  0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+  35% { transform: translate(-50%, -50%) scale(1.25) rotate(20deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.2) rotate(45deg); opacity: 0; }
+}
+@keyframes ringTrace {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes ghostTrace {
+  0% { stroke-dashoffset: 100; opacity: 1; }
+  80% { stroke-dashoffset: 0; opacity: 0.8; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes ringTighten {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  100% { transform: translate(-50%, -50%) scale(0.94); }
+}
+@keyframes ringHide {
+  to { opacity: 0; }
+}
+@keyframes tipOrbit {
+  0% { transform: rotate(var(--start)); opacity: 0; }
+  6% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: rotate(calc(var(--start) + 360deg)); opacity: 0; }
+}
+@keyframes moteConverge {
+  0% { transform: translate(-50%, -50%) rotate(var(--a)) translateX(var(--from)); opacity: 0; }
+  15% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--a)) translateX(0) scale(0.5); opacity: 0; }
+}
+@keyframes coreCharge {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  40% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.8); opacity: 1; }
+}
+@keyframes coreBurst {
+  0% { transform: translate(-50%, -50%) scale(1.8); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(5.5); opacity: 0; }
+}
+@keyframes halfTop {
+  0% { transform: translate(-50%, -50%) scale(0.94); opacity: 1; }
+  45% { opacity: 0.9; }
+  100% { transform: translate(-50%, calc(-50% - 90px)) rotate(-8deg) scale(1.08); opacity: 0; }
+}
+@keyframes halfBottom {
+  0% { transform: translate(-50%, -50%) scale(0.94); opacity: 1; }
+  45% { opacity: 0.9; }
+  100% { transform: translate(-50%, calc(-50% + 90px)) rotate(8deg) scale(1.08); opacity: 0; }
+}
+@keyframes shockOut {
+  0% { transform: translate(-50%, -50%) scale(0.94); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(1.95); opacity: 0; }
+}
+@keyframes cutFlash {
+  0% { transform: translate(-50%, -50%) scaleX(0); opacity: 1; }
+  25% { transform: translate(-50%, -50%) scaleX(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scaleX(1) scaleY(0.15); opacity: 0; }
+}
+@keyframes sparkSpin {
+  0% { transform: translate(var(--x), var(--y)) rotate(var(--dir)) translateX(0) scaleX(1); opacity: 1; }
+  30% { opacity: 1; }
+  100% { transform: translate(var(--x), var(--y)) rotate(var(--dir)) translateX(var(--dist)) scaleX(0.3); opacity: 0; }
+}

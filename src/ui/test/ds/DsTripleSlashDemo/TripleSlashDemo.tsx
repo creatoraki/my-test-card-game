@@ -1,6 +1,6 @@
 // ds tab 的 demo: 流光·三段斩(triple-strike)的陈列台。
 //
-// 这个文件只做「舞台 + 控制台 + 时间轴读数」, 特效本体在 ../DsTripleSlashFx。
+// 这个文件只做「舞台 + 控制台 + 时间轴读数」, 特效本体直接用战斗正式件 ui/battle/fx/TripleSlashFx。
 // 结构与 opus/OpusNeonSlashDemo 的陈列台同构(那是本页签参考的「斩击 demo 骨架」):
 //   1) 舞台按 1920×1080 设计画布搭, 内层用容器查询单位等比缩放, 保证 demo 里
 //      看到的相对尺寸与实战舞台一致 —— 特效几何是按世界 px 写死的;
@@ -15,8 +15,8 @@ import type { ProcFxPreset } from "@/ui/battle/animations";
 import { cx } from "@/ui/common/cx";
 import sceneBackground from "@/assets/占位场景素材.png";
 import placeholderArt from "@/assets/占位素材.png";
-import { DsTripleSlashFx } from "../DsTripleSlashFx";
-import { TRIPLE_TIMELINE } from "../DsTripleSlashFx/tripleSlashGeometry";
+import { TripleSlashFx as DsTripleSlashFx } from "@/ui/battle/fx/TripleSlashFx";
+import { TRIPLE_TIMELINE } from "@/ui/battle/fx/TripleSlashFx/tripleSlashGeometry";
 import s from "./TripleSlashDemo.module.css";
 
 const PRESET: ProcFxPreset = {

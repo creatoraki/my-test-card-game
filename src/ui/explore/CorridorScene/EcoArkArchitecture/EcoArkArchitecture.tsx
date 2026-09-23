@@ -29,11 +29,10 @@ export const EcoArkArchitecture = memo(function EcoArkArchitecture({
       draggable={false}
       style={{
         left: placement.x,
-        top: CORRIDOR.floorY - placement.height + placement.offsetY
+        top: CORRIDOR.floorY + 8 - placement.height
           + placement.height * placement.art.groundTrim,
         width: placement.height * placement.art.aspectRatio,
         height: placement.height,
-        opacity: placement.opacity,
         transform: `translateX(-50%) scaleX(${placement.mirrored ? -1 : 1})`,
       }}
     />)}

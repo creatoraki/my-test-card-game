@@ -51,14 +51,14 @@
 | 目录 | 作用 |
 | --- | --- |
 | [HitFxLayer/](../../src/ui/battle/fx/HitFxLayer/HitFxLayer.tsx) | 敌我共用的命中表现（着色、时序、飘字）。 |
-| `BasicSlashFx` / `BladeSlashFx` / `BloodSlashFx` / `IaiSlashFx` / `KeenEdgeFx` / `NeonCrossFx` / `TripleSlashFx` / `TriSlashFx` | 各类斩击特效，用 CSS 关键帧或几何生成。⚠ `NeonCrossFx`、`TripleSlashFx` 在 `ui/test` 中有逐字节相同的副本。 |
+| `BasicSlashFx` / `BladeSlashFx` / `BloodSlashFx` / `IaiSlashFx` / `KeenEdgeFx` / `NeonCrossFx` / `TripleSlashFx` / `TriSlashFx` | 各类斩击特效，用 CSS 关键帧或几何生成。演示页直接引用这里的正式件，不另存副本。 |
 | `TwinArrowFx` | 双箭特效（Canvas 绘制）。 |
 | [AttackArtsFx/](../../src/ui/battle/fx/AttackArtsFx/README.md) | 十种攻击特效：斩击、箭、火、毒、神谕各两种，按 `art.id` 分发。详见目录内的 README。 |
 | `DeathVanishFx` / `HurtVignette` | 死亡消散；我方受伤时的屏幕暗角。 |
 
 ## 胜利结算（战斗画布内）
 
-[VictoryPanel/](../../src/ui/battle/VictoryPanel/VictoryPanel.tsx) 是主面板，由以下部分组成：`VictoryExpRow`（经验）、`VictoryDropSection`（能量档位与掉落）、`VictoryBoonTray`（治疗露珠、卡牌、装备箱）、`VictoryCardOffer`（卡牌候选）、`VictoryLootTray`（战利品盘）、`VictoryBackpack`、`VictoryTrialBand`（到期的挑战契约）、`VictoryPlaque` 和 `VictoryButton`。⚠ `VictoryPanel.tsx` 中丢弃物品时仍在用 `window.confirm`。
+[VictoryPanel/](../../src/ui/battle/VictoryPanel/VictoryPanel.tsx) 是主面板，由以下部分组成：`VictoryExpRow`（经验）、`VictoryDropSection`（能量档位与掉落）、`VictoryBoonTray`（治疗露珠、卡牌、装备箱）、`VictoryCardOffer`（卡牌候选）、`VictoryLootTray`（战利品盘）、`VictoryBackpack`、`VictoryPlaque` 和 `VictoryButton`。⚠ `VictoryPanel.tsx` 中丢弃物品时仍在用 `window.confirm`。
 
 ## 测试
 

@@ -2,7 +2,8 @@ import { useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEve
 import { SceneSkyline } from "./SceneArt";
 import type { EventPanelOption } from "./EventPanel";
 import briefing from "./styles/eventPanelBriefing.module.css";
-import choiceResult from "./styles/eventPanelChoiceResult.module.css";
+import choice from "./styles/eventPanelChoice.module.css";
+import result from "./styles/eventPanelResult.module.css";
 
 interface EventPanelBriefingProps {
   sceneName: string;
@@ -115,23 +116,23 @@ export function EventPanelChoice({
   onBack,
 }: EventPanelChoiceProps) {
   return (
-    <section className={choiceResult.choiceScene} aria-label="事件行动选择">
-      <div className={choiceResult.choiceIntro}>
-        <span className={choiceResult.sceneEyebrow}>02 / 行动阶段</span>
+    <section className={choice.choiceScene} aria-label="事件行动选择">
+      <div className={choice.choiceIntro}>
+        <span className={choice.sceneEyebrow}>02 / 行动阶段</span>
         <h2>{heading}</h2>
         <p>{hint}</p>
-        <div className={choiceResult.choiceSignal}><span /> {signal}</div>
+        <div className={choice.choiceSignal}><span /> {signal}</div>
       </div>
-      <div className={choiceResult.optionsList}>
+      <div className={choice.optionsList}>
         {options.map((option, optionIndex) => {
           const costClass = option.costTone
-            ? choiceResult[`cost${option.costTone[0].toUpperCase()}${option.costTone.slice(1)}`]
+            ? choice[`cost${option.costTone[0].toUpperCase()}${option.costTone.slice(1)}`]
             : "";
           const disabled = Boolean(option.disabled);
           const className = [
-            choiceResult.option,
-            option.state === "chosen" ? choiceResult.optionChosen : "",
-            option.state === "dimmed" ? choiceResult.optionDimmed : "",
+            choice.option,
+            option.state === "chosen" ? choice.optionChosen : "",
+            option.state === "dimmed" ? choice.optionDimmed : "",
           ].filter(Boolean).join(" ");
           const style = {
             "--option-delay": `${option.index ?? optionIndex * 60 + 100}ms`,
@@ -140,16 +141,16 @@ export function EventPanelChoice({
           const content = (
             <>
               {option.leading ? (
-                <span className={choiceResult.optionLeading}>{option.leading}</span>
+                <span className={choice.optionLeading}>{option.leading}</span>
               ) : (
-                <span className={choiceResult.optionIndicator} aria-hidden="true" />
+                <span className={choice.optionIndicator} aria-hidden="true" />
               )}
-              <span className={choiceResult.optionMain}>
+              <span className={choice.optionMain}>
                 <strong>{option.name}</strong>
                 {option.description && <span>{option.description}</span>}
                 {option.cost && <em className={costClass}><i /> {option.cost}</em>}
               </span>
-              <span className={choiceResult.optionArrow} aria-hidden="true">↗</span>
+              <span className={choice.optionArrow} aria-hidden="true">↗</span>
             </>
           );
           if (option.leading) {
@@ -185,7 +186,7 @@ export function EventPanelChoice({
         })}
       </div>
       {backLabel && onBack && (
-        <button type="button" className={choiceResult.backButton} data-sfx="back" onClick={onBack}>
+        <button type="button" className={choice.backButton} data-sfx="back" onClick={onBack}>
           <span aria-hidden="true">←</span> {backLabel}
         </button>
       )}
@@ -227,35 +228,35 @@ export function EventPanelResult({
   onConfirm,
 }: EventPanelResultProps) {
   return (
-    <section className={choiceResult.resultScene} aria-label="事件结算结果" aria-live="polite">
-      <div className={choiceResult.resultSeal}>{seal}</div>
-      <span className={choiceResult.sceneEyebrow}>{eyebrow}</span>
+    <section className={result.resultScene} aria-label="事件结算结果" aria-live="polite">
+      <div className={result.resultSeal}>{seal}</div>
+      <span className={choice.sceneEyebrow}>{eyebrow}</span>
       <h2>{heading}</h2>
-      <div className={[choiceResult.resultStory, typingStory ? choiceResult.typingText : ""].filter(Boolean).join(" ")}>{story}</div>
+      <div className={[result.resultStory, typingStory ? result.typingText : ""].filter(Boolean).join(" ")}>{story}</div>
       {summaryLabel && summaryValue !== undefined && (
-        <div className={choiceResult.summaryRow}>
+        <div className={result.summaryRow}>
           <span>{summaryLabel}</span>
           <strong>{summaryValue}</strong>
         </div>
       )}
       {notes.length > 0 && (
-        <div className={choiceResult.resultNotes}>
+        <div className={result.resultNotes}>
           {notes.map((note, index) => (
-            <span key={`${note.text}-${index}`} className={choiceResult.resultNote} style={{ "--note-delay": `${note.delayMs}ms` } as CSSProperties}>
+            <span key={`${note.text}-${index}`} className={result.resultNote} style={{ "--note-delay": `${note.delayMs}ms` } as CSSProperties}>
               {note.text}
             </span>
           ))}
         </div>
       )}
       {notice && (
-        <div className={choiceResult.rewardNotice}>
-          <span className={choiceResult.rewardPulse} />
+        <div className={result.rewardNotice}>
+          <span className={result.rewardPulse} />
           <div><strong>{notice.title}</strong><span>{notice.desc}</span></div>
-          <span className={choiceResult.rewardArrow}>→</span>
+          <span className={result.rewardArrow}>→</span>
         </div>
       )}
-      <div className={choiceResult.resultFoot}>
-        <span className={choiceResult.resultFootNote}>{footNote}</span>
+      <div className={result.resultFoot}>
+        <span className={result.resultFootNote}>{footNote}</span>
         {footActions}
         <button type="button" className={briefing.advanceButton} disabled={confirmDisabled} onClick={onConfirm}>
           {confirmLabel}

@@ -1,4 +1,4 @@
-import { STATUS_DEFS } from "./statuses";
+import { STATUS_DEFS } from "./hookRegistry";
 import { RULES } from "./rules";
 import type { BattleState } from "./types";
 import { allIds, cleanup, ctxFor, markDead } from "./ops";

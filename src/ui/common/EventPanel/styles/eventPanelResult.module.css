@@ -1,0 +1,205 @@
+/* 事件面板·结算结果 —— 印章、故事打字、摘要与奖励提示。
+   场景标签 .sceneEyebrow 与行动选择共用, 定义在 eventPanelChoice.module.css。 */
+
+.resultScene h2 {
+  margin: 13px 0 9px;
+  color: var(--ui-value);
+  font-family: var(--font-family);
+  font-size: var(--ep-h2);
+  font-weight: var(--ui-weight);
+  line-height: 1.05;
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.resultScene {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  width: 610px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 15px 20px;
+  animation: resultIn 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.resultSeal {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid var(--event-accent);
+  color: var(--event-accent);
+  font-size: var(--ep-glyph);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--event-accent) 20%, transparent);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  animation: sealIn 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.resultScene h2 {
+  margin-top: 10px;
+}
+
+.resultStory {
+  max-width: 560px;
+  margin: 0 0 17px;
+  color: #d2e0da;
+  font-size: var(--ep-body);
+  line-height: 1.8;
+}
+
+.resultStory p {
+  margin: 0;
+  animation: noteEnter 260ms cubic-bezier(0.2, 0.72, 0.28, 1) var(--story-delay, 0ms) backwards;
+}
+
+.typingText::after {
+  display: inline-block;
+  width: 5px;
+  height: 1em;
+  margin-left: 3px;
+  background: var(--event-accent);
+  content: "";
+  vertical-align: -2px;
+  animation: caretBlink 760ms steps(1, end) infinite;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 12px 0;
+  border-top: 1px solid #314149;
+  border-bottom: 1px solid #314149;
+  color: var(--ui-label);
+  font-size: var(--ep-meta);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.summaryRow strong {
+  color: var(--ui-value);
+  font-size: var(--ep-lead);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-align: right;
+}
+
+.resultNotes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.resultNote {
+  padding: 7px 14px;
+  border: 1px solid #ffffff24;
+  background: #ffffff08;
+  color: #c9d6d2;
+  font-size: var(--ep-meta);
+  letter-spacing: var(--ep-track);
+  animation: noteEnter 260ms cubic-bezier(0.2, 0.72, 0.28, 1) var(--note-delay, 0ms) backwards;
+}
+
+.rewardNotice {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  margin-top: 15px;
+  padding: 10px 12px;
+  background: #d5f1450d;
+  color: #cae6bb;
+}
+
+.rewardPulse {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #d6f238;
+  box-shadow: 0 0 0 4px #d6f23812, 0 0 14px #d6f238;
+  animation: statusPulse 1.5s ease-in-out infinite;
+}
+
+.rewardNotice div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.rewardNotice strong {
+  color: var(--ui-value);
+  font-size: var(--ep-lead);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.rewardNotice div span {
+  color: var(--ui-label);
+  font-size: var(--ep-meta);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.rewardArrow {
+  margin-left: auto;
+  color: #d6f238;
+  font-size: var(--ep-arrow);
+}
+
+.resultFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #314149;
+}
+
+.resultFootNote {
+  color: var(--ui-label);
+  font-size: var(--ep-meta);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.resultFoot > button {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+@keyframes resultIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes noteEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sealIn {
+  from { opacity: 0; transform: scale(0.65) rotate(-12deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes caretBlink {
+  0%, 45% { opacity: 1; }
+  46%, 100% { opacity: 0; }
+}

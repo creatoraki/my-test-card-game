@@ -11,7 +11,6 @@ export const ECO_ARK_MAP: MapDef = {
   roomCount: 12,
   nearMapVariant: "ecoArk",
   curioLevelRange: [1, 3],
-  eventPoolId: "ruined-floor",
   battleEncounters: {
     t1: ["a-t1-cargo", "a-t1-seeds", "a-t1-water"],
     t2: ["a-t2-pruning", "a-t2-pollen", "a-t2-pods", "a-t2-shell"],
