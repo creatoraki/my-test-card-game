@@ -20,6 +20,7 @@ import corridorNearThirdArt from "@/assets/explore-corridor/废弃楼层/近景/
 import type { NearMapVariant } from "@/explore/dungeon/types";
 import type { CurioKind } from "@/explore/corridor/types";
 import { ECO_ARK_SCENERY, ECO_ARK_SCENERY_SOURCES } from "./ecoArkScenery";
+import { ECO_ARK_ARCHITECTURE_SOURCES } from "./ecoArkArchitectureArt";
 import { ECO_ARK_PROP_ART } from "./ecoArkPropArt";
 
 export const CORRIDOR_PROP_SCALES = {
@@ -161,6 +162,7 @@ export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
 
 export const CORRIDOR_ART_SOURCES: readonly string[] = [
   ...ECO_ARK_SCENERY_SOURCES,
+  ...ECO_ARK_ARCHITECTURE_SOURCES,
   corridorFarArt,
   ...Object.values(CORRIDOR_NEAR_ART),
   roomPortalSpriteArt,

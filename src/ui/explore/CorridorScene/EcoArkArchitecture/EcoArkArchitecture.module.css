@@ -1,0 +1,2 @@
+.layer { position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events: none; }
+.structure { position: absolute; display: block; max-width: none; object-fit: fill; filter: saturate(.9) brightness(.92) drop-shadow(0 8px 16px #06171480); user-select: none; }
