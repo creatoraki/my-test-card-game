@@ -26,9 +26,9 @@
 .selected::before { opacity: 1; }
 .used .objectButton { filter: grayscale(.8) brightness(.6); }
 .targetMarker { position: absolute; top: -26px; color: #f1cc85; font-size: 21px; animation: marker 1.5s ease-in-out infinite; transform-origin: 50% 100%; transform: scale(var(--corridor-ui-scale)); }
-/* 逐帧立绘已压缩为 180×240；透明画布保留并在 216px 角色容器内水平居中。 */
+/* 逐帧立绘为 180×240、脚底贴画布底边；透明画布在 216px 角色容器内水平居中，下沉 3px 与地面接触。 */
 .playerAnchor { position: absolute; left: 0; z-index: 15; will-change: transform; pointer-events: none; }
-.player { position: absolute; left: 0; top: 0; transform: translate(-50%, calc(-100% + 29px)); width: 216px; height: 240px; pointer-events: none; }
+.player { position: absolute; left: 0; top: 0; transform: translate(-50%, calc(-100% + 3px)); width: 216px; height: 240px; pointer-events: none; }
 /* 传送门：四个方向同一副外观，方向只能从小地图读出。踩上去才亮起并给出确认提示。 */
 .portal { z-index: 4; }
 .portalArt {

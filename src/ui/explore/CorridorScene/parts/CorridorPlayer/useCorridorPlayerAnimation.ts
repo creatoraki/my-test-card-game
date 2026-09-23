@@ -1,6 +1,6 @@
 ﻿import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { loadCorridorPlayerFrames } from "@/ui/art/corridor/corridorPlayerFrames";
-import { CORRIDOR_PLAYER_MOTION_FPS } from "../../corridorPlayerMotion";
+import { CORRIDOR_PLAYER_MOTION_FPS, getCorridorPlayerFrameOffset } from "../../corridorPlayerMotion";
 import { advancePlayerAnimation, createPlayerAnimation } from "./playerAnimationState";
 
 export function useCorridorPlayerAnimation(walking: boolean, facing: -1 | 1) {
@@ -39,7 +39,9 @@ export function useCorridorPlayerAnimation(walking: boolean, facing: -1 | 1) {
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.setTransform(direction, 0, 0, 1, direction < 0 ? canvas.width : 0, 0);
-        context.drawImage(frame, 0, 0, canvas.width, canvas.height);
+        // 偏移在镜像前施加，转身后校准量随画面一起翻转。
+        const offset = getCorridorPlayerFrameOffset(state.frame);
+        context.drawImage(frame, offset.x, offset.y, canvas.width, canvas.height);
         drawnFrame = state.frame;
         drawnFacing = direction;
       };
