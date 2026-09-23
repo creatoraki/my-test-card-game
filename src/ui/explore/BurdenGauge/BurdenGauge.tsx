@@ -26,15 +26,16 @@ function BackpackIcon() {
 }
 
 export function BurdenGauge() {
-  const session = useExploreStore((state) => state.session);
-  const occupied = session ? backpackSlots(session) : 0;
+  // 只订阅数值: 行走中的暗雷检定 / 扣粒子等提交不会让负重读数重渲染。
+  const active = useExploreStore((state) => Boolean(state.session));
+  const occupied = useExploreStore((state) => state.session ? backpackSlots(state.session) : 0);
+  const adapt = useExploreStore((state) => state.session ? partyBurdenAdapt(state.session) : 0);
+  const burden = useExploreStore((state) => state.session ? burdenNow(state.session) : 0);
   const occupiedShown = useCountUp(occupied, 0, 260);
 
-  if (!session) return null;
+  if (!active) return null;
 
   const total = RULES.burden.backpackSlots;
-  const adapt = partyBurdenAdapt(session);
-  const burden = burdenNow(session);
   const hitPenalty = burdenHitPenalty(burden);
   const dodgePenalty = burdenDodgePenalty(burden);
   const precisionPenalty = burdenPrecisionPenalty(burden);

@@ -4,11 +4,16 @@ import { useExploreStore } from "../explore/exploreStore";
 import { useTownStore } from "./townStore";
 
 let installed = false;
+/** 上次收集时各来源的引用。行走中的会话提交(暗雷检定、扣粒子)不换这些引用, 直接跳过整轮遍历。 */
+let lastSources: readonly unknown[] = [];
 
 export function collectNow(): void {
   const town = useTownStore.getState();
   const explore = useExploreStore.getState().session;
   const battle = useBattleStore.getState().battle;
+  const sources = [town.storage, town.characters, explore?.backpack, explore?.shipped, battle];
+  if (sources.every((source, index) => source === lastSources[index])) return;
+  lastSources = sources;
   const items = new Set<string>();
   const cards = new Set<string>();
   const enemies = new Set<string>();

@@ -8,6 +8,7 @@
 // 点击面板(或「展开」)打开 MinimapAtlas 大图看更大范围, 传送选房也在大图里进行。
 // 格子状态与视觉映射见 minimapModel.ts, 格子落点与折线道路见 minimapLayout.ts。
 
+import { memo } from "react";
 import type { CorridorState } from "@/explore/corridor/types";
 import type { DungeonState } from "@/explore/dungeon/types";
 import { MinimapFocus } from "./MinimapFocus";
@@ -16,7 +17,8 @@ import { MINIMAP_HUD_METRICS } from "./minimapHudLayout";
 import frame from "./MinimapFrame.module.css";
 import s from "./Minimap.module.css";
 
-export function Minimap({
+// memo: 行走中的暗雷检定 / 扣粒子不改 dungeon / corridor 引用, 小地图不重算。
+export const Minimap = memo(function Minimap({
   dungeon,
   corridor,
   onExpand,
@@ -58,6 +60,6 @@ export function Minimap({
       />
     </div>
   </div>;
-}
+});
 
 export default Minimap;

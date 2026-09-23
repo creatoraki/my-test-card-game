@@ -21,10 +21,10 @@ import { PlayerSpeech } from "./parts/PlayerSpeech";
 import { cameraX, CORRIDOR_LAYOUT, CORRIDOR_SCENE_SCALE } from "./corridorLayout";
 import { applyCorridorFrame } from "./corridorFrame";
 import s from "./CorridorScene.module.css";
-import { useCallback, useLayoutEffect, useRef, type CSSProperties } from "react";
+import { memo, useCallback, useLayoutEffect, useRef, type CSSProperties } from "react";
 
-/** 一间房两屏宽：镜头跟随玩家居中卷动。 */
-export function CorridorScene({ corridor, blocked, encountering, nearMapVariant, onPortalTravel }: {
+/** 一间房两屏宽：镜头跟随玩家居中卷动。memo: 行走中与场景无关的会话提交(暗雷检定、扣粒子)不重渲染整个场景。 */
+export const CorridorScene = memo(function CorridorScene({ corridor, blocked, encountering, nearMapVariant, onPortalTravel }: {
   corridor: CorridorState;
   blocked: boolean;
   encountering: boolean;
@@ -122,4 +122,4 @@ export function CorridorScene({ corridor, blocked, encountering, nearMapVariant,
     {encountering && activeThreat && <ShadowEncounter key={activeThreat.id} x={(activeThreat.x - camera) * CORRIDOR_SCENE_SCALE} />}
     <div className={s.vignette} aria-hidden />
   </div>;
-}
+});

@@ -8,10 +8,19 @@
 .objectButton { position: relative; z-index: 1; padding: 0; background: none; border: 0; box-shadow: none; border-radius: 0; cursor: pointer; }
 .objectButton:disabled { opacity: 1; cursor: default; }
 .objectButton:focus-visible { outline: 3px solid #efc37f; outline-offset: 7px; }
-.sprite { display: block; background-size: 100% 100%; background-repeat: no-repeat; background-position: 0 0; }
-.sprite.propOutline {
-  filter: drop-shadow(0 0 1.5px #ffe7a8) drop-shadow(0 0 1.5px #ffe7a8) drop-shadow(0 0 12px #edc779b0);
-  animation: propOutline 1.6s ease-in-out infinite;
+.sprite { position: relative; display: block; background-size: 100% 100%; background-repeat: no-repeat; background-position: 0 0; }
+/* 细描边静态绘制；外圈呼吸光由垫在后面的 .propGlow 负责，只动画 opacity(合成层完成，不逐帧重绘滤镜)。 */
+.sprite.propOutline { filter: drop-shadow(0 0 1.5px #ffe7a8) drop-shadow(0 0 1.5px #ffe7a8); }
+.propGlow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 15px #edc779c7);
+  pointer-events: none;
+  will-change: opacity;
+  animation: propGlow 1.6s ease-in-out infinite;
 }
 .sprite.interacting { animation: propInteraction 520ms ease-out both; }
 .selected::before { opacity: 1; }
@@ -63,7 +72,7 @@
   0%, 100% { filter: brightness(1); }
   40% { filter: brightness(1.45); }
 }
-@keyframes propOutline {
-  0%, 100% { filter: drop-shadow(0 0 1.5px #ffe7a8) drop-shadow(0 0 1.5px #ffe7a8) drop-shadow(0 0 8px #edc77988); }
-  50% { filter: drop-shadow(0 0 1.5px #ffe7a8) drop-shadow(0 0 1.5px #ffe7a8) drop-shadow(0 0 15px #edc779c7); }
+@keyframes propGlow {
+  0%, 100% { opacity: .55; }
+  50% { opacity: 1; }
 }

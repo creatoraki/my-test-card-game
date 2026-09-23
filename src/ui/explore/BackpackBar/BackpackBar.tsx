@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { RULES } from "@/engine";
 import { getItemDef } from "@/data";
 import { backpackSlots, canOpenBackpack, canUseItem } from "@/explore/session";
@@ -11,21 +12,21 @@ import s from "./BackpackBar.module.css";
 const COLS = 12;
 const ROWS = 2;
 
-export default function BackpackBar({
+// memo + 只订阅背包本身与两个布尔值: 行走中的暗雷检定 / 扣粒子等提交不会重绘这 24 格。
+export default memo(function BackpackBar({
   onUseItem,
 }: {
   // 「使用」入口: 由 ExploreScreen 接手(目标类消耗品进入头像选择流程, 其余立即生效)。
   onUseItem?: (stack: ItemStack) => void;
 }) {
-  const session = useExploreStore((state) => state.session);
+  const backpack = useExploreStore((state) => state.session?.backpack);
+  const editable = useExploreStore((state) => Boolean(state.session && canOpenBackpack(state.session)));
+  const useAllowed = useExploreStore((state) => Boolean(state.session && canUseItem(state.session)));
+  const occupied = useExploreStore((state) => state.session ? backpackSlots(state.session) : 0);
   const discardItem = useExploreStore((state) => state.discardItem);
   const reorder = useExploreStore((state) => state.reorderBackpack);
 
-  if (!session) return null;
-
-  const backpack = session.backpack;
-  const editable = canOpenBackpack(session);
-  const useAllowed = canUseItem(session);
+  if (!backpack) return null;
 
   const contextMenuItems = (stack: ItemStack): ContextMenuItem[] => {
     const items: ContextMenuItem[] = [];
@@ -56,7 +57,7 @@ export default function BackpackBar({
       compact
       title="背包"
       capacity={RULES.burden.backpackSlots}
-      occupied={backpackSlots(session)}
+      occupied={occupied}
       gridLabel="随身背包格位"
       panelId="explore-backpack-bar"
       colorMap={EXPLORE_BACKPACK_COLORS}
@@ -74,4 +75,4 @@ export default function BackpackBar({
       contextMenuItems={editable ? contextMenuItems : undefined}
     />
   );
-}
+});

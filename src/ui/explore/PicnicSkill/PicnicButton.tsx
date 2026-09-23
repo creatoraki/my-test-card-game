@@ -6,11 +6,13 @@ import { cx } from "@/ui/common/shared/cx";
 import s from "./PicnicButton.module.css";
 
 export default function PicnicButton({ onOpen }: { onOpen: () => void }) {
-  const session = useExploreStore((state) => state.session);
-  if (!session) return null;
+  // 只订阅布尔值, 行走中的会话提交不重渲染按钮。
+  const active = useExploreStore((state) => Boolean(state.session));
+  const used = useExploreStore((state) => Boolean(state.session?.picnicUsed));
+  const allowed = useExploreStore((state) => Boolean(state.session && canPicnic(state.session)));
+  if (!active) return null;
 
-  const used = session.picnicUsed;
-  const phaseLocked = !used && !canPicnic(session);
+  const phaseLocked = !used && !allowed;
   const available = !used && !phaseLocked;
 
   return (

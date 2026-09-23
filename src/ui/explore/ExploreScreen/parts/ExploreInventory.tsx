@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { getItemDef } from "@/data";
 import type { ExploreState } from "@/explore/types";
 import { deriveStats, useTownStore } from "@/store/town/townStore";
@@ -18,12 +19,15 @@ export function ExploreInventory({ session, inventory }: { session: ExploreState
   const characters = useTownStore((state) => state.characters);
   const member = session.party.find((item) => item.charId === inventory.detailCharId);
   const character = inventory.detailCharId ? characters[inventory.detailCharId] : undefined;
+  const { setAtlasOpen } = inventory;
+  // 稳定引用, 让 memo 过的小地图在无关提交时跳过渲染。
+  const expandAtlas = useCallback(() => setAtlasOpen(true), [setAtlasOpen]);
   return <>
     <div className={s.burden}>
       {session.dungeon && session.corridor && <Minimap
         dungeon={session.dungeon}
         corridor={session.corridor}
-        onExpand={inventory.allowed ? () => inventory.setAtlasOpen(true) : undefined}
+        onExpand={inventory.allowed ? expandAtlas : undefined}
       />}
       <BurdenGauge />
       <RelicRail stacks={relicsInBackpack(session)} />

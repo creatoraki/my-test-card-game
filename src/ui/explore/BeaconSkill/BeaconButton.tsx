@@ -6,11 +6,13 @@ import { cx } from "@/ui/common/shared/cx";
 import s from "./BeaconButton.module.css";
 
 export default function BeaconButton({ onPick }: { onPick: () => void }) {
-  const session = useExploreStore((state) => state.session);
-  if (!session || !hasExploreRelic(session, "relic-emergency-beacon")) return null;
+  // 只订阅布尔值, 行走中的会话提交不重渲染按钮。
+  const owned = useExploreStore((state) => Boolean(state.session && hasExploreRelic(state.session, "relic-emergency-beacon")));
+  const used = useExploreStore((state) => Boolean(state.session?.beaconUsed));
+  const usable = useExploreStore((state) => Boolean(state.session && canUseBeacon(state.session)));
+  if (!owned) return null;
 
-  const used = session.beaconUsed;
-  const phaseLocked = !used && !canUseBeacon(session);
+  const phaseLocked = !used && !usable;
   const available = !used && !phaseLocked;
 
   return (

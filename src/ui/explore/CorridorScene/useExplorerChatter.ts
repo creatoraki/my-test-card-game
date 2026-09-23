@@ -41,10 +41,10 @@ export function useExplorerChatter({
   blocked,
   activeObjectId,
 }: ExplorerChatterInput): { line: ChatLine | null } {
-  const session = useExploreStore((state) => state.session);
-  const energy = session?.energy ?? 100;
+  // 只订阅基础类型：行走中的暗雷检定等提交不改这两个值时，场景不跟着重渲染。
+  const energy = useExploreStore((state) => state.session?.energy ?? 100);
   const energyLevel = energyTier(energy);
-  const occupied = session ? backpackSlots(session) : 0;
+  const occupied = useExploreStore((state) => state.session ? backpackSlots(state.session) : 0);
   const capacity = RULES.burden.backpackSlots;
   const burdenFill = capacity > 0 ? occupied / capacity : 0;
 

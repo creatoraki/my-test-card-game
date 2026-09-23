@@ -37,16 +37,19 @@ function pickAmbushTier(s: ExploreState): BattleTier {
   return options[options.length - 1].tier;
 }
 
-export function rollCorridorAmbush(
-  s: ExploreState,
-  x: number,
-  facing: -1 | 1,
-): CorridorAmbushResult {
+/**
+ * 暗雷检定只掷骰，不生成遭遇：除 rngState 外不改会话任何字段，
+ * 行走中每段都要调用，store 可以只浅拷贝顶层提交。命中后再调用 spawnCorridorAmbush。
+ */
+export function rollCorridorAmbush(s: ExploreState): CorridorAmbushResult {
   if (!canWalkCorridor(s) || !s.corridor) return "skip";
   const chance = ambushChance(energySinceBattle(s));
-  if (rngFloat(s) >= chance) return "miss";
-  spawnCorridorEncounter(s, corridorWandererEvent(pickAmbushTier(s)), x, facing);
-  return "hit";
+  return rngFloat(s) >= chance ? "miss" : "hit";
+}
+
+/** 暗雷命中：抽档位并在玩家面前生成遭遇。会改 corridor / sceneEvents，调用方须传入深拷贝。 */
+export function spawnCorridorAmbush(s: ExploreState, x: number, facing: -1 | 1): boolean {
+  return spawnCorridorEncounter(s, corridorWandererEvent(pickAmbushTier(s)), x, facing);
 }
 
 /** 在玩家面前生成一场临时遭遇战(暗雷、警报守卫共用), 并立即进入遭遇演出。 */

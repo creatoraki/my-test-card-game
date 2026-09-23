@@ -126,7 +126,8 @@ export function useCorridorMovement(
     let frame = 0;
     let previous = performance.now();
     const tick = (now: number) => {
-      const elapsed = Math.min((now - previous) / 1000, 0.04);
+      // 偶发长帧按真实时长补位，否则超出部分的位移会被吞掉，手感像突然有阻力；切后台由 document.hidden 单独处理。
+      const elapsed = Math.min((now - previous) / 1000, 0.1);
       previous = now;
       const current = live.current;
       const menuOpen = pressed.current.size > 0 && Boolean(document.querySelector("[role='menu']"));
