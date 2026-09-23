@@ -1,12 +1,12 @@
 import type { EnemySpriteDef } from "./enemyArt";
-import crab from "@/assets/敌人立绘/生态方舟/苔甲搬运蟹.png";
-import moth from "@/assets/敌人立绘/生态方舟/孢灯浮蛾.png";
-import mantis from "@/assets/敌人立绘/生态方舟/棘刃园丁.png";
-import snail from "@/assets/敌人立绘/生态方舟/灌流蜗牛.png";
-import seed from "@/assets/敌人立绘/生态方舟/种荚哨兵.png";
-import stag from "@/assets/敌人立绘/生态方舟/冠层巡猎鹿.png";
-import keeper from "@/assets/敌人立绘/生态方舟/温室监护者.png";
-import mother from "@/assets/敌人立绘/生态方舟/母树中枢.png";
+import crab from "@/assets/敌人立绘/生态方舟/苔甲搬运蟹.webp";
+import moth from "@/assets/敌人立绘/生态方舟/孢灯浮蛾.webp";
+import mantis from "@/assets/敌人立绘/生态方舟/棘刃园丁.webp";
+import snail from "@/assets/敌人立绘/生态方舟/灌流蜗牛.webp";
+import seed from "@/assets/敌人立绘/生态方舟/种荚哨兵.webp";
+import stag from "@/assets/敌人立绘/生态方舟/冠层巡猎鹿.webp";
+import keeper from "@/assets/敌人立绘/生态方舟/温室监护者.webp";
+import mother from "@/assets/敌人立绘/生态方舟/母树中枢.webp";
 
 function sprite(src: string, body: EnemySpriteDef["body"], idle: EnemySpriteDef["idle"]): EnemySpriteDef {
   return { src, frames: 1, frameMs: 1000, sheet: { w: 1254, h: 1254 }, body, idle };

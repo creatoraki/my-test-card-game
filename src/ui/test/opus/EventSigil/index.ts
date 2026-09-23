@@ -1,1 +1,0 @@
-﻿export { EventSigil } from "./EventSigil";

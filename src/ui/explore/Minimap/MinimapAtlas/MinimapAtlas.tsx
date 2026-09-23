@@ -8,7 +8,7 @@
 import type { CorridorState } from "@/explore/corridor/types";
 import type { DungeonState } from "@/explore/dungeon/types";
 import { useDialogFocus } from "@/ui/explore/ExploreScreen/useDialogFocus";
-import sceneArt from "@/assets/占位场景素材.png";
+import sceneArt from "@/assets/占位场景素材.webp";
 import { MinimapFocus } from "../MinimapFocus";
 import { metricsForTile } from "../minimapLayout";
 import { buildMapModel, portalTargetId } from "../minimapModel";

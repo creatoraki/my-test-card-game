@@ -19,5 +19,5 @@
 
 ## 临时美术资源
 
-F:\new\my-test-card-game\src\assets\占位素材.png 256*256的美术占位素材 1:1
-F:\new\my-test-card-game\src\assets\占位场景素材.png 1920*1080的场景美术占位素材 16:9
+F:\new\my-test-card-game\src\assets\占位素材.webp 256*256的美术占位素材 1:1
+F:\new\my-test-card-game\src\assets\占位场景素材.webp 1920*1080的场景美术占位素材 16:9

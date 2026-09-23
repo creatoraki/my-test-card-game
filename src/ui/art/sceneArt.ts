@@ -1,16 +1,16 @@
 import menuBgVideo from "@/assets/通用素材/菜单.mp4";
 import elevatorDescentVideo from "@/assets/通用素材/电梯下降循环.mp4";
-import menuTitle from "@/assets/通用素材/霓虹都市.png";
-import startGameArt from "@/assets/通用素材/开始游戏.png";
-import stationBg from "@/assets/场景/测试/背景素材.png";
-import cryoBg from "@/assets/场景/冬眠仓.png";
-import formationBg from "@/assets/场景/队员宿舍.png";
-import talentBg from "@/assets/通用素材/天赋背景.png";
-import worklogBg from "@/assets/场景/控制终端.png";
-import assemblyBg from "@/assets/场景/模组装配仓.png";
-import shopBg from "@/assets/场景/商店.png";
-import museumBg from "@/assets/占位场景素材.png";
-import expeditionResultBg from "@/assets/场景/远征结算.png";
+import menuTitle from "@/assets/通用素材/霓虹都市.webp";
+import startGameArt from "@/assets/通用素材/开始游戏.webp";
+import stationBg from "@/assets/场景/测试/背景素材.webp";
+import cryoBg from "@/assets/场景/冬眠仓.webp";
+import formationBg from "@/assets/场景/队员宿舍.webp";
+import talentBg from "@/assets/通用素材/天赋背景.webp";
+import worklogBg from "@/assets/场景/控制终端.webp";
+import assemblyBg from "@/assets/场景/模组装配仓.webp";
+import shopBg from "@/assets/场景/商店.webp";
+import museumBg from "@/assets/占位场景素材.webp";
+import expeditionResultBg from "@/assets/场景/远征结算.webp";
 
 export const SCENE_ART_SOURCES: readonly string[] = [
   menuTitle,

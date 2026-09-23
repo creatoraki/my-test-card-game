@@ -1,15 +1,15 @@
 // 敌人立绘素材集中登记处(与 cardArt.ts 同思路: 静态 import + 登记表)。
 // 新增敌人立绘时只需跑 scripts/alpha-bbox.mjs 并把 sheet/body 粘贴到这里。
-import scrapBotIdle from "@/assets/敌人立绘/废品机器人/idle.png";
-import poleBotIdle from "@/assets/敌人立绘/电线杆机器人/idle.png";
-import radioBotIdle from "@/assets/敌人立绘/收音机机器人/idle.png";
-import sweepDroneIdle from "@/assets/敌人立绘/清扫机器人/idle.png";
-import scrapMountainGuardianIdle from "@/assets/敌人立绘/垃圾山的守护者/idle.png";
-import maintenanceSpiderIdle from "@/assets/敌人立绘/维修蜘蛛/idle.png";
-import trafficLightBotIdle from "@/assets/敌人立绘/红绿灯机器人/idle.png";
-import glassJellyIdle from "@/assets/敌人立绘/玻璃水母/idle.png";
-import mimicGearIdle from "@/assets/敌人立绘/宝箱怪A/idle.png";
-import mimicCardIdle from "@/assets/敌人立绘/宝箱怪B/idle.png";
+import scrapBotIdle from "@/assets/敌人立绘/废品机器人/idle.webp";
+import poleBotIdle from "@/assets/敌人立绘/电线杆机器人/idle.webp";
+import radioBotIdle from "@/assets/敌人立绘/收音机机器人/idle.webp";
+import sweepDroneIdle from "@/assets/敌人立绘/清扫机器人/idle.webp";
+import scrapMountainGuardianIdle from "@/assets/敌人立绘/垃圾山的守护者/idle.webp";
+import maintenanceSpiderIdle from "@/assets/敌人立绘/维修蜘蛛/idle.webp";
+import trafficLightBotIdle from "@/assets/敌人立绘/红绿灯机器人/idle.webp";
+import glassJellyIdle from "@/assets/敌人立绘/玻璃水母/idle.webp";
+import mimicGearIdle from "@/assets/敌人立绘/宝箱怪A/idle.webp";
+import mimicCardIdle from "@/assets/敌人立绘/宝箱怪B/idle.webp";
 import { preloadImage } from "@/ui/art/assetLoader";
 import { ECO_ARK_ENEMY_ART } from "./ecoArkEnemyArt";
 
@@ -19,7 +19,8 @@ export interface EnemySpriteDef {
   src: string;
   frames: number; // 拼条内的物理帧数(须能整除原图宽度); 与是否跳帧无关
   frameMs: number; // 每帧停留(ms)
-  sheet: { w: number; h: number }; // 源图总尺寸
+  // 源图总尺寸。sheet/view/body 只按比例参与换算: 素材文件等比缩小后这些数值无需改动。
+  sheet: { w: number; h: number };
   // 展示框: 实际绘制到屏幕的源图矩形。省略=整帧; 拼条多帧时 w 通常是帧宽。
   view?: { x: number; y: number; w: number; h: number };
   // 主体框: 首帧 alpha 包围盒, 只用于归一化和定位, 不裁切展示构图。
@@ -67,7 +68,7 @@ const ENEMY_ART: Record<string, EnemySpriteDef> = {
     frames: 1,
     frameMs: 1000,
     sheet: { w: 2048, h: 2048 },
-    // 立绘换过图, body 按当前 idle.png 重新量过(scripts/alpha-bbox.mjs): 主体 1719×1860。
+    // 立绘换过图, body 按当前 idle 原画重新量过(scripts/alpha-bbox.mjs): 主体 1719×1860。
     body: { x: 165, y: 95, w: 1719, h: 1860 },
     // 机械微颤: 上下 3px + 0.6° 侧倾, 像内部还有个马达在转
     idle: { bob: 3, tilt: 0.6, dur: 2600 },

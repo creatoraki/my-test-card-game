@@ -16,7 +16,7 @@ import { GuideSpotlight } from "@/ui/common/GuideSpotlight";
 import { ConfirmDialog } from "@/ui/common/ConfirmDialog";
 
 // 演示页只在开发环境存在: 生产构建里 import.meta.env.DEV 恒为 false, 整个动态 import 分支会被摇树删掉,
-// 约 2.8 万行演示代码不会进入生产包。⚠ 正式代码不得反向引用 ui/test 下的任何文件。
+// 演示代码不会进入生产包。⚠ 正式代码不得反向引用 ui/test 下的任何文件。
 const TestScreen = import.meta.env.DEV
   ? lazy(() => import("@/ui/test/TestScreen").then((m) => ({ default: m.TestScreen })))
   : null;

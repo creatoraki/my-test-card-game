@@ -1,1 +1,0 @@
-export { OpusCultivationIconDemo } from "./OpusCultivationIconDemo";

@@ -1,7 +1,7 @@
 import type { Rarity } from "@/engine";
-import commonCrystal from "@/assets/通用素材/白色水晶.png";
-import uncommonCrystal from "@/assets/通用素材/绿色水晶.png";
-import rareCrystal from "@/assets/通用素材/紫色水晶.png";
+import commonCrystal from "@/assets/通用素材/白色水晶.webp";
+import uncommonCrystal from "@/assets/通用素材/绿色水晶.webp";
+import rareCrystal from "@/assets/通用素材/紫色水晶.webp";
 
 export const RARITY_CRYSTAL_ART: Record<Rarity, string> = {
   common: commonCrystal,

@@ -1,4 +1,4 @@
-import defaultBotArt from "@/assets/通用素材/售货机器人.png";
+import defaultBotArt from "@/assets/通用素材/售货机器人.webp";
 import { cx } from "@/ui/common/cx";
 import { ChatBubble } from "./ChatBubble";
 import { useChatLinePresence } from "./useChatLinePresence";

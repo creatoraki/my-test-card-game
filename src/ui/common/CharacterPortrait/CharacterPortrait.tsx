@@ -1,8 +1,8 @@
-import swordsmanPortrait from "@/assets/人物立绘/剑士/default.png";
-import botanistPortrait from "@/assets/人物立绘/植物学家/default.png";
-import prophetPortrait from "@/assets/人物立绘/预言家/default.png";
-import alchemistPortrait from "@/assets/人物立绘/炼金术士/idle.png";
-import actuaryPortrait from "@/assets/人物立绘/精算师/idle.png";
+import swordsmanPortrait from "@/assets/人物立绘/剑士/default.webp";
+import botanistPortrait from "@/assets/人物立绘/植物学家/default.webp";
+import prophetPortrait from "@/assets/人物立绘/预言家/default.webp";
+import alchemistPortrait from "@/assets/人物立绘/炼金术士/idle.webp";
+import actuaryPortrait from "@/assets/人物立绘/精算师/idle.webp";
 import { cx } from "@/ui/common/cx";
 import s from "./CharacterPortrait.module.css";
 
@@ -38,7 +38,7 @@ const CHARACTER_ART: Record<string, CharacterArtDef> = {
   swordsman: { src: swordsmanPortrait, ...UNIFORM_FRAMING, dx: -15, dy: 10 },
   prophet: { src: prophetPortrait, ...UNIFORM_FRAMING },
   botanist: { src: botanistPortrait, ...UNIFORM_FRAMING },
-  // ⚠ 立绘文件名是 idle.png(其余三人是 default.png), 取景先照统一规格走, 有异常构图再单独覆盖。
+  // ⚠ 立绘文件名是 idle.webp(其余三人是 default.webp), 取景先照统一规格走, 有异常构图再单独覆盖。
   alchemist: { src: alchemistPortrait, ...UNIFORM_FRAMING },
   actuary: { src: actuaryPortrait, ...UNIFORM_FRAMING },
 };

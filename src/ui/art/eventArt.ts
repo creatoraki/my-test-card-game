@@ -1,5 +1,5 @@
 import type { NodeEventKind } from "@/explore/types";
-import placeholderArt from "@/assets/占位素材.png";
+import placeholderArt from "@/assets/占位素材.webp";
 
 const EVENT_ART: Record<NodeEventKind, string> = {
   retreat: placeholderArt,

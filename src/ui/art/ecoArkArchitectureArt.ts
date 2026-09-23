@@ -1,9 +1,9 @@
-import greenhouse from "@/assets/explore-corridor/生态方舟/近景建筑/生态温室.png";
-import seedArchive from "@/assets/explore-corridor/生态方舟/近景建筑/种源保存馆.png";
-import researchHall from "@/assets/explore-corridor/生态方舟/近景建筑/水培研究馆.png";
-import waterStation from "@/assets/explore-corridor/生态方舟/近景建筑/水循环处理站.png";
-import observatory from "@/assets/explore-corridor/生态方舟/近景建筑/冠层观测塔.png";
-import restorationCenter from "@/assets/explore-corridor/生态方舟/近景建筑/生态修复中心.png";
+import greenhouse from "@/assets/explore-corridor/生态方舟/近景建筑/生态温室.webp";
+import seedArchive from "@/assets/explore-corridor/生态方舟/近景建筑/种源保存馆.webp";
+import researchHall from "@/assets/explore-corridor/生态方舟/近景建筑/水培研究馆.webp";
+import waterStation from "@/assets/explore-corridor/生态方舟/近景建筑/水循环处理站.webp";
+import observatory from "@/assets/explore-corridor/生态方舟/近景建筑/冠层观测塔.webp";
+import restorationCenter from "@/assets/explore-corridor/生态方舟/近景建筑/生态修复中心.webp";
 
 export interface EcoArkArchitectureArt {
   id: string;

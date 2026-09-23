@@ -1,1 +1,0 @@
-export { OpusGrowthPlateDemo } from "./OpusGrowthPlateDemo";

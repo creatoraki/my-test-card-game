@@ -1,22 +1,22 @@
-import roomPortalSpriteArt from "@/assets/explore-corridor/废弃楼层/传送门.png";
-import bossGateArt from "@/assets/explore-corridor/废弃楼层/蓝色传送门.png";
-import corridorSafeArt from "@/assets/explore-corridor/废弃楼层/可交互物体/保险箱.png";
-import corridorMerchantArt from "@/assets/explore-corridor/废弃楼层/可交互物体/货商.png";
-import corridorVendingArt from "@/assets/explore-corridor/废弃楼层/可交互物体/贩卖机.png";
-import corridorRemainsArt from "@/assets/explore-corridor/废弃楼层/可交互物体/遗骸.png";
-import corridorCompactorArt from "@/assets/explore-corridor/废弃楼层/可交互物体/压缩舱.png";
-import corridorMedicalArt from "@/assets/explore-corridor/废弃楼层/可交互物体/医疗柜.png";
-import corridorSinkArt from "@/assets/explore-corridor/废弃楼层/可交互物体/净水槽.png";
-import corridorRepairPodArt from "@/assets/explore-corridor/废弃楼层/可交互物体/修复舱.png";
-import corridorModBenchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/改装台.png";
-import corridorCardPrinterArt from "@/assets/explore-corridor/废弃楼层/可交互物体/打印终端.png";
-import corridorShrineArt from "@/assets/explore-corridor/废弃楼层/可交互物体/神龛.png";
-import corridorDispatchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/传送带.png";
-import corridorCrystalVeinArt from "@/assets/explore-corridor/废弃楼层/可交互物体/矿脉.png";
-import corridorFarArt from "@/assets/explore-corridor/废弃楼层/无限远景.png";
-import corridorNearStandardArt from "@/assets/explore-corridor/废弃楼层/近景/测试.png";
-import corridorNearAlternateArt from "@/assets/explore-corridor/废弃楼层/近景/测试2.png";
-import corridorNearThirdArt from "@/assets/explore-corridor/废弃楼层/近景/测试3.png";
+import roomPortalSpriteArt from "@/assets/explore-corridor/废弃楼层/传送门.webp";
+import bossGateArt from "@/assets/explore-corridor/废弃楼层/蓝色传送门.webp";
+import corridorSafeArt from "@/assets/explore-corridor/废弃楼层/可交互物体/保险箱.webp";
+import corridorMerchantArt from "@/assets/explore-corridor/废弃楼层/可交互物体/货商.webp";
+import corridorVendingArt from "@/assets/explore-corridor/废弃楼层/可交互物体/贩卖机.webp";
+import corridorRemainsArt from "@/assets/explore-corridor/废弃楼层/可交互物体/遗骸.webp";
+import corridorCompactorArt from "@/assets/explore-corridor/废弃楼层/可交互物体/压缩舱.webp";
+import corridorMedicalArt from "@/assets/explore-corridor/废弃楼层/可交互物体/医疗柜.webp";
+import corridorSinkArt from "@/assets/explore-corridor/废弃楼层/可交互物体/净水槽.webp";
+import corridorRepairPodArt from "@/assets/explore-corridor/废弃楼层/可交互物体/修复舱.webp";
+import corridorModBenchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/改装台.webp";
+import corridorCardPrinterArt from "@/assets/explore-corridor/废弃楼层/可交互物体/打印终端.webp";
+import corridorShrineArt from "@/assets/explore-corridor/废弃楼层/可交互物体/神龛.webp";
+import corridorDispatchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/传送带.webp";
+import corridorCrystalVeinArt from "@/assets/explore-corridor/废弃楼层/可交互物体/矿脉.webp";
+import corridorFarArt from "@/assets/explore-corridor/废弃楼层/无限远景.webp";
+import corridorNearStandardArt from "@/assets/explore-corridor/废弃楼层/近景/测试.webp";
+import corridorNearAlternateArt from "@/assets/explore-corridor/废弃楼层/近景/测试2.webp";
+import corridorNearThirdArt from "@/assets/explore-corridor/废弃楼层/近景/测试3.webp";
 import type { NearMapVariant } from "@/explore/dungeon/types";
 import type { CurioKind } from "@/explore/corridor/types";
 import { ECO_ARK_SCENERY, ECO_ARK_SCENERY_SOURCES } from "./ecoArkScenery";
@@ -44,7 +44,7 @@ export interface CorridorPropArt {
 export const CORRIDOR_FAR_ART = corridorFarArt;
 /** 房间传送门：四个方向共用四分镜传送门精灵图。 */
 export const CORRIDOR_ROOM_PORTAL_ART = roomPortalSpriteArt;
-/** 房间传送门精灵图为 2×2 排列，每个分镜为 627×627。 */
+/** 房间传送门精灵图为 2×2 排列，按原画坐标每个分镜为 627×627；该值只参与比例换算。 */
 export const CORRIDOR_ROOM_PORTAL_FRAME_SIZE = 627;
 /** 房间传送门在场景中的显示尺寸。 */
 export const CORRIDOR_ROOM_PORTAL_DISPLAY_HEIGHT = 330;

@@ -1,4 +1,4 @@
-import reference from "@/assets/场景/测试/科技树升级.png";
+import reference from "@/assets/场景/测试/科技树升级.webp";
 
 /** 只取参考图圆盘内部的金属图案；外框、文字、背景与状态均由公共组件绘制。 */
 export const TECH_TREE_ART = {
