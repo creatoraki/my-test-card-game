@@ -1,31 +1,10 @@
+/* 面板主体: 标题与张数已移到「02 卡组」页眉, 这里只剩卡牌网格。 */
 .gridPanel {
   --ui-glow-color: var(--asm-select, var(--sx-key-hot, #9fe8ff));
-  display: grid;
-  min-height: 0;
-  min-width: 0;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 8px;
   overflow: hidden;
+  padding: 4px 8px 12px;
 }
 
-.heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-/* 同 ModuleRack: 中文标题不吃英文 kicker 那套 10px/0.14em。 */
-.kicker {
-  color: var(--ui-label);
-  font-family: var(--font-family);
-  font-size: var(--rs-font-kicker, 22px);
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-}
-
-.count,
 .empty {
   color: var(--ui-label);
   font-size: var(--rs-font-body, 20px);
@@ -46,13 +25,19 @@
   padding: 12px;
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: none;
 }
 
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+/* 中栏收进编号面板后变窄, 三列卡牌整体缩到 0.82 才放得下。 */
 .card {
   position: relative;
   min-width: 0;
   justify-self: center;
-  --deck-card-scale: 0.945;
+  --deck-card-scale: 0.82;
   transition: opacity 180ms ease;
 }
 

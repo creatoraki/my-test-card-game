@@ -12,6 +12,7 @@ import { AssemblyBench } from "../AssemblyBench";
 import { AssemblyCharacterStage } from "../AssemblyCharacterStage";
 import { AssemblyDeckGrid } from "../AssemblyDeckGrid";
 import { AssemblyModuleRack } from "../AssemblyModuleRack";
+import { TerminalPanel } from "../TerminalPanel";
 import s from "./ModuleAssemblyView.module.css";
 
 interface HoveredItem {
@@ -86,7 +87,14 @@ export function ModuleAssemblyView() {
           moduleStacks={moduleStacks}
           onSelect={setCardUid}
         />
-        <div className={s.rightColumn}>
+        <TerminalPanel
+          index="03"
+          title="装配详情"
+          deco="DETAILS"
+          rule="hot"
+          ariaLabel="模组装配详情"
+          bodyClassName={s.rightColumn}
+        >
           <AssemblyBench
             card={selectedCard}
             installedStack={installedStack}
@@ -104,7 +112,7 @@ export function ModuleAssemblyView() {
             onShowTooltip={showTooltip}
             onHideTooltip={() => setHoveredItem(null)}
           />
-        </div>
+        </TerminalPanel>
       </div>
       {hoveredItem && <ItemTooltip stack={hoveredItem.stack} point={hoveredItem.point} />}
     </>

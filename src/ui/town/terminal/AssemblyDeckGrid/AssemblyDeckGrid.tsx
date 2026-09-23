@@ -6,6 +6,7 @@ import { getModuleTheme } from "@/ui/art/moduleGlyphs/moduleGlyphs";
 import { DeckCard } from "@/ui/common/card/DeckCard";
 import { cx } from "@/ui/common/shared/cx";
 import { CardModuleIcon } from "@/ui/town/assembly/AssemblyScene/icons";
+import { TerminalPanel } from "../TerminalPanel";
 import s from "./AssemblyDeckGrid.module.css";
 
 interface Props {
@@ -13,15 +14,21 @@ interface Props {
   selectedUid: string | null;
   moduleStacks: ItemStack[];
   onSelect: (uid: string) => void;
+  className?: string;
 }
 
-export function AssemblyDeckGrid({ deck, selectedUid, moduleStacks, onSelect }: Props) {
+/** 「02 卡组」面板: 当前角色的卡组网格, 选中一张作为装配目标。 */
+export function AssemblyDeckGrid({ deck, selectedUid, moduleStacks, onSelect, className }: Props) {
   return (
-    <section className={s.gridPanel} data-assembly-deck-grid aria-label="卡组浏览">
-      <div className={s.heading}>
-        <span className={s.kicker}>卡组</span>
-        <span className={s.count}>{deck.length} 张</span>
-      </div>
+    <TerminalPanel
+      index="02"
+      title="卡组"
+      deco="DECK"
+      extra={`${deck.length} 张`}
+      ariaLabel="卡组浏览"
+      className={className}
+      bodyClassName={s.gridPanel}
+    >
       {deck.length ? (
         <div className={s.track} role="list">
           {deck.map((card, index) => {
@@ -63,6 +70,6 @@ export function AssemblyDeckGrid({ deck, selectedUid, moduleStacks, onSelect }: 
       ) : (
         <p className={s.empty}>当前角色没有卡牌</p>
       )}
-    </section>
+    </TerminalPanel>
   );
 }

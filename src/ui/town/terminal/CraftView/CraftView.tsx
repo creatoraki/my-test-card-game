@@ -1,5 +1,5 @@
-// 研究中心「模组制造」页: 左角色舞台 / 中配方清单 / 右制造台 + 材料仓库。
-// ★ 三栏节奏与模组装配页一致; 制造判定来自 data 的 craftCheck, 页面不复制规则。
+// 研究中心「模组制造」页: 01 角色选择 / 02 制造清单 / 03 制造详情(含所需材料)。
+// ★ 制造判定来自 data 的 craftCheck, 页面不复制规则。
 import { useEffect, useMemo, useState } from "react";
 import { craftCheck, getModuleRecipe, recipesOfCharacter, type CraftCheck } from "@/data";
 import type { ItemStack } from "@/items/types";
@@ -10,7 +10,6 @@ import ItemTooltip, {
 } from "@/ui/common/item/ItemTooltip";
 import { AssemblyCharacterStage } from "../AssemblyCharacterStage";
 import { CraftBench } from "../CraftBench";
-import { CraftMaterialRack } from "../CraftMaterialRack";
 import { CraftRecipeGrid } from "../CraftRecipeGrid";
 import s from "./CraftView.module.css";
 
@@ -71,26 +70,15 @@ export function CraftView() {
           checks={checks}
           selectedItemId={recipe?.itemId ?? null}
           onSelect={setRecipeItemId}
+        />
+        <CraftBench
+          recipe={recipe}
+          check={check}
+          exp={exp}
+          onCraft={() => recipe && craftModule(charId, recipe.itemId)}
           onShowTooltip={showTooltip}
           onHideTooltip={() => setHoveredItem(null)}
         />
-        <div className={s.rightColumn}>
-          <CraftBench
-            recipe={recipe}
-            check={check}
-            exp={exp}
-            onCraft={() => recipe && craftModule(charId, recipe.itemId)}
-            onShowTooltip={showTooltip}
-            onHideTooltip={() => setHoveredItem(null)}
-          />
-          <CraftMaterialRack
-            recipes={recipes}
-            storage={storage}
-            recipe={recipe}
-            onShowTooltip={showTooltip}
-            onHideTooltip={() => setHoveredItem(null)}
-          />
-        </div>
       </div>
       {hoveredItem && <ItemTooltip stack={hoveredItem.stack} point={hoveredItem.point} />}
     </>

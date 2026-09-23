@@ -1,49 +1,45 @@
-.stage {
-  --ui-glow-color: var(--stage-accent);
-  --stage-accent: var(--character-color, var(--asm-cyan, var(--sx-key, #58efc7)));
-  /* ⚠ 立绘宽度改用**百分比**基准: 44% × 2.2 ≈ 96.8% —— 与旧的 132px × 2.2 在 300px 容器里
-     完全等价, 但从此随容器缩放。--bust-scale 是纯倍率, 跟着缩放没问题;
-     --portrait-dx/dy 是 px, **不**能直接照搬到小框, 详见 .portrait 上的 --frame-k 说明。 */
-  --slot-base-w: 44%;
-  --bust-zoom: 2.2;
+/* 设计稿尺寸 ×1.148 换算为游戏设计像素。立绘舞台吃掉剩余高度, 缩略图行由格子宽度 × 78:112 推出。 */
+.body {
   display: grid;
-  min-width: 0;
-  min-height: 0;
-  /* 第一行交给立绘框的自然高度(由列宽 × 3:4 得出), 剩下的全部归角色列表 ——
-     这样立绘框顶边就钉在本列顶部, 与右边卡组区的标题行同一条基线。 */
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 12px;
-  padding-right: 18px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 15px;
+  padding: 0 17px 20px 15px;
 }
 
-/* ⚠ 立绘框是 3:4 的, 宽度被左栏列宽卡死 → 高度只能由宽度推出, 不能反过来。
-   直接写 height:100% 会让 height 压过 aspect-ratio, 框被拉成细长条、立绘吊在顶部。
-   align-self 必须是 start(不能 center): 居中会让顶边下沉, 就和卡组区的顶边错开了。 */
 .viewport {
   position: relative;
   display: flex;
-  width: 100%;
-  height: auto;
+  min-width: 0;
   min-height: 0;
   align-items: flex-end;
-  align-self: start;
   justify-content: center;
   overflow: hidden;
-  aspect-ratio: 3 / 4;
-  border: 1px solid color-mix(in srgb, var(--stage-accent) 58%, var(--sx-dim));
+  border: 1px solid #ffffff30;
   background:
-    radial-gradient(ellipse at 50% 78%, color-mix(in srgb, var(--stage-accent) 24%, transparent), transparent 58%),
-    var(--sx-bg-hi);
-  box-shadow: inset 0 0 35px #000a, 0 0 24px color-mix(in srgb, var(--stage-accent) 12%, transparent);
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    radial-gradient(ellipse 70% 48% at 62% 38%, #2a1c1f99, transparent 72%),
+    linear-gradient(180deg, #141112, #0b090a 70%, #070606);
+  box-shadow: inset 0 0 40px #000c;
 }
 
-/* ⚠ --portrait-dx/dy 是**固定 px**(CharacterPortrait 登记表下发, 剑士 -15/10, 其余为 0),
-   而本文件的两个取景框立绘宽度差了 4 倍多(大框≈370px / 小框≈88px)。
-   同一个 -15px 在小框里的相对偏移是大框的约 4.2 倍 —— 直接照搬会把小框的角色顶到左边。
-   所以这里给每个取景配一个 --frame-k, 把 dx/dy 按各自立绘尺寸等比缩放:
-   大框取景已校准正确, k=1; 小框立绘宽约为大框的 24%, k=0.24。 */
+/* 立绘右后方的两道红色斜切光带, 往下渐隐。 */
+.slashes {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 46%;
+  height: 78%;
+  background:
+    linear-gradient(118deg, transparent 0 38%, #ff2a3e70 38% 50%, transparent 50% 58%, #ff2a3e33 58% 62%, transparent 62%);
+  mask-image: linear-gradient(to bottom, #000 10%, #0008 55%, transparent);
+  pointer-events: none;
+}
+
+/* ⚠ --portrait-dx/dy 是固定 px(CharacterPortrait 登记表下发), 两个取景框立绘宽度差了 4 倍多,
+   所以每个取景配一个 --frame-k 把偏移等比缩放: 大框 k=1, 小框 k=0.24。
+   大框立绘宽 = 舞台宽 × 36% × 2.2 ≈ 79%, 与旧版 3:4 框里的人物高度占比一致。 */
 .portrait {
+  --slot-base-w: 36%;
+  --bust-zoom: 2.2;
   --frame-k: 1;
   position: absolute;
   top: 0;
@@ -55,30 +51,20 @@
   translate:
     calc(-50% + var(--portrait-dx, 0px) * var(--frame-k))
     calc(var(--portrait-dy, 0px) * var(--frame-k));
-  filter: drop-shadow(0 4px 10px #000a);
+  filter: drop-shadow(0 6px 14px #000c);
 }
 
 .emptyPortrait {
   position: relative;
   z-index: 1;
-  width: 42%;
+  width: 34%;
+  margin-bottom: 38%;
   aspect-ratio: 1;
   border: 1px dashed var(--sx-dim);
   border-radius: 50%;
   opacity: 0.55;
 }
 
-.emptyPortrait::after {
-  position: absolute;
-  top: 50%;
-  right: -32%;
-  left: -32%;
-  height: 1px;
-  background: var(--sx-dim);
-  content: "";
-}
-
-/* 角色名压在立绘底部, 省掉外面那块独立的「小标签 + 名字」双行区。 */
 .nameplate {
   position: absolute;
   right: 0;
@@ -86,97 +72,151 @@
   left: 0;
   z-index: 2;
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 10px;
-  padding: 26px 14px 11px;
-  background: linear-gradient(to top, color-mix(in srgb, var(--sx-bg-lo) 93%, transparent) 16%, color-mix(in srgb, var(--sx-bg-lo) 56%, transparent) 58%, transparent);
+  gap: 12px;
+  padding: 60px 17px 19px 20px;
+  background: linear-gradient(to top, #070606e6 12%, #07060680 52%, transparent);
   pointer-events: none;
 }
 
 .name {
   min-width: 0;
   overflow: hidden;
-  color: var(--ui-value);
-  font-size: var(--rs-font-name, 26px);
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
+  color: #f7f4f4;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 2px;
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-shadow: var(--ui-glow), 0 2px 8px #000;
+  text-shadow: 0 2px 10px #000;
 }
 
 .rank {
-  flex: 0 0 auto;
-  color: var(--ui-label);
+  flex: none;
+  color: #f2eeee;
   font-family: var(--font-family);
-  font-size: var(--rs-font-mark, 18px);
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: 1px;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 8px #000;
 }
 
-/* 一排 4 个的多排网格, 纵向滚动。滚动条视觉由 .asm-panel 统一隐藏。 */
-.characterList {
+.rank i {
+  color: #8f8a8b;
+  font-style: normal;
+}
+
+.picker {
   display: grid;
   min-width: 0;
-  min-height: 0;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  align-content: start;
-  gap: 8px;
-  /* 这圈内边距是给格子 hover 时的 -3px 位移和外发光留的, 否则会被 overflow 裁掉。 */
-  padding: 4px;
-  overflow-x: hidden;
-  overflow-y: auto;
+  grid-template-columns: 22px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 2px;
+  margin: 0 -10px 0 -12px;
+}
+
+.arrow {
+  display: grid;
+  width: 22px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  color: #d4cfd0;
+  background: none;
+  border: 0;
+  cursor: var(--cursor-pointer);
+  transition: color 160ms ease, opacity 160ms ease;
+}
+
+.arrow svg {
+  width: 13px;
+  height: 23px;
+}
+
+.arrow.next svg {
+  scale: -1 1;
+}
+
+.arrow:hover:not(:disabled),
+.arrow:focus-visible {
+  color: var(--sx-key-hot);
+}
+
+.arrow:disabled {
+  opacity: 0.3;
+  cursor: var(--cursor-default);
+}
+
+/* 一屏固定 5 格; 这圈内边距给选中格的外发光留余量, 否则会被 overflow 裁掉。 */
+.characterList {
+  display: flex;
+  min-width: 0;
+  gap: 10px;
+  padding: 5px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
   outline: none;
 }
 
+.characterList::-webkit-scrollbar {
+  display: none;
+}
+
 .characterList:focus-visible {
-  outline: 1px solid var(--asm-select, var(--sx-key-hot, #9fe8ff));
-  outline-offset: 3px;
+  outline: 1px solid var(--sx-key-hot);
+  outline-offset: -1px;
 }
 
 .character {
   position: relative;
-  display: grid;
-  width: 100%;
-  aspect-ratio: 84 / 108;
-  align-items: end;
-  justify-items: center;
+  display: block;
+  flex: 0 0 calc((100% - 40px) / 5);
+  aspect-ratio: 78 / 112;
   padding: 0;
   overflow: hidden;
-  color: var(--text);
-  background: #ffffff08;
-  border: 1px solid #ffffff22;
-  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  background: linear-gradient(180deg, #1c1718, #0d0b0c);
+  border: 1px solid #ffffff2e;
   cursor: var(--cursor-pointer);
-  transition: transform 180ms ease, border-color 180ms ease, opacity 180ms ease;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .character:hover,
-.character:focus-visible,
-.character.selected {
-  border-color: var(--character-color);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--character-color) 30%, transparent);
-  transform: translateY(-3px);
+.character:focus-visible {
+  border-color: #ffffff6b;
 }
 
-.character.selected::before {
+/* 选中: 红描边 + 四角加粗括号 + 外发光。 */
+.character.selected {
+  --mk-c: var(--sx-key, #ff3b4e);
+  --mk-bar: linear-gradient(var(--mk-c), var(--mk-c));
+  border-color: color-mix(in srgb, var(--mk-c) 70%, transparent);
+  box-shadow: 0 0 10px #ff3b4e99, inset 0 0 14px #ff3b4e33;
+}
+
+.character.selected::after {
   position: absolute;
-  top: 0;
-  right: 9px;
-  left: 9px;
-  height: 2px;
-  background: var(--character-color);
+  inset: 0;
+  z-index: 2;
+  background:
+    var(--mk-bar) 0 0 / 16px 3px no-repeat,
+    var(--mk-bar) 0 0 / 3px 16px no-repeat,
+    var(--mk-bar) 100% 0 / 16px 3px no-repeat,
+    var(--mk-bar) 100% 0 / 3px 16px no-repeat,
+    var(--mk-bar) 100% 100% / 16px 3px no-repeat,
+    var(--mk-bar) 100% 100% / 3px 16px no-repeat,
+    var(--mk-bar) 0 100% / 16px 3px no-repeat,
+    var(--mk-bar) 0 100% / 3px 16px no-repeat;
   content: "";
+  pointer-events: none;
 }
 
 .thumbnail {
-  /* 同样换成百分比基准, 格子宽度再变也不会把半身像截歪。 */
   --slot-base-w: 47%;
   --bust-zoom: 2.15;
-  /* 小框立绘宽 ≈ 大框的 24%, dx/dy 同比缩到 24% —— 见 .portrait 上方的说明。 */
   --frame-k: 0.24;
   position: absolute;
   top: 0;
@@ -187,7 +227,7 @@
   translate:
     calc(-50% + var(--portrait-dx, 0px) * var(--frame-k))
     calc(var(--portrait-dy, 0px) * var(--frame-k));
-  opacity: 0.82;
+  opacity: 0.86;
 }
 
 .character.selected .thumbnail {
@@ -196,18 +236,6 @@
 
 .empty {
   margin: 0;
-  color: var(--muted);
-  font-size: var(--rs-font-body, 20px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .character {
-    transition: none;
-  }
-
-  .character:hover,
-  .character:focus-visible,
-  .character.selected {
-    transform: none;
-  }
+  color: var(--sx-muted);
+  font-size: 20px;
 }

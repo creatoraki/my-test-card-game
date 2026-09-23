@@ -24,7 +24,7 @@ export function ResearchScene({ leaving = false, onBack }: Props) {
     >
       <ShopSidebar />
       <ShopBrand label="研究中心" subLabel="RESEARCH CENTER" />
-      <ResearchPanel onBack={onBack} />
+      <ResearchPanel />
       {onBack && <ShopBack onClick={onBack} />}
     </div>
   );

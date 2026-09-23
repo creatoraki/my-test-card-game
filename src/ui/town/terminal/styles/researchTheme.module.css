@@ -13,9 +13,9 @@
   --sx-line-lit: #ff3b4e42;
   --sx-line-hot: #ffd9dc;
 
-  --sx-title: #ffd2d6;
-  --sx-title-glow: #ff3b4e4d;
-  --sx-title-shadow: #5c1b20;
+  --sx-title: #f7f3f3;
+  --sx-title-glow: #ffffff1f;
+  --sx-title-shadow: #000000b3;
 
   /* 黑底三档：受光面、常规面与凹陷阴影面。 */
   --sx-bg-hi: #17090b;

@@ -1,0 +1,174 @@
+/* 编号面板: 设计稿 1672 宽 → 游戏 1920 设计像素, 尺寸统一按 ×1.148 换算。 */
+.panel {
+  --tp-cut: 14px;
+  --tp-shape: polygon(
+    var(--tp-cut) 0,
+    calc(100% - var(--tp-cut)) 0,
+    100% var(--tp-cut),
+    100% calc(100% - var(--tp-cut)),
+    calc(100% - var(--tp-cut)) 100%,
+    var(--tp-cut) 100%,
+    0 calc(100% - var(--tp-cut)),
+    0 var(--tp-cut)
+  );
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  isolation: isolate;
+}
+
+/* 1px 描边 = 外层亮色切角块 + 内缩 1px 的暗板; 四角再压一层角标。 */
+.frame {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: #ffffff2a;
+  clip-path: var(--tp-shape);
+  pointer-events: none;
+}
+
+.frame::before {
+  position: absolute;
+  inset: 1px;
+  background:
+    radial-gradient(ellipse 46% 22% at 0% 0%, #ff3b4e1c, transparent 70%),
+    radial-gradient(ellipse 60% 30% at 100% 100%, #ff3b4e0d, transparent 70%),
+    linear-gradient(180deg, #151112f5, #0c0a0bf5 38%, #09080af5);
+  clip-path: polygon(
+    calc(var(--tp-cut) - 0.4px) 0,
+    calc(100% - var(--tp-cut) + 0.4px) 0,
+    100% calc(var(--tp-cut) - 0.4px),
+    100% calc(100% - var(--tp-cut) + 0.4px),
+    calc(100% - var(--tp-cut) + 0.4px) 100%,
+    calc(var(--tp-cut) - 0.4px) 100%,
+    0 calc(100% - var(--tp-cut) + 0.4px),
+    0 calc(var(--tp-cut) - 0.4px)
+  );
+  content: "";
+}
+
+/* 四角角标(独立于切角裁剪层, 辉光才不会被裁): 左上 / 右下主题红, 右上 / 左下冷白亮边。 */
+.corners {
+  --tp-red: var(--sx-key, #ff3b4e);
+  --tp-pale: #d9d4d5b3;
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(var(--tp-red), var(--tp-red)) var(--tp-cut) 0 / 26px 2px no-repeat,
+    linear-gradient(var(--tp-red), var(--tp-red)) 0 var(--tp-cut) / 2px 26px no-repeat,
+    linear-gradient(135deg, transparent calc(50% - 1.4px), var(--tp-red) calc(50% - 1.4px) calc(50% + 1.4px), transparent calc(50% + 1.4px)) 0 0 / var(--tp-cut) var(--tp-cut) no-repeat,
+    linear-gradient(var(--tp-red), var(--tp-red)) calc(100% - var(--tp-cut)) 100% / 26px 2px no-repeat,
+    linear-gradient(var(--tp-red), var(--tp-red)) 100% calc(100% - var(--tp-cut)) / 2px 26px no-repeat,
+    linear-gradient(135deg, transparent calc(50% - 1.4px), var(--tp-red) calc(50% - 1.4px) calc(50% + 1.4px), transparent calc(50% + 1.4px)) 100% 100% / var(--tp-cut) var(--tp-cut) no-repeat,
+    linear-gradient(var(--tp-pale), var(--tp-pale)) calc(100% - var(--tp-cut)) 0 / 18px 1.5px no-repeat,
+    linear-gradient(var(--tp-pale), var(--tp-pale)) 100% var(--tp-cut) / 1.5px 18px no-repeat,
+    linear-gradient(45deg, transparent calc(50% - 1px), var(--tp-pale) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)) 100% 0 / var(--tp-cut) var(--tp-cut) no-repeat,
+    linear-gradient(var(--tp-pale), var(--tp-pale)) var(--tp-cut) 100% / 18px 1.5px no-repeat,
+    linear-gradient(var(--tp-pale), var(--tp-pale)) 0 calc(100% - var(--tp-cut)) / 1.5px 18px no-repeat,
+    linear-gradient(45deg, transparent calc(50% - 1px), var(--tp-pale) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)) 0 100% / var(--tp-cut) var(--tp-cut) no-repeat;
+  filter: drop-shadow(0 0 4px #ff3b4e8c);
+  pointer-events: none;
+}
+
+.header {
+  position: relative;
+  display: flex;
+  height: 77px;
+  flex: none;
+  align-items: center;
+  gap: 0;
+  padding: 4px 30px 0;
+}
+
+.header::after {
+  position: absolute;
+  right: 20px;
+  bottom: 0;
+  left: 20px;
+  height: 1px;
+  background: linear-gradient(90deg, #ffffff10, #ffffff2e 18%, #ffffff2e 82%, #ffffff10);
+  content: "";
+}
+
+.header[data-rule="hot"]::after {
+  left: 22px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--sx-key), color-mix(in srgb, var(--sx-key) 78%, transparent) 46%, #ff3b4e33 88%, #ff3b4e14);
+  box-shadow: 0 0 8px #ff3b4e59;
+}
+
+/* 详情栏分隔线左端的红色斜切: 从分隔线左端斜落到面板左缘。 */
+.header[data-rule="hot"]::before {
+  position: absolute;
+  top: calc(100% - 2px);
+  left: 0;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(to bottom right, transparent calc(50% - 1.5px), var(--sx-key) calc(50% - 1.5px) calc(50% + 1.5px), transparent calc(50% + 1.5px));
+  filter: drop-shadow(0 0 4px #ff3b4e8c);
+  content: "";
+  pointer-events: none;
+}
+
+.header[data-rule="none"]::after {
+  display: none;
+}
+
+.index {
+  flex: none;
+  width: 58px;
+  color: var(--sx-key, #ff3b4e);
+  font-family: var(--font-family);
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px #ff3b4e80;
+}
+
+.title {
+  flex: none;
+  margin: 0;
+  color: #f4f1f1;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1px;
+}
+
+.deco {
+  flex: none;
+  margin: 6px 0 0 20px;
+  color: #8f8b8c;
+  font-family: var(--font-family);
+  font-size: 15px;
+  letter-spacing: 3px;
+}
+
+.extra {
+  display: flex;
+  min-width: 0;
+  flex: none;
+  align-items: center;
+  margin-left: auto;
+  color: #efeaea;
+  font-size: 20px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.dash {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: #cfcacb;
+}
+
+.body {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}

@@ -1,7 +1,7 @@
-import { getItemDef, type CraftCheck, type ModuleRecipe } from "@/data";
-import type { ItemStack } from "@/items/types";
-import ItemSlot from "@/ui/common/item/ItemSlot";
-import { cx } from "@/ui/common/shared/cx";
+// 「02 制造清单」面板: 当前角色能造的模组, 两列配方卡; 面板底部压一层标语与徽标水印。
+import type { CraftCheck, ModuleRecipe } from "@/data";
+import { TerminalPanel } from "../TerminalPanel";
+import { RecipeCard } from "./RecipeCard";
 import s from "./CraftRecipeGrid.module.css";
 
 interface Props {
@@ -10,71 +10,53 @@ interface Props {
   checks: Record<string, CraftCheck>;
   selectedItemId: string | null;
   onSelect: (itemId: string) => void;
-  onShowTooltip: (element: HTMLElement, stack: ItemStack) => void;
-  onHideTooltip: () => void;
+  className?: string;
 }
 
-/** 制造清单: 当前角色能造的模组。与右侧模组仓库共用物品格与选中语言。 */
-export function CraftRecipeGrid({
-  recipes,
-  checks,
-  selectedItemId,
-  onSelect,
-  onShowTooltip,
-  onHideTooltip,
-}: Props) {
+export function CraftRecipeGrid({ recipes, checks, selectedItemId, onSelect, className }: Props) {
   return (
-    <section className={s.grid} aria-label="可制造模组">
-      <div className={s.heading}>
-        <span className={s.kicker}>制造清单</span>
-        <span className={s.count}>{recipes.length} 种</span>
+    <TerminalPanel
+      index="02"
+      title="制造清单"
+      deco="MODULE LIST"
+      extra={`${recipes.length} 种模组`}
+      ariaLabel="可制造模组"
+      className={className}
+      bodyClassName={s.body}
+    >
+      <div className={s.watermark} aria-hidden="true">
+        <p className={s.motto}>
+          <span className={s.mottoMark}>⊼</span>
+          CUSTOM MODULES
+          <br />
+          FOR A STRONGER
+          <br />
+          TOMORROW.
+        </p>
+        <svg className={s.emblem} viewBox="0 0 300 270" fill="none">
+          <path d="M150 8 292 262H8Z" fill="#ffffff05" stroke="#ffffff0f" strokeWidth="3" />
+          <path d="M150 62 246 234H54Z" fill="#0000004d" />
+          <path d="M150 62 246 234H54Z" stroke="#ffffff0d" strokeWidth="26" strokeLinejoin="bevel" />
+          <path d="M122 234 172 146l36 62" stroke="#ffffff12" strokeWidth="22" strokeLinejoin="bevel" />
+        </svg>
       </div>
       {recipes.length ? (
-        <div className={s.list}>
-          {recipes.map((recipe) => {
-            const def = getItemDef(recipe.itemId);
-            const check = checks[recipe.itemId];
-            const selected = recipe.itemId === selectedItemId;
-            const label = !check?.expOk
-              ? "经验不足"
-              : check.ok
-                ? "材料齐备"
-                : "材料不足";
-            const shortLabel = !check?.expOk ? "缺经验" : check.ok ? "齐备" : "缺材料";
-            const stack: ItemStack = { uid: `recipe-${recipe.itemId}`, itemId: recipe.itemId, count: 1 };
-            return (
-              <div
-                key={recipe.itemId}
-                className={cx(s.option, selected && s.selected, !check?.ok && s.blocked)}
-                onPointerEnter={(event) => onShowTooltip(event.currentTarget, stack)}
-                onPointerLeave={onHideTooltip}
-                onFocus={(event) => onShowTooltip(event.currentTarget, stack)}
-                onBlur={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onHideTooltip();
-                }}
-              >
-                <ItemSlot
-                  stack={stack}
-                  showName
-                  showCount={false}
-                  selected={selected}
-                  aria-label={`选择${def.name}，${label}`}
-                  onClick={() => onSelect(recipe.itemId)}
-                  className={s.slot}
-                />
-                <span className={s.status} data-ok={check?.ok ?? false} aria-hidden="true">
-                  {shortLabel}
-                </span>
-              </div>
-            );
-          })}
+        <div className={s.list} role="list">
+          {recipes.map((recipe, index) => (
+            <div key={recipe.itemId} role="listitem">
+              <RecipeCard
+                itemId={recipe.itemId}
+                order={index + 1}
+                check={checks[recipe.itemId]}
+                selected={recipe.itemId === selectedItemId}
+                onSelect={() => onSelect(recipe.itemId)}
+              />
+            </div>
+          ))}
         </div>
       ) : (
-        <div className={s.empty}>
-          <span className={s.emptySlot} aria-hidden="true" />
-          <span>该角色暂无可制造的模组</span>
-        </div>
+        <p className={s.empty}>该角色暂无可制造的模组</p>
       )}
-    </section>
+    </TerminalPanel>
   );
 }

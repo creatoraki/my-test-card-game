@@ -1,21 +1,22 @@
+/* 与模组制造页同一套编号面板: 01 角色选择 / 02 卡组 / 03 装配详情(装配台 + 模组仓库)。
+   中栏要放下三列卡牌, 两侧栏给定宽度, 剩余全归中栏。 */
 .body {
   composes: rs-tokens from "../styles/terminalKit.module.css";
   height: 100%;
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-columns: 400px minmax(0, 1fr) 410px;
+  grid-template-columns: minmax(0, 470px) minmax(0, 1fr) minmax(0, 400px);
   grid-template-rows: minmax(0, 1fr);
-  gap: 18px 22px;
+  gap: 22px;
   animation: module-rise 520ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
 .rightColumn {
   display: grid;
-  min-width: 0;
-  min-height: 0;
   grid-template-rows: minmax(276px, 300px) minmax(0, 1fr);
   gap: 14px;
+  padding: 24px 20px 20px;
 }
 
 @keyframes module-rise {
@@ -26,11 +27,5 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .body {
-    animation: none;
   }
 }

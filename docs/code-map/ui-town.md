@@ -22,7 +22,7 @@
 | --- | --- | --- | --- |
 | 商店 | `shop` | [shop/](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | `MarketPanel` 是统一商店：左边混合货架，右边商品详情，底部是刷新和设施升级。`WarehousePanel` 是仓库，`StockPanels` 是库存和回收台共用的物品网格，`ShopUpgradePanel` 是设施科技。外壳部件包括 `ShopNavigation`、`ShopSidebar`、`ShopWindow`、`ShopHeader`、`ShopBack`、`ShopDetailAside`、`ShopDetailCard` 等。 |
 | 医疗室 | `cryo` | [cryo/](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | `CryoPanel` 负责左侧导航和换页。页面有：`RevivePanel`（复苏舱，消耗积分复苏阵亡队员）、`NutritionPanel`（疗养舱席位）、`NutritionTechTree`（疗养科技，接入公共科技板）、`SanctuaryPanel`（圣水池，净化诅咒遗物）。 |
-| 研究中心 | `worklog` | [terminal/](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | `ResearchPanel` 负责换页。页面有：`ModuleAssemblyView`（模组装配：角色舞台、卡组网格、工作台和模组仓架）、`CraftView`（模组制造：配方、制造台、材料仓库）、`ResearchTechView`（全局科技树）。 |
+| 研究中心 | `worklog` | [terminal/](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | `ResearchPanel` 负责换页。页面有：`ModuleAssemblyView`（模组装配：角色舞台、卡组网格、工作台和模组仓架）、`CraftView`（模组制造：角色选择、制造清单、制造详情三栏，外框统一用 `TerminalPanel`）、`ResearchTechView`（全局科技树）。 |
 | 工房 | `assembly` | [assembly/](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | `EquipUpgradePanel`（装备升阶）和 `EquipReforgePanel`（羁绊重铸），装备列表在 `EquipTargetList`，外壳在 `AssemblyChrome`，操作按钮在 `EquipParts`。 |
 | 档案机 | `museum` | [museum/](../../src/ui/town/museum/MuseumScene/MuseumScene.tsx) | 图鉴：卡牌馆、敌人馆、物品馆，未解锁的条目显示为锁定格。`codexCatalog.ts` 提供排好序的图鉴清单。 |
 | 队员宿舍 | `formation` | — | 直接切到编队页，见 [ui-character.md](ui-character.md)。 |

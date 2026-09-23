@@ -1,0 +1,115 @@
+/* 设计稿 412×85 → 游戏约 473×98: 深红底 + 亮红描边与内外辉光, 徽标与文字整体居中, 双箭头贴右。 */
+.button {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 98px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 0 20px 0 0;
+  color: #fff;
+  background:
+    linear-gradient(180deg, #ff6a7833, transparent 22%),
+    radial-gradient(ellipse 72% 90% at 50% 55%, #7a0a17, #a3101f 62%, #d01a2d);
+  border: 2px solid #ff3b4e;
+  box-shadow:
+    0 0 16px #ff3b4ecc,
+    0 0 42px #ff3b4e59,
+    inset 0 0 20px #ff4a5ccc,
+    inset 0 2px 0 #ffb3ba;
+  cursor: var(--cursor-pointer);
+  transition: filter 160ms ease, box-shadow 160ms ease, translate 160ms ease;
+}
+
+.button:hover:not(:disabled),
+.button:focus-visible {
+  filter: brightness(1.12);
+  outline: none;
+  translate: 0 -2px;
+}
+
+.button:active:not(:disabled) {
+  filter: brightness(0.94);
+  translate: 0 1px;
+}
+
+.emblem {
+  display: grid;
+  width: 44px;
+  height: 40px;
+  place-items: center;
+  color: #ff3b4e;
+  filter: drop-shadow(0 0 4px #ff3b4e);
+}
+
+.emblem svg {
+  width: 100%;
+  height: 100%;
+}
+
+.label {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.label strong {
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 4px;
+  text-shadow: 0 0 10px #ff8a9480, 0 2px 4px #0006;
+}
+
+.label small {
+  color: #f6d7da;
+  font-family: var(--font-family);
+  font-size: 15px;
+  line-height: 1;
+  letter-spacing: 3px;
+}
+
+.chevrons {
+  position: absolute;
+  top: 50%;
+  right: 38px;
+  width: 36px;
+  height: 30px;
+  color: #ff6d7b;
+  filter: drop-shadow(0 0 5px #ff3b4e);
+  translate: 0 -50%;
+}
+
+.chevrons svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.button:disabled {
+  color: #8d8889;
+  background: linear-gradient(180deg, #1f1a1b, #141112);
+  border-color: #ffffff26;
+  box-shadow: inset 0 0 18px #000a;
+  cursor: var(--cursor-default);
+}
+
+.button:disabled .emblem,
+.button:disabled .chevrons {
+  color: #5d5758;
+  filter: none;
+}
+
+.button:disabled .label strong {
+  text-shadow: none;
+}
+
+.button:disabled .label small {
+  color: #6f6a6b;
+}
+
+.button:disabled .emblem svg path:last-child {
+  stroke: #8d8889;
+}

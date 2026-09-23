@@ -8,6 +8,12 @@
   pointer-events: auto;
 }
 
+/* 装配 / 制造两页是三块编号面板, 按设计稿收窄内容区四周留白(17 / 12 / 20)。
+   选择器带上 .window 提高优先级, 稳压 ShopWindow 自带的 .content 内边距。 */
+.window .panelContent {
+  padding: 17px 12px 20px;
+}
+
 .page {
   height: 100%;
   min-height: 0;
@@ -20,23 +26,6 @@
 
 .page[data-page-phase="entering"] {
   animation: pageEnter 280ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
-}
-
-.stat {
-  display: grid;
-  min-width: 118px;
-  gap: 3px;
-  color: var(--sx-muted);
-  font-size: 18px;
-  letter-spacing: 1px;
-  white-space: nowrap;
-}
-
-.stat strong {
-  color: var(--sx-key-hot);
-  font-size: 26px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 1px;
 }
 
 @keyframes pageLeave {

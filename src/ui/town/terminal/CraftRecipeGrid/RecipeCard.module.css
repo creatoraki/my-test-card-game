@@ -1,0 +1,197 @@
+/* 配方卡: 设计稿 198×344 → 游戏约 227×395, 宽度随两列网格伸缩, 高度按比例推出。 */
+.card {
+  --rc-edge: #ffffff45;
+  --rc-mark: #e6e1e2;
+  --rc-bar: linear-gradient(var(--rc-mark), var(--rc-mark));
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 198 / 344;
+  flex-direction: column;
+  align-items: center;
+  padding: 46px 12px 0;
+  color: var(--sx-ink);
+  text-align: center;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 22%, #ffffff08, transparent 70%),
+    linear-gradient(180deg, #1a1718, #0f0d0e 55%, #0b0a0b);
+  border: 1px solid var(--rc-edge);
+  box-shadow: inset 0 0 26px #000a;
+  cursor: var(--cursor-pointer);
+  transition: border-color 160ms ease, box-shadow 160ms ease, translate 160ms ease;
+}
+
+/* 四角短括号: 常态冷白, 选中换成加粗的主题红。 */
+.card::after {
+  position: absolute;
+  inset: -1px;
+  background:
+    var(--rc-bar) 0 0 / 14px 2px no-repeat,
+    var(--rc-bar) 0 0 / 2px 14px no-repeat,
+    var(--rc-bar) 100% 0 / 14px 2px no-repeat,
+    var(--rc-bar) 100% 0 / 2px 14px no-repeat,
+    var(--rc-bar) 100% 100% / 14px 2px no-repeat,
+    var(--rc-bar) 100% 100% / 2px 14px no-repeat,
+    var(--rc-bar) 0 100% / 14px 2px no-repeat,
+    var(--rc-bar) 0 100% / 2px 14px no-repeat;
+  content: "";
+  pointer-events: none;
+}
+
+.card:hover,
+.card:focus-visible {
+  --rc-edge: #ffffff80;
+  outline: none;
+  translate: 0 -3px;
+}
+
+.card[data-selected] {
+  --rc-edge: var(--sx-key, #ff3b4e);
+  --rc-mark: #ff5566;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 30%, #ff3b4e1f, transparent 72%),
+    linear-gradient(180deg, #221214, #140b0d 55%, #0d0809);
+  border-width: 2px;
+  box-shadow:
+    0 0 14px #ff3b4ea6,
+    0 0 30px #ff3b4e40,
+    inset 0 0 22px #ff3b4e38;
+}
+
+.card[data-selected]::after {
+  inset: -2px;
+  background:
+    var(--rc-bar) 0 0 / 22px 4px no-repeat,
+    var(--rc-bar) 0 0 / 4px 22px no-repeat,
+    var(--rc-bar) 100% 0 / 22px 4px no-repeat,
+    var(--rc-bar) 100% 0 / 4px 22px no-repeat,
+    var(--rc-bar) 100% 100% / 22px 4px no-repeat,
+    var(--rc-bar) 100% 100% / 4px 22px no-repeat,
+    var(--rc-bar) 0 100% / 22px 4px no-repeat,
+    var(--rc-bar) 0 100% / 4px 22px no-repeat;
+  filter: drop-shadow(0 0 4px #ff3b4e);
+}
+
+.icon {
+  display: grid;
+  width: 98px;
+  height: 98px;
+  flex: none;
+  place-items: center;
+  filter: drop-shadow(0 0 10px #00000080);
+}
+
+.icon svg,
+.icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.name {
+  max-width: 100%;
+  margin-top: 22px;
+  overflow: hidden;
+  color: #faf7f7;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 1px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desc {
+  display: -webkit-box;
+  min-height: calc(18px * 1.4 * 2);
+  margin-top: 10px;
+  overflow: hidden;
+  color: #d3cdce;
+  font-size: 18px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.rule {
+  width: 82%;
+  height: 1px;
+  flex: none;
+  margin-top: 12px;
+  background: linear-gradient(90deg, transparent, #ffffff26 20%, #ffffff26 80%, transparent);
+}
+
+/* 状态标签: 切角红框 + 两端「≡」刻线; 不可制造时整体换琥珀色。 */
+.tag {
+  --tag-c: var(--sx-key, #ff3b4e);
+  --tag-hatch: repeating-linear-gradient(to bottom, var(--tag-c) 0 2px, transparent 2px 5px);
+  display: block;
+  width: 130px;
+  height: 34px;
+  flex: none;
+  margin-top: 14px;
+  padding: 0 11px;
+  background:
+    var(--tag-hatch) 0 50% / 7px 14px no-repeat,
+    var(--tag-hatch) 100% 50% / 7px 14px no-repeat;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--tag-c) 50%, transparent));
+}
+
+.tag[data-ok="false"] {
+  --tag-c: var(--sx-alert, #ffb454);
+}
+
+.tagInner {
+  position: relative;
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: var(--tag-c);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: var(--tag-c);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  isolation: isolate;
+}
+
+.tagInner::before {
+  position: absolute;
+  z-index: -1;
+  inset: 1px;
+  background: linear-gradient(180deg, #1d0c0f, #120709);
+  clip-path: polygon(6.6px 0, 100% 0, 100% calc(100% - 6.6px), calc(100% - 6.6px) 100%, 0 100%, 0 6.6px);
+  content: "";
+}
+
+.foot {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  left: 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.serial {
+  color: #8d8889;
+  font-family: var(--font-family);
+  font-size: 15px;
+  line-height: 1.35;
+  letter-spacing: 3px;
+  text-align: left;
+}
+
+/* 条码装饰: 两组不同节距的竖线叠出粗细不一的条纹。 */
+.barcode {
+  width: 72px;
+  height: 17px;
+  background:
+    repeating-linear-gradient(90deg, #8d8889 0 1px, transparent 1px 3px, #8d8889 3px 5px, transparent 5px 6px, #8d8889 6px 7px, transparent 7px 9px),
+    repeating-linear-gradient(90deg, transparent 0 11px, #8d888966 11px 13px);
+  opacity: 0.85;
+}
