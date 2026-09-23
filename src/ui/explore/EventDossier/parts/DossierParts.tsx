@@ -47,17 +47,28 @@ export function DossierBody({
 export function DossierInfoBox({
   icon,
   tone = "accent",
+  variant = "default",
   children,
 }: {
   icon?: ReactNode;
   tone?: "accent" | "danger";
+  variant?: "default" | "executor";
   children: ReactNode;
 }) {
   return (
-    <div className={s.info} data-tone={tone}>
-      <svg className={s.infoFrame} viewBox="0 0 466 128" aria-hidden>
-        <path className={s.infoLine} d="M.5.5h453l12 12v103l-12 12H12.5l-12-12Z" />
-        <path className={s.infoGlow} d="M.5 26V.5H26M.5 96v19.5l12 12H30M442 .5h11.5l12 12V34" />
+    <div className={s.info} data-tone={tone} data-variant={variant}>
+      <svg className={s.infoFrame} viewBox={variant === "executor" ? "0 0 466 288" : "0 0 466 128"} aria-hidden>
+        {variant === "executor" ? (
+          <>
+            <path className={s.infoLine} d="M.5.5h453l12 12v263l-12 12H12.5l-12-12Z" />
+            <path className={s.infoGlow} d="M.5 26V.5H26M.5 256v19.5l12 12H30M442 .5h11.5l12 12V34" />
+          </>
+        ) : (
+          <>
+            <path className={s.infoLine} d="M.5.5h453l12 12v103l-12 12H12.5l-12-12Z" />
+            <path className={s.infoGlow} d="M.5 26V.5H26M.5 96v19.5l12 12H30M442 .5h11.5l12 12V34" />
+          </>
+        )}
       </svg>
       {icon && <span className={s.infoIcon}>{icon}</span>}
       <div className={cx(s.infoContent, !icon && s.infoContentBare)}>{children}</div>

@@ -87,6 +87,10 @@
   pointer-events: auto;
 }
 
+.info[data-variant="executor"] {
+  height: 288px;
+}
+
 .info[data-tone="danger"] {
   --tone: #ff6a5e;
 }

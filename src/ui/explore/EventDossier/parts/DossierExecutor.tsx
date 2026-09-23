@@ -15,7 +15,6 @@ export function DossierExecutor({
 }) {
   return (
     <div className={s.executor} role="radiogroup" aria-label="选择执行者">
-      <span className={s.label}>由谁执行</span>
       <div className={s.row}>
         {party.map((member) => {
           const selected = member.charId === selectedId;
@@ -31,8 +30,8 @@ export function DossierExecutor({
               className={cx(s.member, selected && s.selected)}
               onClick={() => onSelect(member.charId)}
             >
-              <span className={s.face}>
-                <CharacterPortrait characterId={member.charId} emoji={member.emoji} alt="" className={s.faceImage} />
+              <span className={s.figure}>
+                <CharacterPortrait characterId={member.charId} emoji={member.emoji} alt="" className={s.portrait} />
               </span>
               <span className={s.name}>{member.name}</span>
               <i className={s.hp} style={{ width: `${Math.round(hpRatio * 100)}%` }} aria-hidden />

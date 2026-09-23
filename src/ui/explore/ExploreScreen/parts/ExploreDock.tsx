@@ -23,7 +23,7 @@ export function ExploreDock({ session, inventory, locked, pending }: {
         {session.party.map((item) => <div className={s.memberSlot} key={item.charId}><PartyMemberCard charId={item.charId} as="button"
           name={item.name} emoji={item.emoji} hp={item.hp} hpLimit={item.hpLimit} maxHp={item.maxHp}
           pollution={characters[item.charId]?.pollution ?? 0} down={!item.alive} className={s.member}
-          onClick={locked || (inventory.target && !item.alive) ? undefined : () => inventory.chooseMember(item.charId)} /><span className={s.memberName}>{item.name}</span></div>)}
+          onClick={locked || (inventory.target && !item.alive) ? undefined : () => inventory.chooseMember(item.charId)} /></div>)}
       </div>
     </div>
     <div className={s.backpack} data-locked={locked || undefined}>

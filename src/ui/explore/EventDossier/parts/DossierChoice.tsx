@@ -19,7 +19,7 @@ export function DossierChoice({
       <DossierPhase no="02" label="行动阶段" />
       <DossierBody lines={lines} size={info ? "short" : "tall"} />
       {info}
-      <DossierActionGrid actions={actions} />
+      <DossierActionGrid actions={actions} reserveInfo={Boolean(info)} />
     </section>
   );
 }

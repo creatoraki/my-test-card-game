@@ -1,21 +1,16 @@
-/* 执行者选择条：放在左下信息框(内容区约 420×110)里，标题一行 + 队员按钮一行。 */
+/* 执行者选择区复用探索队员卡的竖向立绘窗，在大号信息框中横向排列。 */
 .executor {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
   width: 100%;
-}
-
-.label {
-  color: #8b9ba1;
-  font-size: 18px;
-  line-height: 22px;
-  letter-spacing: 0.04em;
+  height: 100%;
 }
 
 .row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+  width: 100%;
+  height: 100%;
 }
 
 .member {
@@ -23,11 +18,12 @@
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
-  align-items: center;
-  gap: 2px;
+  align-items: stretch;
   min-width: 0;
-  height: 70px;
-  padding: 4px 2px 6px;
+  min-height: 0;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--k) 25%, #1a3640);
   background: #04141bcc;
   color: #b3c1c6;
@@ -54,32 +50,60 @@
   filter: grayscale(1);
 }
 
-.face {
+.figure {
   position: relative;
-  width: 36px;
-  height: 36px;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
   overflow: hidden;
-  border-radius: 50%;
-  background: #0b2a33;
+  contain: layout paint;
+  background: #0b1b22;
 }
 
-/* 头部取景：9:16 立绘放大后把头部对到圆框中心。 */
-.member .faceImage {
+.figure::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, #ffffff12 0%, #ffffff04 38%, #00000080 100%);
+  content: "";
+}
+
+/* 按探索队员卡的立绘倍率缩放，窗口高度较小时自然裁切下半身。 */
+.member img.portrait {
   position: absolute;
   left: 50%;
   top: 0;
-  width: 150px;
+  width: 230%;
   height: auto;
-  font-size: 26px;
-  line-height: 36px;
-  transform: translate(calc(-50% + var(--head-dx, 0px)), calc(-14px + var(--head-dy, 0px)));
+  max-width: none;
+  object-fit: contain;
+  object-position: center top;
+  translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
+  filter: drop-shadow(0 4px 10px #000a);
+}
+
+.member span.portrait {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
 }
 
 .name {
+  flex: 0 0 30px;
+  align-self: stretch;
+  padding: 3px 4px 0;
   max-width: 100%;
   overflow: hidden;
+  background: #071218;
+  color: #f2debe;
   font-size: 18px;
-  line-height: 22px;
+  line-height: 24px;
+  text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -88,7 +112,7 @@
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 3px;
+  height: 4px;
   background: #4fe08a;
   box-shadow: 0 0 6px #4fe08a;
 }

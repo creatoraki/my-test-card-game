@@ -180,7 +180,7 @@ export function CurioPanel({
       ) : (
         <DossierChoice
           lines={sentences(def.description)}
-          info={<DossierInfoBox>
+          info={<DossierInfoBox variant="executor">
             <DossierExecutor party={session.party} selectedId={executorId} onSelect={setPickedExecutor} />
           </DossierInfoBox>}
           actions={choiceActions}

@@ -41,9 +41,9 @@ export function DossierButton({ action, index }: { action: DossierAction; index:
 }
 
 /** 右下角两列按钮网格：锚定底边，按钮多于 4 个时向上长行并让出左侧信息框。 */
-export function DossierActionGrid({ actions }: { actions: DossierAction[] }) {
+export function DossierActionGrid({ actions, reserveInfo = false }: { actions: DossierAction[]; reserveInfo?: boolean }) {
   return (
-    <div className={s.grid} data-dense={actions.length > 4 || undefined}>
+    <div className={s.grid} data-dense={actions.length > 4 || undefined} data-info={reserveInfo || undefined}>
       {actions.map((action, index) => <DossierButton key={action.id} action={action} index={index} />)}
     </div>
   );

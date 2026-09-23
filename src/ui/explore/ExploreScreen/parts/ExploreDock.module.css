@@ -20,7 +20,6 @@
 .party { width: 500px; }
 .partyMembers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .memberSlot { position: relative; min-width: 0; }
-.memberName { position: absolute; left: 12px; top: 9px; font-size: 18px; color: #f2debe; text-shadow: 0 2px 8px #000; pointer-events: none; }
 /* 卡高/取景高/取景基准宽刻意不覆盖 —— PartyMemberCard 的默认值(316/268/160)
    就是战斗侧的规格，留空即为「与战斗相同」。 */
 .member { width: 100%; cursor: pointer; background: #101b20c9; border-color: #a8926033; }

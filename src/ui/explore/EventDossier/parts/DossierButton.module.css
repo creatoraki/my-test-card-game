@@ -20,6 +20,10 @@
   gap: 10px 14px;
 }
 
+.grid[data-info] {
+  left: 540px;
+}
+
 .button {
   --c: 11px;
   --line: #5a97aa;
