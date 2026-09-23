@@ -11,6 +11,8 @@ import { NeonCrossFx } from "@/ui/battle/fx/NeonCrossFx";
 import { TripleSlashFx } from "@/ui/battle/fx/TripleSlashFx";
 import { BasicSlashFx } from "@/ui/battle/fx/BasicSlashFx";
 import { KeenEdgeFx } from "@/ui/battle/fx/KeenEdgeFx";
+import { LunarRingFx } from "@/ui/battle/fx/LunarRingFx";
+import { SakuraFlurryFx } from "@/ui/battle/fx/SakuraFlurryFx";
 import { TwinArrowFx } from "@/ui/battle/fx/TwinArrowFx";
 import { ShieldIcon } from "@/ui/common/StatusPips/icons";
 import s from "./HitFxLayer.module.css";
@@ -28,6 +30,8 @@ const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset }) => JSX.Ele
   "triple-strike": TripleSlashFx,
   "basic-slash": BasicSlashFx,
   "keen-edge": KeenEdgeFx,
+  "lunar-ring": LunarRingFx,
+  "sakura-flurry": SakuraFlurryFx,
   "twin-arrow": TwinArrowFx,
 };
 

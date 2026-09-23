@@ -1,7 +1,7 @@
 import { effectiveTargeting, type AnimFrame, type BattleState, type Card, type DiscardTriggerFx, type FxStep, type RelicTriggerFx, type TempoFx } from "@/engine";
 import { getEnemyDef } from "@/data";
 import { type ChoreoStep } from "@/ui/battle/camera";
-import { moveAnim } from "@/ui/battle/animations";
+import { cardAnim, moveAnim } from "@/ui/battle/animations";
 
 function stepFromFrame(_battle: BattleState, frame: AnimFrame): ChoreoStep {
   const def = getEnemyDef(frame.enemyDefId);
@@ -10,13 +10,15 @@ function stepFromFrame(_battle: BattleState, frame: AnimFrame): ChoreoStep {
 }
 
 function stepFromDiscard(battle: BattleState, trigger: DiscardTriggerFx): ChoreoStep {
+  const card = trigger.snapshot.cards[trigger.cardUid] ?? battle.cards[trigger.cardUid];
   return {
     kind: trigger.reveal ? "reveal" : undefined,
     actorId: trigger.actorId,
-    anim: trigger.anim ?? "slash",
+    // 按定义表实时解析(同出牌): 实例上的 anim 可能来自旧存档, 改卡面动画后会过期。
+    anim: card ? cardAnim(card) : trigger.anim ?? "slash",
     snapshot: trigger.snapshot,
     hits: trigger.hits,
-    card: trigger.snapshot.cards[trigger.cardUid] ?? battle.cards[trigger.cardUid],
+    card,
     discardUid: trigger.cardUid,
   };
 }

@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
+import type { CardAnim } from "@/engine";
 import { AttackArtsFx, ATTACK_ARTS, type AttackArt } from "@/ui/battle/fx/AttackArtsFx";
 import { BladeSlashFx } from "@/ui/battle/fx/BladeSlashFx";
-import { LunarRingFx, LUNAR_RING } from "@/ui/battle/fx/LunarRingFx";
-import { SakuraFlurryFx, SAKURA_FLURRY } from "@/ui/battle/fx/SakuraFlurryFx";
+import { LunarRingFx } from "@/ui/battle/fx/LunarRingFx";
+import { SakuraFlurryFx } from "@/ui/battle/fx/SakuraFlurryFx";
 import { GaleCrescentFx, GALE_CRESCENT } from "@/ui/battle/fx/GaleCrescentFx";
-import { ANIM } from "@/ui/battle/animations";
+import { ANIM, type ProcFxPreset } from "@/ui/battle/animations";
 
 /** 演示页的统一条目: 文案 + 时序 + 渲染函数。rate 仅供画布类特效显式使用, CSS 类特效读 --fx-rate。 */
 export interface DemoFx {
@@ -18,44 +19,45 @@ export interface DemoFx {
   render: (rate: number) => ReactNode;
 }
 
-const BLADE = ANIM["blade-slash"];
+type Copy = Pick<DemoFx, "id" | "name" | "category" | "description">;
 
 const artDemo = (art: AttackArt): DemoFx => ({
   ...art,
   render: (rate) => <AttackArtsFx art={art} rate={rate} />,
 });
 
+/** 已接入战斗的程序化特效: 时序与主色直接取 ANIM, 演示与实战同源。 */
+function procDemo(anim: CardAnim, copy: Copy, Fx: (p: { preset: ProcFxPreset }) => JSX.Element): DemoFx {
+  const preset = ANIM[anim];
+  const proc = preset.proc!;
+  return {
+    ...copy,
+    color: preset.color,
+    impactMs: proc.impactMs,
+    durationMs: preset.hold,
+    render: () => <Fx preset={proc} />,
+  };
+}
+
 export const SLASH_DEMOS: readonly DemoFx[] = [
-  {
+  procDemo("blade-slash", {
     id: "blade-reference",
     name: "刀光斩对照",
     category: "原版对照",
     description: "原版刀光斩：斜向刀光、粒子回流、沿刃爆裂。作为这批特效的视觉对照。",
-    color: BLADE.color,
-    impactMs: BLADE.proc!.impactMs,
-    durationMs: BLADE.hold,
-    render: () => <BladeSlashFx preset={BLADE.proc!} />,
-  },
-  {
+  }, BladeSlashFx),
+  procDemo("lunar-ring", {
     id: "lunar-ring",
     name: "圆月轮斩",
     category: "斩击",
     description: "刀尖绕目标画满一轮金月，光点回流收紧，一刀横断后月轮上下裂开，切向火花旋涡般甩出。",
-    color: LUNAR_RING.color,
-    impactMs: LUNAR_RING.preset.impactMs,
-    durationMs: LUNAR_RING.holdMs,
-    render: () => <LunarRingFx preset={LUNAR_RING.preset} />,
-  },
-  {
+  }, LunarRingFx),
+  procDemo("sakura-flurry", {
     id: "sakura-flurry",
     name: "绯樱乱刃",
     category: "斩击",
     description: "八刀不同角度的快斩交错留痕，短暂留白后重横斩落下，所有刀痕同时迸亮并碎成花瓣刃屑。",
-    color: SAKURA_FLURRY.color,
-    impactMs: SAKURA_FLURRY.preset.impactMs,
-    durationMs: SAKURA_FLURRY.holdMs,
-    render: () => <SakuraFlurryFx preset={SAKURA_FLURRY.preset} />,
-  },
+  }, SakuraFlurryFx),
   {
     id: "gale-crescent",
     name: "苍岚剑气",

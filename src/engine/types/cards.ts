@@ -37,6 +37,8 @@ export type CardAnim =
   | "triple-strike"
   | "basic-slash"
   | "keen-edge"
+  | "lunar-ring"
+  | "sakura-flurry"
   | "twin-arrow"
   | "heal"
   | "shield"

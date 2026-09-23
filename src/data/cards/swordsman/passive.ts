@@ -28,7 +28,7 @@ export const SWORDSMAN_PASSIVE_CARDS: CardDef[] = [
     cardType: "passive",
     targeting: "none",
     rarity: "uncommon",
-    anim: "shot",
+    anim: "basic-slash",
     effects: [],
     passive: {
       on: "cardDiscarded",

@@ -221,6 +221,29 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     hold: 1800, // impactMs + floatMs = 936 < hold, 也盖住 total 1750, 余鸣与光尘尾段不被截断
     shake: 2,
   },
+  // 圆月轮斩(程序化 CSS): 1.7s 三拍 —— 刀尖画满金色月轮 → 光点回流收紧 → 一刀横断、
+  // 月轮上下裂开。820ms 爆点与 fx/LunarRingFx/lunarRingGeometry.ts 的 AROUND_IMPACT 同锚;
+  // 掉血/飘字锚在爆点, 震屏归相机 SHOTS.lunar、白闪归 screenFx。
+  "lunar-ring": {
+    kind: "attack",
+    color: "#ffd27a",
+    proc: { impactMs: 820, floatMs: 700, damageAtImpact: true },
+    screenFx: "flash",
+    windup: 190,
+    hold: 1700, // impactMs + floatMs = 1520 < hold, 裂月与切向火花尾段约 1.42s 收尾
+    shake: 1,
+  },
+  // 绯樱乱刃(程序化 CSS): 1.9s 三拍 —— 八刀乱斩留痕 → 留白聚光 → 重横斩, 全部刀痕迸成花瓣。
+  // 1000ms 爆点 = 重横斩刀光落定, 与 fx/SakuraFlurryFx/sakuraFlurryGeometry.ts 同锚。
+  "sakura-flurry": {
+    kind: "attack",
+    color: "#ff8fb0",
+    proc: { impactMs: 1000, floatMs: 700, damageAtImpact: true },
+    screenFx: "flash",
+    windup: 190,
+    hold: 1900, // impactMs + floatMs = 1700 < hold, 花瓣刃屑约 1.79s 落尽
+    shake: 2,
+  },
   // 二连箭(Canvas 2D): 1.4s 双箭命中, 430/590ms 两拍分别结算并对齐飘字与全屏闪。
   // hold 同时覆盖特效尾帧与第二段命中后的飘字; 震屏归相机 SHOTS.twin。
   "twin-arrow": {

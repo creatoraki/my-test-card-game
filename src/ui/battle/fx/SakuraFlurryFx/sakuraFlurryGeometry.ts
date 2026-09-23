@@ -6,15 +6,9 @@
 // 刀痕表手写(控制构图, 避免随机出现平行刀), 花瓣由固定种子派生。
 // ============================================================================
 
-import type { ProcFxPreset } from "@/ui/battle/animations";
 import { seededRange } from "@/ui/battle/fx/shared/fxKit";
 
-export const SAKURA_FLURRY = {
-  preset: { impactMs: 1000, floatMs: 700, damageAtImpact: true } satisfies ProcFxPreset,
-  holdMs: 1900,
-  color: "#ff8fb0",
-};
-
+// 爆点 / 飘字 / 演出时长等外部时序在 animations.ts 的 ANIM 表中统一定义。
 export const CUT_INTERVAL = 78; // 两刀间隔
 export const CUT_SWIPE = 140; // 单刀刀光掠过时长
 export const FINAL_SWIPE = 130; // 收束横斩的刀光时长, 结束时刻 = 爆点

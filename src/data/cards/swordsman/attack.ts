@@ -10,7 +10,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "ice",
+    anim: "keen-edge",
     effects: [{ type: "DAMAGE", multiplier: 0.8, target: "primary", hitBonus: 10 }],
     onDiscard: { mode: "useSelf", autoTarget: "randomFoe" },
     text: "造成 {0} 点伤害，命中 +10%。被丢弃时，自动对随机敌人使用本卡。",
@@ -23,7 +23,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "slash",
+    anim: "basic-slash",
     effects: [
       { type: "DAMAGE", multiplier: 1.0, target: "primary", hitBonus: -10 },
       { type: "DISCARD", amount: 1, discardPick: "handBottom" },
@@ -41,7 +41,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "uncommon",
     exhaust: true,
-    anim: "fire",
+    anim: "blood-slash",
     effects: [
       { type: "PLAY_STAT_BONUS", stat: "armorPen", amount: 5 },
       { type: "DAMAGE", multiplier: 1.6, target: "primary" },
@@ -79,7 +79,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "iai-slash",
+    anim: "lunar-ring",
     effects: [
       { type: "DISCARD", amount: 1, discardPick: "handTop" },
       // 基础倍率 0，全部伤害来自「被丢弃牌的费用 × 60%」。
@@ -103,7 +103,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "allFoes",
     rarity: "common",
-    anim: "slash",
+    anim: "tri-slash",
     effects: [
       {
         type: "DAMAGE",
@@ -124,7 +124,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cardType: "fast",
     targeting: "foe",
     rarity: "common",
-    anim: "slash",
+    anim: "sakura-flurry",
     effects: [
       { type: "DAMAGE", multiplier: 1.0, target: "primary" },
       {
@@ -145,7 +145,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cardType: "fast",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "slash",
+    anim: "keen-edge",
     effects: [
       { type: "DAMAGE", multiplier: 0.7, target: "primary", hitBonus: 10 },
       { type: "DRAW", amount: 1, condition: "noPlaysThisRound" },
@@ -160,7 +160,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cardType: "fast",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "slash",
+    anim: "iai-slash",
     effects: [
       { type: "PLAY_STAT_BONUS", stat: "critRate", amount: 20 },
       {
@@ -183,7 +183,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "rare",
     exhaust: true,
-    anim: "lightning",
+    anim: "neon-cross",
     // 先丢弃再结算：伤害倍率按本次丢弃张数加算，一次结算完成（不拆成两段飘字）。
     effects: [
       { type: "PLAY_STAT_BONUS", stat: "critRate", amount: 20 },
@@ -206,7 +206,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "ice",
+    anim: "basic-slash",
     effects: [
       {
         type: "DAMAGE",
@@ -241,7 +241,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cardType: "fast",
     targeting: "foe",
     rarity: "common",
-    anim: "lightning",
+    anim: "iai-slash",
     playReturn: { when: "fastPlaysThisRound", atLeast: 1, costDelta: 1 },
     effects: [{ type: "DAMAGE", multiplier: 0.7, target: "primary", hitBonus: 10 }],
     text: "造成 {0} 点伤害，命中 +10%。本回合已打出其他速攻牌时，打出后回到手牌且费用 +1。",

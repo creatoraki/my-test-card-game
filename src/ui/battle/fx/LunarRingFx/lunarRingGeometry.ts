@@ -6,15 +6,9 @@
 // 外层整体倾斜 TILT, 所有几何都在局部坐标中布置: 横断沿 X 轴, 裂开沿 Y 轴。
 // ============================================================================
 
-import type { ProcFxPreset } from "@/ui/battle/animations";
 import { seededRange } from "@/ui/battle/fx/shared/fxKit";
 
-export const LUNAR_RING = {
-  preset: { impactMs: 820, floatMs: 700, damageAtImpact: true } satisfies ProcFxPreset,
-  holdMs: 1700,
-  color: "#ffd27a",
-};
-
+// 爆点 / 飘字 / 演出时长等外部时序在 animations.ts 的 ANIM 表中统一定义。
 export const RING_RADIUS = 230;
 export const TILT = -12; // 整体倾斜(deg)
 export const START_ANGLE = -140; // 刀尖起笔角(deg), 左上方
