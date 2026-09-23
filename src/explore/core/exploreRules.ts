@@ -1,11 +1,11 @@
 // ============================================================================
-// ★ 可配置探索规则 ★ —— 与 engine/rules.ts 同惯例: 所有旋钮集中在这一个文件。
+// ★ 可配置探索规则 ★ —— 与 engine/core/battleRules.ts 同惯例: 所有旋钮集中在这一个文件。
 // 调探索层平衡(房间图 / 粒子消耗 / 能量档位与收益)只改这里。
 //
 // ⚠ 上一版的「区域危险度 DANGER_TIERS」与「残片」已废弃, 难度轴只保留净化粒子一条
 //   (设计文档 §4.1 明确禁止再引入第二条并行难度数值)。
 // ⚠ 房间制下的粒子消耗: 换房(新房/回头路分价)、交互(按物件分类分档)、战斗(每回合 + 按档位加扣)、
-//   房间内行走(每走一屏 −1)。计价函数统一在 explore/energyCost.ts; 补充来源有净化粒子罐与粒子净化站。
+//   房间内行走(每走一屏 −1)。计价函数统一在 explore/resources/energyCost.ts; 补充来源有净化粒子罐与粒子净化站。
 // ============================================================================
 
 import type { ItemRarity } from "@/items/types";
@@ -15,7 +15,7 @@ export const EXPLORE_RULES = {
   // ── 净化粒子(设计文档 §4.2) ──
   startingEnergy: 100,
   energyMax: 100,
-  // ★ 每交互 1 个事件的消耗, 按物件分类分档(见 explore/energyCost.ts interactionCost):
+  // ★ 每交互 1 个事件的消耗, 按物件分类分档(见 explore/resources/energyCost.ts interactionCost):
   //   物品奖励最贵, 治疗次之, 服务最便宜, 货商免费; 陷阱强制触发不收费。
   //   event 是非物件交互(迎战黑影)的兜底价。「隐匿通道」这类效果仍可免除这一份(见 ExploreState.freeNodes)。
   energyPerInteraction: { loot: 4, heal: 3, service: 2, merchant: 0, event: 2 },

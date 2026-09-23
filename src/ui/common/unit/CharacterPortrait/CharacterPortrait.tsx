@@ -9,7 +9,7 @@ import s from "./CharacterPortrait.module.css";
 // 所有角色立绘统一为 1152×2048 / 9:16 / 透明底 / 左右中心对称。
 
 // 角色立绘登记表(与 enemyArt.ts 同思路: 静态 import + 登记表, 按 CharacterDef.id 作键)。
-// 立绘只登记在 UI 层 —— data/characters.ts 不碰素材路径, 与 enemyArt.ts / battleBg.ts 同约定。
+// 立绘只登记在 UI 层 —— data/roster/characters.ts 不碰素材路径, 与 enemyArt.ts / battleBg.ts 同约定。
 interface CharacterArtDef {
   src: string;
   // 半身取景的异常构图逃生舱(px, 正=右/下), 常规统一规格立绘不需要覆盖。

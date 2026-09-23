@@ -43,7 +43,7 @@ export function EnemySprite({
   id: string; // enemyDefId; 用来隔离各敌人的 keyframes 名, 避免同名互相覆盖
   sprite: EnemySpriteDef;
   alt: string;
-  flip?: boolean; // 左右镜像(见 data/encounters.ts 的 EnemyPlacement.flip)
+  flip?: boolean; // 左右镜像(见 data/encounters/index.ts 的 EnemyPlacement.flip)
 }) {
   const skip = new Set(sprite.skipFrames ?? []);
   // 实播帧序列(0-based 索引); skipFrames 是 1-based, 故按 i+1 过滤

@@ -29,7 +29,7 @@ export type TooltipDirection = "left" | "right" | "vertical" | "top";
  *
  * ⚠ 必须传元素、不能只传 DOMRect: 要拿元素去找它所属的画布(host), 并用画布矩形把锚点
  *   归一化成设计 px。这样浮层的定位与 CSS zoom 的坐标系语义完全解耦 —— 详见
- *   hooks/stage.ts 的 designScaleOf()。历史上这里用 currentCSSZoom 手工换算屏幕 px,
+ *   ui/app/shared/stage.ts 的 designScaleOf()。历史上这里用 currentCSSZoom 手工换算屏幕 px,
  *   在窗口小于 1920 时会把浮层推出可视区。
  */
 export function tooltipPointFromElement(el: Element, direction: TooltipDirection = "right"): TooltipPoint {

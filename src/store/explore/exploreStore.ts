@@ -59,7 +59,7 @@ import { useTownStore } from "../town/townStore";
 interface ExploreStore {
   session: ExploreState | null;
 
-  // initialBackpack = 出击准备界面装好的物资(见 store/sortieStore.ts)。缺省 = 空手出发。
+  // initialBackpack = 出击准备界面装好的物资(见 store/sortie/sortieStore.ts)。缺省 = 空手出发。
   start: (
     mapId: string,
     party: PartySnapshot[],

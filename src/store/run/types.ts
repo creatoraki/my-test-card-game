@@ -10,9 +10,9 @@ import type { ExpGain } from "../town/townStore";
 //   入口是据点全景右下的「编队」按钮(见 ui/town/TownScreen), 医疗室提供「复苏舱」。
 //   回据点走 ScreenTransition 的默认淡出淡入。
 //   ⚠⚠ **角色详情不是一个 screen**: 它是编队页内部的第二种态, 点卡不跳页, 由
-//   ui/character/FormationScreen/formationMorph 做一次同页元素重组。
+//   ui/character/FormationScreen/parts/formationMorph 做一次同页元素重组。
 // ★ "sortie"(出击) 同样是据点的一级全屏页: 入口是据点全景右下的「出击」按钮, 内部分两步
-//   (选地图 → 备物资, step 存在 store/sortieStore 里)。
+//   (选地图 → 备物资, step 存在 store/sortie/sortieStore 里)。
 // ★ "elevator" 是纯演出中转页, 没有任何交互与规则; 下行进探索、上行回据点, 探索会话要等下行演出结束后才建立。
 export type Screen =
   | "menu"

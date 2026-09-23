@@ -36,7 +36,7 @@ interface RunStore extends RunState {
   enterTown: () => void;
   openFormation: () => void; // 据点全景右下「编队」→ 全屏编队页(角色详情是它内部的一种态, 不占 screen)
   openSortie: () => void; // 据点全景右下「出击」→ 全屏出击页(选地图 + 备物资)
-  // 物资准备完毕 → 进探索场景。backpack = 出发时装好的物资(见 store/sortieStore)。
+  // 物资准备完毕 → 进探索场景。backpack = 出发时装好的物资(见 store/sortie/sortieStore)。
   startExpedition: (mapId: string, backpack?: ItemStack[], difficulty?: MapDifficulty) => void;
   beginDescent: (mapId: string, backpack?: ItemStack[], difficulty?: MapDifficulty) => void;
   beginAscent: () => void;

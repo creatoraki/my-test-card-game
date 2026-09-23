@@ -1,6 +1,6 @@
 # 探索引擎
 
-路径：`src/explore/`。纯 TypeScript 的远征规则层，约定与 engine 相同：函数直接修改传入的 `ExploreState`，由 `store/exploreStore` 先克隆再调用。随机数一律走会话里的 `rngState`，同一个种子会生成同一张地图、掉同样的东西。
+路径：`src/explore/`。纯 TypeScript 的远征规则层，约定与 engine 相同：函数直接修改传入的 `ExploreState`，由 `store/explore/exploreStore` 先克隆再调用。随机数一律走会话里的 `rngState`，同一个种子会生成同一张地图、掉同样的东西。
 
 当前玩法是**房间制**：一张地图就是一张房间图（`dungeon/`），每个房间展开成一段横向场景（`corridor/`），场景中放着可交互物件（`curio/`）。
 
@@ -8,9 +8,9 @@
 
 | 文件 | 作用 |
 | --- | --- |
-| [rules.ts](../../src/explore/rules.ts) | 探索层的全部数值旋钮（`EXPLORE_RULES`）和粒子档位（`ENERGY_TIERS`）。 |
-| [energyCost.ts](../../src/explore/energyCost.ts) | 粒子计价的唯一入口：换房、交互、战斗、行走四类消耗。UI 的预告和实际扣费都读这里。 |
-| [energy.ts](../../src/explore/energy.ts) | 改写粒子数的唯一入口，负责截断和统计。 |
+| [rules.ts](../../src/explore/core/exploreRules.ts) | 探索层的全部数值旋钮（`EXPLORE_RULES`）和粒子档位（`ENERGY_TIERS`）。 |
+| [energyCost.ts](../../src/explore/resources/energyCost.ts) | 粒子计价的唯一入口：换房、交互、战斗、行走四类消耗。UI 的预告和实际扣费都读这里。 |
+| [energy.ts](../../src/explore/resources/energy.ts) | 改写粒子数的唯一入口，负责截断和统计。 |
 | [types.ts](../../src/explore/types.ts) | 探索层类型：会话、阶段、效果、奖励、待办等。当前房间的场景事件存在 `sceneEvents`，打开的物件 / 黑影下标是 `landedIndex`。 |
 
 ## 会话主体
@@ -18,9 +18,9 @@
 | 文件 | 作用 |
 | --- | --- |
 | [session/](../../src/explore/session/index.ts) | 远征会话，按职责分文件，由 `session/index.ts` 统一导出（调用方一律从 `explore/session` 引入）：`energy`（粒子档位换算）、`drops`（掉落系数与上下文）、`create`（建局）、`backpack`（占格、负重、拾取、投递口）、`party`（回血掉血、团灭、战斗回填）、`rewards`（装备 / 遗物候选）、`effects`（`applyEffect`）、`items`（消耗品）、`pending`（待办出队）、`battle`（档位抽取、BOSS 红门、`finishBattle`、撤离）、`scene`（黑影开战、`confirmNode`）、`queries`（UI 查询）、`log`。 |
-| [boons.ts](../../src/explore/boons.ts) | 战斗胜利奖励：治疗露珠、卡牌候选、装备箱、模组箱的生成与领取。 |
-| [picnic.ts](../../src/explore/picnic.ts) | 野餐：用临期食品组合食谱，奖励是回复体力极限或一件一次性遗物。 |
-| [relics.ts](../../src/explore/relics.ts) / [relicBehaviors.ts](../../src/explore/relicBehaviors.ts) / [relicModifiers.ts](../../src/explore/relicModifiers.ts) | 背包中遗物在探索侧的触发时机、行为，以及对负重、货商格数、废料售价、应急信标的修正。 |
+| [boons.ts](../../src/explore/core/boons.ts) | 战斗胜利奖励：治疗露珠、卡牌候选、装备箱、模组箱的生成与领取。 |
+| [picnic.ts](../../src/explore/resources/picnic.ts) | 野餐：用临期食品组合食谱，奖励是回复体力极限或一件一次性遗物。 |
+| [relics.ts](../../src/explore/relics/relics.ts) / [relicBehaviors.ts](../../src/explore/relics/relicBehaviors.ts) / [relicModifiers.ts](../../src/explore/relics/relicModifiers.ts) | 背包中遗物在探索侧的触发时机、行为，以及对负重、货商格数、废料售价、应急信标的修正。 |
 
 ## 房间图 `dungeon/`
 
@@ -30,7 +30,7 @@
 | [dungeon/generate.ts](../../src/explore/dungeon/generate.ts) + [growRooms.ts](../../src/explore/dungeon/growRooms.ts) | 随机地图：先长出生成树，再追加少量环路；BOSS 房放在最深处。 |
 | [dungeon/planned.ts](../../src/explore/dungeon/planned.ts) | 固定蓝图地图（新手关）。 |
 | [dungeon/curioPlan.ts](../../src/explore/dungeon/curioPlan.ts) / [curioLevel.ts](../../src/explore/dungeon/curioLevel.ts) | 每个房间放哪些物件，以及物件等级（越深的房间越接近地图等级上限）。 |
-| [dungeon/session.ts](../../src/explore/dungeon/session.ts) | 换房间：站上传送门点亮小地图、确认传送并扣粒子、落地新房间；战斗房立即触发黑影，陷阱房立即打开陷阱物件；另有应急信标传送。 |
+| [dungeon/session.ts](../../src/explore/dungeon/dungeonSession.ts) | 换房间：站上传送门点亮小地图、确认传送并扣粒子、落地新房间；战斗房立即触发黑影，陷阱房立即打开陷阱物件；另有应急信标传送。 |
 | [dungeon/nearMapGeometry.ts](../../src/explore/dungeon/nearMapGeometry.ts) | 近景素材的显示倍率（原图 2 倍）与几何尺寸，房间宽度由它决定。 |
 
 ## 房间内场景 `corridor/`
@@ -38,7 +38,7 @@
 | 文件 | 作用 |
 | --- | --- |
 | [corridor/types.ts](../../src/explore/corridor/types.ts) | 场景坐标（设计画布像素）、物件、传送门、黑影威胁、槽位计算。 |
-| [corridor/session.ts](../../src/explore/corridor/session.ts) | 把一个房间展开成可游玩的场景：附近物件查询、行走范围限制、打开或关闭物件、BOSS 红门、黑影遭遇的开始与结算。 |
+| [corridor/session.ts](../../src/explore/corridor/corridorSession.ts) | 把一个房间展开成可游玩的场景：附近物件查询、行走范围限制、打开或关闭物件、BOSS 红门、黑影遭遇的开始与结算。 |
 | [corridor/ambush.ts](../../src/explore/corridor/ambush.ts) | 行走过程中的伏击概率和遭遇生成。 |
 | [corridor/alarm.ts](../../src/explore/corridor/alarm.ts) | 交互失败拉响的警报：先登记档位，结算完成回到场景后才生成守卫战。 |
 

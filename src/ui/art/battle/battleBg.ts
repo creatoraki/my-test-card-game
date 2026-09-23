@@ -1,5 +1,5 @@
 // 战斗背景素材集中登记处(与 enemyArt.ts 同思路: 静态 import + 登记表), 按 MapDef.id 作键。
-// 数据层不碰素材(见 data/maps.ts 顶部注释), 故「地图 → 背景」的关联落在这里。
+// 数据层不碰素材(见 data/maps/index.ts 顶部注释), 故「地图 → 背景」的关联落在这里。
 import neonCityBg from "@/assets/战斗背景/霓虹城市.webp";
 import ecoArkBg from "@/assets/战斗背景/生态方舟.webp";
 import { preloadImage } from "@/ui/art/loader/assetLoader";

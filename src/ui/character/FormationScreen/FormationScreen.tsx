@@ -17,7 +17,7 @@
 //
 // ★ 与场景素材同一套科幻基地视觉: 队员宿舍背景 + 亮玻璃卡,
 //   强调色深紫罗兰 #7c4dbe。
-// 与大厅/战斗同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/hooks/stage.ts):
+// 与大厅/战斗同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/app/shared/stage.ts):
 // ★ 本文件里所有坐标/尺寸都是「设计 px」, 直接照着 1920×1080 的设计稿填数。
 // ⚠ 不要在画布内写 vw/vh 或按窗口宽度的 @media —— 那会让构图随分辨率漂移。
 
@@ -71,7 +71,7 @@ export function FormationScreen() {
   const enterTown = useRunStore((state) => state.enterTown);
 
   // 回据点前先打一个标记: 据点侧读到它就把自己摆成「演出中途」, 补播那段反向像素转场
-  // (本页与据点之间的过场本身是零时长的, 见 ui/app/transitions.ts 的 "formation>town")。
+  // (本页与据点之间的过场本身是零时长的, 见 ui/app/shared/transitions.ts 的 "formation>town")。
   const leaveToTown = useCallback(() => {
     markTownReturn("formation");
     enterTown();

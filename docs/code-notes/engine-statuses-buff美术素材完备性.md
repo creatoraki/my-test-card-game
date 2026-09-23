@@ -2,8 +2,8 @@
 
 > 统计时间：2026-09-18
 > 状态来源：`src/engine/statuses/index.ts` 汇总的 `STATUS_DEFS`
-> 美术登记：`src/ui/art/statusArt.ts` 中的 `STATUS_ART`（新增美术只需在此登记，`StatusPips` 与 `HitFxLayer` 自动生效）
-> 非状态 BUFF 登记：`src/ui/art/buffArt.ts`（培育标记、组装部件与药剂徽记）
+> 美术登记：`src/ui/art/battle/statusArt.ts` 中的 `STATUS_ART`（新增美术只需在此登记，`StatusPips` 与 `HitFxLayer` 自动生效）
+> 非状态 BUFF 登记：`src/ui/art/battle/buffArt.ts`（培育标记、组装部件与药剂徽记）
 > 素材目录：`src/assets/buffs/`
 > 未登记美术的状态会回退显示 `emoji`。
 
@@ -118,7 +118,7 @@
 
 1. `切图素材` 中的 12 张图已按语义移动到 `buffs/`、`debuffs/`、`dot/` 三个目录，并更新了 `statusArt.ts` 的实际引用路径。
 2. 新增登记 `regen`、`thorns`、`insight`、`pierce`；其中 `regen`、`pierce` 使用本次切图素材，另外两个使用已有素材。
-3. 非状态素材由 `src/ui/art/buffArt.ts` 统一登记：`培育` 接入手牌培育标记，`组装 A-D` 接入战斗组装部件条与选择面板，`魔药` 先作为药剂徽记素材预加载；当前没有对应的状态或部件 ID，因此不计入上方 50 个状态。
+3. 非状态素材由 `src/ui/art/battle/buffArt.ts` 统一登记：`培育` 接入手牌培育标记，`组装 A-D` 接入战斗组装部件条与选择面板，`魔药` 先作为药剂徽记素材预加载；当前没有对应的状态或部件 ID，因此不计入上方 50 个状态。
 4. **目录中没有对应状态的素材（2 个）**：`不周山.png`、`坚固.png`。代码里找不到这两个名称，可能对应还没实现的状态，也可能是改名前的旧素材。
 5. **完全缺素材（25 个）**：通用减益 6 个、控制 1 个、剑客 6 个、植物学家 5 个、预言家 3 个、废弃楼层 4 个。
 6. **重复的回退 emoji**：🎯（赏金猎人 / 易伤 / 残心·凝神）、🛡️（铁壁 / 铁衣 / 护航 / 免疫）、🌵（荆棘 / 仙人掌 / 龙舌兰）、📉（萎靡 / 免赔）。这些状态缺素材时，只看图标无法区分，建议优先补图。

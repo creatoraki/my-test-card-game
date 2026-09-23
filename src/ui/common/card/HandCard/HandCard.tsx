@@ -85,7 +85,7 @@ export const HandCard = memo(function HandCard({
 }: Props) {
   const owner = getCharacter(card.ownerCharId);
   // 被动卡: 无费用、不可打出 —— 卡面上把费用徽章换成"被动"铭牌, 且**不走不可用压暗**,
-  // 它不是"现在打不了", 而是"从来就不用打"(见 engine/passive.ts)。
+  // 它不是"现在打不了", 而是"从来就不用打"(见 engine/combat/passive.ts)。
   const passive = card.cardType === "passive";
   const art = cardArt(card.id);
   const hasArt = Boolean(art);

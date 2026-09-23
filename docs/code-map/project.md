@@ -30,7 +30,7 @@
 | 文件 | 作用 |
 | --- | --- |
 | [vite-plugin-image-optimize.mjs](../../scripts/vite-plugin-image-optimize.mjs) | Vite 插件：在模块加载时把 PNG/JPEG 转成 WebP，并给视频降码率；开发和构建行为一致。`OPTIMIZE=0` 可跳过优化，用原图对比。 |
-| [alpha-bbox.mjs](../../scripts/alpha-bbox.mjs) | 测量透明 PNG 的内容框，结果用于敌人立绘登记（`ui/art/enemyArt.ts`）。 |
+| [alpha-bbox.mjs](../../scripts/alpha-bbox.mjs) | 测量透明 PNG 的内容框，结果用于敌人立绘登记（`ui/art/battle/enemyArt.ts`）。 |
 | [chroma-cut.mjs](../../scripts/chroma-cut.mjs) | 把纯色底立绘抠成透明 PNG，并裁到角色边界。 |
 | [white-cut.mjs](../../scripts/white-cut.mjs) | 把白底横向循环场景抠成透明 PNG，用作近景层。 |
 | [crop-status-buffs.mjs](../../scripts/crop-status-buffs.mjs) | 把四宫格状态图标切成单张（中毒 / 烧伤 / 护盾 / 锋利）。 |

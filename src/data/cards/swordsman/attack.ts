@@ -35,7 +35,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     name: "迦具土",
     ownerCharId: "swordsman",
     cost: 4,
-    // per: 本回合每丢弃 1 张牌，费用再 -1（线性递减，见 engine/cost.ts）。
+    // per: 本回合每丢弃 1 张牌，费用再 -1（线性递减，见 engine/cards/cost.ts）。
     costRule: { when: "discardedThisRound", delta: -1, per: true },
     cardType: "normal",
     targeting: "foe",
@@ -98,7 +98,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     name: "岚",
     ownerCharId: "swordsman",
     cost: 2,
-    // 被丢弃回手累计满 5 层后费用 -2（见 engine/cost.ts stackCostRule）。
+    // 被丢弃回手累计满 5 层后费用 -2（见 engine/cards/cost.ts stackCostRule）。
     stackCostRule: { atLeast: 5, delta: -2 },
     cardType: "normal",
     targeting: "allFoes",

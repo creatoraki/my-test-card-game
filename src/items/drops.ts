@@ -1,11 +1,11 @@
 // ============================================================================
-// 掉落结算 —— 纯 TS, 用 engine/rng 的可复现随机。
+// 掉落结算 —— 纯 TS, 用 engine/core/rng 的可复现随机。
 //
 // rng 参数接受**任意带 rngState 的对象** ⇒ 调用方直接把 ExploreState 传进来,
 // 掉落就进了同一条种子链: 同种子的一趟远征, 掉的东西逐件一致。
 //
 // 统一掉落系数 K 与 qualityBias 的口径见《探索模式设计.md》§5.1。
-// K 的换算在 explore/session/drops.ts(它才认识净化粒子与挑战词条), 本模块只消费算好的结果。
+// K 的换算在 explore/session/loot/drops.ts(它才认识净化粒子与挑战词条), 本模块只消费算好的结果。
 // ============================================================================
 
 import { rngFloat, rngInt } from "@/engine/core/rng";
@@ -75,7 +75,7 @@ export function pickByQuality(
 }
 
 // 掷一条随机羁绊词条(《羁绊设计概览.md》§2.1)。稀有度不影响词条数量。
-// pickIndex 由调用方提供随机源: 探索侧传 engine/rng 的种子链, 据点商店传 Math.random。
+// pickIndex 由调用方提供随机源: 探索侧传 engine/core/rng 的种子链, 据点商店传 Math.random。
 export function rollAffinity(
   def: ItemDef,
   pool: string[],

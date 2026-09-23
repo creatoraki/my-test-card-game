@@ -16,7 +16,7 @@
 
 节点状态为 `done`（已解锁）、`available`（可解锁）、`lacking`（材料不足）、`locked`（前置未解锁）。四种状态共用同一套六边形轮廓，只用描边配色与角标区分：已解锁使用金色六边框与勾选角标，选中使用青色六边框，锁定使用灰蓝六边框和锁。
 
-`TechnologyGraph`、`TechnologyMedallion`、`TechnologyDetail`、`TechnologyMaterials`、`TechnologyFooter` 可以分别复用。图标接受任意 React 内容；`TechnologyArtwork` 是参考图图标的可选适配器，素材登记在 `ui/art/techTreeArt.ts`，只显示六边形内部图案。
+`TechnologyGraph`、`TechnologyMedallion`、`TechnologyDetail`、`TechnologyMaterials`、`TechnologyFooter` 可以分别复用。图标接受任意 React 内容；`TechnologyArtwork` 是参考图图标的可选适配器，素材登记在 `ui/art/town/techTreeArt.ts`，只显示六边形内部图案。
 
 `TechnologyBoard` 与 `TechnologyTree` 都填满调用方容器。全屏面板应挂载到 `data-stage-canvas` 画布内部，使页面继续使用全站 1920×1080 设计尺寸与缩放规则。切页动画由业务容器编排。
 

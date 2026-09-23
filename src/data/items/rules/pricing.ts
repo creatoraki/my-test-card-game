@@ -11,9 +11,9 @@
 // 1 级商店只出普通档, 高档位先填好, 日后开高级商店不必回来改结构。
 //
 // ⚠ 消耗品(含临期食品)走的是**一口价**, 不吃稀有度阶梯 —— 它们不在据点商店卖, 而在
-//   出击准备界面的「货柜」里不限量常驻(货品清单见 data/sortieStock.ts)。这里给它们打
+//   出击准备界面的「货柜」里不限量常驻(货品清单见 data/shop/sortieStock.ts)。这里给它们打
 //   buyValue 只是为了让 UI 有价可读、让 townStore 有价可扣。
-// ⚠⚠ data/shop.ts 的候选池是「填了 buyValue **且** category 是 equipment/material」——
+// ⚠⚠ data/shop/shop.ts 的候选池是「填了 buyValue **且** category 是 equipment/material」——
 //   两个条件都要满足。别在那边加一句 sellable("consumable"), 否则消耗品会连带上架到
 //   据点商店的随机货架上去。
 // ============================================================================

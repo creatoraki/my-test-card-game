@@ -4,8 +4,8 @@
 // ★ 为什么要有这一层: 状态钩子与遗物行为要调用引擎原语(ops / 伤害管线), 而原语结算时又要回查
 //   状态定义与遗物钩子。两边直接互相 import 就是运行时依赖环 —— 调整 import 顺序或开启代码分割后,
 //   很容易在初始化阶段取到 undefined。
-//   现在原语一侧只查这里的表; 表由 statuses/index 与 relicBehaviors/index 在自身加载时填入。
-// ⚠ 使用前提: 引擎入口(engine/index 或 engine/battle)已加载 —— 两个入口都会带起 statuses 与
+//   现在原语一侧只查这里的表; 表由 statuses/index 与 relics/relicBehaviors 在自身加载时填入。
+// ⚠ 使用前提: 引擎入口(engine/index 或 engine/battle/battle)已加载 —— 两个入口都会带起 statuses 与
 //   relicBehaviors 的注册。只 import 某个子模块单独调用、又没加载入口时, 表是空的。
 // ============================================================================
 

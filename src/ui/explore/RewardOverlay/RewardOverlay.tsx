@@ -1,7 +1,7 @@
 ﻿// ★ 事件奖励浮层 ★ —— 事件结算后 pendingActions 逐条弹出的处理面板。
 //
 // ⚠ 版式不在这里: 外框取自 explorePanel 的 panel-box(在 rewardKit 里缩到 1120×780), 页眉/正文/底栏/按钮/选择卡
-//   全部来自 ui/common/EventPanel 的原语 —— 与落点事件面板同一套设计语言,
+//   全部来自 ui/common/widget/EventPanel 的原语 —— 与落点事件面板同一套设计语言,
 //   这样「选完选项 → 弹出奖励」时页眉基线与按钮行不会跳。
 //   本文件只负责: 奖励种类 → 内容与文案。
 import { useEffect, useState } from "react";

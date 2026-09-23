@@ -1,6 +1,6 @@
 // ============================================================================
 // 探索会话 —— 纯 TS, 无 React、无副作用。所有函数直接修改传入的 ExploreState,
-// 由 store 层负责 structuredClone 后再调用(与 engine/battle.ts 同惯例)。
+// 由 store 层负责 structuredClone 后再调用(与 engine/battle/battle.ts 同惯例)。
 //
 // 远征流程: createSession → 房间图 → 进入房间 atNode → 打开物件 landed → resolving → confirmNode → atNode。
 // 换房间: 站上传送门点亮小地图 → 确认传送(扣粒子) → 落地新房间(见 dungeon/session.ts)。

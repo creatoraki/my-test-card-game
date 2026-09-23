@@ -60,7 +60,7 @@
      ② 像素转场   → PixelSwap 把全景像素块化地换成设施背景(起转时刻由 JS 定时器给)
    ⚠ **没有运镜**: 早期版本还有一层「镜头推向被点建筑」的 townCamPush 关键帧, 已整套删除 ——
      点建筑就是原地换场。故本文件里 .plate / .station-layer 不再带任何 transform 动画。
-   ★ 全部时长/位移都由 TownScreen.tsx 经内联 CSS 变量下发, 真相在 ui/town/facilityScenes.ts,
+   ★ 全部时长/位移都由 TownScreen.tsx 经内联 CSS 变量下发, 真相在 ui/town/TownScreen/facilityScenes.ts,
      本文件只写「怎么动」不写「动多久、动多远」—— 与 ScreenTransition 同款分工。 */
 
 /* 演出期间整块画布不接受点击: 防连点打断时序(JS 侧另有 phase 守卫, 这里是第二道)。 */

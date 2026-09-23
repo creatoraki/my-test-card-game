@@ -1,5 +1,5 @@
 // 净化粒子读数卡的档位配色 —— 全部取样自设计图(净化粒子.png)对应卡片的实际像素。
-// main 与 ENERGY_TIERS.color 一致(见 explore/rules.ts)。
+// main 与 ENERGY_TIERS.color 一致(见 explore/core/exploreRules.ts)。
 
 import { energyTier } from "@/explore/session";
 

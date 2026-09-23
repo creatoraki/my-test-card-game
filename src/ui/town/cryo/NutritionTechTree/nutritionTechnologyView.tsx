@@ -1,5 +1,5 @@
 // 疗养舱科技 → 公共科技板(TechnologyBoard)的适配层, 与商店 shopTechnologyView 同构。
-// 规则仍读 data/nutritionPod.ts; 这里只负责展示坐标、图标与文案。
+// 规则仍读 data/facilities/nutritionPod.ts; 这里只负责展示坐标、图标与文案。
 import { getItemDef, NUTRITION_TECHS, nutritionTechCost, nutritionTechState } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { TechnologyArtwork } from "@/ui/common/techTree/TechnologyArtwork";

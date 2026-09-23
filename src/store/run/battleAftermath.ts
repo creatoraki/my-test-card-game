@@ -82,7 +82,7 @@ export function resolveBattle(get: () => RunState, set: RunSet): void {
   explore.settleBattle(won, survivorsFrom(battle, session), enemyDefIds, challengeBonus, bountyBonus, battle.round);
   settleFallenGear();
   syncPartyStatsFrom(battle);
-  // 战斗消耗(explore/rules.ts energyPerBattleRound + energyPerBattleTier): 打得越久、档位越高, 粒子掉得越多。
+  // 战斗消耗(explore/core/exploreRules.ts energyPerBattleRound + energyPerBattleTier): 打得越久、档位越高, 粒子掉得越多。
   // ★ 必须在 settleBattle 之后 —— 掉落系数/经验倍率读的是战前能量, 提前扣会削掉本场收益。
   // ★ BOSS 战豁免(胜负均不扣): 那一场打完远征就结束了。
   if (!wasBoss) explore.spendBattleEnergy(battle.round, battleTier);

@@ -1,6 +1,6 @@
 // 净化粒子悬浮详情的数据: 当前档位 → 收益加成 + 敌人强化。纯函数, 不碰 DOM。
-// 加成来自 explore/rules.ts 的 ENERGY_TIERS(rewardMultiplier, 同时作用于掉落、经验与居民积分);
-// 敌人强化 = 档位带入战斗的「过载」层数 × engine/rules.ts 的每层数值。
+// 加成来自 explore/core/exploreRules.ts 的 ENERGY_TIERS(rewardMultiplier, 同时作用于掉落、经验与居民积分);
+// 敌人强化 = 档位带入战斗的「过载」层数 × engine/core/battleRules.ts 的每层数值。
 
 import { OVERLOAD_STATUS_ID, RULES } from "@/engine/core/battleRules";
 import { energyTier, toNextTier } from "@/explore/session";

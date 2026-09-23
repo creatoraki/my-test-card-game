@@ -113,7 +113,7 @@ export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionS
   // ⚠ 这里曾经有 formation ↔ charDetail 两条 viewTransition 路线(原生共享元素过场)。
   //   角色详情已改成编队页内部的一种态, 不再是 screen ⇒ 那两条路线连同
   //   app/viewTransition.global.css 一并删除。重组编排现在住在
-  //   ui/character/FormationScreen/formationMorph/。
+  //   ui/character/FormationScreen/parts/formationMorph/。
   //   ⚠ viewTransition 这个字段本身留着: explore>battle 的裂纹涟漪仍然要用(见下面的 curtain)。
 };
 

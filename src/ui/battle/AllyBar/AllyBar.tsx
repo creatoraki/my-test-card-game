@@ -16,7 +16,7 @@ import s from "./AllyBar.module.css";
 // 敌我两种外壳共用的两枚徽章。同域共享样式模块, 双方各自 import(样式铁律 1)。
 import ub from "@/ui/battle/styles/unitBadges.module.css";
 
-// 固定槽位数: 队伍区恒定 3 格, 与 engine/rules.ts 的 progression.maxParty(3)对齐。
+// 固定槽位数: 队伍区恒定 3 格, 与 engine/core/battleRules.ts 的 progression.maxParty(3)对齐。
 // 人数不足时空出来的格子渲染成空槽, 保持构图稳定; 若未来开放第 4 个上阵位,
 // 这里与 maxParty 需一起改。
 const ALLY_SLOTS = 3;

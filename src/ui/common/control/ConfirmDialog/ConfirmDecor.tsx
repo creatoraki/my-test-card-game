@@ -1,4 +1,4 @@
-// 确认弹层的装饰构件 —— 与据点建筑招牌(ui/town/TownScreen/StationLayer)同一套语言:
+// 确认弹层的装饰构件 —— 与据点建筑招牌(ui/town/TownScreen/parts/StationLayer)同一套语言:
 // 侧边卡箍 → 引线锚点 → 编号带 → 分隔线 → 正文 → 分隔线 → 指示灯。
 // ★ 只画装饰, 不参与布局: 整层 position: absolute + pointer-events: none。
 // ⚠ 面板外形(左上/右下切角)不在这里, 在 .content 的两枚伪元素上 —— 见 module.css 顶部说明。

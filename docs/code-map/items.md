@@ -11,8 +11,8 @@
 
 ## 相关真相点
 
-- 背包容量：`engine/rules.ts` 中的 `RULES.burden.backpackSlots`。
-- 物品售价和挂牌价：`data/items/pricing.ts`。
+- 背包容量：`engine/core/battleRules.ts` 中的 `RULES.burden.backpackSlots`。
+- 物品售价和挂牌价：`data/items/rules/pricing.ts`。
 - 能否寄回据点、是否为一次性物品：`inventory.ts` 中的 `canShipHome` 和 `isDisposable`。
 
 ## 测试

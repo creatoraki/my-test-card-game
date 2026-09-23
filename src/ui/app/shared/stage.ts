@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 
 // 画布(.screen.battle)恒为 1920×1080, 由 --stage-scale 等比缩放去适配窗口 —— 故画布内所有 px
 // (站位 dx/dy、立绘尺寸、侧栏宽、字号)都是"设计 px", 与实际分辨率无关, 任何窗口尺寸下构图完全一致。
-// 这是 data/encounters.ts 的手工站位能长期成立的前提。
+// 这是 data/encounters/index.ts 的手工站位能长期成立的前提。
 export const STAGE = {
   width: 1920,
   height: 1080,

@@ -50,7 +50,7 @@ export function createStorageSlice(set: TownSet, get: TownGet): StorageSlice {
       if (next !== get().storage) set({ storage: next });
     },
 
-    // 出击准备: 把一整堆从仓库取出, 交给调用方(store/sortieStore 会把它塞进待出发的背包)。
+    // 出击准备: 把一整堆从仓库取出, 交给调用方(store/sortie/sortieStore 会把它塞进待出发的背包)。
     // ★ 刻意返回那一堆而不是只做删除 —— 调用方需要拿到 uid 与 count 才能原样退回。
     // ⚠ 按 uid 整堆取, **不拆堆**: 仓库里合并显示的是 UI 的事(mergeStacksForDisplay),
     //   状态里存的本来就是逐 uid 的独立堆。
@@ -209,7 +209,7 @@ export function createStorageSlice(set: TownSet, get: TownGet): StorageSlice {
 
     // ---- 模组制造 ----
     // 选定角色 → 按配方扣该角色经验与仓库材料 → 产出模组进仓库。
-    // ⚠ 可行性判定统一走 data/moduleCrafting 的 craftCheck, UI 的置灰读的是同一个函数。
+    // ⚠ 可行性判定统一走 data/crafting/moduleCrafting 的 craftCheck, UI 的置灰读的是同一个函数。
     craftModule: (charId, itemId) => {
       const { storage, characters } = get();
       const cs = characters[charId];

@@ -78,29 +78,48 @@ my-test-card-game/
 │  ├─ ui-town.md           # 据点设施与出击准备
 │  ├─ ui-character.md      # 编队页与角色详情
 │  └─ ui-common.md         # 公共组件
+├─ docs/code-notes/        # 从源码目录迁出的模块备注（攻击特效、科技树、buff 素材清单）
 ├─ docs/代码健康度审查.md  # 代码健康度审查结果与整改路线
-├─ scripts/                # 开发辅助脚本
+├─ docs/项目结构模块化审查.md # 目录结构审查结果与整改记录
+├─ scripts/                # 开发辅助脚本（含 check-structure.mjs 目录规范检查）
 └─ src/
-   ├─ engine/              # 战斗引擎
-   ├─ explore/             # 探索引擎
+   ├─ engine/              # 战斗引擎：battle/ effects/ cards/ deck/ enemy/ relics/ combat/ core/ damage/ statuses/ challenges/ types/
+   ├─ explore/             # 探索引擎：session/ dungeon/ corridor/ curio/ relics/ resources/ core/
    ├─ items/               # 物品逻辑
-   ├─ data/                # 内容数据
-   ├─ store/               # 状态与持久化
+   ├─ data/                # 内容数据：cards/ enemies/ encounters/ maps/ curios/ items/ shop/ lines/ roster/ facilities/ crafting/ registry/ …
+   ├─ store/               # 状态与持久化：town/ townSlices/ explore/ battle/ sortie/ run/
+   ├─ dev/                 # 开发用演示页（只在开发环境懒加载）
    ├─ ui/                  # React 视图层，按功能域分目录（详见 docs/code-map/ 下的 ui-*.md）
-   │  ├─ app/              # 过场编排：ScreenTransition、战斗裂纹幕布、1920×1080 设计画布
+   │  ├─ app/              # 过场编排：ScreenTransition、战斗裂纹幕布、1920×1080 设计画布（shared/stage.ts）
    │  ├─ audio/            # BGM 播放器与程序化音效合成
-   │  ├─ common/           # 跨域复用组件：立绘、血条、状态图标、物品格/详情/分类 tab
+   │  ├─ common/           # 跨域复用组件，按族群分组：bond/ tooltip/ frame/ icon/ bar/ card/ control/ unit/ widget/ item/ techTree/ shared/
    │  ├─ elevator/         # 出击后的电梯下降过场
-   │  ├─ menu/ town/ character/ explore/ battle/ result/  # 各功能域的页面与私有子组件
+   │  ├─ menu/ town/ character/ explore/ battle/ result/ sortie/  # 各功能域的页面与私有子组件
+   │  │  ├─ battle/        # 另含 victory/ rails/ choreo/（演出编排）state/（界面状态）
    │  │  ├─ town/assembly/  # 模块装配舱
    │  │  ├─ town/training/  # 训练室与小队徽章分配
    │  │  └─ town/museum/    # 博物馆与物品、卡牌、怪物图鉴
-   │  ├─ art/              # 素材查表（id → 图片 URL + 预热）
-   │  └─ hooks/            # 1920×1080 设计画布与通用 hook
+   │  ├─ art/              # 素材查表（id → 图片 URL + 预热），按场景分目录
+   │  └─ hooks/            # 通用 hook
    └─ styles/              # 全局层：tokens.css（设计令牌）+ base.css（reset / 按钮皮肤）
 ```
 
 详细说明入口：[`docs/code-map/README.md`](docs/code-map/README.md)。
+
+## 目录规范
+
+新增或移动文件时遵守以下规则，提交前执行 `pnpm check:structure` 检查（脚本见 `scripts/check-structure.mjs`）：
+
+1. **容器目录**只放子目录，外加可选的 `index.ts`（聚合出口）和 `types.ts`（共享类型）。
+2. **模块目录**只放实现文件，外加可选的 `parts/`（子组件或子模块）、`styles/`（共享样式）、`__tests__/`（测试）三种子目录。
+3. 一个目录平铺的文件不超过 12 组（`X.tsx` 与 `X.module.css` 算一组），超过就按子职责拆进 `parts/` 或子目录。
+4. `x.ts` 与 `x/` 不能同时存在，目录入口统一用 `x/index.ts`。
+5. 容器目录里的零散辅助文件：只有一个使用方的并入该使用方；有多个使用方的放进该容器的 `shared/`。
+6. 测试文件统一放在所在层的 `__tests__/` 目录。
+7. 导入：非 UI 层（engine / data / store / explore / items）跨层导入一律用 `@/`，层内导入用相对路径；UI 层跨功能区导入必须用 `@/`。
+8. 命名：组件目录用大驼峰；逻辑目录用小驼峰；data 下的数据表目录用复数（cards / enemies / maps），UI 下的族群目录用单数（card / item / bond）。
+9. 同一业务概念在每一层只有一个目录，并且各层对称命名，例如 `engine/relics/` 与 `explore/relics/`。
+10. src 只放代码和资源，文档放 `docs/` 或 `design/`。
 
 pnpm exec vite --host 127.0.0.1 --port 2333
 临时访问命令 cloudflared tunnel --url http://127.0.0.1:2333

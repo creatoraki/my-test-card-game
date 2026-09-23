@@ -83,7 +83,7 @@ export type Combatant = Ally | Enemy;
 
 // ---------------------------------------------------------------------------
 // 遭遇战改造器 —— 建局时对 EncounterDef 的一次性加成。
-// 探索层的净化粒子档位通过它注入战斗(见 explore/session/energy.ts encounterModifier);
+// 探索层的净化粒子档位通过它注入战斗(见 explore/session/core/energy.ts encounterModifier);
 // 引擎本身不认识危险度, 只认识这四条改造 —— 日后任何"动态难度"来源都可复用这个结构。
 // ---------------------------------------------------------------------------
 export interface EncounterModifier {

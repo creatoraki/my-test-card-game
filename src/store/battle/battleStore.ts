@@ -30,7 +30,7 @@ export interface PlayPlan {
   cardMissedTargets: string[];
   cardFullDraw: number;
   cardKeywordTriggers: Record<string, number>;
-  // 引擎回传的真实命中列表(含逐段明细), 见 engine/animHits.ts。
+  // 引擎回传的真实命中列表(含逐段明细), 见 engine/core/animHits.ts。
   // ⚠ 不要再从卡牌定义反推目标 —— lowestHpAlly / randomAlly / 培育追加效果都推不出来。
   cardHits: AnimHit[];
   steps: FxStep[];

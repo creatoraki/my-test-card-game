@@ -1,6 +1,6 @@
 // 小队徽章与天赋树的交互层 —— 训练室(设施场景)与编队页的天赋树弹窗共用这一份。
 //
-// ★ 规则判定一律来自 @/data/squadTalents 的纯函数(canActivate / canRefund / pathTo /
+// ★ 规则判定一律来自 @/data/roster/squadTalents 的纯函数(canActivate / canRefund / pathTo /
 //   spentPoints), 本文件**不重写任何规则**, 只负责: 当前徽章、剩余点、只读判定,
 //   以及点亮/退还/快捷点亮/切换徽章这四个动作的反馈状态(抖动与脉冲)。
 // ★ 抽出来的动机: 编队页要能直接开分配树, 而这套交互不该在两处各写一遍。

@@ -1,5 +1,5 @@
 // 剑士 · 被动卡。无费用、不可打出、持在手中自动生效，回合结束自动进入弃牌区
-// （不视为弃牌动作，也不参与瀑布等费用计算，见 engine/passive.ts）。
+// （不视为弃牌动作，也不参与瀑布等费用计算，见 engine/combat/passive.ts）。
 import type { CardDef } from "@/engine/types";
 
 export const SWORDSMAN_PASSIVE_CARDS: CardDef[] = [
@@ -52,7 +52,7 @@ export const SWORDSMAN_PASSIVE_CARDS: CardDef[] = [
     effects: [],
     passive: {
       on: "cardDrawn",
-      // eventCard = 刚抽到的那张牌（见 engine/effects.ts MARK_CARDS）。
+      // eventCard = 刚抽到的那张牌（见 engine/effects/effects.ts MARK_CARDS）。
       effects: [{ type: "MARK_CARDS", mark: "mindsEye", markPick: "eventCard" }],
     },
     onDiscard: {
