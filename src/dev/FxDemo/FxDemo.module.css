@@ -1,0 +1,209 @@
+.root {
+  width: 100%;
+  min-height: calc(100vh - 69px);
+  padding: 24px 32px;
+  background: radial-gradient(ellipse at 50% 45%, #17232d 0%, #080d15 68%);
+  color: #e7eef5;
+  font-size: 18px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+  align-items: center;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.category {
+  margin: 0 0 8px;
+  color: var(--art-color);
+  font-size: 18px;
+  letter-spacing: 0.14em;
+}
+
+.title {
+  margin: 0 0 10px;
+  font-size: 32px;
+  font-weight: 500;
+}
+
+.description {
+  max-width: 980px;
+  margin: 0;
+  color: #a4b5c8;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.readout {
+  display: grid;
+  gap: 10px;
+  white-space: nowrap;
+  color: #a4b5c8;
+  font-size: 18px;
+}
+
+.beats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  max-width: 1440px;
+  margin: 16px auto 0;
+  padding: 0;
+  list-style: none;
+}
+
+.beats li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border: 1px solid #344b60;
+  border-radius: 4px;
+  background: #101a24;
+  color: #c8d5e1;
+  font-size: 18px;
+}
+
+.beatTime {
+  color: var(--art-color);
+}
+
+.viewport {
+  position: relative;
+  width: 100%;
+  height: clamp(420px, 60vh, 900px);
+  margin: 16px auto;
+  overflow: hidden;
+  border: 1px solid #8cabca26;
+  background: radial-gradient(ellipse at center, #182a3522, #060a104d);
+}
+
+.stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1200px;
+  height: 900px;
+  transform-origin: center;
+}
+
+.playback {
+  position: absolute;
+  inset: 0;
+}
+
+.floor {
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  width: 800px;
+  height: 190px;
+  transform: translate(-50%, -50%);
+  border: 1px solid #7692ac25;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #29405044, transparent 70%);
+}
+
+.reticle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 64px;
+  height: 64px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border: 1px solid #bbd3e626;
+}
+
+.target {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 270px;
+  height: 300px;
+  object-fit: contain;
+  transform: translate(-50%, -50%);
+  opacity: 0.8;
+  animation: hitReaction var(--reaction-duration) var(--impact-delay) both;
+}
+
+.hit {
+  position: absolute;
+  left: 50%;
+  top: 31%;
+  color: var(--art-color);
+  font-size: 26px;
+  letter-spacing: 0.15em;
+  opacity: 0;
+  animation: hitLabel calc(var(--reaction-duration) * 2) var(--impact-delay) both;
+}
+
+.stageLabel {
+  position: absolute;
+  bottom: 16px;
+  left: 20px;
+  color: #8398ac;
+  font-size: 18px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+
+.controls button,
+.speed select {
+  min-height: 46px;
+  padding: 10px 20px;
+  border: 1px solid #344b60;
+  border-radius: 4px;
+  background: #14202b;
+  color: #c8d5e1;
+  font-size: 18px;
+  clip-path: none;
+}
+
+.controls button:hover,
+.controls button[aria-pressed="true"],
+.controls .replay {
+  border-color: var(--art-color);
+  color: var(--art-color);
+}
+
+.controls button:focus-visible,
+.speed select:focus-visible {
+  outline: 2px solid var(--art-color);
+  outline-offset: 3px;
+}
+
+.speed {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+}
+
+@keyframes hitReaction {
+  0%, 100% { transform: translate(-50%, -50%); filter: brightness(1); }
+  15% { transform: translate(calc(-50% + 12px), -50%) rotate(3deg); filter: brightness(2.5); }
+  35% { transform: translate(calc(-50% - 6px), -50%) rotate(-2deg); filter: brightness(1.5); }
+  65% { transform: translate(calc(-50% + 3px), -50%); }
+}
+
+@keyframes hitLabel {
+  0% { opacity: 0; transform: translate(-50%, 12px); }
+  15%, 55% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -35px); }
+}
+
+@media (max-width: 760px) {
+  .root { padding: 20px 12px; }
+  .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .readout { display: flex; gap: 20px; }
+  .controls { justify-content: flex-start; }
+}

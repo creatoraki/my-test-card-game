@@ -1,0 +1,386 @@
+/* 贯日矢(sun-pierce): 零尺寸外层钉在目标中心并整体旋转, 子元素只沿局部 X 轴布置。
+   所有时间由 SunPierceArrowFx.tsx 下发 delay/duration; 多段动画一律 forwards + 基础 opacity 0,
+   避免后一段的 backwards 填充在等待期抢走前一段的画面。 */
+.wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: rotate(var(--angle, -24deg));
+  pointer-events: none;
+  overflow: visible;
+}
+
+.wrap > *,
+.lock > *,
+.arrow > * {
+  position: absolute;
+  pointer-events: none;
+}
+
+.wrap > * {
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+/* ── 瞄准 ── */
+.aim {
+  left: var(--origin);
+  top: -1px;
+  width: calc(var(--exit) - var(--origin));
+  height: 2px;
+  transform-origin: left center;
+  background: linear-gradient(90deg, transparent, #ffd98a4d 12%, #ffe7b8b3 40%, #fff 44%, #ffe7b880 52%, transparent 80%);
+  box-shadow: 0 0 6px 1px #ffc86a66;
+  animation-name: aimDraw, aimFade;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1), ease-out;
+}
+
+.lock {
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  animation-name: lockIn, lockOut;
+  animation-timing-function: cubic-bezier(0.16, 0.8, 0.24, 1), cubic-bezier(0.4, 0, 0.8, 0.4);
+}
+.lock-ring {
+  left: 0;
+  top: 0;
+  width: 170px;
+  height: 170px;
+  transform: translate(-50%, -50%);
+  border: 1.5px dashed #ffe2a3b3;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 1px #ffc2574d, inset 0 0 14px #ffc25733;
+}
+.lock-tick {
+  left: 0;
+  top: -1.5px;
+  width: 24px;
+  height: 3px;
+  transform-origin: 0 50%;
+  transform: rotate(var(--tick)) translateX(76px);
+  border-radius: 2px;
+  background: #fff3d6;
+  box-shadow: 0 0 6px 1px #ffcf73cc;
+}
+
+/* ── 蓄力 ── */
+.mote {
+  left: var(--origin);
+  top: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #ffe0a0 45%, #ffb3474d 75%, transparent 85%);
+  box-shadow: 0 0 6px 2px #ffd48ccc;
+  animation-name: moteConverge;
+  animation-timing-function: cubic-bezier(0.5, 0, 0.35, 1);
+}
+
+.charge {
+  left: var(--origin);
+  top: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #fff0c8 30%, #ffc25799 60%, transparent 76%);
+  box-shadow: 0 0 16px 6px #ffd48cd9, 0 0 44px 16px #ffa8384d;
+  animation-name: chargeGrow, chargeRelease;
+  animation-timing-function: ease-in-out, cubic-bezier(0.15, 0.7, 0.3, 1);
+}
+
+.muzzle {
+  left: var(--origin);
+  top: 0;
+  width: 260px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #fff 0%, #ffe3a8cc 30%, #ffb34733 65%, transparent 75%);
+  animation-name: muzzleFlash;
+  animation-timing-function: cubic-bezier(0.1, 0.7, 0.3, 1);
+}
+
+/* ── 飞行 ── */
+.trail-in,
+.trail-out {
+  top: -4px;
+  height: 8px;
+  transform-origin: left center;
+  border-radius: 4px;
+  animation-name: trailGrow, trailFade;
+  animation-timing-function: linear, ease-out;
+}
+.trail-in {
+  left: var(--origin);
+  width: calc(-1 * var(--origin));
+  background: linear-gradient(90deg, transparent, #ffb3474d 25%, #ffe0a0cc 75%, #fff);
+  box-shadow: 0 0 12px 3px #ffc25759;
+}
+.trail-out {
+  left: 0;
+  width: var(--exit);
+  top: -3px;
+  height: 6px;
+  background: linear-gradient(90deg, #fff, #ffe0a0d9 30%, #ffb34740 75%, transparent);
+  box-shadow: 0 0 14px 4px #ffc25766;
+}
+
+.sonic {
+  top: 0;
+  width: 26px;
+  height: 86px;
+  border: 2px solid #fff0c8d9;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 2px #ffcf7380, inset 0 0 8px #ffcf7366;
+  animation-name: sonicPop;
+  animation-timing-function: cubic-bezier(0.1, 0.6, 0.25, 1);
+}
+
+.arrow {
+  left: 0;
+  top: 0;
+  width: 220px;
+  height: 30px;
+  z-index: 5;
+  animation-name: arrowFly;
+  animation-timing-function: linear;
+}
+.arrow-glow {
+  inset: -12px -24px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 78% 50%, #ffe6a8d9 0%, #ffb34766 40%, transparent 70%);
+  filter: blur(6px);
+}
+.arrow-body {
+  left: 0;
+  right: 0;
+  top: 7px;
+  bottom: 7px;
+  clip-path: polygon(0% 30%, 7% 0%, 15% 40%, 84% 40%, 79% 0%, 100% 50%, 79% 100%, 84% 60%, 15% 60%, 7% 100%, 0% 70%);
+  background: linear-gradient(90deg, #ffb34733, #ffc257 18%, #ffe9b8 60%, #fff 90%);
+}
+.arrow-core {
+  left: 28%;
+  right: 3%;
+  top: 14px;
+  height: 2px;
+  border-radius: 1px;
+  background: #fff;
+  box-shadow: 0 0 6px 2px #fff6dd;
+}
+
+/* ── 贯穿爆点 ── */
+.cone {
+  left: 0;
+  top: -100px;
+  width: 400px;
+  height: 200px;
+  transform-origin: left center;
+  clip-path: polygon(0% 50%, 100% 0%, 100% 100%);
+  background: linear-gradient(90deg, #fffbe8, #ffd98ad9 22%, #ffb34740 65%, transparent);
+  filter: blur(2px);
+  z-index: 4;
+  animation-name: coneBurst;
+  animation-timing-function: cubic-bezier(0.1, 0.7, 0.25, 1);
+}
+
+.flash {
+  left: 0;
+  top: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #fff4d6 35%, #ffc25799 62%, transparent 76%);
+  box-shadow: 0 0 30px 10px #ffe3a8cc, 0 0 80px 30px #ffa83859;
+  z-index: 7;
+  animation-name: flashBurst;
+  animation-timing-function: cubic-bezier(0.15, 0.75, 0.3, 1);
+}
+
+.flare-h,
+.flare-v {
+  left: 0;
+  top: 0;
+  z-index: 8;
+  border-radius: 2px;
+  animation-timing-function: cubic-bezier(0.1, 0.7, 0.25, 1);
+}
+.flare-h {
+  width: 680px;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #ffe0a0b3 25%, #fff 50%, #ffe0a0b3 75%, transparent);
+  box-shadow: 0 0 10px 2px #ffd48cb3;
+  animation-name: flareH;
+}
+.flare-v {
+  width: 4px;
+  height: 280px;
+  background: linear-gradient(180deg, transparent, #ffe0a0b3 25%, #fff 50%, #ffe0a0b3 75%, transparent);
+  box-shadow: 0 0 10px 2px #ffd48cb3;
+  animation-name: flareV;
+}
+
+.hole,
+.hole-outer {
+  left: 0;
+  top: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  z-index: 6;
+  animation-timing-function: cubic-bezier(0.1, 0.6, 0.2, 1);
+}
+.hole {
+  border: 3px solid #fff4d6;
+  box-shadow: 0 0 12px 3px #ffd48ccc, inset 0 0 10px #ffd48c99;
+  animation-name: holeRing;
+}
+.hole-outer {
+  border: 1.5px solid #ffe0a0b3;
+  box-shadow: 0 0 16px 4px #ffb34759;
+  animation-name: holeRingOuter;
+}
+
+.beam {
+  left: 0;
+  top: -1.25px;
+  height: 2.5px;
+  transform-origin: left center;
+  border-radius: 1.5px;
+  background: linear-gradient(to right, #fff 0%, #ffe4ad 35%, #ffb34780 70%, transparent);
+  box-shadow: 0 0 4px 1px #ffe6b3e6;
+  z-index: 8;
+  animation-name: beamBurst;
+  animation-timing-function: cubic-bezier(0.12, 0.6, 0.25, 1);
+}
+
+.spark,
+.ember {
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  z-index: 9;
+}
+.spark {
+  background: radial-gradient(circle, #fff 0%, #ffe0a0 50%, #ffb34766 80%, transparent);
+  box-shadow: 0 0 5px 1.5px #ffd48cd9;
+  animation-name: sparkFly;
+  animation-timing-function: cubic-bezier(0.12, 0.65, 0.3, 1);
+}
+.ember {
+  background: radial-gradient(circle, #fff6dd 0%, #ffc257 55%, transparent 85%);
+  box-shadow: 0 0 6px 2px #ffb34799;
+  animation-name: emberDrift;
+  animation-timing-function: cubic-bezier(0.2, 0.5, 0.4, 1);
+}
+
+@keyframes aimDraw {
+  0% { transform: scaleX(0); opacity: 0; }
+  15% { opacity: 0.85; }
+  100% { transform: scaleX(1); opacity: 0.6; }
+}
+@keyframes aimFade {
+  0% { transform: scaleX(1); opacity: 0.6; }
+  30% { opacity: 1; filter: brightness(1.8); }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+@keyframes lockIn {
+  0% { transform: scale(2.3) rotate(-120deg); opacity: 0; }
+  60% { opacity: 0.95; }
+  85% { transform: scale(0.94) rotate(6deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 0.95; }
+}
+@keyframes lockOut {
+  0% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(2); }
+  100% { transform: scale(0.45) rotate(45deg); opacity: 0; filter: brightness(3); }
+}
+@keyframes moteConverge {
+  0% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)); opacity: 0; }
+  18% { opacity: 1; }
+  85% { opacity: 1; filter: brightness(1.6); }
+  100% { transform: translate(-50%, -50%) translate(0, 0); opacity: 0; }
+}
+@keyframes chargeGrow {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  20% { opacity: 0.9; }
+  55% { transform: translate(-50%, -50%) scale(1.7); }
+  70% { transform: translate(-50%, -50%) scale(1.5); filter: brightness(1.2); }
+  85% { transform: translate(-50%, -50%) scale(2.2); filter: brightness(1.6); }
+  100% { transform: translate(-50%, -50%) scale(2.5); opacity: 1; filter: brightness(2); }
+}
+@keyframes chargeRelease {
+  0% { transform: translate(-50%, -50%) scale(2.5); opacity: 1; filter: brightness(2.4); }
+  100% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; filter: brightness(1); }
+}
+@keyframes muzzleFlash {
+  0% { transform: translate(-50%, -50%) scaleX(0.1) scaleY(1.4); opacity: 1; }
+  30% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) scaleX(1) scaleY(0.4); opacity: 0; }
+}
+@keyframes trailGrow {
+  0% { transform: scaleX(0); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+@keyframes trailFade {
+  0% { transform: scaleX(1) scaleY(1); opacity: 1; }
+  25% { filter: brightness(1.6); }
+  100% { transform: scaleX(1) scaleY(0.15); opacity: 0; }
+}
+@keyframes sonicPop {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+  35% { opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(calc(var(--ring-scale) * 1.25), var(--ring-scale)); opacity: 0; }
+}
+@keyframes arrowFly {
+  0% { transform: translate(-100%, -50%) translateX(var(--origin)); opacity: 0; }
+  3% { opacity: 1; }
+  52% { transform: translate(-100%, -50%) translateX(0); opacity: 1; filter: brightness(1.4); }
+  80% { opacity: 0.9; }
+  100% { transform: translate(-100%, -50%) translateX(var(--exit)); opacity: 0; }
+}
+@keyframes coneBurst {
+  0% { transform: scaleX(0.1) scaleY(0.25); opacity: 0; }
+  18% { opacity: 0.95; }
+  100% { transform: scaleX(1) scaleY(1); opacity: 0; }
+}
+@keyframes flashBurst {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+  28% { transform: translate(-50%, -50%) scale(3.6); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+}
+@keyframes flareH {
+  0% { transform: translate(-50%, -50%) scaleX(0); opacity: 1; }
+  22% { transform: translate(-50%, -50%) scaleX(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scaleX(1.1) scaleY(0.3); opacity: 0; }
+}
+@keyframes flareV {
+  0% { transform: translate(-50%, -50%) scaleY(0); opacity: 1; }
+  22% { transform: translate(-50%, -50%) scaleY(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scaleY(1.1) scaleX(0.3); opacity: 0; }
+}
+@keyframes holeRing {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.7, 3.4); opacity: 0; }
+}
+@keyframes holeRingOuter {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(3.2, 6); opacity: 0; }
+}
+@keyframes beamBurst {
+  0% { transform: rotate(var(--beam-angle)) scaleX(0); opacity: 1; }
+  30% { opacity: 1; filter: brightness(1.3); }
+  100% { transform: rotate(var(--beam-angle)) scaleX(1); opacity: 0; filter: brightness(2); }
+}
+@keyframes sparkFly {
+  0% { transform: translate(-50%, -50%) translate(0, 0) scale(1); opacity: 1; }
+  25% { opacity: 1; filter: brightness(1.4); }
+  100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+}
+@keyframes emberDrift {
+  0% { transform: translate(-50%, -50%) translate(0, 0); opacity: 0; }
+  15% { opacity: 0.9; }
+  45% { opacity: 0.5; }
+  60% { opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(0.3); opacity: 0; }
+}

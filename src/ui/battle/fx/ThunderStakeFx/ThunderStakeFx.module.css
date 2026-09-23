@@ -1,0 +1,390 @@
+/* 雷殛钉矢(thunder-stake): 零尺寸外层钉在目标中心并整体旋转, 子元素沿局部 X 轴布置。
+   电弧/落雷是内联 SVG 折线(pathLength=1 用 dashoffset 画出)。
+   多段动画一律 forwards + 基础 opacity 0, 时间全由 ThunderStakeFx.tsx 下发。 */
+.wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: rotate(var(--angle, -36deg));
+  pointer-events: none;
+  overflow: visible;
+}
+
+.wrap > *,
+.rune > *,
+.arrow > * {
+  position: absolute;
+  pointer-events: none;
+}
+
+.wrap > * {
+  left: 0;
+  top: 0;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+/* ── 蓄力与飞行 ── */
+.charge {
+  left: var(--origin);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #e8dcff 30%, #9f7bff99 60%, transparent 76%);
+  box-shadow: 0 0 16px 6px #c3a6ffd9, 0 0 44px 16px #7c4dff4d;
+  animation-name: chargeGrow, chargeRelease;
+  animation-timing-function: linear, cubic-bezier(0.15, 0.7, 0.3, 1);
+}
+
+.trail {
+  left: var(--origin);
+  top: -3px;
+  width: calc(var(--depth) - var(--origin));
+  height: 6px;
+  transform-origin: left center;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, #7c4dff4d 25%, #c3a6ffcc 75%, #fff);
+  box-shadow: 0 0 12px 3px #9f7bff66;
+  animation-name: trailGrow, trailFade;
+  animation-timing-function: cubic-bezier(0.5, 0, 1, 1), ease-out;
+}
+
+.arrow {
+  width: 200px;
+  height: 28px;
+  transform-origin: 100% 50%;
+  z-index: 6;
+  animation-name: stakeFly, stakeWobble, stakeCharge, stakeShatter;
+  animation-timing-function: cubic-bezier(0.5, 0, 1, 1), ease-out, ease-in, ease-out;
+}
+.arrow-glow {
+  inset: -12px -20px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 80% 50%, #d9c8ffd9 0%, #7c4dff66 40%, transparent 70%);
+  filter: blur(6px);
+}
+.arrow-body {
+  inset: 6px 0;
+  clip-path: polygon(0% 30%, 8% 0%, 16% 40%, 82% 40%, 77% 0%, 100% 50%, 77% 100%, 82% 60%, 16% 60%, 8% 100%, 0% 70%);
+  background: linear-gradient(90deg, #7c4dff40, #9f7bff 20%, #d9c8ff 62%, #fff 92%);
+}
+.arrow-core {
+  left: 26%;
+  right: 3%;
+  top: 13px;
+  height: 2px;
+  border-radius: 1px;
+  background: #fff;
+  box-shadow: 0 0 6px 2px #efe6ff;
+  animation-name: coreFlicker;
+  animation-iteration-count: infinite;
+  animation-timing-function: steps(1);
+}
+
+.stick-flash {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #e8dcff 35%, #9f7bff80 62%, transparent 76%);
+  z-index: 7;
+  animation-name: flashBurst;
+  animation-timing-function: cubic-bezier(0.15, 0.75, 0.3, 1);
+  --flash-scale: 2.2;
+}
+.stick-ring {
+  width: 70px;
+  height: 70px;
+  border: 2px solid #e8dcffd9;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 2px #9f7bffb3;
+  animation-name: ringOut;
+  animation-timing-function: cubic-bezier(0.1, 0.6, 0.3, 1);
+  --ring-scale: 2.6;
+}
+
+/* ── 蓄压 ── */
+.aura {
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #e8dcff66 0%, #9f7bff40 35%, #7c4dff1a 60%, transparent 72%);
+  animation-name: auraGrow, auraOut;
+  animation-timing-function: ease-in, ease-out;
+}
+
+.rune {
+  width: 0;
+  height: 0;
+  animation-name: runeIn, runeCollapse;
+  animation-timing-function: cubic-bezier(0.16, 0.8, 0.24, 1), cubic-bezier(0.7, 0, 0.9, 0.4);
+}
+.rune-ring,
+.rune-glyphs,
+.rune-inner {
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.rune-ring {
+  width: 240px;
+  height: 240px;
+  border: 4px double #d9c8ffcc;
+  box-shadow: 0 0 16px 3px #7c4dff80, inset 0 0 18px 2px #7c4dff4d;
+}
+.rune-glyphs {
+  width: 300px;
+  height: 300px;
+  background: repeating-conic-gradient(#e8dcff 0deg 3deg, transparent 3deg 9deg, #b89aff 9deg 10deg, transparent 10deg 30deg);
+  -webkit-mask: radial-gradient(circle, transparent 0 85%, #000 86% 95%, transparent 96%);
+  mask: radial-gradient(circle, transparent 0 85%, #000 86% 95%, transparent 96%);
+  filter: drop-shadow(0 0 4px #9f7bff);
+  animation-name: glyphSpin;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+.rune-inner {
+  width: 150px;
+  height: 150px;
+  border: 1.5px dashed #e8dcffb3;
+  animation-name: innerSpin;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.pulse {
+  width: 300px;
+  height: 300px;
+  border: 2.5px solid #e8dcffcc;
+  border-radius: 50%;
+  box-shadow: 0 0 14px 3px #9f7bffb3, inset 0 0 14px 3px #9f7bff66;
+  animation-name: pulseIn;
+  animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.5);
+}
+
+/* ── 电弧 / 落雷(SVG) ── */
+.arcs {
+  transform: translate(-50%, -50%);
+  overflow: visible;
+  opacity: 1;
+  z-index: 8;
+  filter: drop-shadow(0 0 3px #c3a6ff) drop-shadow(0 0 10px #7c4dffcc);
+}
+.crackle,
+.bolt {
+  fill: none;
+  stroke: #f5efff;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+.crackle {
+  animation-name: crackleFlick;
+  animation-timing-function: steps(1);
+}
+.bolt {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation-name: boltStrike;
+  animation-timing-function: linear;
+}
+
+/* ── 引爆 ── */
+.blast {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #f0e8ff 35%, #9f7bff99 62%, transparent 76%);
+  box-shadow: 0 0 40px 14px #d9c8ffcc, 0 0 110px 40px #7c4dff59;
+  z-index: 9;
+  animation-name: flashBurst;
+  animation-timing-function: cubic-bezier(0.15, 0.75, 0.3, 1);
+  --flash-scale: 4.4;
+}
+.shock,
+.shock-wide {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  z-index: 7;
+  animation-name: ringOut;
+  animation-timing-function: cubic-bezier(0.1, 0.6, 0.2, 1);
+}
+.shock {
+  border: 4px solid #f5efff;
+  box-shadow: 0 0 22px 6px #9f7bffcc, inset 0 0 16px 4px #9f7bff80;
+  --ring-scale: 5.5;
+}
+.shock-wide {
+  border: 2px solid #c3a6ffb3;
+  box-shadow: 0 0 18px 4px #7c4dff66;
+  --ring-scale: 8;
+}
+.haze {
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #c3a6ff4d 0%, #7c4dff26 40%, transparent 70%);
+  animation-name: hazeFade;
+  animation-timing-function: ease-out;
+}
+
+.beam {
+  top: -1.25px;
+  height: 2.5px;
+  transform-origin: left center;
+  border-radius: 1.5px;
+  background: linear-gradient(to right, #fff 0%, #e0d2ff 35%, #9f7bff80 70%, transparent);
+  box-shadow: 0 0 4px 1px #e0d2ffe6;
+  z-index: 8;
+  animation-name: beamBurst;
+  animation-timing-function: cubic-bezier(0.12, 0.6, 0.25, 1);
+}
+
+.shard {
+  height: 8px;
+  clip-path: polygon(0% 50%, 30% 0%, 100% 40%, 70% 100%);
+  background: linear-gradient(90deg, #fff, #c3a6ff);
+  z-index: 9;
+  animation-name: shardFly;
+  animation-timing-function: cubic-bezier(0.1, 0.6, 0.3, 1);
+}
+
+.spark {
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #e0d2ff 50%, #7c4dff66 80%, transparent);
+  box-shadow: 0 0 5px 1.5px #c3a6ffd9;
+  z-index: 9;
+  animation-name: sparkFly;
+  animation-timing-function: cubic-bezier(0.12, 0.65, 0.3, 1);
+}
+
+@keyframes chargeGrow {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  20% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; }
+  30% { transform: translate(-50%, -50%) scale(0.9); }
+  45% { transform: translate(-50%, -50%) scale(1.8); filter: brightness(1.4); }
+  55% { transform: translate(-50%, -50%) scale(1.4); filter: brightness(1); }
+  75% { transform: translate(-50%, -50%) scale(2.2); filter: brightness(1.8); }
+  85% { transform: translate(-50%, -50%) scale(1.9); }
+  100% { transform: translate(-50%, -50%) scale(2.5); opacity: 1; filter: brightness(2.2); }
+}
+@keyframes chargeRelease {
+  0% { transform: translate(-50%, -50%) scale(2.5); opacity: 1; filter: brightness(2.4); }
+  100% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+}
+@keyframes trailGrow {
+  0% { transform: scaleX(0); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+@keyframes trailFade {
+  0% { transform: scaleX(1) scaleY(1); opacity: 1; }
+  100% { transform: scaleX(1) scaleY(0.1); opacity: 0; }
+}
+@keyframes stakeFly {
+  0% { transform: translate(-100%, -50%) translateX(var(--origin)); opacity: 0; }
+  6% { opacity: 1; }
+  100% { transform: translate(-100%, -50%) translateX(var(--depth)); opacity: 1; }
+}
+@keyframes stakeWobble {
+  0% { transform: translate(-100%, -50%) translateX(var(--depth)) rotate(0deg); }
+  14% { transform: translate(-100%, -50%) translateX(var(--depth)) rotate(-6deg); }
+  34% { transform: translate(-100%, -50%) translateX(var(--depth)) rotate(4.5deg); }
+  54% { transform: translate(-100%, -50%) translateX(var(--depth)) rotate(-2.5deg); }
+  76% { transform: translate(-100%, -50%) translateX(var(--depth)) rotate(1.2deg); }
+  100% { transform: translate(-100%, -50%) translateX(var(--depth)) rotate(0deg); }
+}
+@keyframes stakeCharge {
+  0% { filter: brightness(1); }
+  40% { filter: brightness(1.3); }
+  70% { filter: brightness(1.7) saturate(1.3); }
+  100% { filter: brightness(2.6) saturate(1.6); }
+}
+@keyframes stakeShatter {
+  0% { transform: translate(-100%, -50%) translateX(var(--depth)); opacity: 1; filter: brightness(3); }
+  100% { transform: translate(-100%, -50%) translateX(var(--depth)) scale(1.15, 0.2); opacity: 0; filter: brightness(4); }
+}
+@keyframes coreFlicker {
+  0% { opacity: 1; }
+  30% { opacity: 0.45; }
+  55% { opacity: 1; }
+  80% { opacity: 0.7; }
+}
+@keyframes flashBurst {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+  28% { transform: translate(-50%, -50%) scale(var(--flash-scale)); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+}
+@keyframes ringOut {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(var(--ring-scale)); opacity: 0; }
+}
+@keyframes auraGrow {
+  0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+  30% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
+  60% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(1.25); opacity: 1; }
+}
+@keyframes auraOut {
+  0% { transform: translate(-50%, -50%) scale(1.25); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+}
+@keyframes runeIn {
+  0% { transform: scale(0.2) rotate(-90deg); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes runeCollapse {
+  0% { transform: scale(1); opacity: 1; filter: brightness(1.4); }
+  100% { transform: scale(0.08) rotate(40deg); opacity: 0.9; filter: brightness(3); }
+}
+@keyframes glyphSpin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(300deg); }
+}
+@keyframes innerSpin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(-420deg); }
+}
+@keyframes pulseIn {
+  0% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+  30% { opacity: 0.95; }
+  100% { transform: translate(-50%, -50%) scale(0.12); opacity: 0.2; }
+}
+@keyframes crackleFlick {
+  0% { opacity: 1; }
+  30% { opacity: 0.25; }
+  50% { opacity: 1; }
+  75% { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+@keyframes boltStrike {
+  0% { stroke-dashoffset: 1; opacity: 1; }
+  20% { stroke-dashoffset: 0; opacity: 1; }
+  36% { opacity: 0.35; }
+  48% { opacity: 1; }
+  66% { opacity: 0.55; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes hazeFade {
+  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
+  20% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+}
+@keyframes beamBurst {
+  0% { transform: rotate(var(--beam-angle)) scaleX(0); opacity: 1; }
+  30% { opacity: 1; filter: brightness(1.3); }
+  100% { transform: rotate(var(--beam-angle)) scaleX(1); opacity: 0; filter: brightness(2); }
+}
+@keyframes shardFly {
+  0% { transform: translate(-50%, -50%) translate(0, 0) rotate(0deg); opacity: 1; filter: brightness(2); }
+  100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.4); opacity: 0; filter: brightness(1); }
+}
+@keyframes sparkFly {
+  0% { transform: translate(-50%, -50%) translate(0, 0) scale(1); opacity: 1; }
+  25% { opacity: 1; filter: brightness(1.4); }
+  100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+}
