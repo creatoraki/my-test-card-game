@@ -29,7 +29,8 @@ export const EcoArkArchitecture = memo(function EcoArkArchitecture({
       draggable={false}
       style={{
         left: placement.x,
-        top: CORRIDOR.floorY - placement.height + placement.offsetY,
+        top: CORRIDOR.floorY - placement.height + placement.offsetY
+          + placement.height * placement.art.groundTrim,
         width: placement.height * placement.art.aspectRatio,
         height: placement.height,
         opacity: placement.opacity,

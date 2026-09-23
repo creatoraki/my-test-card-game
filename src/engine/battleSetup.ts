@@ -35,6 +35,7 @@ export interface BattleSetup {
   allies: AllyInit[];
   deck: Card[];
   burden?: number;
+  fallenAllies?: number;
   squadMods?: SquadResourceMods;
   squadBuffRewardPools?: SquadBuffRewardPools;
   relics?: string[];
@@ -141,6 +142,7 @@ export function createBattleState(
     discardResolving: [],
     resources: {},
     burden: Math.max(0, setup.burden ?? 0),
+    fallenAllies: Math.max(0, setup.fallenAllies ?? 0),
     squadMods: {
       openingHand: 0,
       drawCount: 0,

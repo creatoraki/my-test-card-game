@@ -54,9 +54,7 @@
 | id | 名称 | 类型 | 回退 emoji | 美术 | 素材文件 |
 | --- | --- | --- | --- | --- | --- |
 | weak | 虚弱 | 减益 | 💧 | ❌ | — |
-| vulnerable | 易伤 | 减益 | 🎯 | ❌ | — |
-| hunterMark | 猎人标记 | 减益 | 🔻 | ❌ | — |
-| armorBreak | 破甲 | 减益 | 🩹 | ❌ | — |
+| vulnerable | 易伤 | 减益 | 🎯 | ❌ | — || armorBreak | 破甲 | 减益 | 🩹 | ❌ | — |
 | attackDown | 萎靡 | 减益 | 📉 | ❌ | — |
 | pierce | 穿孔 | 减益 | 🕳️ | ✅ | debuffs/穿孔.png |
 | jam | 电磁干扰 | 减益 | 📶 | ❌ | — |

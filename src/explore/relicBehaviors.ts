@@ -62,4 +62,29 @@ export const EXPLORE_RELIC_BEHAVIORS: Record<string, ExploreRelicBehaviorMap> = 
       state.log.push("粒子回收夹：返还 2 点净化粒子");
     },
   },
+  // 污染值在城镇侧: 这里只登记负数请求, 由 store 的 applyPendingPollution 落地。
+  "relic-dust-mask": {
+    picnic: ({ state }) => {
+      for (const member of state.party) {
+        if (member.alive) state.pendingPollution.push({ charId: member.charId, amount: -5 });
+      }
+      state.log.push("防尘口罩：全队污染 −5");
+    },
+  },
+  "relic-thermos": {
+    picnic: ({ state }) => {
+      for (const member of state.party) {
+        if (member.alive) member.hp = Math.min(member.hpLimit, member.hp + 8);
+      }
+      state.log.push("保温杯：全队回复 8 点生命");
+    },
+  },
+  "relic-purify-filter": {
+    battleVictory: ({ state, event }) => {
+      const rounds = event.battleRounds ?? 0;
+      if (rounds <= 0 || rounds > 4) return;
+      changeEnergy(state, 3);
+      state.log.push("净化滤网：速战速决，返还 3 点净化粒子");
+    },
+  },
 };

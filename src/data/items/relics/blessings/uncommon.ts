@@ -21,4 +21,18 @@ export const UNCOMMON_BLESSING_RELIC_DEFS: ItemDef[] = [
     effects: [{ type: "APPLY_STAT_MOD", target: "allAllies", stat: "attack", amount: 8 }],
   }),
   blessing("relic-folding-crate", "折叠货箱", "小队负重适应 +5。", { scope: "explore" }),
+  blessing("relic-double-socket", "双头插座", "每回合首次连续打出 3 名不同队员的卡牌时，抽 1 张牌。", { scope: "battle" }),
+  blessing("relic-overload-fuse", "过载保险丝", "手牌上限 +1；每场战斗第一回合额外抽 1 张牌。", {
+    scope: "battle",
+    squadMods: { handLimit: 1 },
+  }),
+  blessing("relic-prism-shard", "棱镜残片", "造成暴击时，对另一名随机敌人造成该次伤害 30% 的溅射伤害。", { scope: "battle" }),
+  blessing("relic-petri-dish", "培养皿", "带有中毒的敌人死亡时，其中毒层数的一半转移给随机另一名敌人。", { scope: "battle" }),
+  blessing(
+    "relic-family-photo",
+    "全家福",
+    "队伍中无阵亡队员时，全队攻击力与治愈力 +10；有队员阵亡后本场战斗失效。",
+    { scope: "battle" },
+  ),
+  blessing("relic-purify-filter", "净化滤网", "在 4 回合内赢得战斗时，返还 3 点净化粒子。", { scope: "explore" }),
 ];

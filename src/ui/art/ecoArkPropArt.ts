@@ -11,9 +11,9 @@ function prop(src: string, bottomBlank: number, size = 1): CorridorPropArt {
 }
 
 export const ECO_ARK_PROP_ART = {
-  arkSeedVault: prop(seedVault, 70),
-  arkDewCollector: prop(dewCollector, 47, 1.1),
-  arkComposter: prop(composter, 62, 1.2),
-  arkGeneConsole: prop(geneConsole, 24),
-  arkSporeVent: prop(sporeVent, 51, 1.2),
+  arkSeedVault: prop(seedVault, 0),
+  arkDewCollector: prop(dewCollector, 0, 1.1),
+  arkComposter: prop(composter, 22, 1.2),
+  arkGeneConsole: prop(geneConsole, 0),
+  arkSporeVent: prop(sporeVent, 0, 1.2),
 };

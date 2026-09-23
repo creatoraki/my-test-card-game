@@ -61,9 +61,7 @@ export const RULES = {
     enemyTempoPerAct: true, // 敌人状态是否按每次行动推进; false = 每回合首次行动前推进一次
     weakMultiplier: 0.7, // 虚弱: 造成攻击伤害 ×
     sharpBonusPct: 10, // 锋利: 加入统一的加算型增伤池
-    vulnerableMultiplier: 1.5, // 易伤: 受到伤害 ×
-    hunterMarkMultiplier: 1.2, // 猎人标记: 受到伤害 ×
-    overloadBlockPerStack: 2, // 过载每层: 格挡 +2 个百分点(不再给闪避, 避免与背包超重的命中惩罚叠加)
+    vulnerableMultiplier: 1.5, // 易伤: 受到伤害 ×    overloadBlockPerStack: 2, // 过载每层: 格挡 +2 个百分点(不再给闪避, 避免与背包超重的命中惩罚叠加)
     overloadAttackPerStack: 10, // 过载每层: 攻击力 +10
     // 怪物阵营的面板基线 —— 建局时由 stats.enemyBaselineStats 并入敌人 StatBlock,
     // 不是结算时的阵营特判; 敌人数据里写的同名属性在这条基线之上累加。

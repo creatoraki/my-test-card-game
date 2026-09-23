@@ -4,6 +4,7 @@ import { consumeItems, countByItemId } from "../items/inventory";
 import type { ExploreState } from "./types";
 import { logLine } from "./session";
 import { EXPLORE_RULES } from "./rules";
+import { fireExploreRelic } from "./relics";
 
 const FOOD_ID_SET = new Set<string>(NEAR_EXPIRY_FOOD_IDS);
 
@@ -100,6 +101,11 @@ export function resolvePicnic(s: ExploreState, picks: Record<string, number>): P
       notes: [`全队回复 ${EXPLORE_RULES.picnic.emptyHeal} 点生命`],
     };
   }
+
+  // 野餐遗物的结算文案同时写进结果面板, 让玩家当场看到。
+  const relicLogStart = s.log.length;
+  fireExploreRelic(s, { type: "picnic" });
+  result.notes.push(...s.log.slice(relicLogStart));
 
   s.picnicUsed = true;
   logLine(s, recipe ? `完成野餐，发现食谱「${recipe.name}」` : "完成野餐，队伍恢复了状态");

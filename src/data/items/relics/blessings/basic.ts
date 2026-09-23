@@ -19,12 +19,7 @@ export const BASIC_BLESSING_RELIC_DEFS: ItemDef[] = [
   blessing("relic-warm-match", "余温火柴", "当手牌只剩一张卡牌时，该卡的攻击力与治愈力 +30。", { scope: "battle" }),
   blessing("relic-lucky-copper", "幸运铜币", "战斗胜利时有 20% 几率额外掉落一枚铜币。", { scope: "explore" }),
   blessing("relic-whetstone", "磨刀石", "每回合第一张攻击卡造成的实际伤害 +3。", { scope: "battle" }),
-  blessing(
-    "relic-hunter-eye",
-    "猎人的独眼",
-    "战斗开始时随机标记一名敌人，持续 1 回合；该敌人受到的伤害 +20%。",
-    { scope: "battle" },
-  ),
+  blessing("relic-hunter-eye", "猎人的独眼", "每回合开始时，随机对一名敌人附加 1 层穿孔。", { scope: "battle" }),
   blessing(
     "relic-energy-crystal",
     "储能水晶",
@@ -55,4 +50,15 @@ export const BASIC_BLESSING_RELIC_DEFS: ItemDef[] = [
   blessing("relic-wormwood-drops", "苦艾滴剂", "对没有任何减益的敌人施加中毒/灼烧时，额外施加 3 层。", { scope: "battle" }),
   blessing("relic-emergency-ration", "应急口粮", "每探索 3 个全新房间，全队回复 3 点生命。", { scope: "explore" }),
   blessing("relic-particle-clip", "粒子回收夹", "清空一间房间内的所有可交互物后，返还 2 点净化粒子。", { scope: "explore" }),
+  blessing("relic-glow-sticker", "夜光贴纸", "开战时背包每有 3 格空位，全队闪避率 +1%（最高 +8%）。", { scope: "battle" }),
+  blessing("relic-small-battery", "小号电池", "每场战斗中，首次打出费用 ≥ 3 的卡牌后，返还 1 点行动点。", { scope: "battle" }),
+  blessing(
+    "relic-gauze-roll",
+    "纱布卷",
+    "对体力低于体力极限的目标治疗时，溢出的治疗量转为等量护盾（最多 4 点）。",
+    { scope: "battle" },
+  ),
+  blessing("relic-tally-counter", "计数器", "本场战斗每打出 6 张牌，对随机一名敌人造成 8 点伤害。", { scope: "battle" }),
+  blessing("relic-dust-mask", "防尘口罩", "每次野餐时，全队污染 −5。", { scope: "explore" }),
+  blessing("relic-thermos", "保温杯", "每次野餐时，全队额外回复 8 点生命。", { scope: "explore" }),
 ];

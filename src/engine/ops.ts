@@ -64,11 +64,15 @@ export function markDead(state: BattleState, cmb: Combatant): void {
       targetId: cmb.id,
       targetStatuses: structuredClone(cmb.statuses),
     });
+    runRelicHook(state, "onEnemyKilled", cmb.id);
   }
   cmb.hp = 0;
   cmb.alive = false;
   log(state, `${cmb.emoji} ${cmb.name} 倒下了`);
-  if (cmb.team === "player") purgeOwnerCards(state, cmb.charId, `${cmb.emoji} ${cmb.name}`);
+  if (cmb.team === "player") {
+    purgeOwnerCards(state, cmb.charId, `${cmb.emoji} ${cmb.name}`);
+    runRelicHook(state, "onAllyDeath", cmb.id);
+  }
   if (cmb.team === "enemy") noteChallengeKill(state, cmb);
 }
 
@@ -141,6 +145,7 @@ export function heal(
   // 满血时 t.hp - before = 0: 仍记一段(hpDelta 0), 保证目标照样闪治疗光效, 只是不飘数字。
   recordHitPart(targetId, before - t.hp);
   const healed = t.hp - before;
+  runRelicHook(state, "afterHeal", { targetId, hpBefore: before, overflow: Math.max(0, Math.round(final) - healed) });
   if (opts.single && !opts.splash) {
     incomingHeal.amount = final;
     incomingHeal.healed = healed;

@@ -55,9 +55,7 @@ export const STATUS_ACCENT: Record<string, string> = {
   weak: "#b0a4c8",
   attackDown: "#b0a4c8",
   vulnerable: "#ff5d6c",
-  armorBreak: "#ff5d6c",
-  hunterMark: "#ff6a4a",
-  pierce: "#ff8a4a",
+  armorBreak: "#ff5d6c",  pierce: "#ff8a4a",
 };
 
 const KIND_ACCENT: Record<StatusKind, string> = {

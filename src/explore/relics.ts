@@ -6,13 +6,14 @@ import { EXPLORE_RULES } from "./rules";
 import { EXPLORE_RELIC_BEHAVIORS } from "./relicBehaviors";
 import type { NodeEvent } from "./types";
 
-export type ExploreRelicTrigger = RelicEvent["type"] | "roomEntered" | "roomCleared";
+export type ExploreRelicTrigger = RelicEvent["type"] | "roomEntered" | "roomCleared" | "picnic";
 
 export interface ExploreRelicEvent {
   type: ExploreRelicTrigger;
   targetId?: string;
   nodeKind?: NodeEvent["kind"];
   roomId?: string;
+  battleRounds?: number; // battleVictory: 本场战斗进行到第几回合
 }
 
 /** 只读取背包中的遗物；仓库里的收藏不会影响本场规则。 */

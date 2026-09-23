@@ -2075,6 +2075,7 @@ export function finishBattle(
   enemyDefIds: string[],
   challengeBonus = 0,
   bountyBonus = 0,
+  battleRounds = 0,
 ): { loot: number; items: ItemStack[]; overflow: ItemStack[] } {
   const empty = { loot: 0, items: [], overflow: [] };
   if (s.phase !== "inBattle") return empty;
@@ -2137,7 +2138,7 @@ export function finishBattle(
   const rolled = enemyDefIds.flatMap((id) => rollDropTable(s, getEnemyDef(id).dropTable, k, ctx));
   addPendingLoot(s, rolled);
   s.pendingBoons = rollBoons(s, enemyDefIds.map((id) => getEnemyDef(id).boonTable), k);
-  fireExploreRelic(s, { type: "battleVictory" });
+  fireExploreRelic(s, { type: "battleVictory", battleRounds });
 
   // ⚠ 必须在上面的 dropCoefficient / rollDropTable 之后才清挑战加成。
   s.pendingEncounterId = null;

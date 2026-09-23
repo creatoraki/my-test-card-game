@@ -785,6 +785,8 @@ export interface BattleState {
   // ★ 开战瞬间快照的有效负重点数, 战斗中恒定不变(《探索模式设计.md》§6.3)。
   //   引擎不认识背包与占格, 只认识这一个数 —— 由探索层用 stats.burdenValue 算好传入。
   burden: number;
+  // ★ 开战瞬间快照: 本趟远征中已阵亡、未能参战的队员数(全家福等遗物读取)。
+  fallenAllies: number;
   // ★ 开战瞬间快照的小队徽章与训练修正。引擎只认识最终数值, 不认识徽章/训练点。
   squadMods: SquadResourceMods;
   // 挑战词条运行态: 本场随机到的词条与其打破状态, 以及首次击杀回合。

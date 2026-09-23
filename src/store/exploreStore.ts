@@ -113,6 +113,7 @@ interface ExploreStore {
     enemyDefIds: string[], // ⚠ 是 defId 列表不是数量 —— 掉落要查每个敌人自己的 dropTable
     challengeBonus: number,
     bountyBonus: number,
+    battleRounds: number,
   ) => void;
   // 战斗回合消耗。★ 必须在 settleBattle 之后调用 —— 掉落系数与经验倍率读的是战前能量
   spendBattleEnergy: (rounds: number, tier: BattleTier | null) => void;
@@ -290,9 +291,9 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     });
   },
 
-  settleBattle: (won, survivors, enemyDefIds, challengeBonus, bountyBonus) => {
+  settleBattle: (won, survivors, enemyDefIds, challengeBonus, bountyBonus, battleRounds) => {
     mutate(get, set, (d) => {
-      finishBattle(d, won, survivors, enemyDefIds, challengeBonus, bountyBonus);
+      finishBattle(d, won, survivors, enemyDefIds, challengeBonus, bountyBonus, battleRounds);
     });
   },
 

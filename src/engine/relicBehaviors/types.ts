@@ -21,9 +21,18 @@ export interface RelicBehavior {
   onCardDrawn?: (ctx: RelicBehaviorContext, cardUid: string) => void;
   onCrit?: (ctx: RelicBehaviorContext, dmg: DamageCtx) => void;
   onAllyHpCrossedHalf?: (ctx: RelicBehaviorContext, targetId: string) => void;
+  afterHeal?: (ctx: RelicBehaviorContext, info: HealResultInfo) => void;
+  onEnemyKilled?: (ctx: RelicBehaviorContext, targetId: string) => void; // 触发时敌人仍保留死亡前的状态
+  onAllyDeath?: (ctx: RelicBehaviorContext, targetId: string) => void;
   // 纯计算, 预览也会调用: 只能往 mods 里登记。一次性加成的消耗放到 afterDamageModified。
   modifyOutgoingDamage?: (ctx: RelicBehaviorContext, dmg: Readonly<DamageCtx>, mods: DamageModifierSink) => void;
   afterDamageModified?: (ctx: RelicBehaviorContext, dmg: DamageCtx) => void; // 乘区结算完毕、命中判定前(不论最终是否命中)
+}
+
+export interface HealResultInfo {
+  targetId: string;
+  hpBefore: number;
+  overflow: number; // 被体力极限截掉、没能落到生命上的治疗量
 }
 
 export interface StatusApplyInfo {
@@ -44,6 +53,9 @@ type HookArgs = {
   onCardDrawn: [string];
   onCrit: [DamageCtx];
   onAllyHpCrossedHalf: [string];
+  afterHeal: [HealResultInfo];
+  onEnemyKilled: [string];
+  onAllyDeath: [string];
   modifyOutgoingDamage: [DamageCtx, DamageModifierSink];
   afterDamageModified: [DamageCtx];
 };

@@ -4,6 +4,7 @@ import { picnicFoods } from "@/explore/picnic";
 import type { PicnicResult } from "@/explore/picnic";
 import { EXPLORE_RULES } from "@/explore/rules";
 import { useExploreStore } from "@/store/exploreStore";
+import { runPicnic } from "@/store/picnicActions";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
 import {
   EventPanelBody,
@@ -19,7 +20,6 @@ import s from "./PicnicPanel.module.css";
 
 export default function PicnicPanel({ onClose }: { onClose: () => void }) {
   const session = useExploreStore((state) => state.session);
-  const resolve = useExploreStore((state) => state.picnic);
   const [picks, setPicks] = useState<Record<string, number>>({});
   const [result, setResult] = useState<PicnicResult | null>(null);
 
@@ -53,7 +53,7 @@ export default function PicnicPanel({ onClose }: { onClose: () => void }) {
   };
 
   const startPicnic = () => {
-    const next = resolve(picks);
+    const next = runPicnic(picks);
     if (!next) return;
     setResult(next);
   };

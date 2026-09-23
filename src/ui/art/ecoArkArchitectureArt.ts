@@ -8,14 +8,15 @@ export interface EcoArkArchitectureArt {
   src: string;
   aspectRatio: number;
   displayHeight: number;
+  groundTrim: number;
 }
 
 /** 方舟走廊使用的透明建筑装饰；尺寸为场景设计像素。 */
 export const ECO_ARK_ARCHITECTURE_ART: readonly EcoArkArchitectureArt[] = [
-  { id: "pillar", src: pillar, aspectRatio: 1024 / 1536, displayHeight: 430 },
-  { id: "planter", src: planter, aspectRatio: 1312 / 1199, displayHeight: 330 },
-  { id: "arch", src: arch, aspectRatio: 1222 / 1287, displayHeight: 500 },
-  { id: "beacon", src: beacon, aspectRatio: 1024 / 1536, displayHeight: 370 },
+  { id: "pillar", src: pillar, aspectRatio: 1024 / 1536, displayHeight: 430, groundTrim: 0 },
+  { id: "planter", src: planter, aspectRatio: 1448 / 1086, displayHeight: 330, groundTrim: 40 / 1086 },
+  { id: "arch", src: arch, aspectRatio: 1254 / 1254, displayHeight: 500, groundTrim: 0 },
+  { id: "beacon", src: beacon, aspectRatio: 1024 / 1536, displayHeight: 370, groundTrim: 0 },
 ];
 
 export const ECO_ARK_ARCHITECTURE_SOURCES = ECO_ARK_ARCHITECTURE_ART.map(({ src }) => src);

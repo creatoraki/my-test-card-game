@@ -1,15 +1,11 @@
 import type { Card, DamageCtx } from "../types";
 import { ops } from "../ops";
 import { STATUS_DEFS } from "../statuses";
-import { rngInt } from "../rng";
 import { RULES } from "../rules";
 import { playableHandUids, isPassive } from "../passiveCards";
 import { activeEffectsOf } from "../cardEffects";
 import type { RelicBehavior, RelicBehaviorContext } from "./types";
-
-function relicData(ctx: RelicBehaviorContext): Record<string, number> {
-  return (ctx.relic.data ??= {});
-}
+import { randomAliveEnemy, relicData } from "./shared";
 
 function ownerOf(state: RelicBehaviorContext["state"], card: Card) {
   return state.combatants[card.ownerCharId];
@@ -63,18 +59,8 @@ export const BASIC_RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
   },
   "relic-hunter-eye": {
     onRoundStart: ({ state }) => {
-      if (state.round !== 1) return;
-      const enemies = state.enemyIds.filter((id) => state.combatants[id]?.alive);
-      if (!enemies.length) return;
-      const targetId = enemies[rngInt(state, enemies.length)];
-      if (targetId) ops.applyStatus(state, targetId, "hunterMark", 1);
-    },
-    onRoundEnd: ({ state }) => {
-      if (state.round !== 1) return;
-      for (const id of state.enemyIds) {
-        const enemy = state.combatants[id];
-        if (enemy) enemy.statuses = enemy.statuses.filter((status) => status.id !== "hunterMark");
-      }
+      const targetId = randomAliveEnemy(state);
+      if (targetId) ops.applyStatus(state, targetId, "pierce", 1);
     },
   },
   "relic-tin-whistle": {
@@ -164,6 +150,32 @@ export const BASIC_RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
       addPlayStatBonus(ctx, card, "attack", 40);
       addPlayStatBonus(ctx, card, "healPower", 40);
       data.charged = 0;
+    },
+  },
+  "relic-small-battery": {
+    afterCardPlay: (ctx) => {
+      const data = relicData(ctx);
+      if (data.used || (ctx.state.activeCardCost ?? 0) < 3) return;
+      data.used = 1;
+      const resource = RULES.resource.name;
+      ctx.state.resources[resource] = (ctx.state.resources[resource] ?? 0) + 1;
+      ops.log(ctx.state, "小号电池：返还 1 点行动点");
+    },
+  },
+  "relic-gauze-roll": {
+    afterHeal: ({ state }, info) => {
+      const target = state.combatants[info.targetId];
+      if (target?.team !== "player" || info.hpBefore >= target.hpLimit || info.overflow <= 0) return;
+      ops.gainShield(state, undefined, target.id, Math.min(4, info.overflow));
+    },
+  },
+  "relic-tally-counter": {
+    afterCardPlay: (ctx) => {
+      const data = relicData(ctx);
+      data.plays = (data.plays ?? 0) + 1;
+      if (data.plays % 6 !== 0) return;
+      const targetId = randomAliveEnemy(ctx.state);
+      if (targetId) ops.dealDamage(ctx.state, undefined, targetId, 8, { fixed: true });
     },
   },
 };

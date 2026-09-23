@@ -6,7 +6,7 @@ export interface DamageModifiers {
   dealtPct: number; // 造成伤害加算%(锋利、八千代)
   dealtMult: number; // 造成伤害独立乘区连乘(虚弱、充能外壳)
   takenPct: number; // 受到伤害加算%
-  takenMult: number; // 受到伤害独立乘区连乘(易伤、猎人标记、减伤)
+  takenMult: number; // 受到伤害独立乘区连乘(易伤、减伤)
 }
 
 // 修正钩子拿到的写入口。钩子必须是纯计算: 只调用这些方法, 不改 dmg, 不产生副作用,

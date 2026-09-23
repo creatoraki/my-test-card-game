@@ -28,7 +28,7 @@ import {
   energyTier,
   rewardMultiplier,
 } from "../explore/session";
-import { relicScrapSellBonus } from "../explore/relicModifiers";
+import { relicBattleMods, relicScrapSellBonus } from "../explore/relicModifiers";
 import type { ExploreState, PartySnapshot } from "../explore/types";
 import type { EquipSlot, ItemStack } from "../items/types";
 import type { MapDifficulty } from "../data/mapDifficulty";
@@ -225,6 +225,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
       .map((stack) => getItemDef(stack.itemId).relic?.mods)
       .filter((mods): mods is NonNullable<typeof mods> => Boolean(mods)),
     ...session.trials.map((trial) => trial.mods),
+    ...relicBattleMods(session),
   ]);
   const relicIds = session.backpack
     .filter((stack) => getItemDef(stack.itemId).category === "relic")
@@ -265,7 +266,15 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
     .getState()
     .init(
       encounterId,
-      { allies, deck: battleDeck, burden, squadMods, squadBuffRewardPools: ASSEMBLE_REWARD_POOLS, relics: relicIds },
+      {
+        allies,
+        deck: battleDeck,
+        burden,
+        fallenAllies: session.party.length - alive.length,
+        squadMods,
+        squadBuffRewardPools: ASSEMBLE_REWARD_POOLS,
+        relics: relicIds,
+      },
       undefined,
       mod,
       meta,
@@ -506,7 +515,7 @@ export const useRunStore = create<RunStore>((set, get) => {
     // 档位同样要在 settleBattle 之前取快照 —— finishBattle 会把 pendingBattleTier 清空。
     const battleTier = session.pendingBattleTier;
     const explore = useExploreStore.getState();
-    explore.settleBattle(won, survivors, enemyDefIds, challengeBonus, bountyBonus);
+    explore.settleBattle(won, survivors, enemyDefIds, challengeBonus, bountyBonus, battle.round);
     settleFallenGear();
     for (const id of battle.playerIds) {
       syncMemberStats((battle.combatants[id] as Ally).charId);

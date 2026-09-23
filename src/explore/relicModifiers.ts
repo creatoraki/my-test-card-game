@@ -1,4 +1,7 @@
 import { getItemDef } from "../data";
+import { RULES } from "../engine/rules";
+import type { StatModifier } from "../engine/types";
+import { occupiedSlots } from "../items/inventory";
 import { canWalkCorridor } from "./corridor/session";
 import type { ExploreState } from "./types";
 
@@ -16,6 +19,14 @@ export function merchantExtraSlots(s: ExploreState): number {
 
 export function relicScrapSellBonus(s: ExploreState): number {
   return hasExploreRelic(s, "relic-recycle-list") ? 0.1 : 0;
+}
+
+/** 读取背包现状的开战属性修正(夜光贴纸)。与声明式 relic.mods 一样每名角色各叠一份。 */
+export function relicBattleMods(s: ExploreState): StatModifier[] {
+  if (!hasExploreRelic(s, "relic-glow-sticker")) return [];
+  const free = RULES.burden.backpackSlots - occupiedSlots(s.backpack, getItemDef);
+  const dodgeRate = Math.min(8, Math.floor(Math.max(0, free) / 3));
+  return dodgeRate > 0 ? [{ flat: { dodgeRate } }] : [];
 }
 
 export function canUseBeacon(s: ExploreState): boolean {
