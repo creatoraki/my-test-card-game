@@ -54,10 +54,23 @@ export const RELIC_BUY_BY_RARITY: Record<ItemRarity, number> = {
 
 export const relicBuyValue = (def: ItemDef): number => RELIC_BUY_BY_RARITY[def.rarity];
 
+// 祝福遗物的回收价 = 商店价的 1/4，与装备的买卖比例一致。诅咒遗物不收，只能去圣所净化。
+export const RELIC_SELL_BY_RARITY: Record<ItemRarity, number> = {
+  common: 75,
+  fine: 150,
+  rare: 300,
+  epic: 500,
+  legendary: 800,
+};
+
+export function withRelicSellValue(defs: ItemDef[]): ItemDef[] {
+  return defs.map((d) => ({ ...d, sellValue: d.sellValue ?? RELIC_SELL_BY_RARITY[d.rarity] }));
+}
+
 // 未单独配置价格的消耗品使用此基础价。已配置价格的消耗品由自身 ItemDef.buyValue 覆盖。
 export const CONSUMABLE_BUY_VALUE = 20;
 
-// 只给装备、材料与消耗品标价 —— 废料通过回收台变现; 遗物和水晶不在据点商店上架。
+// 只给装备、材料与消耗品标价 —— 废料通过回收台变现; 遗物和水晶不在据点商店上架(遗物回收价见 withRelicSellValue)。
 export function withBuyValue(defs: ItemDef[]): ItemDef[] {
   return defs.map((d) => {
     if (d.category === "consumable") {

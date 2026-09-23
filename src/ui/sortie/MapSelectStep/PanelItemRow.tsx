@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/items/itemArt";
@@ -14,16 +14,33 @@ interface Props {
   active: boolean;
 }
 
+const AID_WIDTH = 424;
+// 通关奖励：左右内边距 + 2~4 个 128px 格子 + 18px 间距，容器宽度随物品种数自适应。
+const DAILY_PADDING = 52;
+const DAILY_CELL = 128;
+const DAILY_GAP = 18;
+
+function dailyWidth(count: number): number {
+  const slots = Math.min(4, Math.max(2, count));
+  return DAILY_PADDING + slots * DAILY_CELL + (slots - 1) * DAILY_GAP;
+}
+
 export function PanelItemRow({ title, kind, stacks, active }: Props) {
   const [itemTooltip, setItemTooltip] = useState<{
     stack: ItemStack;
     point: TooltipPoint;
   } | null>(null);
+  const width = kind === "aid" ? AID_WIDTH : dailyWidth(stacks.length);
 
   return (
-    <section className={s.rewardSection} data-kind={kind} aria-label={title}>
+    <section
+      className={s.rewardSection}
+      data-kind={kind}
+      aria-label={title}
+      style={{ "--row-width": `${width}px` } as CSSProperties}
+    >
       <div className={s.surface} />
-      <SortieFrame width={kind === "aid" ? 424 : 618} height={184} />
+      <SortieFrame width={width} height={184} />
       <h2 className={s.rewardHeading}><SortieGlyph name={kind === "aid" ? "gift" : "box"} className={s.headingIcon} />{title}<span className={s.headingNote}>{kind === "aid" ? "配发" : "奖励 ›"}</span></h2>
       <div className={s.rewardRow}>
         {stacks.map((stack) => {

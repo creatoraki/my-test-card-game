@@ -1,7 +1,8 @@
-import { rngInt, shuffle } from "@/engine/core/rng";
+import { rngInt, rngPick } from "@/engine/core/rng";
 import { bumpPerfectness } from "@/items/equipRoll";
 import type { ItemStack } from "@/items/types";
 import { GENERAL_MATERIAL_DEFS } from "../items/catalog/materials";
+import { BLESSING_RELIC_DEFS } from "../items/relics";
 import {
   equipmentDefsBySlot,
   getItemDef,
@@ -19,15 +20,21 @@ import {
 import { fixedClearRewardOf, type MapClearRewardDef } from "./mapClearReward";
 import { MAPS } from "./index";
 
+// 奖励顺序即展示顺序：换金物 → 材料（单一种类） → 装备 → 遗物。
 function rollClearReward(
   rng: { rngState: number },
   reward: MapClearRewardDef,
 ): ItemStack[] {
-  const materials = shuffle(rng, [...GENERAL_MATERIAL_DEFS]).slice(0, reward.materialKinds);
   const stacks: ItemStack[] = [];
 
-  for (const material of materials) {
-    for (let count = 0; count < reward.materialEach; count += 1) {
+  const scrap = getItemDef(reward.scrapId);
+  for (let count = 0; count < reward.scrapCount; count += 1) {
+    stacks.push(makeItemStack(scrap.id));
+  }
+
+  if (reward.materialCount > 0) {
+    const material = rngPick(rng, [...GENERAL_MATERIAL_DEFS]);
+    for (let count = 0; count < reward.materialCount; count += 1) {
       stacks.push(makeItemStack(material.id));
     }
   }
@@ -50,9 +57,12 @@ function rollClearReward(
   }
   stacks.push(stack);
 
-  const scrap = getItemDef(reward.scrapId);
-  for (let count = 0; count < reward.scrapCount; count += 1) {
-    stacks.push(makeItemStack(scrap.id));
+  if (reward.relicRarity) {
+    const relicCandidates = BLESSING_RELIC_DEFS.filter((def) => def.rarity === reward.relicRarity);
+    if (!relicCandidates.length) {
+      throw new Error(`没有稀有度为 ${reward.relicRarity} 的通关奖励遗物`);
+    }
+    stacks.push(makeItemStack(rngPick(rng, relicCandidates).id));
   }
   return stacks;
 }

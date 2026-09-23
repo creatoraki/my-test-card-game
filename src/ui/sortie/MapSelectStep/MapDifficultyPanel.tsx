@@ -5,7 +5,6 @@ import {
   isDifficultyUnlocked,
   makeAidSupplyStacks,
   mapDifficultyIds,
-  mapHasDifficulty,
   fixedClearRewardOf,
   type MapDifficulty,
 } from "@/data";
@@ -41,7 +40,6 @@ export function MapDifficultyPanel({
     point: TooltipPoint;
   } | null>(null);
   const aidStacks = useMemo(() => makeAidSupplyStacks(mapId, difficulty), [mapId, difficulty]);
-  const hasDifficulty = mapHasDifficulty(mapId);
   const difficultyIds = mapDifficultyIds(mapId);
   const hasDifficultySelection = difficultyIds.length > 0;
 
@@ -59,7 +57,7 @@ export function MapDifficultyPanel({
       className={s.panel}
       data-active={active}
       aria-hidden={!active}
-      aria-label={hasDifficultySelection ? "难度、配额物资与每日奖励" : "配额物资与通关奖励"}
+      aria-label={hasDifficultySelection ? "难度、配额物资与通关奖励" : "配额物资与通关奖励"}
     >
       {hasDifficultySelection ? (
         <div className={s.difficultySection}>
@@ -121,7 +119,7 @@ export function MapDifficultyPanel({
       <div className={s.rewards}>
         <PanelItemRow title="配额物资" kind="aid" stacks={aidStacks} active={active} />
         <PanelItemRow
-          title={hasDifficulty ? "当前地图额外物品奖励" : "通关奖励"}
+          title="通关奖励"
           kind="daily"
           stacks={Object.values(grouped)}
           active={active}

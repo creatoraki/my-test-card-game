@@ -1,4 +1,4 @@
-// 浮层: 回收台 —— 把废料与装备换成居民积分。
+// 浮层: 回收台 —— 把废料、装备与祝福遗物换成居民积分。
 // 设计文档 §6.1: 探索层不产出货币, **可回收物资必须带回据点出售**才换成居民积分。
 // 原属物资中转仓; 该设施拆散后, 出售与采购同在商店场景, 一进一出读在一起。
 
@@ -48,7 +48,7 @@ export function RecyclePanel({ stacks, loot, levels, onSell }: RecyclePanelProps
         {sellable.length ? (
           <>
             <p className={s.note}>
-              废料与装备在这里换成居民积分——这是探索层产出变成城镇通货的唯一途径。
+              废料、装备与遗物在这里换成居民积分——这是探索层产出变成城镇通货的唯一途径。
             </p>
             <ItemTabs
               className={s.tabs}
@@ -68,7 +68,7 @@ export function RecyclePanel({ stacks, loot, levels, onSell }: RecyclePanelProps
             />
           </>
         ) : (
-          <p className={s.empty}>没有可回收的物资。请从远征里带回废料或装备。</p>
+          <p className={s.empty}>没有可回收的物资。请从远征里带回废料、装备或遗物。</p>
         )}
       </div>
       <div className={s.foot}>

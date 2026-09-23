@@ -25,8 +25,7 @@ export const MAP_DIFFICULTIES: Record<MapDifficulty, MapDifficultyDef> = {
     name: "普通",
     curioLevelRange: [1, 3],
     reward: {
-      materialKinds: 2,
-      materialEach: 3,
+      materialCount: 3,
       equipRarity: "common",
       scrapId: "silver-coin",
       scrapCount: 1,
@@ -37,11 +36,11 @@ export const MAP_DIFFICULTIES: Record<MapDifficulty, MapDifficultyDef> = {
     name: "困难",
     curioLevelRange: [2, 4],
     reward: {
-      materialKinds: 2,
-      materialEach: 5,
+      materialCount: 5,
       equipRarity: "fine",
       scrapId: "silver-coin",
       scrapCount: 2,
+      relicRarity: "common",
     },
   },
   abyss: {
@@ -49,11 +48,11 @@ export const MAP_DIFFICULTIES: Record<MapDifficulty, MapDifficultyDef> = {
     name: "深渊",
     curioLevelRange: [3, 5],
     reward: {
-      materialKinds: 2,
-      materialEach: 5,
+      materialCount: 5,
       equipRarity: "rare",
       scrapId: "gold-coin",
       scrapCount: 1,
+      relicRarity: "common",
     },
   },
 };

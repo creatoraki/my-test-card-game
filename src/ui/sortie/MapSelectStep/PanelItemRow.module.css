@@ -1,15 +1,11 @@
 .rewardSection {
   position: relative;
-  width: 424px;
+  width: var(--row-width);
   height: 184px;
   padding: 13px 24px 20px;
   box-sizing: border-box;
   color: #f2f6f8;
   filter: drop-shadow(0 8px 12px #0005);
-}
-
-.rewardSection[data-kind="daily"] {
-  width: 618px;
 }
 
 .surface {
