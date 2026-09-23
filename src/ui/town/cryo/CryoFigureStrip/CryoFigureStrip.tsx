@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode, type WheelEvent } from "react";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./CryoFigureStrip.module.css";
 
 interface Props {

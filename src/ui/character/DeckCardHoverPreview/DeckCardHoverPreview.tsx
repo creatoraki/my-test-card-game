@@ -1,8 +1,8 @@
 import type { Card } from "@/engine";
-import { cx } from "@/ui/common/cx";
-import { useCardText } from "@/ui/common/cardText";
-import { CardKeywordNotes } from "@/ui/common/CardKeywordNotes";
-import { HandCard } from "@/ui/battle/HandCard";
+import { cx } from "@/ui/common/shared/cx";
+import { useCardText } from "@/ui/common/shared/cardTextFormat";
+import { CardKeywordNotes } from "@/ui/common/card/CardKeywordNotes";
+import { HandCard } from "@/ui/common/card/HandCard";
 import s from "./DeckCardHoverPreview.module.css";
 
 interface Props {

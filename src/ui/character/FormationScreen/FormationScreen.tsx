@@ -24,28 +24,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { RULES } from "@/engine";
 import { getCharacter } from "@/data";
-import { useRunStore } from "@/store/runStore";
-import { useTownStore } from "@/store/townStore";
+import { useRunStore } from "@/store/run/runStore";
+import { useTownStore } from "@/store/town/townStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
-import { cx } from "@/ui/common/cx";
-import { usePanelMorph, type Rect } from "@/ui/common/panelMorph";
-import { FORMATION_BG_ART } from "@/ui/art/sceneArt";
+import { cx } from "@/ui/common/shared/cx";
+import { usePanelMorph, type Rect } from "@/ui/common/frame/panelMorph";
+import { FORMATION_BG_ART } from "@/ui/art/explore/sceneArt";
 import { CharacterDetailView } from "@/ui/character/CharacterDetailView";
 import { SquadTalentModal } from "@/ui/town/training/SquadTalentModal";
-import { markTownReturn } from "@/ui/town/townReturn";
-import { useSquadTalent } from "@/ui/town/training/useSquadTalent";
-import { CrewGrid } from "./CrewGrid";
-import { SquadHud } from "./SquadHud";
-import { DetailPrewarm, useDetailPrewarm } from "./detailPrewarm";
-import { FormationDecor } from "./FormationDecor";
-import { MorphFlyer } from "./formationMorph/MorphFlyer";
+import { markTownReturn } from "@/ui/town/shared/townReturn";
+import { useSquadTalent } from "@/ui/town/training/SquadTalentModal/useSquadTalent";
+import { CrewGrid } from "./parts/CrewGrid";
+import { SquadHud } from "./parts/SquadHud";
+import { DetailPrewarm, useDetailPrewarm } from "./parts/DetailPrewarm";
+import { FormationDecor } from "./parts/FormationDecor";
+import { MorphFlyer } from "./parts/formationMorph/MorphFlyer";
 import {
   BACK_GATHER_MS,
   BACK_MORPH_MS,
   PANEL_GROW_MS,
   SCATTER_MS,
-} from "./formationMorph/morphChoreo";
-import { useFormationMorph } from "./formationMorph/useFormationMorph";
+} from "./parts/formationMorph/morphChoreo";
+import { useFormationMorph } from "./parts/formationMorph/useFormationMorph";
 import s from "./FormationScreen.module.css";
 
 // 飞行层两端的字号、名字离底距离与圆角 —— 与两侧的实际样式对齐:

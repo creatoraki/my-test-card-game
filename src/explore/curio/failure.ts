@@ -7,9 +7,9 @@
 // ============================================================================
 
 import { getItemDef } from "@/data";
-import { CURIO_FAIL_CAP, CURIO_LEVEL_RULES } from "@/data/curios/levelRules";
+import { CURIO_FAIL_CAP, CURIO_LEVEL_RULES } from "@/data/curios/rules/levelRules";
 import type { CurioEffect, CurioFailure, CurioLevel, CurioMitigation } from "@/data/curios/types";
-import { rngFloat } from "@/engine/rng";
+import { rngFloat } from "@/engine/core/rng";
 import type { ItemStack } from "@/items/types";
 import type { ExploreState } from "../types";
 import { partCanMatch } from "./offering";

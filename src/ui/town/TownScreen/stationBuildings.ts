@@ -13,7 +13,7 @@ import {
   MUSEUM_BG_ART,
   SHOP_BG_ART,
   WORKLOG_BG_ART,
-} from "@/ui/art/sceneArt";
+} from "@/ui/art/explore/sceneArt";
 
 export const SCENE_WIDTH = 1920;
 export const SCENE_HEIGHT = 1080;

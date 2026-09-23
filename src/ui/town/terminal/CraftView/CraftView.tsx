@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { craftCheck, getModuleRecipe, recipesOfCharacter, type CraftCheck } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import ItemTooltip, {
   tooltipPointFromElement,
   type TooltipPoint,

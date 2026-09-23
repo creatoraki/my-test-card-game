@@ -1,6 +1,6 @@
-import type { CardAnim, EffectDescriptor, EnemyAiScript, StatBlock, Targeting } from "../../engine/types";
-import type { BoonEntry } from "../../explore/types";
-import type { DropEntry } from "../../items/types";
+import type { CardAnim, EffectDescriptor, EnemyAiScript, StatBlock, Targeting } from "@/engine/types";
+import type { BoonEntry } from "@/explore/types";
+import type { DropEntry } from "@/items/types";
 
 export type MoveBiasWhen =
   | { when: "anyFoeHasStatus"; status: string }

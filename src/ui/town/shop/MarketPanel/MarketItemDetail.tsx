@@ -1,6 +1,6 @@
 // 物品详情内容：复用纯展示的 ShopItemCard，不在此处添加任何购买控件。
 
-import type { ShopItemSlot } from "@/data/shop";
+import type { ShopItemSlot } from "@/data/shop/shop";
 import ShopItemCard from "@/ui/town/shop/ShopItemCard";
 import { asStack } from "./marketStacks";
 

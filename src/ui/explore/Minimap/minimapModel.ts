@@ -3,7 +3,7 @@
 //   当前 / Boss / 精英(未清的战斗房) / 陷阱(未触发的陷阱房) / 已完成 / 未探索 / 暗提示。
 // 宝箱、锁定两种视觉只存在于样式与图例中, 这里不会产出。
 
-import { areRoomCuriosCleared, isRoomExplored } from "@/explore/dungeon/session";
+import { areRoomCuriosCleared, isRoomExplored } from "@/explore/dungeon/dungeonSession";
 import type { DungeonState, PortalDir, RoomNode } from "@/explore/dungeon/types";
 import type { CorridorState } from "@/explore/corridor/types";
 

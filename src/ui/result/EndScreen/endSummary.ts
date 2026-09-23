@@ -1,9 +1,9 @@
 import { getItemDef, sellPriceOf, type TechTreeState } from "@/data";
 import type { ExploreState, PartySnapshot } from "@/explore/types";
 import type { ItemStack } from "@/items/types";
-import type { RunResult } from "@/store/runStore";
-import { vitalsOf, type CharacterState } from "@/store/townStore";
-import { relicScrapSellBonus } from "@/explore/relicModifiers";
+import type { RunResult } from "@/store/run/runStore";
+import { vitalsOf, type CharacterState } from "@/store/town/townStore";
+import { relicScrapSellBonus } from "@/explore/relics/relicModifiers";
 
 export type EndTrophyTone = "gold" | "cyan" | "green" | "red";
 

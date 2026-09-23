@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { ProcFxPreset } from "@/ui/battle/animations";
+import type { ProcFxPreset } from "@/ui/battle/choreo/animations";
 import { cssVars, fxAnim, fxAnims } from "@/ui/battle/fx/shared/fxKit";
 import {
   AROUND_IMPACT, CUTS, CUT_INTERVAL, CUT_SWIPE, FINAL_CUT, FINAL_SWIPE, PETALS, type Cut,

@@ -1,5 +1,5 @@
 import type { Card, DamageCtx, StatusCtx, StatusDef } from "../types";
-import { foesOf } from "../targeting";
+import { foesOf } from "../combat/targeting";
 
 export const BOTANIST_STATUS_DEFS: Record<string, StatusDef> = {
   thornCrown: {

@@ -1,12 +1,12 @@
 import { useCallback, type Dispatch, type SetStateAction } from "react";
 import type { BattleState } from "@/engine";
 import { avidyaPickCount, effectiveTargeting, playBlockReason } from "@/engine";
-import { cardAnim } from "@/ui/battle/animations";
-import { useBattleStore } from "@/store/battleStore";
+import { cardAnim } from "@/ui/battle/choreo/animations";
+import { useBattleStore } from "@/store/battle/battleStore";
 import { playSfx } from "@/ui/audio";
-import { resetHandHover } from "@/ui/battle/handFocusStore";
-import { showBattleToast } from "@/ui/battle/battleToastStore";
-import type { Pile } from "@/ui/battle/PileRail";
+import { resetHandHover } from "@/ui/battle/state/handFocusStore";
+import { showBattleToast } from "@/ui/battle/state/battleToastStore";
+import type { Pile } from "@/ui/battle/rails/PileRail";
 import { stepFromFx, fxTargets } from "./choreoSteps";
 import type { ChoreoStep } from "@/ui/battle/camera";
 import type { BattleCameraApi } from "./useBattleCamera";

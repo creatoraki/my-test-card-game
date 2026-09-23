@@ -1,13 +1,13 @@
 import { ShopDetailAside } from "@/ui/town/shop/ShopDetailAside";
 import { useState, type CSSProperties } from "react";
 import { getCharacter } from "@/data";
-import { HandCard } from "@/ui/battle/HandCard";
-import { CardKeywordNotes } from "@/ui/common/CardKeywordNotes";
-import { CardBack } from "@/ui/common/CardBack";
-import { InteractiveHint } from "@/ui/common/InteractiveHint";
-import { DeckCard } from "@/ui/character/DeckCard";
-import { useTownStore } from "@/store/townStore";
-import { CARD_GROUPS, CARD_CATALOG, CARD_RARITY_LABEL, cardFor } from "../codexCatalog";
+import { HandCard } from "@/ui/common/card/HandCard";
+import { CardKeywordNotes } from "@/ui/common/card/CardKeywordNotes";
+import { CardBack } from "@/ui/common/card/CardBack";
+import { InteractiveHint } from "@/ui/common/tooltip/InteractiveHint";
+import { DeckCard } from "@/ui/common/card/DeckCard";
+import { useTownStore } from "@/store/town/townStore";
+import { CARD_GROUPS, CARD_CATALOG, CARD_RARITY_LABEL, cardFor } from "../shared/codexCatalog";
 import s from "./MuseumCardHall.module.css";
 
 const DETAIL_CARD_STYLE = { "--hand-card-w": "248px", "--hc-text-h": "96px", "--hand-card-h": "344px" } as CSSProperties;

@@ -1,10 +1,10 @@
 .viewport {
-  composes: viewport from "../../app/styles/stageCanvas.module.css";
+  composes: viewport from "@/ui/app/styles/stageCanvas.module.css";
   background: #000;
 }
 
 .stage {
-  composes: canvas from "../../app/styles/stageCanvas.module.css";
+  composes: canvas from "@/ui/app/styles/stageCanvas.module.css";
   overflow: hidden;
   padding: 0;
   background: #000;

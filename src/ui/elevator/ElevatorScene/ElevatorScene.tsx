@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
-import { useRunStore } from "@/store/runStore";
+import { useRunStore } from "@/store/run/runStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
 import { playBgm, setBgmSuspended, stopBgm } from "@/ui/audio";
-import { ELEVATOR_DESCENT_VIDEO } from "@/ui/art/sceneArt";
+import { ELEVATOR_DESCENT_VIDEO } from "@/ui/art/explore/sceneArt";
 import s from "./ElevatorScene.module.css";
 
 const isTest = import.meta.env.isTest === "true";

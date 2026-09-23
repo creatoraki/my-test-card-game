@@ -1,4 +1,4 @@
-import { bossGateNear, nearbyObjects, portalAt } from "@/explore/corridor/session";
+import { bossGateNear, nearbyObjects, portalAt } from "@/explore/corridor/corridorSession";
 import type { CorridorState } from "@/explore/corridor/types";
 import type { PortalDir } from "@/explore/dungeon/types";
 

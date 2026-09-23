@@ -14,14 +14,14 @@ import ItemTooltip, {
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
-import { InteractiveHint } from "@/ui/common/InteractiveHint";
-import { cx } from "@/ui/common/cx";
-import { inventoryThemeVars, type InventoryColorMap } from "@/ui/common/item/inventoryTheme";
-import { techLevels, useTownStore } from "@/store/townStore";
+import { InteractiveHint } from "@/ui/common/tooltip/InteractiveHint";
+import { cx } from "@/ui/common/shared/cx";
+import { inventoryThemeVars, type InventoryColorMap } from "@/ui/common/item/shared/inventoryTheme";
+import { techLevels, useTownStore } from "@/store/town/townStore";
 import s from "./ItemInventoryPanel.module.css";
 import g from "./ItemInventoryPanel.grid.module.css";
 
-export type { InventoryColorMap } from "@/ui/common/item/inventoryTheme";
+export type { InventoryColorMap } from "@/ui/common/item/shared/inventoryTheme";
 
 export type SelectedInfoRenderer = (stack: ItemStack | null) => ReactNode;
 

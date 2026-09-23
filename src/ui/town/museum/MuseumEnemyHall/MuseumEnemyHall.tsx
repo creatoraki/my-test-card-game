@@ -1,13 +1,13 @@
 import { ShopDetailAside } from "@/ui/town/shop/ShopDetailAside";
 import { useState, type CSSProperties } from "react";
 import type { EnemyDef } from "@/data";
-import { enemyArt } from "@/ui/art/enemyArt";
-import { EnemySprite } from "@/ui/battle/EnemySprite";
-import { InteractiveHint } from "@/ui/common/InteractiveHint";
-import { useTownStore } from "@/store/townStore";
-import { cx } from "@/ui/common/cx";
-import { ENEMY_GROUPS, ENEMIES } from "../codexCatalog";
-import { moveKindLabel, moveSummary } from "../enemyMoveText";
+import { enemyArt } from "@/ui/art/battle/enemyArt";
+import { EnemySprite } from "@/ui/common/unit/EnemySprite";
+import { InteractiveHint } from "@/ui/common/tooltip/InteractiveHint";
+import { useTownStore } from "@/store/town/townStore";
+import { cx } from "@/ui/common/shared/cx";
+import { ENEMY_GROUPS, ENEMIES } from "../shared/codexCatalog";
+import { moveKindLabel, moveSummary } from "./enemyMoveText";
 import { MuseumLockedTile } from "../MuseumLockedTile";
 import s from "./MuseumEnemyHall.module.css";
 

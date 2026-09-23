@@ -1,19 +1,19 @@
 ﻿import { useState } from "react";
 import type { ExploreState } from "@/explore/types";
 import type { Card } from "@/engine";
-import { HandCard } from "@/ui/battle/HandCard";
-import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
+import { HandCard } from "@/ui/common/card/HandCard";
+import { PartyMemberCard } from "@/ui/common/unit/PartyMemberCard";
 import {
   EventPanelBody,
   EventPanelButton,
   EventPanelFoot,
   EventPanelNotice,
   EventPanelStage,
-} from "@/ui/common/EventPanel";
-import { useTownStore } from "@/store/townStore";
-import { useExploreStore } from "@/store/exploreStore";
+} from "@/ui/common/widget/EventPanel";
+import { useTownStore } from "@/store/town/townStore";
+import { useExploreStore } from "@/store/explore/exploreStore";
 import { serviceFoodCount } from "@/explore/curio/foodPayment";
-import { availablePools } from "@/store/deckCards";
+import { availablePools } from "@/store/town/deckCards";
 import s from "@/ui/explore/styles/rewardKit.module.css";
 
 export function ReplaceCardReward({

@@ -1,4 +1,4 @@
-import type { TechCost } from "../techCost";
+import type { TechCost } from "../crafting/techCost";
 
 export interface TechCategoryDef {
   id: string;

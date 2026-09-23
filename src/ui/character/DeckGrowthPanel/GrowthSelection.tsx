@@ -1,6 +1,6 @@
 import { cardDisplayName, type Card } from "@/engine";
-import { DeckCard } from "@/ui/character/DeckCard";
-import { HoldButton } from "@/ui/common/HoldButton";
+import { DeckCard } from "@/ui/common/card/DeckCard";
+import { HoldButton } from "@/ui/common/control/HoldButton";
 import { GrowthGlyph } from "./GrowthGlyph";
 import s from "./GrowthSelection.module.css";
 

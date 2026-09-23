@@ -1,7 +1,7 @@
 // 角色关键词模组 —— 据点装配舱制造产出, 承载角色关键词的跨角色外借。
 // 装配限制 = 结构条件 + 「不属于制造者角色」(见《角色关键词模组设计.md》)。
 
-import { ASSEMBLE_MODULE_LETTERS, assembleModuleItemId } from "../items/modules";
+import { ASSEMBLE_MODULE_LETTERS, assembleModuleItemId } from "../items/catalog/modules";
 import { hasDamageEffect, type CardModuleDef } from "./types";
 
 // 炼金术士的组装模组 —— 四件同构, 只差部件字母, 所以用工厂展开而不是抄四遍。

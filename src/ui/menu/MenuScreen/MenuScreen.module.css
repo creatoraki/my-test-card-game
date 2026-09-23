@@ -86,11 +86,11 @@
 
 /* 封面的 letterbox 容器与设计画布骨架来自 app/styles/stageCanvas.module.css。 */
 .menu-viewport {
-  composes: viewport from "../../app/styles/stageCanvas.module.css";
+  composes: viewport from "@/ui/app/styles/stageCanvas.module.css";
   background: #000; /* 16:9 之外的留白色 */
 }
 .menu-splash {
-  composes: canvas from "../../app/styles/stageCanvas.module.css";
+  composes: canvas from "@/ui/app/styles/stageCanvas.module.css";
   --ui-glow-color: #6fe3cf;
 }
 /* 主菜单视频开屏: 纯净的电影感开屏 —— 只有一段 16:9 视频背景 + 标题图 + 开始游戏图片按钮,

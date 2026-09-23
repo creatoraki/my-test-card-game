@@ -1,6 +1,6 @@
-import type { ShopSlot } from "@/data/shop";
-import type { CharacterState } from "@/store/townStore";
-import { canAddCopy, canAddRarity } from "@/store/deckCards";
+import type { ShopSlot } from "@/data/shop/shop";
+import type { CharacterState } from "@/store/town/townStore";
+import { canAddCopy, canAddRarity } from "@/store/town/deckCards";
 
 /**
  * 商店货位的购买状态真相点。

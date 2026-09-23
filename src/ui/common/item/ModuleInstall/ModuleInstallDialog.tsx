@@ -13,11 +13,11 @@ import { createPortal } from "react-dom";
 import { canEquipModule, getCardModule, getCharacter, getItemDef } from "@/data";
 import type { Card } from "@/engine";
 import type { ItemStack } from "@/items/types";
-import { useExploreStore } from "@/store/exploreStore";
-import { useTownStore } from "@/store/townStore";
-import { itemIcon } from "@/ui/art/itemArt";
-import { DeckCard } from "@/ui/character/DeckCard";
-import { cx } from "@/ui/common/cx";
+import { useExploreStore } from "@/store/explore/exploreStore";
+import { useTownStore } from "@/store/town/townStore";
+import { itemIcon } from "@/ui/art/items/itemArt";
+import { DeckCard } from "@/ui/common/card/DeckCard";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./ModuleInstallDialog.module.css";
 
 interface Props {

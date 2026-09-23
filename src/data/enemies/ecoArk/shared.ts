@@ -1,5 +1,5 @@
-import type { BoonEntry } from "../../../explore/types";
-import type { DropEntry } from "../../../items/types";
+import type { BoonEntry } from "@/explore/types";
+import type { DropEntry } from "@/items/types";
 
 /** 方舟回收通用维护零件，不混入废弃楼层的专属地区材料。 */
 export function arkDrops(tier: "minion" | "elite" | "boss", material: string): DropEntry[] {

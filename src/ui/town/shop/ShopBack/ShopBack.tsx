@@ -1,4 +1,4 @@
-import type { Chamfer } from "@/ui/common/NeonPlate/plateGeometry";
+import type { Chamfer } from "@/ui/common/frame/NeonPlate/plateGeometry";
 import { BackFrame } from "./BackFrame";
 import s from "./ShopBack.module.css";
 

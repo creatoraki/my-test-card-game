@@ -1,10 +1,10 @@
 // 右列: 升阶后属性可能变化的范围。纯文字两列(当前 / 升阶后)。
 // 区间怎么算的见 ../upgradeRange.ts —— 这里只负责画。
 
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import type { ItemDef } from "@/items/types";
 import { signedValue, type StatRangeRow, type UpgradeRangePreview } from "../upgradeRange";
-import { EquipAction, EquipGainHead } from "../../equipParts";
+import { EquipAction, EquipGainHead } from "../../EquipParts";
 import s from "./EquipGainColumn.module.css";
 
 interface Props {

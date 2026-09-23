@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { ambience, type AmbienceDef, type EmitterDef } from "@/ui/battle/ambience";
-import { STAGE } from "@/ui/hooks/stage";
-import { cx } from "@/ui/common/cx";
+import { ambience, type AmbienceDef, type EmitterDef } from "@/ui/battle/AmbienceLayer/ambience";
+import { STAGE } from "@/ui/app/shared/stage";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./AmbienceLayer.module.css";
 
 // ============================================================================

@@ -15,12 +15,12 @@
 }
 
 .viewport {
-  composes: viewport from "../../app/styles/stageCanvas.module.css";
+  composes: viewport from "@/ui/app/styles/stageCanvas.module.css";
   background: #000;
 }
 
 .stage {
-  composes: canvas from "../../app/styles/stageCanvas.module.css";
+  composes: canvas from "@/ui/app/styles/stageCanvas.module.css";
   composes: fm-type from "../styles/typeScale.module.css";
   composes: scene-veil-host from "../styles/sceneVeil.module.css";
 

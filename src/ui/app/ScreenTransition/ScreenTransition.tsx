@@ -10,12 +10,12 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
-import type { Screen } from "@/store/runStore";
-import { cx } from "@/ui/common/cx";
+import type { Screen } from "@/store/run/runStore";
+import { cx } from "@/ui/common/shared/cx";
 import { playSfx } from "@/ui/audio";
 import { BattleEntryGrading } from "@/ui/app/BattleEntryGrading";
 import { BattleTransitionCurtain } from "@/ui/app/BattleTransitionCurtain";
-import { takeTransitionOrigin, type TransitionOrigin } from "@/ui/app/transitionOrigin";
+import { takeTransitionOrigin, type TransitionOrigin } from "@/ui/app/shared/transitionOrigin";
 import {
   BATTLE_GRADE_SETTLE_MS,
   BATTLE_RIPPLE_MS,
@@ -23,7 +23,7 @@ import {
   prefersReducedMotion,
   resolveTransition,
   type TransitionSpec,
-} from "@/ui/app/transitions";
+} from "@/ui/app/shared/transitions";
 import s from "./ScreenTransition.module.css";
 
 interface Props {

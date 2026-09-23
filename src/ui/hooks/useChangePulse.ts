@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { prefersReducedMotion } from "@/ui/app/transitions";
+import { prefersReducedMotion } from "@/ui/app/shared/transitions";
 
 // 「同一个 key 的数值变了」脉冲。给出击背包/仓库的物品格用:
 // 物品**新进来**时格子是一次真挂载, CSS 的 mount 动画就够了; 但「连买两个同款」只是

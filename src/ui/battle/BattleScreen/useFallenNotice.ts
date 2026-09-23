@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Ally, BattleState } from "@/engine";
-import type { DeathPhase } from "@/ui/battle/deathChoreo";
-import { showBattleToast } from "@/ui/battle/battleToastStore";
+import type { DeathPhase } from "@/ui/battle/choreo/deathChoreo";
+import { showBattleToast } from "@/ui/battle/state/battleToastStore";
 
 interface Props {
   battle: BattleState | null;

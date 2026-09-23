@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { clearBattleToast, useBattleToast } from "@/ui/battle/battleToastStore";
+import { clearBattleToast, useBattleToast } from "@/ui/battle/state/battleToastStore";
 import s from "./BattleToast.module.css";
 
 export function BattleToast() {

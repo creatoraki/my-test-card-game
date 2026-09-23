@@ -2,7 +2,7 @@
 // 场景状态随远征会话保留, 战后返回原处; 房间之间的连通关系见 ../dungeon/types.ts。
 import type { NearMapVariant, PortalDir } from "../dungeon/types";
 import { NEAR_MAP_GEOMETRY } from "../dungeon/nearMapGeometry";
-import type { CurioLevel } from "../../data/curios/types";
+import type { CurioLevel } from "@/data/curios/types";
 import type { BattleTier } from "../types";
 
 export type CurioKind =

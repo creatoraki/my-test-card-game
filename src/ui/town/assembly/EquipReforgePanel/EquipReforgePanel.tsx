@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
-import type { EquipTarget } from "@/store/equipCraftSlice";
-import { useTownStore } from "@/store/townStore";
+import type { EquipTarget } from "@/store/townSlices/equipCraftSlice";
+import { useTownStore } from "@/store/town/townStore";
 import ItemTooltip, {
   tooltipPointFromElement,
   type TooltipDirection,
@@ -19,7 +19,7 @@ export function EquipReforgePanel() {
   const rollReforge = useTownStore((state) => state.rollReforge);
   const applyReforge = useTownStore((state) => state.applyReforge);
   const [selected, setSelected] = useState<EquipTarget | null>(null);
-  const [equipTab, setEquipTab] = useState<import("@/ui/common/item/itemFilters").EquipTab>("all");
+  const [equipTab, setEquipTab] = useState<import("@/ui/common/item/shared/itemFilters").EquipTab>("all");
   const [hovered, setHovered] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
 
   const sourceEntries = useMemo(() => buildEquipTargets(storage, characters), [characters, storage]);

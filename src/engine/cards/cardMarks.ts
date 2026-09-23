@@ -1,0 +1,86 @@
+import type { EffectDescriptor } from "../types";
+
+export interface CardMarkDef {
+  id: string;
+  name: string;
+  emoji: string;
+  desc: string;
+  effects: EffectDescriptor[];
+  costDelta?: number;
+  costOverride?: number;
+  preEffects?: EffectDescriptor[];
+  onDiscardEffects?: EffectDescriptor[];
+}
+
+export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
+  starPact: {
+    id: "starPact",
+    name: "星契",
+    emoji: "🌟",
+    desc: "这张牌可以用星辉替代法力水晶。",
+    effects: [],
+  },
+  mindsEye: {
+    id: "mindsEye",
+    name: "心眼",
+    emoji: "👁️",
+    desc: "打出此牌后，丢弃手牌第一张。",
+    effects: [{ type: "DISCARD", amount: 1, discardPick: "handTop" }],
+  },
+  heavy: {
+    id: "heavy",
+    name: "沉重",
+    emoji: "🪨",
+    desc: "这张牌的费用 +1。打出后移除。",
+    effects: [],
+    costDelta: 1,
+  },
+  scorching: {
+    id: "scorching",
+    name: "灼热",
+    emoji: "🔥",
+    desc: "打出后，所属角色获得 2 层灼烧，持续 2 拍。",
+    effects: [{ type: "APPLY_STATUS", status: "burn", stacks: 2, duration: 2, target: "self" }],
+  },
+  countercurrent: {
+    id: "countercurrent",
+    name: "逆流",
+    emoji: "🌀",
+    desc: "这张牌的费用 +1。打出后获得 1 层星辉，离手时移除。",
+    effects: [{ type: "APPLY_STATUS", status: "starlight", stacks: 1, target: "self" }],
+    costDelta: 1,
+  },
+  domino: {
+    id: "domino",
+    name: "多米诺",
+    emoji: "🁢",
+    desc: "这张牌的费用 +1。打出后抽 1 张牌，随后移除。",
+    effects: [{ type: "DRAW", amount: 1 }],
+    costDelta: 1,
+  },
+  swordMound: {
+    id: "swordMound",
+    name: "剑冢",
+    emoji: "🪦",
+    desc: "这张牌的费用 +1。",
+    effects: [],
+    costDelta: 1,
+  },
+  divineSight: {
+    id: "divineSight",
+    name: "神眼",
+    emoji: "👁️",
+    desc: "这张牌被丢弃时，将它的复制卡加入手牌。复制卡为消耗、虚无。",
+    effects: [],
+    onDiscardEffects: [{ type: "COPY_CARD_TO_HAND" }],
+  },
+  noto: {
+    id: "noto",
+    name: "纳刀",
+    emoji: "⚔️",
+    desc: "这张牌下回合开始取回手牌，费用为 0；若为攻击牌，本次伤害 +40%。",
+    effects: [],
+    costOverride: 0,
+    preEffects: [{ type: "PLAY_STAT_BONUS", stat: "attack", amount: 40, pct: true }],
+  },
+};

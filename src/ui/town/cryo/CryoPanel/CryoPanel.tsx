@@ -2,7 +2,7 @@
 // 疗养科技是疗养舱的子页, 用法同商店「设施升级」: 导航仍高亮疗养舱。
 import { useState, type CSSProperties } from "react";
 import { SANCTUARY_RULES } from "@/data";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
 import { ShopHeader } from "@/ui/town/shop/ShopHeader";
 import { NavigationRail } from "@/ui/town/shop/ShopNavigation";

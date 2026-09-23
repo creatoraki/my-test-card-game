@@ -1,7 +1,7 @@
 import { getItemDef, materialCount, type ModuleRecipe } from "@/data";
 import type { ItemStack } from "@/items/types";
 import ItemSlot from "@/ui/common/item/ItemSlot";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./CraftMaterialRack.module.css";
 
 interface Props {

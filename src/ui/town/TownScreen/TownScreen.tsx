@@ -25,12 +25,12 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { useRunStore } from "@/store/runStore";
-import { useTownStore } from "@/store/townStore";
+import { useRunStore } from "@/store/run/runStore";
+import { useTownStore } from "@/store/town/townStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
-import { cx } from "@/ui/common/cx";
-import PixelSwap from "@/ui/common/PixelSwap";
-import { STATION_BG_ART } from "@/ui/art/sceneArt";
+import { cx } from "@/ui/common/shared/cx";
+import PixelSwap from "@/ui/common/widget/PixelSwap";
+import { STATION_BG_ART } from "@/ui/art/explore/sceneArt";
 import {
   ENTER_TOTAL,
   FACILITY_CINEMA,
@@ -41,23 +41,23 @@ import {
   flyBackDelay,
   warmFacilityBg,
   type FlyOut,
-} from "@/ui/town/facilityScenes";
+} from "@/ui/town/TownScreen/facilityScenes";
 import { ResearchScene } from "@/ui/town/terminal/ResearchScene";
 import { CryoScene } from "@/ui/town/cryo/CryoScene";
 import { ShopScene } from "@/ui/town/shop/ShopScene";
 import { AssemblyScene } from "@/ui/town/assembly/AssemblyScene";
 import { MuseumScene } from "@/ui/town/museum";
-import { FacilityExitProvider, useFacilityExitRegistry } from "@/ui/town/facilityExit";
-import { clearTownReturn, peekTownReturn } from "@/ui/town/townReturn";
-import { FacilityBack } from "./FacilityBack";
-import { StationDock } from "./StationDock";
-import { SettingsGearButton } from "./SettingsGearButton";
-import { StationBot } from "./StationBot";
-import { StationHud } from "./StationHud";
-import { StationSettingsPanel } from "./StationSettings";
-import { StationLayer } from "./StationLayer";
+import { FacilityExitProvider, useFacilityExitRegistry } from "@/ui/town/TownScreen/facilityExit";
+import { clearTownReturn, peekTownReturn } from "@/ui/town/shared/townReturn";
+import { FacilityBack } from "./parts/FacilityBack";
+import { StationDock } from "./parts/StationDock";
+import { SettingsGearButton } from "./parts/SettingsGearButton";
+import { StationBot } from "./parts/StationBot";
+import { StationHud } from "./parts/StationHud";
+import { StationSettingsPanel } from "./parts/StationSettings";
+import { StationLayer } from "./parts/StationLayer";
 import { buildingOfFacility, type StationBuilding } from "./stationBuildings";
-import { guardSortie, useFormationTodo } from "../formationTodo";
+import { guardSortie, useFormationTodo } from "../FormationTodo";
 import s from "./TownScreen.module.css";
 
 const isTest = import.meta.env.isTest === "true";

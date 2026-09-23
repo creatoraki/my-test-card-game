@@ -1,11 +1,11 @@
 import type { BattleState } from "@/engine";
-import { confirm } from "@/ui/common/ConfirmDialog";
+import { confirm } from "@/ui/common/control/ConfirmDialog";
 import {
   AudioSettingsRows,
   SettingsAction,
   SettingsActions,
   SettingsPanelShell,
-} from "@/ui/common/SettingsPanel";
+} from "@/ui/common/control/SettingsPanel";
 import s from "./BattleSettingsPanel.module.css";
 
 interface Props {

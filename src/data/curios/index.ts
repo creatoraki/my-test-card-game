@@ -1,20 +1,20 @@
 import type { BattleTier, NodeEvent } from "@/explore/types";
 import type { CurioKind } from "@/explore/corridor/types";
-import { CRAFT_CURIOS } from "./craftCurios";
-import { ARK_CURIOS } from "./ecoArk";
-import { GROWTH_CURIOS } from "./growthCurios";
-import { LOOT_CURIOS } from "./lootCurios";
-import { TRAP_CURIOS } from "./trapCurios";
-import { SCAVENGE_CURIOS } from "./scavengeCurios";
-import { SERVICE_CURIOS } from "./serviceCurios";
-import { SUPPLY_CURIOS } from "./supplyCurios";
-import { TUTORIAL_CURIOS } from "./tutorialCurios";
+import { CRAFT_CURIOS } from "./defs/craftCurios";
+import { ARK_CURIOS } from "./defs/ecoArk";
+import { GROWTH_CURIOS } from "./defs/growthCurios";
+import { LOOT_CURIOS } from "./defs/lootCurios";
+import { TRAP_CURIOS } from "./defs/trapCurios";
+import { SCAVENGE_CURIOS } from "./defs/scavengeCurios";
+import { SERVICE_CURIOS } from "./defs/serviceCurios";
+import { SUPPLY_CURIOS } from "./defs/supplyCurios";
+import { TUTORIAL_CURIOS } from "./defs/tutorialCurios";
 import type { CurioDef } from "./types";
 
-export * from "./critters";
-export * from "./levelRules";
-export * from "./merchantPricing";
-export * from "./rewardPools";
+export * from "./defs/critters";
+export * from "./rules/levelRules";
+export * from "./rules/merchantPricing";
+export * from "./rules/rewardPools";
 export * from "./types";
 
 export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {

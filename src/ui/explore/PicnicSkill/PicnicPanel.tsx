@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { getItemDef } from "@/data";
-import { picnicFoods } from "@/explore/picnic";
-import type { PicnicResult } from "@/explore/picnic";
-import { EXPLORE_RULES } from "@/explore/rules";
-import { useExploreStore } from "@/store/exploreStore";
-import { runPicnic } from "@/store/picnicActions";
+import { picnicFoods } from "@/explore/resources/picnic";
+import type { PicnicResult } from "@/explore/resources/picnic";
+import { EXPLORE_RULES } from "@/explore/core/exploreRules";
+import { useExploreStore } from "@/store/explore/exploreStore";
+import { runPicnic } from "@/store/explore/picnicActions";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
 import {
   EventPanelBody,
@@ -13,9 +13,9 @@ import {
   EventPanelFrame,
   EventPanelResult,
   EventPanelStage,
-} from "@/ui/common/EventPanel";
+} from "@/ui/common/widget/EventPanel";
 import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./PicnicPanel.module.css";
 
 export default function PicnicPanel({ onClose }: { onClose: () => void }) {

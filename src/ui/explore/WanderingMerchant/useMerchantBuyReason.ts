@@ -1,9 +1,9 @@
 import { useCallback } from "react";
-import type { ShopSlot } from "@/data/shop";
+import type { ShopSlot } from "@/data/shop/shop";
 import { merchantBuyReason } from "@/explore/curio/merchant";
 import type { ExploreState } from "@/explore/types";
-import { canAddCopy, canAddRarity } from "@/store/deckCards";
-import { useTownStore } from "@/store/townStore";
+import { canAddCopy, canAddRarity } from "@/store/town/deckCards";
+import { useTownStore } from "@/store/town/townStore";
 import { merchantIndexFromKey } from "./merchantShopSlots";
 
 /** 货商购买判定：纯探索条件与卡组容量条件在 UI 侧合并成一个真相点。 */

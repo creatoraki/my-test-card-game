@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { cx } from "@/ui/common/cx";
-import { DetailFrame } from "@/ui/common/DetailFrame";
+import { cx } from "@/ui/common/shared/cx";
+import { DetailFrame } from "@/ui/common/frame/DetailFrame";
 import s from "./ShopWindow.module.css";
 
 interface Props {

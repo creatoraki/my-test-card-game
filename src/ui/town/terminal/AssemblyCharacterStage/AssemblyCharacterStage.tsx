@@ -1,7 +1,7 @@
 import { useEffect, useRef, type CSSProperties, type KeyboardEvent } from "react";
 import { getCharacter } from "@/data";
-import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
-import { cx } from "@/ui/common/cx";
+import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./AssemblyCharacterStage.module.css";
 
 /** 与 .characterList 的 grid-template-columns 保持一致 —— 上下键要按整行跨。 */

@@ -9,10 +9,10 @@ import type { StatBlock } from "@/engine";
 import { rollPerfectness, rollToFlat } from "@/items/equipRoll";
 import type { ItemStack } from "@/items/types";
 import { CATEGORY_LABEL, RARITY_LABEL, SLOT_LABEL } from "@/items/types";
-import { BondIcon } from "@/ui/common/BondIcon";
-import { cx } from "@/ui/common/cx";
-import { itemIcon } from "@/ui/art/itemArt";
-import { isPercentStat } from "@/ui/common/statGroups";
+import { BondIcon } from "@/ui/common/bond/BondIcon";
+import { cx } from "@/ui/common/shared/cx";
+import { itemIcon } from "@/ui/art/items/itemArt";
+import { isPercentStat } from "@/ui/common/shared/statGroups";
 import s from "./ItemDetail.module.css";
 
 // 属性中文名。⚠ 与 CryoScene 的队员档案是同一套口径, 改名要一起改。

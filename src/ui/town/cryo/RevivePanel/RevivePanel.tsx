@@ -1,7 +1,7 @@
 import { useMemo, type CSSProperties } from "react";
 import { CHARACTERS, getCharacter } from "@/data";
 import { RULES } from "@/engine";
-import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
+import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { CryoFigureStrip } from "../CryoFigureStrip";
 import { MarketActionButton } from "@/ui/town/shop/MarketPanel";

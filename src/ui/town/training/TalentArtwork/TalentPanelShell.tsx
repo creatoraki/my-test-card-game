@@ -1,7 +1,7 @@
 import { useEffect, type CSSProperties, type ReactNode, type Ref } from "react";
 import { playSfx } from "@/ui/audio";
-import { box, type Rect } from "@/ui/common/panelMorph";
-import { TALENT_BG_ART } from "@/ui/art/sceneArt";
+import { box, type Rect } from "@/ui/common/frame/panelMorph";
+import { TALENT_BG_ART } from "@/ui/art/explore/sceneArt";
 import { TalentBorder } from "./TalentBorder";
 import s from "./TalentPanelShell.module.css";
 

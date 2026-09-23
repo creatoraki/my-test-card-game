@@ -1,5 +1,5 @@
-import type { CharacterState } from "@/store/townStore";
-import type { EquipTarget } from "@/store/equipCraftSlice";
+import type { CharacterState } from "@/store/town/townStore";
+import type { EquipTarget } from "@/store/townSlices/equipCraftSlice";
 import { getCharacter, getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 

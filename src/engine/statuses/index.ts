@@ -1,5 +1,5 @@
 import type { StatusDef } from "../types";
-import { registerStatusDefs } from "../hookRegistry";
+import { registerStatusDefs } from "../core/hookRegistry";
 import { BUFF_STATUS_DEFS } from "./buffs";
 import { CONTROL_STATUS_DEFS } from "./control";
 import { DEBUFF_STATUS_DEFS } from "./debuffs";

@@ -3,7 +3,7 @@
 // ★ 层板画在这一层而不是外壳里: 层数与分组由数据(商品是否可堆叠)决定, 外壳不该知道有几块板。
 
 import { memo } from "react";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import StockSlot from "./StockSlot";
 import s from "./ShelfRow.module.css";
 

@@ -7,7 +7,7 @@
 // 时序全部由本文件通过 delay/duration 下发, 关键帧留在 CSS Modules 内;
 // 速率由 --fx-rate 统一缩放, 本组件内部先沿基准轴计算, 下发时再除以 KEEN_RATE。
 import type { CSSProperties } from "react";
-import type { ProcFxPreset } from "@/ui/battle/animations";
+import type { ProcFxPreset } from "@/ui/battle/choreo/animations";
 import {
   CONVERGE_MOTES,
   DUST_MOTES,

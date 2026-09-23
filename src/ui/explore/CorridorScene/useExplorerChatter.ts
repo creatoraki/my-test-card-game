@@ -3,8 +3,8 @@ import { EXPLORER_LINES, type ExplorerLineKind } from "@/data";
 import { energyTier, backpackSlots } from "@/explore/session";
 import type { PortalDir } from "@/explore/dungeon/types";
 import { RULES } from "@/engine";
-import { useExploreStore } from "@/store/exploreStore";
-import { useBotChatter, type ChatLine } from "@/ui/common/ChatBot";
+import { useExploreStore } from "@/store/explore/exploreStore";
+import { useBotChatter, type ChatLine } from "@/ui/common/widget/ChatBot";
 
 const EXPLORER_IDLE_RANGE = [10000, 16000] as const;
 const WALK_MIN_MS = 10000;

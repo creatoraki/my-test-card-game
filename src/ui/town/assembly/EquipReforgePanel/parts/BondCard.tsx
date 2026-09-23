@@ -1,6 +1,6 @@
 import { getBondDef } from "@/data";
-import { BondIcon } from "@/ui/common/BondIcon";
-import { cx } from "@/ui/common/cx";
+import { BondIcon } from "@/ui/common/bond/BondIcon";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./BondCard.module.css";
 
 interface Props {

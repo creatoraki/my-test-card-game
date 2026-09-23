@@ -1,13 +1,13 @@
 // 战斗之后 —— 结算回填、重开、战中撤退与胜利面板确认。
 
-import type { Ally, BattleState, Enemy } from "../../engine";
-import { earnedChallengeBonus, getStatus } from "../../engine";
-import { getEnemyDef } from "../../data";
-import { dropCoefficient, energyTier, rewardMultiplier } from "../../explore/session";
-import { useBattleStore } from "../battleStore";
-import { settleFallenGear } from "../exploreAftermath";
-import { useExploreStore } from "../exploreStore";
-import { useTownStore } from "../townStore";
+import type { Ally, BattleState, Enemy } from "@/engine";
+import { earnedChallengeBonus, getStatus } from "@/engine";
+import { getEnemyDef } from "@/data";
+import { dropCoefficient, energyTier, rewardMultiplier } from "@/explore/session";
+import { useBattleStore } from "../battle/battleStore";
+import { settleFallenGear } from "../explore/exploreAftermath";
+import { useExploreStore } from "../explore/exploreStore";
+import { useTownStore } from "../town/townStore";
 import { bankEverything, settleClear, settleRetreatScreen } from "./expeditionEnd";
 import { launchBattle } from "./launchBattle";
 import { syncMemberStats } from "./party";

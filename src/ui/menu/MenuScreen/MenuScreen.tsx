@@ -1,9 +1,9 @@
-import { useRunStore } from "@/store/runStore";
+import { useRunStore } from "@/store/run/runStore";
 import { useGameAssetPreload } from "@/ui/hooks/useGameAssetPreload";
 import { StageCanvas } from "@/ui/app/StageCanvas";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { MenuStartButton } from "@/ui/menu/MenuStartButton";
-import { MENU_BG_VIDEO, MENU_TITLE_ART } from "@/ui/art/sceneArt";
+import { MENU_BG_VIDEO, MENU_TITLE_ART } from "@/ui/art/explore/sceneArt";
 import s from "./MenuScreen.module.css";
 
 export function MenuScreen() {

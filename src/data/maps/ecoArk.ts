@@ -1,4 +1,4 @@
-import type { MapDef } from "../maps";
+import type { MapDef } from "./index";
 
 /** 同样是十二间房，通过敌人协作与轻度数值提升形成半档进阶。 */
 export const ECO_ARK_MAP: MapDef = {

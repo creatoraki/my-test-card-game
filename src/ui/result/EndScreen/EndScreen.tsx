@@ -3,14 +3,14 @@
 // 一趟远征结束时那一列就是完整的故事, 比任何汇总数字都更值得看。
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { useExploreStore } from "@/store/exploreStore";
-import { relicScrapSellBonus } from "@/explore/relicModifiers";
-import { useRunStore } from "@/store/runStore";
-import { techLevels, useTownStore } from "@/store/townStore";
-import { EXPEDITION_RESULT_BG_ART } from "@/ui/art/sceneArt";
-import { cx } from "@/ui/common/cx";
+import { useExploreStore } from "@/store/explore/exploreStore";
+import { relicScrapSellBonus } from "@/explore/relics/relicModifiers";
+import { useRunStore } from "@/store/run/runStore";
+import { techLevels, useTownStore } from "@/store/town/townStore";
+import { EXPEDITION_RESULT_BG_ART } from "@/ui/art/explore/sceneArt";
+import { cx } from "@/ui/common/shared/cx";
 import { StageCanvas } from "@/ui/app/StageCanvas";
-import { prefersReducedMotion } from "@/ui/app/transitions";
+import { prefersReducedMotion } from "@/ui/app/shared/transitions";
 import { EventDropBand } from "./parts/EventDropBand";
 import { EndHaulPanel } from "./parts/EndHaulPanel";
 import { EndClearReward } from "./parts/EndClearReward";

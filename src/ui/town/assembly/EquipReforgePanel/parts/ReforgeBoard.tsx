@@ -1,11 +1,11 @@
 import type { CostCheck } from "@/data";
 import type { ItemDef, ItemStack } from "@/items/types";
-import type { PendingReforge } from "@/store/equipCraftSlice";
-import type { EquipTab } from "@/ui/common/item/itemFilters";
+import type { PendingReforge } from "@/store/townSlices/equipCraftSlice";
+import type { EquipTab } from "@/ui/common/item/shared/itemFilters";
 import type { TooltipDirection } from "@/ui/common/item/ItemTooltip";
-import { EquipForgeColumn, EquipPickColumn, type PickEntry } from "../../equipParts";
+import { EquipForgeColumn, EquipPickColumn, type PickEntry } from "../../EquipParts";
 import { ReforgeResultColumn } from "./ReforgeResultColumn";
-import s from "../../equipParts/equipBoard.module.css";
+import s from "../../EquipParts/equipBoard.module.css";
 
 interface Props {
   entries: PickEntry[];

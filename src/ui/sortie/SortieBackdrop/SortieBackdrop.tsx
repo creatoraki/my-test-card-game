@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { MapDef } from "@/data";
-import { mapArt, warmMapArt } from "@/ui/art/mapArt";
-import { cx } from "@/ui/common/cx";
+import { mapArt, warmMapArt } from "@/ui/art/explore/mapArt";
+import { cx } from "@/ui/common/shared/cx";
 import { MapMissionInfo } from "@/ui/sortie/MapMissionInfo";
 import s from "./SortieBackdrop.module.css";
 

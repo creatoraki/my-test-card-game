@@ -1,9 +1,9 @@
 // 城镇角色档案 ↔ 探索层队伍快照的换算。
 
-import { getCharacter } from "../../data";
-import type { PartySnapshot } from "../../explore/types";
-import { useExploreStore } from "../exploreStore";
-import { deriveStats, useTownStore, vitalsOf } from "../townStore";
+import { getCharacter } from "@/data";
+import type { PartySnapshot } from "@/explore/types";
+import { useExploreStore } from "../explore/exploreStore";
+import { deriveStats, useTownStore, vitalsOf } from "../town/townStore";
 
 // 上阵角色 → 探索层的队伍快照。血量在整趟远征里由 exploreStore 持有并跨战斗继承。
 // ★ 出发时**不回满**: 当前 HP 与体力极限直接读城镇存档(vitalsOf) —— 上一趟远征留下的

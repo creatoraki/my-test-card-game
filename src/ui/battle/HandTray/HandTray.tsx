@@ -1,7 +1,7 @@
 import { memo } from "react";
 import type { BattleState, Card } from "@/engine";
 import { cardActivated, cardCost, playBlockReason, starlightPayment } from "@/engine";
-import { HandCard } from "@/ui/battle/HandCard";
+import { HandCard } from "@/ui/common/card/HandCard";
 import type { HandAction } from "@/ui/battle/HandTools";
 import s from "./HandTray.module.css";
 

@@ -1,7 +1,7 @@
 // 研究中心「科技树」页: 公共科技板 + 分类页签, 研究动作只派发 townStore.researchTech。
 import { useEffect, useMemo, useState } from "react";
 import { TECH_CATEGORIES } from "@/data";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import { TechnologyBoard } from "@/ui/common/techTree/TechnologyBoard";
 import type { TechnologyTab } from "@/ui/common/techTree/TechnologyTree";
 import {

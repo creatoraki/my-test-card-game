@@ -1,7 +1,7 @@
 // 导航牌几何（按 1920 设计像素实测）：
 // 每个导航项占一个固定槽位；选中态是槽位上部 (h - NAV_SLOT_INSET) 高的切角玻璃卡，
 // 未选中态没有底板，只有槽位顶部下移 NAV_SLOT_INSET 的分隔线 + 左右竖线，末行再补底线与右下切角。
-import { chamferPath, type Chamfer } from "@/ui/common/NeonPlate/plateGeometry";
+import { chamferPath, type Chamfer } from "@/ui/common/frame/NeonPlate/plateGeometry";
 
 /** 未选中行分隔线相对槽位顶部的下移量；选中卡同样短出这段，形成卡与下一行的空隙。 */
 export const NAV_SLOT_INSET = 6;

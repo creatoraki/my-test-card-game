@@ -1,4 +1,4 @@
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import type { TechnologyTab } from "@/ui/common/techTree/TechnologyTree/types";
 import s from "./TechnologyTabs.module.css";
 

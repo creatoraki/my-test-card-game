@@ -19,23 +19,23 @@ import {
   canUseItem,
   partyBurdenAdapt,
 } from "@/explore/session";
-import { EXPLORE_RULES } from "@/explore/rules";
+import { EXPLORE_RULES } from "@/explore/core/exploreRules";
 import { canShipHome, layoutBackpack, stackSlots } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
-import { useExploreStore } from "@/store/exploreStore";
+import { useExploreStore } from "@/store/explore/exploreStore";
 import ItemDetail from "@/ui/common/item/ItemDetail";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
 import ItemTabs from "@/ui/common/item/ItemTabs";
-import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/itemFilters";
+import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/shared/itemFilters";
 import {
   EventPanelBody,
   EventPanelButton,
   EventPanelFoot,
   EventPanelFrame,
   EventPanelStage,
-} from "@/ui/common/EventPanel";
+} from "@/ui/common/widget/EventPanel";
 import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./BackpackPanel.module.css";
 
 const COLS = 8; // 8 × 3 = 24。只影响 CSS grid 的列数, 排布本身与列数无关。

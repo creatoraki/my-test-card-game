@@ -1,12 +1,12 @@
 import { type CSSProperties, type MutableRefObject, type ReactNode, type RefObject } from "react";
 import { validFoeTargetIds, type BattleState, type Enemy } from "@/engine";
 import type { EnemyPlacement } from "@/data";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { CombatantView } from "@/ui/battle/CombatantView";
 import { AmbienceLayer } from "@/ui/battle/AmbienceLayer";
-import type { HitFx } from "@/ui/battle/animations";
-import type { DeathPhase } from "@/ui/battle/deathChoreo";
-import type { TelegraphKind } from "@/ui/battle/unitShell";
+import type { HitFx } from "@/ui/battle/choreo/animations";
+import type { DeathPhase } from "@/ui/battle/choreo/deathChoreo";
+import type { TelegraphKind } from "@/ui/battle/choreo/unitShell";
 import { PlaneUnit } from "./PlaneUnit";
 import { useSetMember } from "./useSetMember";
 import s from "./BattleStageLayer.module.css";

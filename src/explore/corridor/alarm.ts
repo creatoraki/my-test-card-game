@@ -1,6 +1,6 @@
 // 交互失败拉响的警报: 结算期间只登记档位, 玩家确认结算回到场景后才生成守卫战,
 // 避免遭遇演出打断结算面板与待拾取物品。
-import { corridorAlarmEvent } from "../../data/curios";
+import { corridorAlarmEvent } from "@/data/curios";
 import type { BattleTier, ExploreState } from "../types";
 import { spawnCorridorEncounter } from "./ambush";
 

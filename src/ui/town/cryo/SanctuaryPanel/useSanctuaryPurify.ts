@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { getItemDef } from "@/data";
-import { SANCTUARY_RULES } from "@/data/sanctuary";
+import { SANCTUARY_RULES } from "@/data/facilities/sanctuary";
 import type { ItemStack } from "@/items/types";
-import type { SanctuaryState } from "@/store/townStore";
+import type { SanctuaryState } from "@/store/town/townStore";
 
 interface Params {
   storage: ItemStack[];

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { hasCorridorRewards } from "@/explore/corridor/session";
+import { hasCorridorRewards } from "@/explore/corridor/corridorSession";
 import type { ItemStack } from "@/items/types";
-import { useExploreStore } from "@/store/exploreStore";
+import { useExploreStore } from "@/store/explore/exploreStore";
 import { playSfx } from "@/ui/audio";
 import { useLootPick } from "@/ui/explore/LootPickup";
 

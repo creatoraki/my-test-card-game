@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import type { NodeHistoryEntry } from "@/explore/types";
-import { prefersReducedMotion } from "@/ui/app/transitions";
-import { cx } from "@/ui/common/cx";
-import { RouteEventIcon } from "@/ui/common/RouteBoard/RouteEventIcon";
-import { eventKindLabel } from "@/ui/explore/eventKindLabel";
+import { prefersReducedMotion } from "@/ui/app/shared/transitions";
+import { cx } from "@/ui/common/shared/cx";
+import { RouteEventIcon } from "@/ui/common/widget/RouteBoard/RouteEventIcon";
+import { eventKindLabel } from "@/ui/result/EndScreen/parts/eventKindLabel";
 import { endStepMs, endTiming } from "../endChoreo";
 import s from "./EventDropBand.module.css";
 

@@ -1,8 +1,8 @@
 import { burdenDodgePenalty, burdenHitPenalty, burdenPrecisionPenalty, RULES } from "@/engine";
 import { backpackSlots, burdenNow, partyBurdenAdapt } from "@/explore/session";
-import { useExploreStore } from "@/store/exploreStore";
-import { RailPopover } from "@/ui/common/RailPopover";
-import { TooltipCard } from "@/ui/common/TooltipCard";
+import { useExploreStore } from "@/store/explore/exploreStore";
+import { RailPopover } from "@/ui/common/tooltip/RailPopover";
+import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import s from "./BurdenGauge.module.css";
 

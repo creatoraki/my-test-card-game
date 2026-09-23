@@ -1,4 +1,4 @@
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import ItemIconFrame from "@/ui/common/item/ItemIconFrame";
 import type { TechnologyNode } from "@/ui/common/techTree/TechnologyTree/types";
 import s from "./TechnologyMaterials.module.css";

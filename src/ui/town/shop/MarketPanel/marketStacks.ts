@@ -1,4 +1,4 @@
-import type { ShopItemSlot } from "@/data/shop";
+import type { ShopItemSlot } from "@/data/shop/shop";
 import type { ItemStack } from "@/items/types";
 
 export const asStack = (slot: ShopItemSlot): ItemStack => ({

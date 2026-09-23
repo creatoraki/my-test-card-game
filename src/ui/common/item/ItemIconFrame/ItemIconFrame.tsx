@@ -16,8 +16,8 @@ import {
 } from "react";
 import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { itemIcon } from "@/ui/art/itemArt";
-import { cx } from "@/ui/common/cx";
+import { itemIcon } from "@/ui/art/items/itemArt";
+import { cx } from "@/ui/common/shared/cx";
 import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import s from "./ItemIconFrame.module.css";
 

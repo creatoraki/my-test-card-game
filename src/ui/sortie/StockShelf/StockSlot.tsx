@@ -8,8 +8,8 @@
 
 import { memo, useCallback } from "react";
 import { getItemDef } from "@/data";
-import { itemIcon } from "@/ui/art/itemArt";
-import { cx } from "@/ui/common/cx";
+import { itemIcon } from "@/ui/art/items/itemArt";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./StockSlot.module.css";
 
 interface Props {

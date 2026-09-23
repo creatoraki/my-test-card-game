@@ -7,9 +7,9 @@ import {
   visibleMaps,
   type MapDifficulty,
 } from "@/data";
-import { useRunStore } from "@/store/runStore";
-import { useSortieStore } from "@/store/sortieStore";
-import { useTownStore } from "@/store/townStore";
+import { useRunStore } from "@/store/run/runStore";
+import { useSortieStore } from "@/store/sortie/sortieStore";
+import { useTownStore } from "@/store/town/townStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
 import { MapSelectStep } from "@/ui/sortie/MapSelectStep";
 import { PrepStep } from "@/ui/sortie/PrepStep";
@@ -17,8 +17,8 @@ import { SortieBackdrop } from "@/ui/sortie/SortieBackdrop";
 import { SortieNav } from "@/ui/sortie/SortieNav";
 import { SortieRelicPanel } from "@/ui/sortie/SortieRelicPanel";
 import { SortieStepViewport } from "@/ui/sortie/SortieStepViewport";
-import { useSortieStepTransition } from "@/ui/sortie/sortieStepTransition";
-import { usePanelMorph, type Rect } from "@/ui/common/panelMorph";
+import { useSortieStepTransition } from "@/ui/sortie/SortieScreen/sortieStepTransition";
+import { usePanelMorph, type Rect } from "@/ui/common/frame/panelMorph";
 import s from "./SortieScreen.module.css";
 
 const isTest = import.meta.env.isTest === "true";

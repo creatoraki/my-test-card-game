@@ -13,7 +13,7 @@ import type { StatBlock } from "@/engine";
 import { AFFIX_SCALE, DEFAULT_UPGRADE_ADD } from "@/items/equipRoll";
 import type { EquipRoll, ItemDef } from "@/items/types";
 import { STAT_LABEL } from "@/ui/common/item/ItemDetail";
-import { isPercentStat } from "@/ui/common/statGroups";
+import { isPercentStat } from "@/ui/common/shared/statGroups";
 
 export interface StatRangeRow {
   stat: keyof StatBlock;

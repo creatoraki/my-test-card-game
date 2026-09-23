@@ -1,12 +1,12 @@
 ﻿import { useEffect, useState } from "react";
 import { getCharacter, getItemDef } from "@/data";
-import { EQUIP_SLOTS } from "@/store/townStore";
+import { EQUIP_SLOTS } from "@/store/town/townStore";
 import { SLOT_LABEL, type EquipSlot, type ItemStack } from "@/items/types";
 import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
-import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
+import { inventoryThemeVars } from "@/ui/common/item/shared/inventoryTheme";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
-import { EventPanelStage, EventPanelBody, EventPanelFoot, EventPanelButton, EventPanelNotice } from "@/ui/common/EventPanel";
+import { EventPanelStage, EventPanelBody, EventPanelFoot, EventPanelButton, EventPanelNotice } from "@/ui/common/widget/EventPanel";
 import s from "@/ui/explore/styles/rewardKit.module.css";
 export function EquipOffers({
   offers,

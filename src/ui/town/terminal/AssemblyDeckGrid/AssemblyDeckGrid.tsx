@@ -2,9 +2,9 @@ import type { CSSProperties } from "react";
 import type { Card } from "@/engine";
 import type { ItemStack } from "@/items/types";
 import { canEquipModule } from "@/data";
-import { getModuleTheme } from "@/ui/art/moduleGlyphs";
-import { DeckCard } from "@/ui/character/DeckCard";
-import { cx } from "@/ui/common/cx";
+import { getModuleTheme } from "@/ui/art/moduleGlyphs/moduleGlyphs";
+import { DeckCard } from "@/ui/common/card/DeckCard";
+import { cx } from "@/ui/common/shared/cx";
 import { CardModuleIcon } from "@/ui/town/assembly/AssemblyScene/icons";
 import s from "./AssemblyDeckGrid.module.css";
 

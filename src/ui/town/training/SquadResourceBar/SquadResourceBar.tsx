@@ -8,8 +8,8 @@ import {
 } from "@/engine";
 import { useState, type CSSProperties } from "react";
 import { squadModsOf, type SquadResourceKey } from "@/data";
-import { useTownStore } from "@/store/townStore";
-import { cx } from "@/ui/common/cx";
+import { useTownStore } from "@/store/town/townStore";
+import { cx } from "@/ui/common/shared/cx";
 import { TrackIcon } from "../TalentTreeRadial/icons";
 import { TalentResourceFrame } from "../TalentArtwork/TalentResourceFrame";
 import s from "./SquadResourceBar.module.css";

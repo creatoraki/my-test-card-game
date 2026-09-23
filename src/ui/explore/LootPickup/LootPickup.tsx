@@ -1,25 +1,25 @@
 import { useEffect, useState } from "react";
 import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { useExploreStore } from "@/store/exploreStore";
-import { useRevealPresence } from "@/ui/common/ModalReveal";
+import { useExploreStore } from "@/store/explore/exploreStore";
+import { useRevealPresence } from "@/ui/common/frame/ModalReveal";
 import {
   EventPanelBody,
   EventPanelButton,
   EventPanelFoot,
   EventPanelFrame,
   EventPanelStage,
-} from "@/ui/common/EventPanel";
+} from "@/ui/common/widget/EventPanel";
 import ItemTooltip, {
   tooltipPointFromElement,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import { useLootModuleActions } from "@/ui/common/item/ModuleInstall";
-import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
+import { inventoryThemeVars } from "@/ui/common/item/shared/inventoryTheme";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { useLootPick } from "./useLootPick";
 import s from "./LootPickup.module.css";
 

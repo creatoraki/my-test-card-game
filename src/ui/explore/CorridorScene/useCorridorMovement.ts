@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { bossGateNear, clampCorridorX, nearbyObjects, portalAt } from "@/explore/corridor/session";
+import { bossGateNear, clampCorridorX, nearbyObjects, portalAt } from "@/explore/corridor/corridorSession";
 import { encounterSpot } from "@/explore/corridor/ambush";
 import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
 import type { PortalDir } from "@/explore/dungeon/types";
 import {
   inspectCorridorObject, markStandingPortal,
   openBossGateAt, saveCorridorPosition, travelThroughPortal,
-} from "@/store/exploreCorridor";
+} from "@/store/explore/exploreCorridor";
 import {
   deriveCorridorMovementView,
   hasCorridorMovementViewChanged,

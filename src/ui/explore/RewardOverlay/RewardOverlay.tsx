@@ -6,18 +6,18 @@
 //   本文件只负责: 奖励种类 → 内容与文案。
 import { useEffect, useState } from "react";
 import type { ExploreState, PendingAction } from "@/explore/types";
-import { useTownStore } from "@/store/townStore";
-import { useExploreStore } from "@/store/exploreStore";
-import { useRunStore } from "@/store/runStore";
-import { cx } from "@/ui/common/cx";
-import { useRevealPresence } from "@/ui/common/ModalReveal";
-import { EventPanelFrame } from "@/ui/common/EventPanel";
+import { useTownStore } from "@/store/town/townStore";
+import { useExploreStore } from "@/store/explore/exploreStore";
+import { useRunStore } from "@/store/run/runStore";
+import { cx } from "@/ui/common/shared/cx";
+import { useRevealPresence } from "@/ui/common/frame/ModalReveal";
+import { EventPanelFrame } from "@/ui/common/widget/EventPanel";
 import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import { DOSSIER_ACCENT } from "@/ui/explore/EventDossier";
 import RelicOffers from "./RelicOffers";
 import { ReplaceCardReward } from "./ReplaceCardReward";
 import { EquipmentTuneReward } from "./EquipmentTuneReward";
-import { replaceExploreCard } from "@/store/exploreGrowthServices";
+import { replaceExploreCard } from "@/store/explore/exploreGrowthServices";
 import { CharacterPicker, PartyReward, QuirkReward, PurifyReward } from "./RewardCharacters";
 import { FreeDraw, FreeRemove } from "./RewardCards";
 import { EquipOffers, ReforgePicker } from "./RewardEquipment";

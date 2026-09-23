@@ -1,8 +1,8 @@
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { ShopBack } from "@/ui/town/shop/ShopBack";
 import { ShopBrand } from "@/ui/town/shop/ShopScene/ShopBrand";
 import { ShopSidebar } from "@/ui/town/shop/ShopSidebar";
-import theme from "../museumTheme.module.css";
+import theme from "../styles/museumTheme.module.css";
 import { MuseumPanel } from "../MuseumPanel";
 import s from "./MuseumScene.module.css";
 

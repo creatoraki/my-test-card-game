@@ -1,5 +1,5 @@
 import type { DamageCtx, StatusDef, StatusCtx } from "../types";
-import { growInsurance, settleInsurance } from "../insurance";
+import { growInsurance, settleInsurance } from "../combat/insurance";
 
 function isEnemyAttack(c: StatusCtx, dmg: DamageCtx): boolean {
   return dmg.isAttack && Boolean(dmg.sourceId && c.state.combatants[dmg.sourceId]?.team === "enemy");

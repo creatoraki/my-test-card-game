@@ -1,8 +1,8 @@
-import { BLESSING_RELIC_DEFS } from "./blessings/index";
+import { BLESSING_RELIC_DEFS } from "./blessings";
 import { CURSE_RELIC_DEFS } from "./curses";
 import { PICNIC_RELIC_DEFS } from "./blessings/picnic";
 
-export { BLESSING_RELIC_DEFS } from "./blessings/index";
+export { BLESSING_RELIC_DEFS } from "./blessings";
 export { CURSE_RELIC_DEFS } from "./curses";
 export { PICNIC_RELIC_DEFS } from "./blessings/picnic";
 

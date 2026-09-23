@@ -8,7 +8,7 @@
 // K 的换算在 explore/session/drops.ts(它才认识净化粒子与挑战词条), 本模块只消费算好的结果。
 // ============================================================================
 
-import { rngFloat, rngInt } from "../engine/rng";
+import { rngFloat, rngInt } from "@/engine/core/rng";
 import { rollEquipment } from "./equipRoll";
 import type { DropEntry, EquipRoll, ItemDef, ItemRarity, ItemStack } from "./types";
 import { RARITY_ORDER } from "./types";

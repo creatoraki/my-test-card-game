@@ -8,7 +8,7 @@
 // ============================================================================
 
 import type { CurioKind } from "../corridor/types";
-import type { CurioLevel, MerchantShelf } from "../../data/curios/types";
+import type { CurioLevel, MerchantShelf } from "@/data/curios/types";
 import type { BattleTier } from "../types";
 
 export type PortalDir = "up" | "down" | "left" | "right";

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { prefersReducedMotion } from "@/ui/app/transitions";
+import { prefersReducedMotion } from "@/ui/app/shared/transitions";
 
 // 逐字机: 把一段叙事文本按「一个字一个字打出来」的节奏交给渲染层。
 //

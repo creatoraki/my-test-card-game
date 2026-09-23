@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { getItemDef } from "@/data";
 import type { EquipSlot, ItemStack } from "@/items/types";
-import type { CharacterState } from "@/store/townStore";
+import type { CharacterState } from "@/store/town/townStore";
 import { previewStatsWith } from "./equipPreview";
 
 export function useEquipPreview(cs: CharacterState | undefined, storage: ItemStack[]) {

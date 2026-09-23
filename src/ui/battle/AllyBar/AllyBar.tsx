@@ -1,17 +1,17 @@
 import { memo } from "react";
 import type { Ally, Card, Combatant } from "@/engine";
 import { getCharacter } from "@/data";
-import type { HitFx } from "@/ui/battle/animations";
-import { UNIT_BODY_ATTR, unitShellAttrs } from "@/ui/battle/unitShell";
-import { DEATH, type DeathPhase } from "@/ui/battle/deathChoreo";
-import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
-import { cx } from "@/ui/common/cx";
-import { useHandHoverOwner } from "@/ui/battle/handFocusStore";
+import type { HitFx } from "@/ui/battle/choreo/animations";
+import { UNIT_BODY_ATTR, unitShellAttrs } from "@/ui/battle/choreo/unitShell";
+import { DEATH, type DeathPhase } from "@/ui/battle/choreo/deathChoreo";
+import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
+import { cx } from "@/ui/common/shared/cx";
+import { useHandHoverOwner } from "@/ui/battle/state/handFocusStore";
 import { HitFxLayer, hitFxVars } from "@/ui/battle/fx/HitFxLayer";
-import { HpBar } from "@/ui/common/HpBar";
-import { ShieldBar } from "@/ui/common/ShieldBar";
-import { StatusPips } from "@/ui/common/StatusPips";
-import { PollutionMeter } from "@/ui/common/PollutionMeter/PollutionMeter";
+import { HpBar } from "@/ui/common/bar/HpBar";
+import { ShieldBar } from "@/ui/common/bar/ShieldBar";
+import { StatusPips } from "@/ui/common/bar/StatusPips";
+import { PollutionMeter } from "@/ui/common/bar/PollutionMeter/PollutionMeter";
 import s from "./AllyBar.module.css";
 // 敌我两种外壳共用的两枚徽章。同域共享样式模块, 双方各自 import(样式铁律 1)。
 import ub from "@/ui/battle/styles/unitBadges.module.css";

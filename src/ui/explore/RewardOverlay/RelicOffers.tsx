@@ -11,13 +11,13 @@ import ItemTooltip, {
   tooltipPointFromElement,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
-import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
+import { inventoryThemeVars } from "@/ui/common/item/shared/inventoryTheme";
 import {
   EventPanelBody,
   EventPanelFoot,
   EventPanelNotice,
   EventPanelStage,
-} from "@/ui/common/EventPanel";
+} from "@/ui/common/widget/EventPanel";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import s from "./RelicOffers.module.css";
 

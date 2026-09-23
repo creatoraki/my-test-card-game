@@ -1,7 +1,7 @@
 // 疗养舱席位页。科技树不再在本组件里横向滑出, 而是由 CryoPanel 切到「疗养科技」子页,
 // 与商店「设施升级」同一套交互。
 import { nutritionHeal, nutritionLevel } from "@/data";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import { MarketActionButton } from "@/ui/town/shop/MarketPanel";
 import { NutritionPodsPage } from "./NutritionPodsPage";
 import { useNutritionAssign, type NutritionAssignment } from "./useNutritionAssign";

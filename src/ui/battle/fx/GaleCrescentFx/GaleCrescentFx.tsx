@@ -1,5 +1,5 @@
 import { useId } from "react";
-import type { ProcFxPreset } from "@/ui/battle/animations";
+import type { ProcFxPreset } from "@/ui/battle/choreo/animations";
 import { cssVars, fxAnim, fxAnims } from "@/ui/battle/fx/shared/fxKit";
 import {
   AROUND_IMPACT, CRACKS, CRESCENT_H, LAUNCH_X, OPENING, SHARDS, SWIRLS, TILT, WINDS, WOUND_H,

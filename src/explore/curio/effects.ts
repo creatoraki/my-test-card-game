@@ -1,12 +1,12 @@
 import { getItemDef, makeRolledItemStack } from "@/data";
-import { rngPick, rngPickWeighted } from "@/engine/rng";
+import { rngPick, rngPickWeighted } from "@/engine/core/rng";
 import { consumeItems } from "@/items/inventory";
 import type { ExploreEffect } from "../types";
 import { addPendingLoot, applyEffect } from "../session";
 import type { ExploreState } from "../types";
-import { rewardPool } from "@/data/curios/rewardPools";
+import { rewardPool } from "@/data/curios/rules/rewardPools";
 import type { ActorTarget, CurioEffect, CurioEffectContext, CurioLevel } from "@/data/curios/types";
-import { CURIO_LEVEL_RULES } from "@/data/curios/levelRules";
+import { CURIO_LEVEL_RULES } from "@/data/curios/rules/levelRules";
 import { queueAlarm } from "../corridor/alarm";
 import { fuseEquipment, upgradeRelic } from "./fusion";
 import { revealDungeon } from "./reveal";

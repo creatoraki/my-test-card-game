@@ -1,4 +1,4 @@
-import type { CardDef } from "../../../engine/types";
+import type { CardDef } from "@/engine/types";
 
 export const PROPHET_PASSIVE_CARDS: CardDef[] = [
   {

@@ -1,4 +1,4 @@
-import { createBoolPref, createVolumePref } from "../audioPref";
+import { createBoolPref, createVolumePref } from "../shared/audioPref";
 import { playLayer } from "./sfxSynth";
 import { SFX_RECIPES } from "./sfxRecipes";
 import { playSample, preloadSfxSamples, sampleDurationMs, SFX_SAMPLES } from "./sfxSamples";

@@ -2,7 +2,7 @@
 // 加成来自 explore/rules.ts 的 ENERGY_TIERS(rewardMultiplier, 同时作用于掉落、经验与居民积分);
 // 敌人强化 = 档位带入战斗的「过载」层数 × engine/rules.ts 的每层数值。
 
-import { OVERLOAD_STATUS_ID, RULES } from "@/engine/rules";
+import { OVERLOAD_STATUS_ID, RULES } from "@/engine/core/battleRules";
 import { energyTier, toNextTier } from "@/explore/session";
 
 export interface EnergyTierInfo {

@@ -1,6 +1,6 @@
 import type { Rarity } from "@/engine";
 import { ExpShardGlyph } from "@/ui/character/glyphs/deckGlyphs";
-import { HoldButton } from "@/ui/common/HoldButton";
+import { HoldButton } from "@/ui/common/control/HoldButton";
 import { GrowthGlyph } from "./GrowthGlyph";
 import { GROWTH_RARITIES, percentage } from "./growthPresentation";
 import s from "./GrowthUpgrade.module.css";

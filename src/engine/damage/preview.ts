@@ -1,5 +1,5 @@
 import type { BattleState, DamageOpts } from "../types";
-import { defenseMultiplier } from "../stats";
+import { defenseMultiplier } from "../combat/stats";
 import { applyDamageModifiers, collectDamageModifiers, createDamageCtx } from "./modifiers";
 
 // 预览命中后的确定性伤害: 只走乘区修正与防御, 忽略命中/暴击/格挡/护盾等随机或吸收结果,

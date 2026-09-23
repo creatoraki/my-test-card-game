@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 import { getCharacter } from "@/data";
 import { playSfx } from "@/ui/audio";
-import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
-import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
-import { TooltipCard } from "@/ui/common/TooltipCard";
+import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
+import { HoverTooltip, useHoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
+import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import { useCountUp } from "@/ui/hooks/useCountUp";
-import type { CharacterState, NutritionState } from "@/store/townStore";
-import { vitalsOf } from "@/store/townStore";
+import type { CharacterState, NutritionState } from "@/store/town/townStore";
+import { vitalsOf } from "@/store/town/townStore";
 import { PodFluid } from "./PodFluid";
 import type { NutritionCandidate } from "./useNutritionAssign";
 import figure from "../styles/cryoFigure.module.css";

@@ -5,9 +5,9 @@
 import type { MouseEvent } from "react";
 import type { ItemStack } from "@/items/types";
 import { getBondDef, getItemDef } from "@/data";
-import { BondIcon } from "@/ui/common/BondIcon";
-import { cx } from "@/ui/common/cx";
-import { itemIcon } from "@/ui/art/itemArt";
+import { BondIcon } from "@/ui/common/bond/BondIcon";
+import { cx } from "@/ui/common/shared/cx";
+import { itemIcon } from "@/ui/art/items/itemArt";
 import s from "./ItemSlot.module.css";
 
 interface Props {

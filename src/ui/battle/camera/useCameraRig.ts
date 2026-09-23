@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { CINEMA } from "@/ui/battle/animations";
+import { CINEMA } from "@/ui/battle/choreo/animations";
 import type { Camera } from "./camera";
 import { CAMERA_REST, CAMERA_REST_EPS } from "./camera";
 import type { WorldFx } from "./planeProjection";

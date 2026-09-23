@@ -1,10 +1,10 @@
 import { cardDisplayName, type Card } from "@/engine";
-import { ManaCrystal } from "@/ui/common/ManaCrystal";
-import { cardArt } from "@/ui/art/cardArt";
-import { CINEMA } from "@/ui/battle/animations";
-import { cx } from "@/ui/common/cx";
-import { useCardText } from "@/ui/common/cardText";
-import { CardTextRich } from "@/ui/common/CardTextRich";
+import { ManaCrystal } from "@/ui/common/icon/ManaCrystal";
+import { cardArt } from "@/ui/art/battle/cardArt";
+import { CINEMA } from "@/ui/battle/choreo/animations";
+import { cx } from "@/ui/common/shared/cx";
+import { useCardText } from "@/ui/common/shared/cardTextFormat";
+import { CardTextRich } from "@/ui/common/card/CardTextRich";
 import s from "./SkillCutInCard.module.css";
 
 // 整段亮相时长: 与 runSteps 的定时器口径一致。作为 CSS animation-duration,

@@ -1,4 +1,4 @@
-import type { ItemDef } from "../../../items/types";
+import type { ItemDef } from "@/items/types";
 import { expandEquipTiers, ARMOR_PRESET, type EquipFamily } from "./equipModel";
 
 const ARMOR_FAMILIES: EquipFamily[] = [

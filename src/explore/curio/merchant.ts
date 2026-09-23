@@ -1,13 +1,13 @@
 import { getItemDef, makeRolledItemStack } from "@/data";
-import { rngPick, shuffle } from "@/engine/rng";
+import { rngPick, shuffle } from "@/engine/core/rng";
 import { addToContainer, consumeItems, countByItemId, stackSlots } from "@/items/inventory";
-import { RULES } from "@/engine/rules";
-import { rollEquipCrate } from "../boons";
+import { RULES } from "@/engine/core/battleRules";
+import { rollEquipCrate } from "../core/boons";
 import { backpackFree, dropContext, randomRelicId } from "../session";
-import { fireExploreRelic } from "../relics";
-import { merchantExtraSlots } from "../relicModifiers";
+import { fireExploreRelic } from "../relics/relics";
+import { merchantExtraSlots } from "../relics/relicModifiers";
 import type { CardOfferCandidate, ExploreState } from "../types";
-import { MERCHANT_FOOD_POOL, merchantPriceCount } from "@/data/curios/merchantPricing";
+import { MERCHANT_FOOD_POOL, merchantPriceCount } from "@/data/curios/rules/merchantPricing";
 import type { MerchantPayment, MerchantShelf, MerchantSlot } from "@/data/curios/types";
 
 function activeMerchant(s: ExploreState): { shelf: MerchantShelf; objectId: string } | null {

@@ -1,11 +1,11 @@
 import { useEffect, type CSSProperties, type ReactNode } from "react";
 import { playSfx } from "@/ui/audio";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { useDialogFocus } from "@/ui/explore/ExploreScreen/useDialogFocus";
 import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
-import { DossierDecor } from "./DossierDecor";
-import { DossierHeader } from "./DossierHeader";
+import { DossierDecor } from "./parts/DossierDecor";
+import { DossierHeader } from "./parts/DossierHeader";
 import { DOSSIER_THEMES, type DossierThemeId } from "./dossierThemes";
 import s from "./EventDossierPanel.module.css";
 

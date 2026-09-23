@@ -1,4 +1,4 @@
-import type { ItemDef } from "../../../items/types";
+import type { ItemDef } from "@/items/types";
 import { expandEquipTiers, WEAPON_PRESET, type EquipFamily } from "./equipModel";
 
 // 武器特色词条: 速攻 / 斩杀 / 冲锋三种伤害精通分散到不同武器上, 先手可作为负面词条。

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { getCharacter } from "@/data";
-import { modalRevealVars, useModalReveal, useRevealPresence } from "@/ui/common/ModalReveal";
+import { modalRevealVars, useModalReveal, useRevealPresence } from "@/ui/common/frame/ModalReveal";
 import { GrowthGlyph } from "./GrowthGlyph";
 import { GrowthSummary } from "./GrowthSummary";
 import { GrowthUpgrade } from "./GrowthUpgrade";

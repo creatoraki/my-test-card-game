@@ -2,7 +2,7 @@
 // 调用方只决定色调(金 = 交易类, 青 = 设施类)与文案。
 
 import type { ReactNode } from "react";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./MarketActionButton.module.css";
 
 interface Props {

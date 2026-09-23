@@ -5,9 +5,9 @@ import {
   CINEMA,
   DISCARD,
   type HitFx,
-} from "@/ui/battle/animations";
-import { attackSfxCue, impactSfxCue } from "@/ui/battle/animSfx";
-import { buildHitFx, impactSfxPlan } from "@/ui/battle/hitFloats";
+} from "@/ui/battle/choreo/animations";
+import { attackSfxCue, impactSfxCue } from "@/ui/battle/choreo/animSfx";
+import { buildHitFx, impactSfxPlan } from "@/ui/battle/choreo/hitFloats";
 import {
   choreograph,
   createTimeline,
@@ -15,11 +15,11 @@ import {
   type Camera,
   type ChoreoStep,
 } from "@/ui/battle/camera";
-import type { TelegraphKind } from "@/ui/battle/unitShell";
+import type { TelegraphKind } from "@/ui/battle/choreo/unitShell";
 import { playSfx } from "@/ui/audio";
-import { showBattleToast } from "@/ui/battle/battleToastStore";
+import { showBattleToast } from "@/ui/battle/state/battleToastStore";
 import { CAMERA_SETTLE_MS, impactAxis, shouldHardCut } from "./battleCamera";
-import { DEATH } from "@/ui/battle/deathChoreo";
+import { DEATH } from "@/ui/battle/choreo/deathChoreo";
 import type { BattleCameraApi } from "./useBattleCamera";
 import type { HandRenderApi } from "./useHandRender";
 import type { PlaybackApi } from "./usePlayback";

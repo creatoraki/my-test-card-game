@@ -1,4 +1,4 @@
-import type { ItemDef, RelicSpec } from "../../../../items/types";
+import type { ItemDef, RelicSpec } from "@/items/types";
 
 const blessing = (id: string, name: string, desc: string, relic: Omit<RelicSpec, "polarity">): ItemDef => ({
   id,

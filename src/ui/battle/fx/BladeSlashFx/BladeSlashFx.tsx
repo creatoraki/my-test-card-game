@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { ProcFxPreset } from "@/ui/battle/animations";
+import type { ProcFxPreset } from "@/ui/battle/choreo/animations";
 import s from "./BladeSlashFx.module.css";
 
 const BLADE_LENGTH = 900;

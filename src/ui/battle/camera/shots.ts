@@ -1,5 +1,5 @@
 import type { CardAnim } from "@/engine";
-import { ANIM } from "@/ui/battle/animations";
+import { ANIM } from "@/ui/battle/choreo/animations";
 import type { SpringTuning } from "./spring";
 
 export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "tri" | "blood" | "neon" | "triple" | "keen" | "lunar" | "sakura" | "twin" | "foe" | "foeCast";

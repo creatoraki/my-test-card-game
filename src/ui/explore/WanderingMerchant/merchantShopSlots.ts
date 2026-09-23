@@ -1,6 +1,6 @@
 import { getCardDef } from "@/data";
 import type { MerchantPayment, MerchantSlot } from "@/data/curios/types";
-import type { ShopSlot } from "@/data/shop";
+import type { ShopSlot } from "@/data/shop/shop";
 
 export interface MerchantShopSlots {
   slots: ShopSlot[];

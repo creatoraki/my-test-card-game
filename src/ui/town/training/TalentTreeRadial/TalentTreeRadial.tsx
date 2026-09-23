@@ -1,11 +1,11 @@
 // 原型星盘表现编排；激活、前置依赖、退还与快捷点亮仍走数据层判定。
 import { useEffect, useId, useMemo, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from "react";
 import { canRefund, costToReach, isUnlocked, pathTo, type SquadBadgeDef, type SquadResourceKey, type TalentNodeDef } from "@/data";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { BadgeCoreArtwork } from "@/ui/town/training/TalentArtwork/BadgeCoreArtwork";
 import { TalentPlaque } from "../TalentArtwork/TalentPlaque";
 import { TalentNode, NODE_STATUS, type TalentNodeState } from "../TalentArtwork/TalentNode";
-import { TooltipCard } from "@/ui/common/TooltipCard";
+import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import { TalentTooltip } from "../TalentArtwork/TalentTooltip";
 import { RADIAL_CENTER, branchArtOf, buildRadialLayout, nodeRadius, type Point } from "./talentGeometry";
 import s from "./TalentTreeRadial.module.css";

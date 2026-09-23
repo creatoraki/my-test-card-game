@@ -11,7 +11,7 @@
 }
 
 .end-stage {
-  composes: canvas from "../../app/styles/stageCanvas.module.css";
+  composes: canvas from "@/ui/app/styles/stageCanvas.module.css";
   --ui-glow-color: var(--end-cyan);
   --end-gold: #d8b45c;
   --end-cyan: #7de1e8;
@@ -147,7 +147,7 @@
 }
 
 .expl-btn {
-  composes: expl-btn from "../../explore/styles/exploreKit.module.css";
+  composes: expl-btn from "@/ui/explore/styles/exploreKit.module.css";
 }
 
 .end-action {

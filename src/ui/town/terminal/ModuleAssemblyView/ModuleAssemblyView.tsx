@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { canEquipModule, getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import ItemTooltip, {
   tooltipPointFromElement,
   type TooltipPoint,

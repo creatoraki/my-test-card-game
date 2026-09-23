@@ -1,7 +1,7 @@
 import { SQUAD_BUFF_DEFS, squadBuffIds, type BattleState } from "@/engine";
-import { ASSEMBLE_ACCENT, AssembleIcon } from "@/ui/common/AssembleIcon";
-import { TooltipCard } from "@/ui/common/TooltipCard";
-import { RailPopover } from "@/ui/common/RailPopover";
+import { ASSEMBLE_ACCENT, AssembleIcon } from "@/ui/common/icon/AssembleIcon";
+import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
+import { RailPopover } from "@/ui/common/tooltip/RailPopover";
 import s from "./SquadBuffBar.module.css";
 
 interface Props {

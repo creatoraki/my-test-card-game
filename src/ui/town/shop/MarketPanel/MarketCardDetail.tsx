@@ -3,11 +3,11 @@
 import { useMemo, type CSSProperties } from "react";
 import { cardDisplayName, cardKeywordsIn } from "@/engine";
 import { getCharacter, makeCard } from "@/data";
-import type { ShopCardSlot } from "@/data/shop";
-import { cardArt } from "@/ui/art/cardArt";
-import { useCardText } from "@/ui/common/cardText";
-import { CardKeywordNotes } from "@/ui/common/CardKeywordNotes";
-import { CardTextRich } from "@/ui/common/CardTextRich";
+import type { ShopCardSlot } from "@/data/shop/shop";
+import { cardArt } from "@/ui/art/battle/cardArt";
+import { useCardText } from "@/ui/common/shared/cardTextFormat";
+import { CardKeywordNotes } from "@/ui/common/card/CardKeywordNotes";
+import { CardTextRich } from "@/ui/common/card/CardTextRich";
 import { ShopDetailCard } from "@/ui/town/shop/ShopDetailCard";
 import detailStyles from "@/ui/town/shop/ShopDetailCard/ShopDetailCard.module.css";
 import s from "./MarketCardDetail.module.css";

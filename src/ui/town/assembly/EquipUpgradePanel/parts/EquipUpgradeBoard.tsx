@@ -1,11 +1,11 @@
 import type { CostCheck } from "@/data";
 import type { ItemDef, ItemStack } from "@/items/types";
-import type { EquipTab } from "@/ui/common/item/itemFilters";
+import type { EquipTab } from "@/ui/common/item/shared/itemFilters";
 import type { TooltipDirection } from "@/ui/common/item/ItemTooltip";
 import { EquipGainColumn } from "./EquipGainColumn";
-import { EquipForgeColumn, EquipPickColumn, type PickEntry } from "../../equipParts";
+import { EquipForgeColumn, EquipPickColumn, type PickEntry } from "../../EquipParts";
 import type { UpgradeRangePreview } from "../upgradeRange";
-import s from "../../equipParts/equipBoard.module.css";
+import s from "../../EquipParts/equipBoard.module.css";
 
 interface Props {
   entries: PickEntry[];

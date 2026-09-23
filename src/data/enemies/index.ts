@@ -1,6 +1,6 @@
-import { BOSS_ENEMIES as FLOOR_BOSSES } from "./boss";
-import { ELITE_ENEMIES as FLOOR_ELITES } from "./elites";
-import { MIMIC_ENEMIES } from "./mimics";
+import { BOSS_ENEMIES as FLOOR_BOSSES } from "./floor/boss";
+import { ELITE_ENEMIES as FLOOR_ELITES } from "./floor/elites";
+import { MIMIC_ENEMIES } from "./floor/mimics";
 import { MINION_ENEMIES as FLOOR_MINIONS } from "./minions";
 import { ARK_MINIONS } from "./ecoArk/minions";
 import { ARK_ELITES } from "./ecoArk/elites";

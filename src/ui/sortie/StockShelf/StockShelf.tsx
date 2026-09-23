@@ -11,9 +11,9 @@
 import { useCallback, useMemo, useState } from "react";
 import { getItemDef, SORTIE_STOCK_IDS } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { useSortieStore } from "@/store/sortieStore";
-import { useTownStore } from "@/store/townStore";
-import { cx } from "@/ui/common/cx";
+import { useSortieStore } from "@/store/sortie/sortieStore";
+import { useTownStore } from "@/store/town/townStore";
+import { cx } from "@/ui/common/shared/cx";
 import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import ShelfRow from "./ShelfRow";
 import s from "./StockShelf.module.css";

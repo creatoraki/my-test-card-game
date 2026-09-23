@@ -1,32 +1,32 @@
 .k-hazard {
-  composes: k-hazard from "../../../explore/styles/exploreKit.module.css";
+  composes: k-hazard from "@/ui/explore/styles/exploreKit.module.css";
 }
 .k-battle {
-  composes: k-battle from "../../../explore/styles/exploreKit.module.css";
+  composes: k-battle from "@/ui/explore/styles/exploreKit.module.css";
 }
 .k-heal {
-  composes: k-heal from "../../../explore/styles/exploreKit.module.css";
+  composes: k-heal from "@/ui/explore/styles/exploreKit.module.css";
 }
 .k-loot {
-  composes: k-loot from "../../../explore/styles/exploreKit.module.css";
+  composes: k-loot from "@/ui/explore/styles/exploreKit.module.css";
 }
 .k-energy {
-  composes: k-energy from "../../../explore/styles/exploreKit.module.css";
+  composes: k-energy from "@/ui/explore/styles/exploreKit.module.css";
 }
 .k-merchant {
-  composes: k-merchant from "../../../explore/styles/exploreKit.module.css";
+  composes: k-merchant from "@/ui/explore/styles/exploreKit.module.css";
 }
 .k-route {
-  composes: k-route from "../../../explore/styles/exploreKit.module.css";
+  composes: k-route from "@/ui/explore/styles/exploreKit.module.css";
 }
 .k-retreat {
-  composes: k-retreat from "../../../explore/styles/exploreKit.module.css";
+  composes: k-retreat from "@/ui/explore/styles/exploreKit.module.css";
 }
 .k-empty {
-  composes: k-empty from "../../../explore/styles/exploreKit.module.css";
+  composes: k-empty from "@/ui/explore/styles/exploreKit.module.css";
 }
 .k-unknown {
-  composes: k-unknown from "../../../explore/styles/exploreKit.module.css";
+  composes: k-unknown from "@/ui/explore/styles/exploreKit.module.css";
 }
 
 .band {

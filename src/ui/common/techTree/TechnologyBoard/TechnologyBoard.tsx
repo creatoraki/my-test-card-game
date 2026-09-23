@@ -1,4 +1,4 @@
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { TechnologyDetail } from "@/ui/common/techTree/TechnologyDetail";
 import { TechnologyFooter } from "@/ui/common/techTree/TechnologyFooter";
 import { TechnologyGraph } from "@/ui/common/techTree/TechnologyGraph";

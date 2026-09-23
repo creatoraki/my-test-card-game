@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
-import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
-import { cx } from "@/ui/common/cx";
+import { PartyMemberCard } from "@/ui/common/unit/PartyMemberCard";
+import { cx } from "@/ui/common/shared/cx";
 import { endExitTiming, endTiming } from "../endChoreo";
 import type { EndRosterMember } from "../endSummary";
 import s from "./EndPartyRoster.module.css";

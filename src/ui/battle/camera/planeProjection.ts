@@ -1,4 +1,4 @@
-import { CINEMA } from "@/ui/battle/animations";
+import { CINEMA } from "@/ui/battle/choreo/animations";
 import { AXIS, type Camera } from "./camera";
 
 // 敌人平面(.battle-plane)的 2D 投影。

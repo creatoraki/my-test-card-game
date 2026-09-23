@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { chamferPath, cornerAccentPath, type Chamfer } from "@/ui/common/NeonPlate/plateGeometry";
+import { chamferPath, cornerAccentPath, type Chamfer } from "@/ui/common/frame/NeonPlate/plateGeometry";
 import s from "./ShopBack.module.css";
 
 // 返回按钮玻璃牌：深色主题玻璃 + 左下径向辉光 + 顶部反光，主描边带外发光，左上 / 右下切角高光。

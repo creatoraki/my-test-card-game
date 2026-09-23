@@ -1,5 +1,5 @@
-import type { ItemDef } from "../../../items/types";
-import { withBuyValue } from "../pricing";
+import type { ItemDef } from "@/items/types";
+import { withBuyValue } from "../rules/pricing";
 import { ARMOR_ITEM_DEFS } from "./armor";
 import { TRINKET_ITEM_DEFS } from "./trinkets";
 import { WEAPON_ITEM_DEFS } from "./weapons";

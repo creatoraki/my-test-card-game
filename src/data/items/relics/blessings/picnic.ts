@@ -1,4 +1,4 @@
-import type { ItemDef, RelicSpec } from "../../../../items/types";
+import type { ItemDef, RelicSpec } from "@/items/types";
 
 /**
  * 野餐食谱专属的一次性遗物：只在本趟远征生效，以一次性物资的形式发放，远征结束后销毁、不能寄回。

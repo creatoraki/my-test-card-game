@@ -1,8 +1,8 @@
 import { getItemDef, type CraftCheck, type ModuleRecipe } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { itemIcon } from "@/ui/art/itemArt";
-import { EventPanelButton } from "@/ui/common/EventPanel";
-import { cx } from "@/ui/common/cx";
+import { itemIcon } from "@/ui/art/items/itemArt";
+import { EventPanelButton } from "@/ui/common/widget/EventPanel";
+import { cx } from "@/ui/common/shared/cx";
 import { CraftIcon } from "../ResearchPanel/icons";
 import s from "./CraftBench.module.css";
 

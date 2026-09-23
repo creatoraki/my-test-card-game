@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import { TechnologyBoard } from "@/ui/common/techTree/TechnologyBoard";
-import { SHOP_TECHNOLOGY_CANVAS, SHOP_TECHNOLOGY_CORE, shopTechnologyNodes } from "./UpgradeTree";
-import s from "@/ui/common/techTree/techUpgradePanel.module.css";
+import { SHOP_TECHNOLOGY_CANVAS, SHOP_TECHNOLOGY_CORE, shopTechnologyNodes } from "./parts/UpgradeTree";
+import s from "@/ui/common/techTree/styles/techUpgradePanel.module.css";
 
 export function ShopUpgradePanel({ onBack }: { onBack: () => void }) {
   const rootRef = useRef<HTMLDivElement>(null);

@@ -1,6 +1,6 @@
 // 统一商店详情栏：根据货位类型路由纯展示内容，购买入口位于货架价格牌。
 
-import type { ShopSlot } from "@/data/shop";
+import type { ShopSlot } from "@/data/shop/shop";
 import { ShopDetailAside } from "@/ui/town/shop/ShopDetailAside";
 import { MarketCardDetail } from "./MarketCardDetail";
 import { MarketItemDetail } from "./MarketItemDetail";

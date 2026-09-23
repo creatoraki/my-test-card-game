@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
-import { useRunStore, type Screen } from "./store/runStore";
+import { useRunStore, type Screen } from "@/store/run/runStore";
 import { ScreenTransition } from "@/ui/app/ScreenTransition";
 import { MenuScreen } from "@/ui/menu/MenuScreen";
 import { TownScreen } from "@/ui/town/TownScreen";
@@ -9,16 +9,16 @@ import { ElevatorScene } from "@/ui/elevator/ElevatorScene";
 import { ExploreScreen } from "@/ui/explore/ExploreScreen";
 import { BattleScreen } from "@/ui/battle/BattleScreen";
 import { EndScreen } from "@/ui/result/EndScreen";
-import { startGameAssetPreload } from "@/ui/art/assetPreloader";
+import { startGameAssetPreload } from "@/ui/art/loader/assetPreloader";
 import { useBgm } from "@/ui/hooks/useBgm";
 import { useSfx } from "@/ui/hooks/useSfx";
-import { GuideSpotlight } from "@/ui/common/GuideSpotlight";
-import { ConfirmDialog } from "@/ui/common/ConfirmDialog";
+import { GuideSpotlight } from "@/ui/common/widget/GuideSpotlight";
+import { ConfirmDialog } from "@/ui/common/control/ConfirmDialog";
 
 // 演示页只在开发环境存在: 生产构建里 import.meta.env.DEV 恒为 false, 整个动态 import 分支会被摇树删掉,
-// 演示代码不会进入生产包。⚠ 正式代码不得反向引用 ui/test 下的任何文件。
+// 演示代码不会进入生产包。⚠ 正式代码不得反向引用 src/dev 下的任何文件。
 const TestScreen = import.meta.env.DEV
-  ? lazy(() => import("@/ui/test/TestScreen").then((m) => ({ default: m.TestScreen })))
+  ? lazy(() => import("@/dev/TestScreen").then((m) => ({ default: m.TestScreen })))
   : null;
 
 // 界面 → 组件。抽成纯函数是为了让 ScreenTransition 能在出场期间继续渲染「旧」界面。

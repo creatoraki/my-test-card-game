@@ -11,17 +11,17 @@
 import { useEffect, useState } from "react";
 import { getCharacter } from "@/data";
 import { deckUpgradeCost } from "@/engine";
-import { deriveStats, useTownStore, vitalsOf } from "@/store/townStore";
+import { deriveStats, useTownStore, vitalsOf } from "@/store/town/townStore";
 import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
 import { DeckGrowthPanel } from "@/ui/character/DeckGrowthPanel";
 import { FIGURE_RECT, WORKBENCH_RECT } from "./detailLayout";
-import { EquipPicker } from "./EquipPicker";
-import { cx } from "@/ui/common/cx";
+import { EquipPicker } from "./parts/EquipPicker";
+import { cx } from "@/ui/common/shared/cx";
 import { CharacterNavigator } from "./CharacterNavigator";
-import { FigureStage } from "./FigureStage";
-import { DeckPanel } from "./Workbench/DeckPanel";
-import { ProfilePanel } from "./Workbench/ProfilePanel";
-import { Workbench, type WorkbenchTab } from "./Workbench/Workbench";
+import { FigureStage } from "./parts/FigureStage";
+import { DeckPanel } from "./parts/Workbench/DeckPanel";
+import { ProfilePanel } from "./parts/Workbench/ProfilePanel";
+import { Workbench, type WorkbenchTab } from "./parts/Workbench/Workbench";
 import { useEquipPreview } from "./useEquipPreview";
 import s from "./CharacterDetailView.module.css";
 

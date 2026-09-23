@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import type { BattleState, Card } from "@/engine";
-import { DISCARD, HAND_DEAL } from "@/ui/battle/animations";
+import { DISCARD, HAND_DEAL } from "@/ui/battle/choreo/animations";
 
 export interface RenderHandEntry {
   card: Card;

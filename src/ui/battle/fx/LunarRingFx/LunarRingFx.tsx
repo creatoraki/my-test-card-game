@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { fxAnim, fxAnims, cssVars } from "@/ui/battle/fx/shared/fxKit";
-import type { ProcFxPreset } from "@/ui/battle/animations";
+import type { ProcFxPreset } from "@/ui/battle/choreo/animations";
 import {
   AROUND_IMPACT, CONVERGE, OPENING, RING_RADIUS, SPARKS, START_ANGLE, TILT,
 } from "./lunarRingGeometry";

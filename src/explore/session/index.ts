@@ -11,16 +11,16 @@
 // 按职责分文件, 由本文件统一导出 —— 调用方一律从 explore/session 引入, 不直接引子模块。
 // ============================================================================
 
-export * from "./log";
-export * from "./energy";
-export * from "./drops";
-export * from "./create";
-export * from "./backpack";
-export * from "./party";
-export * from "./rewards";
-export * from "./effects";
-export * from "./items";
-export * from "./pending";
-export * from "./battle";
-export * from "./scene";
-export * from "./queries";
+export * from "./core/log";
+export * from "./core/energy";
+export * from "./loot/drops";
+export * from "./core/create";
+export * from "./loot/backpack";
+export * from "./core/party";
+export * from "./loot/rewards";
+export * from "./core/effects";
+export * from "./loot/items";
+export * from "./core/pending";
+export * from "./core/battle";
+export * from "./core/scene";
+export * from "./core/queries";

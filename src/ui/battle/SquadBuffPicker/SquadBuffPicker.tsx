@@ -1,5 +1,5 @@
 import { ASSEMBLE_IDS, SQUAD_BUFF_DEFS, type AssembleId, type BattleState } from "@/engine";
-import { assembleBuffArtOf } from "@/ui/art/buffArt";
+import { assembleBuffArtOf } from "@/ui/art/battle/buffArt";
 import s from "./SquadBuffPicker.module.css";
 
 interface Props {

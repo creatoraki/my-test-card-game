@@ -1,8 +1,8 @@
 import { getItemDef } from "@/data";
-import { SANCTUARY_RULES } from "@/data/sanctuary";
+import { SANCTUARY_RULES } from "@/data/facilities/sanctuary";
 import ItemDetail from "@/ui/common/item/ItemDetail";
 import ItemTile from "@/ui/common/item/ItemTile";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import { MarketActionButton } from "@/ui/town/shop/MarketPanel";
 import kit from "../styles/cryoKit.module.css";
 import { useSanctuaryPurify } from "./useSanctuaryPurify";

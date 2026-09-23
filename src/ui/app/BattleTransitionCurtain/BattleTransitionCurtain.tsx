@@ -1,11 +1,11 @@
 import { useLayoutEffect, useRef, type CSSProperties } from "react";
-import type { TransitionOrigin } from "@/ui/app/transitionOrigin";
+import type { TransitionOrigin } from "@/ui/app/shared/transitionOrigin";
 import {
   BATTLE_CRACK_DRAW_MS,
   BATTLE_CRACK_HOLD_MS,
   BATTLE_RIPPLE_EXIT_MS,
   BATTLE_RIPPLE_MS,
-} from "@/ui/app/transitions";
+} from "@/ui/app/shared/transitions";
 import { playSfx } from "@/ui/audio";
 import s from "./BattleTransitionCurtain.module.css";
 

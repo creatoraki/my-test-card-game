@@ -1,0 +1,41 @@
+.theme {
+  composes: theme from "../../shop/styles/shopTheme.module.css";
+  /* 博物馆保留青绿光与冷灰黑底。 */
+  --sx-key: #6ed6b8;
+  --sx-key-hot: #a4efd7;
+  --sx-key-wash: #6ed6b81f;
+  --sx-line-lit: #6ed6b842;
+  --sx-title: #bff9e4;
+  --sx-title-glow: #6ed6b866;
+  --sx-title-shadow: #164c3c;
+  --sx-line-hot: #dcfff3;
+  --rail-accent: #6ed6b8;
+  --rail-accent-hot: #b4f5e0;
+  --rail-accent-deep: #11443a;
+  --rail-glass: #080b0bb8;
+  --rail-ink: #eafff7;
+  --rail-sub: #6f7d79;
+  --rail-line: #cfe0db1f;
+  --accent: var(--sx-key);
+  --border: var(--sx-line);
+  --muted: var(--sx-muted);
+  --text: var(--sx-ink);
+  --bg: var(--sx-bg);
+  --detail-aside-title: var(--sx-title);
+  --detail-aside-title-glow: var(--sx-title-glow);
+  --detail-aside-marker: var(--sx-key-hot);
+  --detail-aside-marker-glow: var(--sx-title-glow);
+  --museum-ink: var(--sx-ink);
+  --museum-dim: var(--sx-muted);
+  --museum-line: var(--sx-line);
+  --museum-accent: var(--sx-key);
+  --museum-gold: var(--sx-key);
+  --museum-font-kicker: 18px;
+  --museum-font-label: 18px;
+  --museum-font-body: 20px;
+  --museum-font-entry: 24px;
+  --museum-font-value: 26px;
+  --museum-font-section: 30px;
+  --museum-font-title: 46px;
+  --museum-font-panel-title: 56px;
+}

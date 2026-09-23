@@ -1,7 +1,7 @@
 // 研究中心常驻界面: 左侧导航只替换窗口内容, 三页共用同一套页眉读数与换页演出。
 import { useMemo, useState } from "react";
 import { getItemDef } from "@/data";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
 import { ShopHeader } from "@/ui/town/shop/ShopHeader";
 import { NavigationRail } from "@/ui/town/shop/ShopNavigation";

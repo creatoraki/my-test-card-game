@@ -1,4 +1,4 @@
-import type { CharacterState, NutritionState } from "@/store/townStore";
+import type { CharacterState, NutritionState } from "@/store/town/townStore";
 import { NutritionPodRack } from "./NutritionPodRack";
 import { NutritionRoster } from "./NutritionRoster";
 import type { NutritionCandidate } from "./useNutritionAssign";

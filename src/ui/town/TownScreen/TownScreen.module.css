@@ -6,11 +6,11 @@
 
 /* letterbox 容器: 铺满窗口, 是设计画布的定位参照; 画布之外露出的就是黑边。 */
 .town-viewport {
-  composes: viewport from "../../app/styles/stageCanvas.module.css";
+  composes: viewport from "@/ui/app/styles/stageCanvas.module.css";
   background: #000; /* 16:9 之外的留白色 */
 }
 .town-splash {
-  composes: canvas from "../../app/styles/stageCanvas.module.css";
+  composes: canvas from "@/ui/app/styles/stageCanvas.module.css";
 }
 /* ★ --town-glow 是整页高光色的**唯一旋钮**: 空间站是青色霓虹, 与全局 --accent(荧光黄绿)不搭,
      故在本页作用域内声明一个局部变量, 只在本文件使用 —— 不新增也不覆盖任何全局令牌

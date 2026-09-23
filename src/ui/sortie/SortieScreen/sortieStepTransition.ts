@@ -1,0 +1,54 @@
+import { useEffect, useRef, useState } from "react";
+import type { SortieStep } from "@/store/sortie/sortieStore";
+import { prefersReducedMotion } from "@/ui/app/shared/transitions";
+
+const SORTIE_STEP_TRANSITION_MS = 460;
+
+export interface SortieStepTransition {
+  visibleStep: SortieStep;
+  exitingStep: SortieStep | null;
+  transitioning: boolean;
+  intro: boolean;
+}
+
+export function useSortieStepTransition(step: SortieStep): SortieStepTransition {
+  const [visibleStep, setVisibleStep] = useState(step);
+  const [exitingStep, setExitingStep] = useState<SortieStep | null>(null);
+  const [transitioning, setTransitioning] = useState(false);
+  const [intro, setIntro] = useState(true);
+  const seqRef = useRef(0);
+  const transitionTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (step === visibleStep) return;
+
+    const seq = ++seqRef.current;
+    if (transitionTimerRef.current !== null) {
+      window.clearTimeout(transitionTimerRef.current);
+      transitionTimerRef.current = null;
+    }
+
+    const reducedMotion = prefersReducedMotion();
+    setExitingStep(reducedMotion ? null : visibleStep);
+    setVisibleStep(step);
+    setIntro(false);
+    setTransitioning(!reducedMotion);
+
+    if (reducedMotion) return;
+
+    transitionTimerRef.current = window.setTimeout(() => {
+      transitionTimerRef.current = null;
+      if (seq !== seqRef.current) return;
+      setExitingStep(null);
+      setTransitioning(false);
+    }, SORTIE_STEP_TRANSITION_MS);
+  }, [step, visibleStep]);
+
+  useEffect(() => () => {
+    if (transitionTimerRef.current !== null) {
+      window.clearTimeout(transitionTimerRef.current);
+    }
+  }, []);
+
+  return { visibleStep, exitingStep, transitioning, intro };
+}

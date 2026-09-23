@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { TECH_TREE_ART } from "@/ui/art/techTreeArt";
+import { TECH_TREE_ART } from "@/ui/art/town/techTreeArt";
 
 export function TechnologyArtwork({ kind, className }: {
   kind: keyof typeof TECH_TREE_ART.regions;

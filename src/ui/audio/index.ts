@@ -10,6 +10,6 @@ export {
 	subscribeBgmEnabled,
 	subscribeBgmVolume,
 	toggleBgm,
-} from "./bgmPlayer";
-export { BGM_TRACKS, bgmForScreen, type BgmId } from "./bgmTracks";
+} from "./bgm/bgmPlayer";
+export { BGM_TRACKS, bgmForScreen, type BgmId } from "./bgm/bgmTracks";
 export * from "./sfx";

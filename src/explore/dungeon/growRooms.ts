@@ -1,5 +1,5 @@
-import { rngInt, shuffle } from "../../engine/rng";
-import { EXPLORE_RULES } from "../rules";
+import { rngInt, shuffle } from "@/engine/core/rng";
+import { EXPLORE_RULES } from "../core/exploreRules";
 import type { ExploreState } from "../types";
 import { DIR_STEP, PORTAL_DIRS, roomIdAt, type PortalDir, type RoomNode } from "./types";
 import { link, makeRoom } from "./roomNode";

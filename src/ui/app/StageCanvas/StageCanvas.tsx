@@ -1,7 +1,7 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
 import { useRef } from "react";
-import { cx } from "@/ui/common/cx";
-import { useStageScale } from "@/ui/hooks/stage";
+import { cx } from "@/ui/common/shared/cx";
+import { useStageScale } from "@/ui/app/shared/stage";
 import s from "../styles/stageCanvas.module.css";
 
 export interface StageCanvasProps

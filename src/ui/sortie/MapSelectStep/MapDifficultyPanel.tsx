@@ -10,8 +10,8 @@ import {
   type MapDifficulty,
 } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { HoverTooltip } from "@/ui/common/HoverTooltip";
-import { TooltipCard } from "@/ui/common/TooltipCard";
+import { HoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
+import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import { PanelItemRow } from "./PanelItemRow";
 import { SortieFrame } from "@/ui/sortie/SortieFrame";

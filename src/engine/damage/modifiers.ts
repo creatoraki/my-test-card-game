@@ -1,7 +1,7 @@
 import type { BattleState, DamageCtx, DamageOpts } from "../types";
 import type { DamageModifiers, DamageModifierSink } from "./types";
 import { runStatusHooks } from "./hooks";
-import { runRelicHook } from "../relicBehaviors/types";
+import { runRelicHook } from "../relics/types";
 
 export function createDamageCtx(
   sourceId: string | undefined,

@@ -2,11 +2,11 @@
 
 import { ShopSidebar } from "@/ui/town/shop/ShopSidebar";
 import { useState } from "react";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
 import { EquipReforgePanel } from "../EquipReforgePanel";
 import { EquipUpgradePanel } from "../EquipUpgradePanel";
-import theme from "../assemblyTheme.module.css";
+import theme from "../styles/assemblyTheme.module.css";
 import { AssemblyBack, AssemblyBrand, AssemblyNavigation, AssemblyWindow, type AssemblyPage } from "../AssemblyChrome";
 import s from "./AssemblyScene.module.css";
 

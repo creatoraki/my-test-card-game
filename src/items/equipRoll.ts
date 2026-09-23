@@ -1,4 +1,4 @@
-import type { StatBlock } from "../engine/types";
+import type { StatBlock } from "@/engine/types";
 import type { EquipAffixDef, EquipModelDef, EquipRoll, ItemDef } from "./types";
 
 export const AFFIX_SCALE: Partial<Record<keyof StatBlock, number>> = {

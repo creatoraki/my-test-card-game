@@ -20,11 +20,11 @@ export {
   type SquadResourceMods,
   type TalentBranchDef,
   type TalentNodeDef,
-} from "./squadTalents";
+} from "./roster/squadTalents";
 
 export { CARD_DEFS } from "./cards";
 export { ASSEMBLE_REWARD_POOLS } from "./cards/alchemist";
-export { CHARACTERS, type CharacterDef } from "./characters";
+export { CHARACTERS, type CharacterDef } from "./roster/characters";
 export {
   BOND_DEFS,
   BOND_BIAS,
@@ -37,7 +37,7 @@ export {
   rerollBond,
   type BondDef,
   type BondTier,
-} from "./bonds";
+} from "./roster/bonds";
 export { ENEMIES, type EnemyDef, type EnemyMove, type MoveBias, type MoveBiasWhen } from "./enemies";
 export {
   ENCOUNTERS,
@@ -68,13 +68,13 @@ export {
   mapDifficultyIds,
   type MapDifficulty,
   type MapDifficultyDef,
-} from "./mapDifficulty";
+} from "./maps/mapDifficulty";
 export {
   FIXED_CLEAR_REWARDS,
   fixedClearRewardOf,
   type MapClearRewardDef,
-} from "./mapClearReward";
-export { rollAllDailyClearRewards, rollDailyClearReward } from "./mapDailyReward";
+} from "./maps/mapClearReward";
+export { rollAllDailyClearRewards, rollDailyClearReward } from "./maps/mapDailyReward";
 export {
   AID_SUPPLY_MAP_OVERRIDES,
   AID_SUPPLY_OVERRIDES,
@@ -82,7 +82,7 @@ export {
   aidSupplyOf,
   makeAidSupplyStacks,
   type AidSupplyEntry,
-} from "./mapAidSupply";
+} from "./maps/mapAidSupply";
 export {
   CONSUMABLE_ITEM_DEFS,
   DESIGN_ITEM_DEFS,
@@ -102,8 +102,8 @@ export {
   itemRegionId,
   regionalMaterial,
   regionalTierOf,
-} from "./items/index";
-export type { RegionalMaterialDef, RegionalTier } from "./items/index";
+} from "./items";
+export type { RegionalMaterialDef, RegionalTier } from "./items";
 export {
   CARD_MODULES,
   GENERIC_T1_MODULE_IDS,
@@ -123,7 +123,7 @@ export {
   recipesOfCharacter,
   type CraftCheck,
   type ModuleRecipe,
-} from "./moduleCrafting";
+} from "./crafting/moduleCrafting";
 export {
   NUTRITION_MAX_LEVEL,
   NUTRITION_POD_MAX,
@@ -139,7 +139,7 @@ export {
   type NutritionTech,
   type NutritionTechKind,
   type NutritionTechState,
-} from "./nutritionPod";
+} from "./facilities/nutritionPod";
 export {
   SHOP_MAX_LEVEL,
   CARD_SHOP_PRICE,
@@ -155,7 +155,7 @@ export {
   type ShopTechKind,
   type ShopTechState,
   type ShopTech,
-} from "./shopTech";
+} from "./shop/shopTech";
 export {
   DEFAULT_SHOP_LEVEL,
   SHOP_KIND_WEIGHTS,
@@ -169,14 +169,14 @@ export {
   type ShopItemSlot,
   type ShopLevel,
   type ShopSlot,
-} from "./shop";
+} from "./shop/shop";
 export {
   materialCostCheck,
   techCostCheck,
   type TechCost,
   type TechCostCheck,
   type TechCostMaterialCheck,
-} from "./techCost";
+} from "./crafting/techCost";
 export {
   TECH_CATEGORIES,
   TECH_BRANCHES,
@@ -206,8 +206,8 @@ export {
   type CostCheck,
   type MaterialCost,
   type UpgradeRecipe,
-} from "./equipUpgrade";
-export { SORTIE_STOCK_IDS } from "./sortieStock";
+} from "./crafting/equipUpgrade";
+export { SORTIE_STOCK_IDS } from "./shop/sortieStock";
 export {
   CORRIDOR_AMBUSH,
   CORRIDOR_CURIOS,
@@ -229,15 +229,15 @@ export type {
   CurioMitigation,
   MerchantShelf,
 } from "./curios";
-export { PICNIC_RECIPES, matchPicnicRecipe, type PicnicRecipeDef } from "./picnicRecipes";
-export { pickBotLine } from "./botLines";
-export { VENDOR_LINES, pickVendorLine, type VendorLineKind } from "./vendorLines";
+export { PICNIC_RECIPES, matchPicnicRecipe, type PicnicRecipeDef } from "./facilities/picnicRecipes";
+export { pickBotLine } from "./lines/botLines";
+export { VENDOR_LINES, pickVendorLine, type VendorLineKind } from "./lines/vendorLines";
 export {
   TOWN_BOT_LINES,
   pickTownBotLine,
   type TownBotLineKind,
-} from "./townBotLines";
-export { EXPLORER_LINES, pickExplorerLine, type ExplorerLineKind } from "./explorerLines";
-export { SANCTUARY_RULES } from "./sanctuary";
+} from "./lines/townBotLines";
+export { EXPLORER_LINES, pickExplorerLine, type ExplorerLineKind } from "./lines/explorerLines";
+export { SANCTUARY_RULES } from "./facilities/sanctuary";
 
 export * from "./registry";

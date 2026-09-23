@@ -1,8 +1,8 @@
-import { corridorWandererEvent } from "../../data/curios";
-import { rngFloat, rngInt } from "../../engine/rng";
-import { EXPLORE_RULES } from "../rules";
+import { corridorWandererEvent } from "@/data/curios";
+import { rngFloat, rngInt } from "@/engine/core/rng";
+import { EXPLORE_RULES } from "../core/exploreRules";
 import type { BattleTier, ExploreState, NodeEvent } from "../types";
-import { beginCorridorEncounter, canWalkCorridor } from "./session";
+import { beginCorridorEncounter, canWalkCorridor } from "./corridorSession";
 import { corridorWalkMax, CORRIDOR } from "./types";
 
 export type CorridorAmbushResult = "skip" | "miss" | "hit";

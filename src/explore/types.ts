@@ -7,8 +7,8 @@
 //   开启 BOSS 红门并挑战成功即通关。净化粒子(energy)是唯一的难度轴与时限。
 // ============================================================================
 
-import type { DropEntry, EquipSlot, ItemRarity, ItemStack } from "../items/types";
-import type { MapDifficulty } from "../data/mapDifficulty";
+import type { DropEntry, EquipSlot, ItemRarity, ItemStack } from "@/items/types";
+import type { MapDifficulty } from "@/data/maps/mapDifficulty";
 
 export type BattleBoonKind = "healDew" | "cardOffer" | "equipCrate" | "moduleCrate";
 

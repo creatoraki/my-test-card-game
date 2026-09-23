@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { TalentNodeDef } from "@/data";
-import { TooltipCard, type TooltipNote } from "@/ui/common/TooltipCard";
+import { TooltipCard, type TooltipNote } from "@/ui/common/tooltip/TooltipCard";
 import type { Point } from "../TalentTreeRadial/talentGeometry";
 import { NODE_STATUS, type TalentNodeState } from "./TalentNode";
 import s from "./TalentTooltip.module.css";

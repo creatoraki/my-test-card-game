@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { prefersReducedMotion } from "@/ui/app/transitions";
+import { prefersReducedMotion } from "@/ui/app/shared/transitions";
 
 export const PANEL_BAR_MS = 180;
 export const PANEL_EXPAND_MS = 520;

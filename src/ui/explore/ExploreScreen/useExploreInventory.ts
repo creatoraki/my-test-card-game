@@ -3,8 +3,8 @@ import { getItemDef } from "@/data";
 import { canOpenBackpack, canUseItem } from "@/explore/session";
 import type { ExploreState } from "@/explore/types";
 import { TARGETED_ITEM_USE_KINDS, SLOT_LABEL, type ItemStack, type EquipSlot } from "@/items/types";
-import { useExploreStore } from "@/store/exploreStore";
-import { useRunStore } from "@/store/runStore";
+import { useExploreStore } from "@/store/explore/exploreStore";
+import { useRunStore } from "@/store/run/runStore";
 
 export function useExploreInventory(session: ExploreState | null) {
   const [bagOpen, setBagOpen] = useState(false);

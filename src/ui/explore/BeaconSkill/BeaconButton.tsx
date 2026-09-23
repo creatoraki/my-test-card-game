@@ -1,8 +1,8 @@
-import { canUseBeacon, hasExploreRelic } from "@/explore/relicModifiers";
-import { useExploreStore } from "@/store/exploreStore";
-import { RailPopover } from "@/ui/common/RailPopover";
-import { TooltipCard } from "@/ui/common/TooltipCard";
-import { cx } from "@/ui/common/cx";
+import { canUseBeacon, hasExploreRelic } from "@/explore/relics/relicModifiers";
+import { useExploreStore } from "@/store/explore/exploreStore";
+import { RailPopover } from "@/ui/common/tooltip/RailPopover";
+import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./BeaconButton.module.css";
 
 export default function BeaconButton({ onPick }: { onPick: () => void }) {

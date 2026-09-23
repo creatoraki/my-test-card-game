@@ -1,4 +1,4 @@
-import { rngPick, shuffle } from "../../engine/rng";
+import { rngPick, shuffle } from "@/engine/core/rng";
 import { corridorPortalEdgeSlotsFor, corridorSlotsFor } from "../corridor/types";
 import type { ExploreState } from "../types";
 import { link, makeRoom } from "./roomNode";

@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { shopLevelOf, shopRefreshCost } from "@/data";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
 import { MarketActionButton } from "./MarketActionButton";
 import { MarketDetail } from "./MarketDetail";
-import { MarketShelf } from "./MarketShelf";
+import { MarketShelf } from "./parts/MarketShelf";
 import { marketBuyReason } from "./marketBuyReason";
 import s from "./MarketPanel.module.css";
 

@@ -1,6 +1,6 @@
 import type { BattleState } from "@/engine";
 import { getEncounter, slotPlacement, type EnemyPlacement } from "@/data";
-import { CINEMA } from "@/ui/battle/animations";
+import { CINEMA } from "@/ui/battle/choreo/animations";
 import { depthVars, type Camera, type ChoreoStep, worldShift, unitWorldBox } from "@/ui/battle/camera";
 import type { ShotPreset } from "@/ui/battle/camera";
 

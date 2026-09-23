@@ -1,6 +1,6 @@
 import type { Ally, DamageCtx, Enemy, StatusCtx, StatusDef } from "../types";
-import { OVERLOAD_STATUS_ID, RULES } from "../rules";
-import { rngPick } from "../rng";
+import { OVERLOAD_STATUS_ID, RULES } from "../core/battleRules";
+import { rngPick } from "../core/rng";
 
 function isEnemy(combatant: Ally | Enemy): combatant is Enemy {
   return combatant.team === "enemy";

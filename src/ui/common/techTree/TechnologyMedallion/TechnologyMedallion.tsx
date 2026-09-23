@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from "react";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import type { TechnologyState } from "@/ui/common/techTree/TechnologyTree/types";
 import s from "./TechnologyMedallion.module.css";
 

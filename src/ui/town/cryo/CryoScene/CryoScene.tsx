@@ -2,11 +2,11 @@
 // 外壳与商店、研究中心、博物馆同一套语言（左侧信息条：底栏 + 铭牌 + 导航 + 返回，右侧常驻切角窗口），
 // 主题令牌见上级的 cryoTheme.module.css（白 + 蓝 + 紫）。
 
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { ShopBack } from "@/ui/town/shop/ShopBack";
 import { ShopBrand } from "@/ui/town/shop/ShopScene/ShopBrand";
 import { ShopSidebar } from "@/ui/town/shop/ShopSidebar";
-import theme from "../cryoTheme.module.css";
+import theme from "../styles/cryoTheme.module.css";
 import { CryoPanel } from "../CryoPanel";
 import s from "./CryoScene.module.css";
 

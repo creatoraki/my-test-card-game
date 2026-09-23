@@ -1,5 +1,5 @@
-import { CINEMA } from "@/ui/battle/animations";
-import { STAGE } from "@/ui/hooks/stage";
+import { CINEMA } from "@/ui/battle/choreo/animations";
+import { STAGE } from "@/ui/app/shared/stage";
 
 export interface Camera {
   s: number;

@@ -1,12 +1,12 @@
 // 远征途中需要同时改动城镇档案与探索会话的操作 —— 换装与「指定角色」类待办。
 // 装备槽与卡组在城镇侧、背包与待办在探索侧, 两边只有 run 层同时认识。
 
-import type { QuirkId } from "../../engine";
-import { getItemDef } from "../../data";
-import { canOpenBackpack } from "../../explore/session";
-import type { EquipSlot } from "../../items/types";
-import { useExploreStore } from "../exploreStore";
-import { useTownStore } from "../townStore";
+import type { QuirkId } from "@/engine";
+import { getItemDef } from "@/data";
+import { canOpenBackpack } from "@/explore/session";
+import type { EquipSlot } from "@/items/types";
+import { useExploreStore } from "../explore/exploreStore";
+import { useTownStore } from "../town/townStore";
 import { alivePartyIds, syncMemberStats } from "./party";
 
 // 背包 → 装备槽。★ 顺序是刻意的: **先**把新件从背包取走再校验旧件放不放得下 ——

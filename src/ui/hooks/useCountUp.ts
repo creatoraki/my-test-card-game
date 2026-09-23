@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { prefersReducedMotion } from "@/ui/app/transitions";
+import { prefersReducedMotion } from "@/ui/app/shared/transitions";
 
 // 数值滚动: 目标值一变, 就用 rAF 从**上一次显示的值**滚到新值(而不是每次从 0 起) ——
 // 从 0 起会让「切到下一个角色」看起来像面板被清空重填, 从旧值起才读作「同一块仪表在换读数」。

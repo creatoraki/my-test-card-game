@@ -1,8 +1,8 @@
 import { type CSSProperties } from "react";
 import { isMapUnlocked, mapLockReason, type MapDef, type MapDifficulty } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { cx } from "@/ui/common/cx";
-import { mapArt } from "@/ui/art/mapArt";
+import { cx } from "@/ui/common/shared/cx";
+import { mapArt } from "@/ui/art/explore/mapArt";
 import { COPY_COUNT, MIDDLE_COPY, useInfiniteBand } from "@/ui/sortie/hooks";
 import { SortieFrame } from "@/ui/sortie/SortieFrame";
 import { SortieGlyph } from "@/ui/sortie/SortieGlyph";

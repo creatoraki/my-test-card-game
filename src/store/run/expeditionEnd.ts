@@ -1,15 +1,15 @@
 // 远征收尾 —— 落袋、通关奖励与结算页切换。撤离 / 通关 / 团灭 / 战中撤退都从这里出去。
 
-import { getItemDef } from "../../data";
-import { relicScrapSellBonus } from "../../explore/relicModifiers";
-import type { ExploreState } from "../../explore/types";
-import type { ItemStack } from "../../items/types";
-import { useBattleStore } from "../battleStore";
-import { commitTownBackup } from "../expeditionBackup";
-import { applyPendingContamination, settleFallenGear } from "../exploreAftermath";
-import { useExploreStore } from "../exploreStore";
-import { SORTIE_RELIC_LIMIT } from "../sortieStore";
-import { useTownStore } from "../townStore";
+import { getItemDef } from "@/data";
+import { relicScrapSellBonus } from "@/explore/relics/relicModifiers";
+import type { ExploreState } from "@/explore/types";
+import type { ItemStack } from "@/items/types";
+import { useBattleStore } from "../battle/battleStore";
+import { commitTownBackup } from "./expeditionBackup";
+import { applyPendingContamination, settleFallenGear } from "../explore/exploreAftermath";
+import { useExploreStore } from "../explore/exploreStore";
+import { SORTIE_RELIC_LIMIT } from "../sortie/sortieStore";
+import { useTownStore } from "../town/townStore";
 import { CLEARED_BATTLE_REPORT, type RunSet, type RunState } from "./types";
 
 // 远征收尾的落袋 —— 积分 + 实物一起进城镇, 只有这一个出口。

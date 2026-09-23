@@ -1,5 +1,5 @@
-import { cx } from "@/ui/common/cx";
-import type { RunResult } from "@/store/runStore";
+import { cx } from "@/ui/common/shared/cx";
+import type { RunResult } from "@/store/run/runStore";
 import s from "./EndVerdictBanner.module.css";
 
 interface Props {

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { START_GAME_ART } from "@/ui/art/sceneArt";
+import { START_GAME_ART } from "@/ui/art/explore/sceneArt";
 import s from "./MenuStartButton.module.css";
 
 /**

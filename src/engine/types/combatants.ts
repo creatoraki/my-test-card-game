@@ -1,4 +1,4 @@
-import type { QuirkId } from "../quirks";
+import type { QuirkId } from "../combat/quirks";
 import type { Team } from "./base";
 import type { StatBlock, StatModifier } from "./stats";
 import type { StatusInstance } from "./statuses";

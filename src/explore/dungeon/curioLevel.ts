@@ -3,9 +3,9 @@
 // 同一间房的物件各自掷浮动, 所以同房物件等级可能相差 1 级。
 // ============================================================================
 
-import { rngFloat } from "../../engine/rng";
-import { clampCurioLevel } from "../../data/curios/levelRules";
-import type { CurioLevel } from "../../data/curios/types";
+import { rngFloat } from "@/engine/core/rng";
+import { clampCurioLevel } from "@/data/curios/rules/levelRules";
+import type { CurioLevel } from "@/data/curios/types";
 import type { ExploreState } from "../types";
 
 /** 浮动分布: −1 / 0 / +1 各占 20% / 60% / 20%。 */

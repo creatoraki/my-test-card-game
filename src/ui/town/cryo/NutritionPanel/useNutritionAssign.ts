@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { NUTRITION_TREAT_COST, nutritionPods } from "@/data";
 import { playSfx } from "@/ui/audio";
-import type { NutritionState, CharacterState } from "@/store/townStore";
-import { vitalsOf } from "@/store/townStore";
+import type { NutritionState, CharacterState } from "@/store/town/townStore";
+import { vitalsOf } from "@/store/town/townStore";
 
 export interface NutritionCandidate {
   charId: string;

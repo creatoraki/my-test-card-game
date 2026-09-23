@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
-import { useTownStore } from "@/store/townStore";
-import { cx } from "@/ui/common/cx";
+import { useTownStore } from "@/store/town/townStore";
+import { cx } from "@/ui/common/shared/cx";
 import { ShopWindow } from "@/ui/town/shop/ShopWindow";
 import { ShopHeader } from "@/ui/town/shop/ShopHeader";
 import type { SwapPhase } from "@/ui/hooks/useSwapTransition";
-import theme from "../assemblyTheme.module.css";
+import theme from "../styles/assemblyTheme.module.css";
 import type { AssemblyPage } from "./AssemblyNavigation";
 import s from "./AssemblyWindow.module.css";
 interface Props {

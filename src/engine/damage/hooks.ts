@@ -1,7 +1,7 @@
 import type { BattleState, DamageCtx, StatusCtx, StatusHooks } from "../types";
-import { STATUS_DEFS } from "../hookRegistry";
-import { cleanup, ctxFor } from "../ops";
-import { alliesOf } from "../targeting";
+import { STATUS_DEFS } from "../core/hookRegistry";
+import { cleanup, ctxFor } from "../core/ops";
+import { alliesOf } from "../combat/targeting";
 
 type StatusHookName = keyof StatusHooks;
 type StatusHookArgs<K extends StatusHookName> =

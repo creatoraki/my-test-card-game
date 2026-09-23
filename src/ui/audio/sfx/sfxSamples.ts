@@ -1,17 +1,17 @@
 import type { SfxId } from "./sfxTypes";
-import buttonClick from "../../../assets/sounds/音效/点击.mp3";
-import bladeSlashSound from "../../../assets/sounds/音效/锐利刀锋.wav";
-import healSound from "../../../assets/sounds/音效/治疗.mp3";
-import panelOpen from "../../../assets/sounds/音效/弹出弹窗.wav";
-import cardSlash from "../../../assets/sounds/音效/单次斩击.ogg";
-import hitSound from "../../../assets/sounds/音效/被攻击.wav";
-import deathSound from "../../../assets/sounds/音效/死亡音效.ogg";
-import pickupSound from "../../../assets/sounds/音效/单次拾取.wav";
-import pickupAllSound from "../../../assets/sounds/音效/全部拾取.wav";
-import shatterSound from "../../../assets/sounds/音效/玻璃碎裂.wav";
-import cardHoverSound from "../../../assets/sounds/音效/悬浮卡牌.mp3";
-import shieldSound from "../../../assets/sounds/音效/护盾.mp3";
-import cardSelectSound from "../../../assets/sounds/音效/选中卡牌.mp3";
+import buttonClick from "@/assets/sounds/音效/点击.mp3";
+import bladeSlashSound from "@/assets/sounds/音效/锐利刀锋.wav";
+import healSound from "@/assets/sounds/音效/治疗.mp3";
+import panelOpen from "@/assets/sounds/音效/弹出弹窗.wav";
+import cardSlash from "@/assets/sounds/音效/单次斩击.ogg";
+import hitSound from "@/assets/sounds/音效/被攻击.wav";
+import deathSound from "@/assets/sounds/音效/死亡音效.ogg";
+import pickupSound from "@/assets/sounds/音效/单次拾取.wav";
+import pickupAllSound from "@/assets/sounds/音效/全部拾取.wav";
+import shatterSound from "@/assets/sounds/音效/玻璃碎裂.wav";
+import cardHoverSound from "@/assets/sounds/音效/悬浮卡牌.mp3";
+import shieldSound from "@/assets/sounds/音效/护盾.mp3";
+import cardSelectSound from "@/assets/sounds/音效/选中卡牌.mp3";
 
 export interface SfxSample {
   srcs: readonly string[];

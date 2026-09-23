@@ -1,13 +1,13 @@
 import { useState } from "react";
-import type { EquipTab, ItemTab } from "@/ui/common/item/itemFilters";
-import { matchTab } from "@/ui/common/item/itemFilters";
+import type { EquipTab, ItemTab } from "@/ui/common/item/shared/itemFilters";
+import { matchTab } from "@/ui/common/item/shared/itemFilters";
 import ShopItemCard from "@/ui/town/shop/ShopItemCard";
 import { ShopDetailAside } from "@/ui/town/shop/ShopDetailAside";
 import ItemTile from "@/ui/common/item/ItemTile";
 import ItemTabs from "@/ui/common/item/ItemTabs";
-import { InteractiveHint } from "@/ui/common/InteractiveHint";
-import { useTownStore } from "@/store/townStore";
-import { ITEM_CATALOG, ITEM_CATALOG_STACKS, itemStackFor } from "../codexCatalog";
+import { InteractiveHint } from "@/ui/common/tooltip/InteractiveHint";
+import { useTownStore } from "@/store/town/townStore";
+import { ITEM_CATALOG, ITEM_CATALOG_STACKS, itemStackFor } from "../shared/codexCatalog";
 import s from "./MuseumItemHall.module.css";
 
 export function MuseumItemHall() {

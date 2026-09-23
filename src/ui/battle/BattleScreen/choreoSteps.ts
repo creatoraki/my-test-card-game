@@ -1,7 +1,7 @@
 import { effectiveTargeting, type AnimFrame, type BattleState, type Card, type DiscardTriggerFx, type FxStep, type RelicTriggerFx, type TempoFx } from "@/engine";
 import { getEnemyDef } from "@/data";
 import { type ChoreoStep } from "@/ui/battle/camera";
-import { cardAnim, moveAnim } from "@/ui/battle/animations";
+import { cardAnim, moveAnim } from "@/ui/battle/choreo/animations";
 
 function stepFromFrame(_battle: BattleState, frame: AnimFrame): ChoreoStep {
   const def = getEnemyDef(frame.enemyDefId);

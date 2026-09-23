@@ -2,12 +2,12 @@ import { useState } from "react";
 import { getCharacter, getItemDef } from "@/data";
 import type { ExploreState, PendingAction } from "@/explore/types";
 import { serviceFoodCount } from "@/explore/curio/foodPayment";
-import { canTuneEquipment, tuneExploreEquipment, type ExploreEquipmentTarget } from "@/store/exploreGrowthServices";
-import { EQUIP_SLOTS, useTownStore } from "@/store/townStore";
+import { canTuneEquipment, tuneExploreEquipment, type ExploreEquipmentTarget } from "@/store/explore/exploreGrowthServices";
+import { EQUIP_SLOTS, useTownStore } from "@/store/town/townStore";
 import type { ItemStack } from "@/items/types";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
-import { EventPanelBody, EventPanelButton, EventPanelFoot, EventPanelNotice, EventPanelStage } from "@/ui/common/EventPanel";
+import { EventPanelBody, EventPanelButton, EventPanelFoot, EventPanelNotice, EventPanelStage } from "@/ui/common/widget/EventPanel";
 import s from "./EquipmentTuneReward.module.css";
 
 export function EquipmentTuneReward({ session, action, onFinish }: {

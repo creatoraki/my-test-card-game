@@ -1,5 +1,5 @@
 import { NUTRITION_POD_MAX } from "@/data";
-import type { CharacterState, NutritionState } from "@/store/townStore";
+import type { CharacterState, NutritionState } from "@/store/town/townStore";
 import { NutritionPod } from "./NutritionPod";
 import type { NutritionCandidate } from "./useNutritionAssign";
 import s from "./NutritionPodRack.module.css";

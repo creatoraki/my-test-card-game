@@ -5,10 +5,10 @@ import { HandTray } from "@/ui/battle/HandTray";
 import { HandTools, type HandAction } from "@/ui/battle/HandTools";
 import { ManaBar } from "@/ui/battle/ManaBar";
 import { SquadBuffBar } from "@/ui/battle/SquadBuffBar";
-import type { DeathPhase } from "@/ui/battle/deathChoreo";
-import type { HitFx } from "@/ui/battle/animations";
+import type { DeathPhase } from "@/ui/battle/choreo/deathChoreo";
+import type { HitFx } from "@/ui/battle/choreo/animations";
 import type { RenderHandEntry } from "../useHandRender";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./BattleHudDock.module.css";
 
 type HandDisplayAction = HandAction | "choose";

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ItemDef, ItemStack } from "@/items/types";
-import type { PendingReforge } from "@/store/equipCraftSlice";
-import { EquipAction, EquipGainHead } from "../../equipParts";
+import type { PendingReforge } from "@/store/townSlices/equipCraftSlice";
+import { EquipAction, EquipGainHead } from "../../EquipParts";
 import { BondCard } from "./BondCard";
 import s from "./ReforgeResultColumn.module.css";
 

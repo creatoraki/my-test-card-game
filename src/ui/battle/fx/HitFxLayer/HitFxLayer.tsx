@@ -1,8 +1,8 @@
 import type { ComponentType, CSSProperties } from "react";
 import type { CardAnim } from "@/engine";
-import { ANIM, type HitFx, type ProcFxPreset } from "@/ui/battle/animations";
-import type { UnitReact } from "@/ui/battle/unitShell";
-import { cx } from "@/ui/common/cx";
+import { ANIM, type HitFx, type ProcFxPreset } from "@/ui/battle/choreo/animations";
+import type { UnitReact } from "@/ui/battle/choreo/unitShell";
+import { cx } from "@/ui/common/shared/cx";
 import { IaiSlashFx } from "@/ui/battle/fx/IaiSlashFx";
 import { BladeSlashFx } from "@/ui/battle/fx/BladeSlashFx";
 import { TriSlashFx } from "@/ui/battle/fx/TriSlashFx";
@@ -14,7 +14,7 @@ import { KeenEdgeFx } from "@/ui/battle/fx/KeenEdgeFx";
 import { LunarRingFx } from "@/ui/battle/fx/LunarRingFx";
 import { SakuraFlurryFx } from "@/ui/battle/fx/SakuraFlurryFx";
 import { TwinArrowFx } from "@/ui/battle/fx/TwinArrowFx";
-import { ShieldIcon } from "@/ui/common/StatusPips/icons";
+import { ShieldIcon } from "@/ui/common/bar/StatusPips/icons";
 import s from "./HitFxLayer.module.css";
 
 // 命中表现的共用件: 敌人(CombatantView)与我方头像栏(AllyBar)都靠这两个导出, 保证两边的

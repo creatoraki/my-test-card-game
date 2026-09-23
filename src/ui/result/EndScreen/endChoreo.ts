@@ -1,4 +1,4 @@
-import { prefersReducedMotion } from "@/ui/app/transitions";
+import { prefersReducedMotion } from "@/ui/app/shared/transitions";
 
 export const END_CHOREO = {
   bgMs: 2400,

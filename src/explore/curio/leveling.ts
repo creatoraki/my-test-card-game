@@ -5,9 +5,9 @@
 // 奖励池的品质右移不在这里, 见 effects.ts 的 rollPoolItem。
 // ============================================================================
 
-import { CURIO_LEVEL_RULES } from "@/data/curios/levelRules";
+import { CURIO_LEVEL_RULES } from "@/data/curios/rules/levelRules";
 import type { CurioDecision, CurioDef, CurioEffect, CurioLevel } from "@/data/curios/types";
-import { rngFloat } from "@/engine/rng";
+import { rngFloat } from "@/engine/core/rng";
 import type { ExploreState } from "../types";
 
 function overrideFor(def: CurioDef, level: CurioLevel) {

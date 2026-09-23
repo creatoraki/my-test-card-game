@@ -1,6 +1,6 @@
 import { getItemDef, makeItemStack } from "@/data";
 import { BLESSING_RELIC_DEFS, PICNIC_RELIC_DEFS } from "@/data/items/relics";
-import { rngPick } from "@/engine/rng";
+import { rngPick } from "@/engine/core/rng";
 import { addPendingLoot } from "../session";
 import type { ExploreState } from "../types";
 

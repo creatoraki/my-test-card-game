@@ -1,6 +1,6 @@
 ﻿import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import type { SquadBadgeDef, SquadResourceKey } from "@/data";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { badgeThemeVars } from "@/ui/town/training/styles/badgeTheme";
 import { BadgeCoreArtwork } from "@/ui/town/training/TalentArtwork/BadgeCoreArtwork";
 import { BadgePanelFrame, BadgeRowFrame } from "./BadgePanelFrame";

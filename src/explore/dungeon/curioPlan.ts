@@ -9,15 +9,15 @@
 // · 剩余名额按 RANDOM_CURIO_WEIGHTS 房内不放回加权抽取(期望推算见该表注释)。
 // ============================================================================
 
-import { rngFloat, rngInt, rngPick, rngPickWeighted } from "../../engine/rng";
-import { HEAL_CURIO_KINDS, RANDOM_CURIO_WEIGHTS, TRAP_CURIO_KINDS } from "../../data/curios";
-import { EXPLORE_RULES } from "../rules";
+import { rngFloat, rngInt, rngPick, rngPickWeighted } from "@/engine/core/rng";
+import { HEAL_CURIO_KINDS, RANDOM_CURIO_WEIGHTS, TRAP_CURIO_KINDS } from "@/data/curios";
+import { EXPLORE_RULES } from "../core/exploreRules";
 import type { ExploreState } from "../types";
 import type { CurioKind } from "../corridor/types";
 import type { RoomNode } from "./types";
-import { allowsCardRemoval } from "@/data/curios/growthBalance";
-import { difficultyMapConfig } from "../../data/mapDifficulty";
-import type { MapDef } from "../../data/maps";
+import { allowsCardRemoval } from "@/data/curios/rules/growthBalance";
+import { difficultyMapConfig } from "@/data/maps/mapDifficulty";
+import type { MapDef } from "@/data/maps";
 
 const START_ROOM_CURIOS: readonly CurioKind[] = ["temporaryRelicCache"];
 

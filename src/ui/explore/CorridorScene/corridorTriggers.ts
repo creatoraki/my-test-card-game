@@ -1,6 +1,6 @@
 import type { CorridorState } from "@/explore/corridor/types";
-import { EXPLORE_RULES } from "@/explore/rules";
-import { checkCorridorAmbush, spendCorridorWalkEnergy } from "@/store/exploreCorridor";
+import { EXPLORE_RULES } from "@/explore/core/exploreRules";
+import { checkCorridorAmbush, spendCorridorWalkEnergy } from "@/store/explore/exploreCorridor";
 
 export type CorridorTrigger = "ambush" | null;
 

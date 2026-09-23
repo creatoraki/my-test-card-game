@@ -1,5 +1,5 @@
 import type { BattleState, Card, CardAnim } from "@/engine";
-import { ANIM } from "@/ui/battle/animations";
+import { ANIM } from "@/ui/battle/choreo/animations";
 import { pickShot, SHOTS, type ShotPreset } from "./shots";
 
 export interface ChoreoStep {

@@ -1,8 +1,8 @@
 import { useMemo, type KeyboardEvent } from "react";
 import { getItemDef } from "@/data";
-import { SORTIE_RELIC_LIMIT, useSortieStore } from "@/store/sortieStore";
+import { SORTIE_RELIC_LIMIT, useSortieStore } from "@/store/sortie/sortieStore";
 import ItemInventoryPanel from "@/ui/common/item/ItemInventoryPanel";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { SORTIE_RELIC_COLORS } from "@/ui/sortie/styles/inventoryPalettes";
 import s from "./SortieRelicBar.module.css";
 

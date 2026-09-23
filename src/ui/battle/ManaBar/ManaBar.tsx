@@ -1,10 +1,10 @@
 import { memo } from "react";
 import type { BattleState } from "@/engine";
 import { RULES, partyManaPerRound } from "@/engine";
-import { useHandHoverCost } from "@/ui/battle/handFocusStore";
-import { ManaCrystal } from "@/ui/common/ManaCrystal";
-import { RailPopover } from "@/ui/common/RailPopover";
-import { TooltipCard } from "@/ui/common/TooltipCard";
+import { useHandHoverCost } from "@/ui/battle/state/handFocusStore";
+import { ManaCrystal } from "@/ui/common/icon/ManaCrystal";
+import { RailPopover } from "@/ui/common/tooltip/RailPopover";
+import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import s from "./ManaBar.module.css";
 
 interface Props {

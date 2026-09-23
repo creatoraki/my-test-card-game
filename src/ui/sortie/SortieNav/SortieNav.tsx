@@ -1,4 +1,4 @@
-import type { SortieStep } from "@/store/sortieStore";
+import type { SortieStep } from "@/store/sortie/sortieStore";
 import { SortieFrame } from "@/ui/sortie/SortieFrame";
 import { SortieGlyph } from "@/ui/sortie/SortieGlyph";
 import s from "./SortieNav.module.css";

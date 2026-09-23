@@ -23,8 +23,8 @@
 // 时长的唯一真相是 transitions.ts 的 BATTLE_GRADE_SETTLE_MS, 两边读同一个常量。
 
 import type { CSSProperties } from "react";
-import type { TransitionOrigin } from "@/ui/app/transitionOrigin";
-import { BATTLE_GRADE_SETTLE_MS } from "@/ui/app/transitions";
+import type { TransitionOrigin } from "@/ui/app/shared/transitionOrigin";
+import { BATTLE_GRADE_SETTLE_MS } from "@/ui/app/shared/transitions";
 import s from "./BattleEntryGrading.module.css";
 
 interface Props {

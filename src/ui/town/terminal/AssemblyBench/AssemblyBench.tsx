@@ -1,9 +1,9 @@
 import type { Card } from "@/engine";
 import { canEquipModule, getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { itemIcon } from "@/ui/art/itemArt";
-import { EventPanelButton } from "@/ui/common/EventPanel";
-import { cx } from "@/ui/common/cx";
+import { itemIcon } from "@/ui/art/items/itemArt";
+import { EventPanelButton } from "@/ui/common/widget/EventPanel";
+import { cx } from "@/ui/common/shared/cx";
 import { AssembleIcon, DetachIcon } from "@/ui/town/assembly/AssemblyScene/icons";
 import s from "./AssemblyBench.module.css";
 

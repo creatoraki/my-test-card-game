@@ -1,0 +1,46 @@
+// 编队态 ↔ 详情态「元素重组」的几何与时长旋钮 —— 唯一真相点。
+//
+// ★ 这一套取代了原先的原生 View Transition(app/viewTransition.global.css, 已删):
+//   ::view-transition-* 伪元素挂在**文档根**上, 拿不到元素身上的 --i, 错峰只能靠一张手写
+//   到 23 条的延迟表, 更做不出"卡阵按距离飞散 + 面板从卡边缘裂开生长"这类连续重组。
+//   改成同一页内的两种态之后, 一切都是普通 DOM, 编排权回到自己手里。
+//
+// ⚠ 本文件里的坐标一律是**设计 px**(1920×1080 画布内的坐标), 与窗口分辨率无关。
+
+import { prefersReducedMotion } from "@/ui/app/shared/transitions";
+export { designRectOf } from "@/ui/app/shared/stage";
+
+/** 「减少动态效果」时所有时长归零，与卡组成长面板的演出采用同一判定。 */
+const duration = (ms: number) => (prefersReducedMotion() ? 0 : ms);
+
+// ---- 时长 ----
+export const MORPH_MS = duration(620); // 被点卡 → 立绘栏的滑动 + 展宽
+export const SCATTER_MS = duration(320); // 其余卡飞散
+export const PANEL_DELAY_MS = duration(340); // 右侧工作区起裂时刻
+export const PANEL_GROW_MS = duration(280); // 右侧工作区裂开生长
+// ⚠⚠ PANEL_DELAY + PANEL_GROW 必须 ≤ MORPH_MS: 飞行一结束 phase 就回 idle, is-growing 类随之摘掉,
+//   动画没播完就会被硬切到终态(表现为面板在最后一下"啪"地弹满)。详情树延后挂载时,
+//   useFormationMorph 会按点击到挂载的耗时缩短剩余 delay, 让生长节拍仍锚定点击时刻；340 + 280 = 620。
+// ⚠ 工作区**内部**各面板的错峰(属性组、卡格)不在这里: 它们各自写在自己的 module.css 里,
+//   与项目里别处的入场错峰同一范式, 且带自己的 prefers-reduced-motion 兜底。
+export const BACK_MORPH_MS = duration(420); // 回程: 立绘 → 卡
+export const BACK_GATHER_MS = duration(260); // 回程: 卡阵收拢
+
+export const MORPH_EASE = "cubic-bezier(0.2, 0.72, 0.28, 1)";
+/** 去程中段帧的位置: 先横向滑到立绘位, 再在原地展宽; 回程取 1 - 此值。 */
+export const MORPH_SLIDE_SPLIT = 0.55;
+
+// ---- 版面常量 ----
+// 详情态左栏立绘的取景矩形。⚠ 它是**常量而不是测量值**: 版面由本域自己定死, 去程因此
+// 不需要等详情态布局完成再测一次。
+//
+// 几何统一由详情布局模块维护。人物按 9:16 高度适配，展宽后两边露出场景。
+export { FIGURE_RECT } from "@/ui/character/CharacterDetailView/detailLayout";
+
+export interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+

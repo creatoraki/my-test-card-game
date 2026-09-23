@@ -4,7 +4,7 @@ import { countByItemId } from "@/items/inventory";
 import { matchOffering, partCanMatch } from "./offering";
 import { curioAtLevel } from "./leveling";
 import type { ExploreState } from "../types";
-import { allowsCardRemoval } from "@/data/curios/growthBalance";
+import { allowsCardRemoval } from "@/data/curios/rules/growthBalance";
 
 function activeObject(s: ExploreState) {
   const id = s.corridor?.activeObjectId;

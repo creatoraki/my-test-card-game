@@ -11,7 +11,7 @@
 //    卡牌那套只出现在 Card/卡组锻造里, 物品这套只出现在 ItemDef/ItemStack 里, 别混用。
 // ============================================================================
 
-import type { EffectDescriptor, SquadResourceMods, StatBlock, StatModifier } from "../engine/types";
+import type { EffectDescriptor, SquadResourceMods, StatBlock, StatModifier } from "@/engine/types";
 
 // ---------------------------------------------------------------------------
 // 稀有度 —— 五档(《物品设计.md》第四章)

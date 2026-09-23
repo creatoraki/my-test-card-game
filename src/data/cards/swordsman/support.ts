@@ -1,5 +1,5 @@
 // 剑士 · 功能卡与防御卡。设计口径见 design/卡牌设计/剑士/剑士新卡.md。
-import type { CardDef } from "../../../engine/types";
+import type { CardDef } from "@/engine/types";
 
 export const SWORDSMAN_SUPPORT_CARDS: CardDef[] = [
   {

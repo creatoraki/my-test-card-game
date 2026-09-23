@@ -1,7 +1,7 @@
 import { RULES } from "@/engine";
 import { getItemDef } from "@/data";
 import { backpackSlots, canOpenBackpack, canUseItem } from "@/explore/session";
-import { useExploreStore } from "@/store/exploreStore";
+import { useExploreStore } from "@/store/explore/exploreStore";
 import ItemInventoryPanel from "@/ui/common/item/ItemInventoryPanel";
 import type { ContextMenuItem } from "@/ui/common/item/ItemContextMenu";
 import type { ItemStack } from "@/items/types";

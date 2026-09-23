@@ -1,6 +1,6 @@
 import type { Rarity } from "@/engine";
 import { deckUpgradeCost, RULES } from "@/engine";
-import { availablePools, deckForgeCosts, type CharacterState } from "@/store/townStore";
+import { availablePools, deckForgeCosts, type CharacterState } from "@/store/town/townStore";
 
 export interface ForgeViewModel {
   costs: ReturnType<typeof deckForgeCosts>;

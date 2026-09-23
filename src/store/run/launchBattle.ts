@@ -1,8 +1,8 @@
 // 建一场战斗 —— 把城镇档案、探索会话与遗物合成一份引擎认识的开局参数。
 
-import { mapCombatModifier } from "../../data/mapCombatBalance";
-import type { AllyInit, Card } from "../../engine";
-import { applyModifier } from "../../engine";
+import { mapCombatModifier } from "@/data/maps/mapCombatBalance";
+import type { AllyInit, Card } from "@/engine";
+import { applyModifier } from "@/engine";
 import {
   ASSEMBLE_REWARD_POOLS,
   BOND_DEFS,
@@ -13,13 +13,13 @@ import {
   mergeMods,
   nextTier,
   squadModsOf,
-} from "../../data";
-import { burdenNow, encounterModifier } from "../../explore/session";
-import { relicBattleMods } from "../../explore/relicModifiers";
-import { useBattleStore, type BattleMeta } from "../battleStore";
-import { applyPendingContamination } from "../exploreAftermath";
-import { useExploreStore } from "../exploreStore";
-import { bondCountsOf, deriveStats, useTownStore, type CharacterState } from "../townStore";
+} from "@/data";
+import { burdenNow, encounterModifier } from "@/explore/session";
+import { relicBattleMods } from "@/explore/relics/relicModifiers";
+import { useBattleStore, type BattleMeta } from "../battle/battleStore";
+import { applyPendingContamination } from "../explore/exploreAftermath";
+import { useExploreStore } from "../explore/exploreStore";
+import { bondCountsOf, deriveStats, useTownStore, type CharacterState } from "../town/townStore";
 
 function battleMeta(characters: Record<string, CharacterState>, party: string[]): BattleMeta {
   const counts = bondCountsOf(characters, party);

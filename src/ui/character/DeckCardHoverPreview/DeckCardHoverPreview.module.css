@@ -29,6 +29,6 @@
 
 /* 词条释义: 与卡面同宽, 外观走 CardKeywordNotes 的 .notes-detail。 */
 .keywords {
-  composes: notes-detail from "../../common/CardKeywordNotes/CardKeywordNotes.module.css";
+  composes: notes-detail from "@/ui/common/card/CardKeywordNotes/CardKeywordNotes.module.css";
   width: calc(var(--card-w) * var(--deck-card-scale));
 }

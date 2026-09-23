@@ -1,5 +1,5 @@
 import type { BattleState } from "@/engine";
-import { ANIM, type HitFx } from "@/ui/battle/animations";
+import { ANIM, type HitFx } from "@/ui/battle/choreo/animations";
 import { HurtVignette } from "@/ui/battle/fx/HurtVignette";
 import s from "./ScreenFxLayer.module.css";
 

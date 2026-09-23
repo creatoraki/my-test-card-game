@@ -1,4 +1,4 @@
-import type { CharacterState } from "@/store/townStore";
+import type { CharacterState } from "@/store/town/townStore";
 import { NutritionRosterRow } from "./NutritionRosterRow";
 import type { NutritionCandidate } from "./useNutritionAssign";
 import s from "./NutritionRoster.module.css";

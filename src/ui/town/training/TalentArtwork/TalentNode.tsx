@@ -1,5 +1,5 @@
 import { useId, type KeyboardEvent, type MouseEvent } from "react";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { TrackIcon } from "../TalentTreeRadial/icons";
 import type { Point } from "../TalentTreeRadial/talentGeometry";
 import s from "./TalentNode.module.css";

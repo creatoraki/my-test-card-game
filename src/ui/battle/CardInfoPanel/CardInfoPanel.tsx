@@ -1,9 +1,9 @@
 import { memo, useDeferredValue } from "react";
 import { cardActivated, starlightPayment, type BattleState, type Card } from "@/engine";
-import { useHandHover, useHandHoverCost } from "@/ui/battle/handFocusStore";
-import { HandCard } from "@/ui/battle/HandCard";
-import { CardKeywordNotes } from "@/ui/common/CardKeywordNotes";
-import { useCardText } from "@/ui/common/cardText";
+import { useHandHover, useHandHoverCost } from "@/ui/battle/state/handFocusStore";
+import { HandCard } from "@/ui/common/card/HandCard";
+import { CardKeywordNotes } from "@/ui/common/card/CardKeywordNotes";
+import { useCardText } from "@/ui/common/shared/cardTextFormat";
 import s from "./CardInfoPanel.module.css";
 
 // 固定卡牌说明面板: 绝对定位在**画布右上角**, 位置恒定(取代旧的悬停跟随浮窗)。

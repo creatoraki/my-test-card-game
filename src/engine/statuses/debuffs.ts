@@ -1,5 +1,5 @@
 import type { StatusDef } from "../types";
-import { RULES } from "../rules";
+import { RULES } from "../core/battleRules";
 
 export const DEBUFF_STATUS_DEFS: Record<string, StatusDef> = {
   weak: {

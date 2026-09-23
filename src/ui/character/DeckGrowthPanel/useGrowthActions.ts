@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { makeCard } from "@/data";
 import { deckRarityChances } from "@/engine";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import { forgeViewModel } from "@/ui/character/DeckForge/forgeViewModel";
 
 export type GrowthPage = "hub" | "draw" | "remove";

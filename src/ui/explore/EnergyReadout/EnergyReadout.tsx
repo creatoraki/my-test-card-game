@@ -7,7 +7,7 @@
 // 悬浮(或键盘聚焦)弹出档位详情: 当前收益加成与敌人强化(EnergyTierDetail)。
 
 import { useId, type CSSProperties } from "react";
-import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
+import { HoverTooltip, useHoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
 import { EnergyCanister } from "./EnergyCanister";
 import { EnergyTierDetail } from "./EnergyTierDetail";
 import { energyPalette } from "./energyPalette";

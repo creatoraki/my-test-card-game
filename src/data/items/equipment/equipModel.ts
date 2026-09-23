@@ -1,7 +1,7 @@
-import type { StatBlock } from "../../../engine/types";
-import type { EquipSlot, ItemDef } from "../../../items/types";
-import { assertModelValid } from "../../../items/equipRoll";
-import { RARITY_ORDER } from "../../../items/types";
+import type { StatBlock } from "@/engine/types";
+import type { EquipSlot, ItemDef } from "@/items/types";
+import { assertModelValid } from "@/items/equipRoll";
+import { RARITY_ORDER } from "@/items/types";
 
 export interface EquipFamily {
   familyId: string;

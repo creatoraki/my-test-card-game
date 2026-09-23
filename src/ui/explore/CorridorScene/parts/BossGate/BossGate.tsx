@@ -1,0 +1,37 @@
+import { CORRIDOR_BOSS_GATE_ART, CORRIDOR_BOSS_GATE_Y_OFFSET } from "@/ui/art/corridor/corridorArt";
+import s from "../../CorridorScene.module.css";
+
+export function BossGate({
+  x,
+  top,
+  near,
+  blocked,
+  onClick,
+}: {
+  x: number;
+  top: number;
+  near: boolean;
+  blocked: boolean;
+  onClick: () => void;
+}) {
+  const disabled = blocked || !near;
+  return <div className={`${s.object} ${s.bossGate}`} style={{ left: x, top: top + CORRIDOR_BOSS_GATE_Y_OFFSET }}>
+    <button
+      className={s.objectButton}
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      aria-label={near ? "首领红门，靠近后交互" : "首领红门，查看"}
+    >
+      <img
+        aria-hidden
+        alt=""
+        draggable={false}
+        src={CORRIDOR_BOSS_GATE_ART}
+        className={`${s.bossGateArt} ${near ? s.bossGateLit : ""}`}
+        style={{ height: 455 }}
+      />
+    </button>
+    {near && <span className={s.bossGatePrompt}>空格 · 挑战首领</span>}
+  </div>;
+}

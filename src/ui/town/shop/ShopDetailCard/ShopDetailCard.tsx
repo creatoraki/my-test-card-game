@@ -1,7 +1,7 @@
 // 商店详情共用展示壳。商品数据由调用方组装，玻璃层与展示台在此统一维护。
 
 import { useLayoutEffect, useRef, type ReactNode } from "react";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./ShopDetailCard.module.css";
 
 export interface ShopDetailRow {

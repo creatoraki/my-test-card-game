@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { getItemDef, shopLevelOf } from "@/data";
 import { sortStacks } from "@/items/inventory";
 import { RARITY_ORDER } from "@/items/types";
-import { techLevels, useTownStore } from "@/store/townStore";
+import { techLevels, useTownStore } from "@/store/town/townStore";
 import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
 import { MarketPanel } from "@/ui/town/shop/MarketPanel";
 import { ShopWindow } from "@/ui/town/shop/ShopWindow";

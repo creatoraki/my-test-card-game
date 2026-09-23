@@ -9,12 +9,12 @@ import { useEffect, useState, type Ref } from "react";
 import { SQUAD_BADGES } from "@/data";
 import { TalentPanelShell } from "../TalentArtwork/TalentPanelShell";
 import { TalentHeader } from "../TalentArtwork/TalentHeader";
-import { cx } from "@/ui/common/cx";
-import type { Rect } from "@/ui/common/panelMorph";
+import { cx } from "@/ui/common/shared/cx";
+import type { Rect } from "@/ui/common/frame/panelMorph";
 import { BadgeSelectModal } from "../BadgeSelectModal";
 import { SquadResourceBar } from "../SquadResourceBar";
 import { TalentTreeRadial } from "../TalentTreeRadial";
-import { useSquadTalent } from "../useSquadTalent";
+import { useSquadTalent } from "./useSquadTalent";
 import s from "./SquadTalentModal.module.css";
 
 interface Props {

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { endExitTiming, endTiming } from "../endChoreo";
 import type { EndTrophy } from "../endSummary";

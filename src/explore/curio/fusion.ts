@@ -1,6 +1,6 @@
 import { BLESSING_RELIC_DEFS, equipmentDefsBySlot, getItemDef, makeRolledItemStack } from "@/data";
 import { RARITY_ORDER } from "@/items/types";
-import { rngInt, shuffle } from "@/engine/rng";
+import { rngInt, shuffle } from "@/engine/core/rng";
 import type { ItemStack } from "@/items/types";
 import { addPendingLoot } from "../session";
 import type { ExploreState } from "../types";

@@ -1,4 +1,4 @@
-import { NEAR_EXPIRY_FOOD_IDS } from "@/data/items/consumables";
+import { NEAR_EXPIRY_FOOD_IDS } from "@/data/items/catalog/consumables";
 import { consumeItems, countByItemId } from "@/items/inventory";
 import type { ExploreState } from "../types";
 

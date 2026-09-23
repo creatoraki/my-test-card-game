@@ -1,4 +1,4 @@
-import type { CardDef } from "../../../engine/types";
+import type { CardDef } from "@/engine/types";
 import { ALCHEMIST_ATTACK_CARDS } from "./attack";
 import { ALCHEMIST_DEFENSE_CARDS } from "./defense";
 import { ALCHEMIST_PASSIVE_CARDS } from "./passive";

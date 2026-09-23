@@ -1,7 +1,7 @@
 ﻿import { makeCard } from "@/data";
 import type { ExploreState } from "@/explore/types";
-import { HandCard } from "@/ui/battle/HandCard";
-import { EventPanelStage, EventPanelBody, EventPanelFoot, EventPanelButton, EventPanelNotice } from "@/ui/common/EventPanel";
+import { HandCard } from "@/ui/common/card/HandCard";
+import { EventPanelStage, EventPanelBody, EventPanelFoot, EventPanelButton, EventPanelNotice } from "@/ui/common/widget/EventPanel";
 import { MemberList } from "./RewardCharacters";
 import s from "@/ui/explore/styles/rewardKit.module.css";
 export function FreeDraw({

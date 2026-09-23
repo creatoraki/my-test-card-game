@@ -1,4 +1,4 @@
-import { DEATH } from "@/ui/battle/deathChoreo";
+import { DEATH } from "@/ui/battle/choreo/deathChoreo";
 import s from "./DeathVanishFx.module.css";
 
 const MOTES = [

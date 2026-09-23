@@ -1,10 +1,10 @@
 export { EventDossierPanel } from "./EventDossierPanel";
 export { DOSSIER_ACCENT, DOSSIER_THEMES, type DossierThemeId } from "./dossierThemes";
-export { DossierChoice } from "./DossierChoice";
-export { DossierResult } from "./DossierResult";
-export { DossierLoot } from "./DossierLoot";
-export { DossierOffer } from "./DossierOffer";
-export { DossierInfoBox, DossierNotice } from "./DossierParts";
-export { DossierIcon, type DossierIconName } from "./DossierIcons";
-export type { DossierAction } from "./DossierButton";
-export { DossierExecutor } from "./DossierExecutor";
+export { DossierChoice } from "./parts/DossierChoice";
+export { DossierResult } from "./parts/DossierResult";
+export { DossierLoot } from "./parts/DossierLoot";
+export { DossierOffer } from "./parts/DossierOffer";
+export { DossierInfoBox, DossierNotice } from "./parts/DossierParts";
+export { DossierIcon, type DossierIconName } from "./parts/DossierIcons";
+export type { DossierAction } from "./parts/DossierButton";
+export { DossierExecutor } from "./parts/DossierExecutor";

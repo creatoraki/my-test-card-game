@@ -1,8 +1,8 @@
 import type { Card } from "@/engine";
 import { RULES } from "@/engine";
 import { ExpShardGlyph } from "@/ui/character/glyphs/deckGlyphs";
-import { DeckCard } from "@/ui/character/DeckCard";
-import { HoldButton } from "@/ui/common/HoldButton";
+import { DeckCard } from "@/ui/common/card/DeckCard";
+import { HoldButton } from "@/ui/common/control/HoldButton";
 import { GrowthGlyph } from "./GrowthGlyph";
 import s from "./GrowthOperations.module.css";
 

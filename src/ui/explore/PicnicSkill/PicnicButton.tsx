@@ -1,8 +1,8 @@
-import { canPicnic } from "@/explore/picnic";
-import { useExploreStore } from "@/store/exploreStore";
-import { RailPopover } from "@/ui/common/RailPopover";
-import { TooltipCard } from "@/ui/common/TooltipCard";
-import { cx } from "@/ui/common/cx";
+import { canPicnic } from "@/explore/resources/picnic";
+import { useExploreStore } from "@/store/explore/exploreStore";
+import { RailPopover } from "@/ui/common/tooltip/RailPopover";
+import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./PicnicButton.module.css";
 
 export default function PicnicButton({ onOpen }: { onOpen: () => void }) {

@@ -1,11 +1,11 @@
 import { getCharacter } from "@/data";
-import type { CharacterState } from "@/store/townStore";
-import { vitalsOf } from "@/store/townStore";
-import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
-import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
-import { TooltipCard } from "@/ui/common/TooltipCard";
-import { HpBar } from "@/ui/common/HpBar";
-import { cx } from "@/ui/common/cx";
+import type { CharacterState } from "@/store/town/townStore";
+import { vitalsOf } from "@/store/town/townStore";
+import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
+import { HoverTooltip, useHoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
+import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
+import { HpBar } from "@/ui/common/bar/HpBar";
+import { cx } from "@/ui/common/shared/cx";
 import type { NutritionCandidate } from "./useNutritionAssign";
 import figure from "../styles/cryoFigure.module.css";
 import s from "./NutritionRosterRow.module.css";

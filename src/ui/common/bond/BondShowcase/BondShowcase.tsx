@@ -1,0 +1,61 @@
+import type { CSSProperties } from "react";
+import type { BondDef, BondTier } from "@/data/roster/bonds";
+import { ArcanaIcon, getArcanaAccent } from "@/ui/common/icon/ArcanaIcon";
+import { BondTooltip } from "@/ui/common/bond/BondTooltip";
+import { RailPopover } from "@/ui/common/tooltip/RailPopover";
+import type { RailPopoverSide } from "@/ui/common/bond/BondSlot";
+import { cx } from "@/ui/common/shared/cx";
+import s from "./BondShowcase.module.css";
+
+export interface BondShowcaseProps {
+  def: BondDef;
+  count: number;
+  tierIndex: number;
+  next?: BondTier | null;
+  iconSize?: number;
+  popoverSide?: RailPopoverSide;
+  className?: string;
+}
+
+export function BondShowcase({
+  def,
+  count,
+  tierIndex,
+  next = null,
+  iconSize = 96,
+  popoverSide = "bottom",
+  className,
+}: BondShowcaseProps) {
+  const inactive = tierIndex < 0;
+  const accent = getArcanaAccent(def.id) ?? def.color;
+  const tierTotal = def.tiers.length;
+  const style = {
+    "--slot-icon": `${iconSize}px`,
+    "--slot-accent": accent,
+  } as CSSProperties;
+
+  return (
+    <div
+      className={cx(s.showcase, className)}
+      style={style}
+      data-inactive={inactive}
+      data-rail-item
+      tabIndex={0}
+      role="group"
+      aria-label={`${def.name}，${count} 点${inactive ? "，未激活" : `，Lv.${tierIndex + 1}/${tierTotal}`}`}
+    >
+      <div className={s.frame}>
+        <ArcanaIcon id={def.id} size={Math.round(iconSize * 0.76)} bare accent="var(--slot-ink)" />
+        <span className={s.count} aria-hidden="true">{count}</span>
+      </div>
+      <span className={s.pips} aria-hidden="true">
+        {Array.from({ length: tierTotal }, (_, i) => (
+          <i key={i} className={cx(s.pip, i <= tierIndex && s.pipOn)} />
+        ))}
+      </span>
+      <RailPopover side={popoverSide}>
+        <BondTooltip def={def} count={count} tierIndex={tierIndex} next={next} />
+      </RailPopover>
+    </div>
+  );
+}

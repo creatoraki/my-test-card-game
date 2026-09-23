@@ -6,13 +6,13 @@
 // ============================================================================
 
 import type { BattleState, Combatant, DamageCtx, DamageOpts, DamageResult } from "../types";
-import { RULES } from "../rules";
-import { rngFloat } from "../rng";
-import { critChance, defenseMultiplier, hitChance, statOf } from "../stats";
+import { RULES } from "../core/battleRules";
+import { rngFloat } from "../core/rng";
+import { critChance, defenseMultiplier, hitChance, statOf } from "../combat/stats";
 import { noteChallengeDamage } from "../challenges";
-import { recordHitPart } from "../animHits";
-import { runRelicHook } from "../relicBehaviors/types";
-import { cleanup, log, markDead, ops } from "../ops";
+import { recordHitPart } from "../core/animHits";
+import { runRelicHook } from "../relics/types";
+import { cleanup, log, markDead, ops } from "../core/ops";
 import { runGuardHooks, runStatusHooks } from "./hooks";
 import { applyDamageModifiers, collectDamageModifiers, createDamageCtx } from "./modifiers";
 

@@ -1,6 +1,6 @@
 // 净化粒子悬浮详情: 当前档位的收益加成与敌人强化。外观走统一的 TooltipCard。
 
-import { TooltipCard, type TooltipNote } from "@/ui/common/TooltipCard";
+import { TooltipCard, type TooltipNote } from "@/ui/common/tooltip/TooltipCard";
 import { energyTierInfo } from "./energyTierInfo";
 import s from "./EnergyTierDetail.module.css";
 

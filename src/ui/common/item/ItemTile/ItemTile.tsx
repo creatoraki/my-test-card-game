@@ -9,9 +9,9 @@
 import type { MouseEvent } from "react";
 import { getBondDef, getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { itemIcon } from "@/ui/art/itemArt";
-import { BondIcon } from "@/ui/common/BondIcon";
-import { cx } from "@/ui/common/cx";
+import { itemIcon } from "@/ui/art/items/itemArt";
+import { BondIcon } from "@/ui/common/bond/BondIcon";
+import { cx } from "@/ui/common/shared/cx";
 import { ItemTileBand } from "./ItemTileBand";
 import s from "./ItemTile.module.css";
 

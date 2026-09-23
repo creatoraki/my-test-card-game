@@ -1,6 +1,6 @@
-import type { BoonEntry } from "../../../explore/types";
-import type { DropEntry } from "../../../items/types";
-import { DEFAULT_REGION_ID, regionalMaterial } from "../../items/regional";
+import type { BoonEntry } from "@/explore/types";
+import type { DropEntry } from "@/items/types";
+import { DEFAULT_REGION_ID, regionalMaterial } from "../../items/catalog/regional";
 
 // ⚠ 本表当前只服务废弃楼层（教程关与它共用同一批敌人，串掉可接受）。第二个地区落地时必须改成「档位 × 地区」两维。
 // 拆成 neonCommonBase / gardenCommonBase，或让基础表接受 regionId 参数、由 regionalMaterial() 拼装。不要直接再塞一条地区材料。

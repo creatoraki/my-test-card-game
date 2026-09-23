@@ -1,4 +1,4 @@
-import type { CardDef } from "../../../engine/types";
+import type { CardDef } from "@/engine/types";
 
 const rewardBase = {
   ownerCharId: "alchemist",

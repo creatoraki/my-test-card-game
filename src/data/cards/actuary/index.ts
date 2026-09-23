@@ -1,4 +1,4 @@
-import type { CardDef } from "../../../engine/types";
+import type { CardDef } from "@/engine/types";
 import { ACTUARY_ATTACK_CARDS } from "./attack";
 import { ACTUARY_HEAL_CARDS } from "./heal";
 import { ACTUARY_PASSIVE_CARDS } from "./passive";

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { getItemDef } from "@/data";
 import type { MerchantShelf } from "@/data/curios/types";
 import type { ExploreState } from "@/explore/types";
-import { useRunStore } from "@/store/runStore";
+import { useRunStore } from "@/store/run/runStore";
 import { MarketActionButton, MarketDetail, MarketShelf } from "@/ui/town/shop/MarketPanel";
 import marketStyles from "@/ui/town/shop/MarketPanel/MarketPanel.module.css";
 import { MerchantFoodIcon } from "./MerchantFoodIcon";

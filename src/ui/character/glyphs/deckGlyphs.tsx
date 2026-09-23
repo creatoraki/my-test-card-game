@@ -1,6 +1,6 @@
 import type { SVGProps } from "react";
 import type { Rarity } from "@/engine";
-import { RARITY_CRYSTAL_ART } from "@/ui/art/rarityArt";
+import { RARITY_CRYSTAL_ART } from "@/ui/art/items/rarityArt";
 
 const SVG_PROPS: SVGProps<SVGSVGElement> = {
   viewBox: "0 0 48 48",

@@ -1,0 +1,287 @@
+// ============================================================================
+// 属性结算 —— 面板层级的唯一换算点(《角色养成设计.md》第二章)。
+//
+//   最终属性 =(角色基础值 + 装备固定值)×(1 + 装备百分比) + 战斗内固定修正
+//   战斗内百分比最后结算; 概率类属性在最终结算后截断。
+//
+// 局外那两层(角色基础 + 装备)在进战斗前就已合并进 Combatant.stats;
+// 本模块负责把 Combatant.mods(战斗内修正)叠上去, 并提供各处需要的派生量。
+// ⚠ 只 import 类型与规则, 不 import 引擎实现 —— ops / effects / statuses 都能安全引用它。
+// ============================================================================
+
+import type { BattleState, Combatant, SquadResourceMods, StatBlock, StatModifier } from "../types";
+import { RULES, capProb } from "../core/battleRules";
+import { STATUS_DEFS } from "../core/hookRegistry";
+
+// 全零面板。新增属性时只需在 types.StatBlock 与这里各加一行。
+export const ZERO_STATS: StatBlock = {
+  maxHp: 0,
+  attack: 0,
+  healPower: 0,
+  lowCostMastery: 0,
+  highCostMastery: 0,
+  fastMastery: 0,
+  executeMastery: 0,
+  chargeMastery: 0,
+  defense: 0,
+  armorPen: 0,
+  hitRate: 0,
+  dodgeRate: 0,
+  critRate: 0,
+  critDamage: 0,
+  precision: 0,
+  initiative: 0,
+  blockRate: 0,
+  healBoost: 0,
+  shieldBoost: 0,
+  ailmentResist: 0,
+  burdenAdapt: 0,
+};
+
+export const STAT_KEYS = Object.keys(ZERO_STATS) as (keyof StatBlock)[];
+
+// 用局部字段补全成完整面板(未写的项为 0)。角色/装备数据都用它落地。
+export function makeStats(partial: Partial<StatBlock>): StatBlock {
+  return { ...ZERO_STATS, ...partial };
+}
+
+// 逐项相加。用于把多件装备的固定值合进角色基础面板。
+export function addStats(...blocks: Partial<StatBlock>[]): StatBlock {
+  const out = { ...ZERO_STATS };
+  for (const b of blocks) for (const k of STAT_KEYS) out[k] += b[k] ?? 0;
+  return out;
+}
+
+// 把一层修正(flat + pct)套到面板上: (base + flat) ×(1 + pct/100)。
+export function applyModifier(base: StatBlock, mod: StatModifier): StatBlock {
+  const out = { ...ZERO_STATS };
+  for (const k of STAT_KEYS) {
+    const flat = base[k] + (mod.flat?.[k] ?? 0);
+    out[k] = flat * (1 + (mod.pct?.[k] ?? 0) / 100);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// 战斗中读取单项属性 —— 引擎里所有属性读取都必须走这里, 不要直接读 cmb.stats。
+// 概率类属性(暴击/闪避/格挡/异常抗性)在此处截到 RULES.combat.probCapPct。
+// ---------------------------------------------------------------------------
+const CAPPED_KEYS = new Set<keyof StatBlock>([
+  "critRate",
+  "dodgeRate",
+  "blockRate",
+  "ailmentResist",
+]);
+
+export function statOf(cmb: Combatant, key: keyof StatBlock): number {
+  const statusFlat = cmb.statuses.reduce(
+    (sum, inst) => sum + (STATUS_DEFS[inst.id]?.statMods?.[key] ?? 0) * inst.stacks,
+    0,
+  );
+  const statusPct = cmb.statuses.reduce(
+    (sum, inst) => sum + (STATUS_DEFS[inst.id]?.statModsPct?.[key] ?? 0) * inst.stacks,
+    0,
+  );
+  const flat = cmb.stats[key] + (cmb.mods.flat?.[key] ?? 0) + statusFlat;
+  const v = flat * (1 + ((cmb.mods.pct?.[key] ?? 0) + statusPct) / 100);
+  return CAPPED_KEYS.has(key) ? capProb(v) : v;
+}
+
+export function masteryBonusOf(state: BattleState, cmb: Combatant): number {
+  const key =
+    state.activeCardCost != null && state.activeCardCost <= RULES.combat.lowCostApMax
+      ? "lowCostMastery"
+      : "highCostMastery";
+  return state.activeCardCost == null ? 0 : statOf(cmb, key);
+}
+
+export function offenseStatOf(
+  state: BattleState,
+  cmb: Combatant,
+  key: "attack" | "healPower",
+): number {
+  return statOf(cmb, key) + masteryBonusOf(state, cmb);
+}
+
+// 伤害专属精通: 只在卡牌结算窗口内、按每个受击目标单独判定, 叠加到攻击力(不影响治疗与护盾)。
+//   速攻 —— 当前结算的是速攻牌; 斩杀 —— 目标生命低于 50%; 冲锋 —— 目标满血。
+export const EXECUTE_HP_PCT = 50;
+
+export function damageMasteryOf(
+  state: BattleState,
+  cmb: Combatant,
+  target: Combatant | undefined,
+  cardType = state.activeCardType,
+): number {
+  if (cardType == null) return 0; // 不在卡牌结算窗口内(敌人出招、遗物伤害等)
+  let bonus = cardType === "fast" ? statOf(cmb, "fastMastery") : 0;
+  if (target && target.maxHp > 0) {
+    if ((target.hp / target.maxHp) * 100 < EXECUTE_HP_PCT) bonus += statOf(cmb, "executeMastery");
+    if (target.hp >= target.maxHp) bonus += statOf(cmb, "chargeMastery");
+  }
+  return bonus;
+}
+
+// 往战斗内修正里写一笔(卡牌 / 状态 / 场景效果都走这里)。
+export function addMod(
+  cmb: Combatant,
+  key: keyof StatBlock,
+  amount: number,
+  pct = false,
+): void {
+  const bucket = pct ? "pct" : "flat";
+  const cur = cmb.mods[bucket] ?? (cmb.mods[bucket] = {});
+  cur[key] = (cur[key] ?? 0) + amount;
+}
+
+// ---------------------------------------------------------------------------
+// 派生量
+// ---------------------------------------------------------------------------
+
+// 该单位实际承受的有效负重。★ 只有我方吃 —— 背包是小队自己背的。
+export function burdenOf(state: BattleState, cmb: Combatant): number {
+  return cmb.team === "player" ? state.burden : 0;
+}
+
+// 命中概率(百分点, 已截断到 5%~100%)。攻击方 vs 防御方各出一半属性。
+// ★ 负重的三项惩罚都减在 statOf **之后** —— capProb 会把闪避的下限截到 0,
+//   先扣再进 statOf 会被那条下限吞掉; 精准不封顶, 被压成负值后会反向放大目标闪避,
+//   对 0 闪避的目标也等效为一次额外的命中惩罚, 这是设计上有意保留的叠加。
+export function hitChance(
+  state: BattleState,
+  attacker: Combatant,
+  defender: Combatant,
+  bonusPct = 0,
+): number {
+  const c = RULES.combat;
+  const precision =
+    statOf(attacker, "precision") - burdenPrecisionPenalty(burdenOf(state, attacker));
+  const dodge = statOf(defender, "dodgeRate") - burdenDodgePenalty(burdenOf(state, defender));
+  const effectiveDodge = Math.max(0, dodge - precision);
+  const raw =
+    c.baseHitChance +
+    statOf(attacker, "hitRate") +
+    -effectiveDodge -
+    burdenHitPenalty(burdenOf(state, attacker)) +
+    bonusPct;
+  return Math.max(c.hitFloorPct, Math.min(c.hitCeilPct, raw));
+}
+
+// 暴击概率(百分点)。保留独立 helper 供 ops 与 UI 使用。
+export function critChance(_state: BattleState, cmb: Combatant): number {
+  return statOf(cmb, "critRate");
+}
+
+// 防御减伤后的乘数: 正防御减伤, 负防御增伤; 穿甲只抵扣正防御。
+export function defenseMultiplier(defender: Combatant, attacker?: Combatant): number {
+  const pen = attacker ? Math.max(0, statOf(attacker, "armorPen")) : 0;
+  const rawDefense = statOf(defender, "defense");
+  const effectiveDefense = rawDefense >= 0
+    ? Math.max(0, rawDefense - pen)
+    : rawDefense;
+  return 1 - effectiveDefense / (Math.abs(effectiveDefense) + RULES.combat.defenseConstant);
+}
+
+export function attackDamage(attack: number, multiplier: number): number {
+  return (attack / RULES.combat.attackDivisor) * multiplier;
+}
+
+// 治疗/护盾基础值。与 attackDamage 同构: 治愈力面板是 100 基准, 结算时统一 ÷ healDivisor。
+export function healValue(healPower: number, multiplier = 1): number {
+  return (healPower / RULES.combat.healDivisor) * multiplier;
+}
+
+// 我方小队先手均值 S_party —— 只算**存活**的上阵角色, 有人阵亡节奏就会变。
+// ★ 背包负重不参与这里: 节奏只由角色面板与装备决定, 捡东西不改敌人排程。
+export function partyInitiative(state: BattleState): number {
+  const alive = state.playerIds.map((id) => state.combatants[id]).filter((c) => c.alive);
+  if (alive.length === 0) return 0;
+  return alive.reduce((s, c) => s + statOf(c, "initiative"), 0) / alive.length;
+}
+
+// 敌人当前招式的蓄力时长: T = max(1, D_skill + S_party − S_enemy)。
+export function enemyActDelay(state: BattleState, enemy: Combatant, moveDelay: number): number {
+  const delta = partyInitiative(state) - statOf(enemy, "initiative");
+  return Math.max(1, Math.round(moveDelay + delta));
+}
+
+// 小队手牌上限 / 每回合基础抽牌数 —— 全队基准 + 小队资源修正(《角色养成设计.md》第六章)。
+export function squadHandLimit(mods: SquadResourceMods): number {
+  const sum = RULES.hand.baseHandLimit + mods.handLimit;
+  return Math.max(RULES.hand.minHandLimit, Math.min(RULES.squadCaps.handLimit, Math.round(sum)));
+}
+
+export function squadDrawCount(mods: SquadResourceMods): number {
+  const sum = RULES.hand.partyBonusDrawCount + mods.drawCount;
+  return Math.max(0, Math.min(RULES.squadCaps.drawCount, Math.round(sum)));
+}
+
+// 开局(第 1 回合)初始手牌数 —— 基础值 + 小队资源修正, 不受抽牌封顶影响。
+export function squadOpeningDrawCount(mods: SquadResourceMods): number {
+  return Math.max(0, Math.round(RULES.hand.openingHandSize + mods.openingHand));
+}
+
+export function squadManaPerRound(mods: SquadResourceMods): number {
+  return Math.max(0, Math.min(RULES.squadCaps.mana, Math.round(RULES.resource.perRound + mods.mana)));
+}
+
+export function squadRedrawLimit(mods: SquadResourceMods): number {
+  return Math.max(0, Math.round(RULES.timeline.redrawsPerRound + mods.redraws));
+}
+
+export function squadWaitLimit(mods: SquadResourceMods): number {
+  return Math.max(0, Math.round(RULES.timeline.waitsPerRound + mods.waits));
+}
+
+export function partyHandLimit(state: BattleState): number {
+  return squadHandLimit(state.squadMods);
+}
+
+export function partyDrawCount(state: BattleState): number {
+  return squadDrawCount(state.squadMods);
+}
+
+export function partyOpeningDrawCount(state: BattleState): number {
+  return squadOpeningDrawCount(state.squadMods);
+}
+
+export function partyManaPerRound(state: BattleState): number {
+  return squadManaPerRound(state.squadMods);
+}
+
+export function partyRedrawLimit(state: BattleState): number {
+  return squadRedrawLimit(state.squadMods);
+}
+
+export function partyWaitLimit(state: BattleState): number {
+  return squadWaitLimit(state.squadMods);
+}
+
+// 有效负重点数。探索页读数与开战时的快照都走它。
+// 战斗内不再重算 —— 负重会在开战瞬间快照进 BattleState.burden。
+export function burdenValue(occupiedSlots = 0, partyBurdenAdapt = 0): number {
+  return Math.max(0, occupiedSlots - Math.max(0, partyBurdenAdapt));
+}
+
+export function burdenHitPenalty(burden: number): number {
+  return Math.floor(burden / RULES.burden.hitPer);
+}
+
+export function burdenDodgePenalty(burden: number): number {
+  return Math.floor(burden / RULES.burden.dodgePer);
+}
+
+export function burdenPrecisionPenalty(burden: number): number {
+  return Math.floor(burden / RULES.burden.precisionPer);
+}
+
+// 敌人面板基线。★ 怪物的基础命中与基础格挡在这里并入, 不在 hitChance 里做阵营特判 ——
+// 敌人数据写的同名属性会叠在基线之上, 图鉴与建局共用同一个口径。
+export function enemyBaselineStats(partial: Partial<StatBlock>): StatBlock {
+  const c = RULES.combat;
+  return makeStats({
+    ...partial,
+    hitRate: (partial.hitRate ?? 0) + c.enemyBaseHitRate,
+    blockRate: (partial.blockRate ?? 0) + c.enemyBaseBlockRate,
+  });
+}

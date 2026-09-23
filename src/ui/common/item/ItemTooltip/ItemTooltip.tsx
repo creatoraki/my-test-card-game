@@ -2,9 +2,9 @@ import { createPortal } from "react-dom";
 import { useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import type { ItemStack } from "@/items/types";
 import ItemDetail from "@/ui/common/item/ItemDetail";
-import { cx } from "@/ui/common/cx";
-import { TooltipShell } from "@/ui/common/TooltipCard";
-import { designScaleOf, stageHostOf } from "@/ui/hooks/stage";
+import { cx } from "@/ui/common/shared/cx";
+import { TooltipShell } from "@/ui/common/tooltip/TooltipCard";
+import { designScaleOf, stageHostOf } from "@/ui/app/shared/stage";
 import s from "./ItemTooltip.module.css";
 
 // 全是设计 px(1920×1080 画布基准)。浮层就挂在画布内部, 跟着画布一起 zoom ⇒

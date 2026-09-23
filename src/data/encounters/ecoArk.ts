@@ -1,4 +1,4 @@
-import type { EncounterDef, EnemyPlacement } from "../encounters";
+import type { EncounterDef, EnemyPlacement } from "./index";
 
 const ENEMY_IDS = {
   crab: "ark-moss-crab", moth: "ark-spore-moth", mantis: "ark-thorn-mantis",

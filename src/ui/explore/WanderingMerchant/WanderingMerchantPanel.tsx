@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import type { ExploreState } from "@/explore/types";
 import { merchantShelf } from "@/explore/curio/merchant";
-import { closeCorridorObject } from "@/store/exploreCorridor";
-import { useRunStore } from "@/store/runStore";
-import { cx } from "@/ui/common/cx";
+import { closeCorridorObject } from "@/store/explore/exploreCorridor";
+import { useRunStore } from "@/store/run/runStore";
+import { cx } from "@/ui/common/shared/cx";
 import { ShopHeader } from "@/ui/town/shop/ShopHeader";
 import { ShopWindow } from "@/ui/town/shop/ShopWindow";
-import theme from "@/ui/town/shop/shopTheme.module.css";
+import theme from "@/ui/town/shop/styles/shopTheme.module.css";
 import { MerchantFoodWallet } from "./MerchantFoodWallet";
 import { MerchantMarket } from "./MerchantMarket";
 import s from "./WanderingMerchantPanel.module.css";

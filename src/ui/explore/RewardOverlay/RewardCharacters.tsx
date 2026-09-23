@@ -2,11 +2,11 @@
 import { makeCard } from "@/data";
 import { getQuirkDef, type QuirkId } from "@/engine";
 import type { ExploreState } from "@/explore/types";
-import { useTownStore } from "@/store/townStore";
-import { HandCard } from "@/ui/battle/HandCard";
-import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
-import { cx } from "@/ui/common/cx";
-import { EventPanelStage, EventPanelBody, EventPanelFoot, EventPanelButton, EventPanelNotice, EventPanelPick } from "@/ui/common/EventPanel";
+import { useTownStore } from "@/store/town/townStore";
+import { HandCard } from "@/ui/common/card/HandCard";
+import { PartyMemberCard } from "@/ui/common/unit/PartyMemberCard";
+import { cx } from "@/ui/common/shared/cx";
+import { EventPanelStage, EventPanelBody, EventPanelFoot, EventPanelButton, EventPanelNotice, EventPanelPick } from "@/ui/common/widget/EventPanel";
 import s from "@/ui/explore/styles/rewardKit.module.css";
 export function MemberList({
   members,

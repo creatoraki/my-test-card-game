@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { SortieStep } from "@/store/sortieStore";
+import type { SortieStep } from "@/store/sortie/sortieStore";
 import s from "./SortieStepViewport.module.css";
 
 interface Props {

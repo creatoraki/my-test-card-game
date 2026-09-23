@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import {
   getAssetPreloadSnapshot,
   subscribeAssetPreload,
-} from "@/ui/art/assetPreloader";
+} from "@/ui/art/loader/assetPreloader";
 
 export function useGameAssetPreload() {
   const snapshot = useSyncExternalStore(

@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { getItemDef } from "@/data";
-import { itemIcon } from "@/ui/art/itemArt";
+import { itemIcon } from "@/ui/art/items/itemArt";
 import s from "./MerchantFoodIcon.module.css";
 
 export function MerchantFoodIcon({ itemId, size = 34 }: { itemId: string; size?: number }) {

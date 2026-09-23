@@ -1,10 +1,10 @@
 // 据点商店场景：氛围层与品牌标识，常驻导航及交易面板由 StockEntries 管理。
 
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { StockEntries } from "@/ui/town/shop/StockPanels";
 import { ShopBack } from "@/ui/town/shop/ShopBack";
 import { ShopSidebar } from "@/ui/town/shop/ShopSidebar";
-import theme from "../shopTheme.module.css";
+import theme from "../styles/shopTheme.module.css";
 import s from "./ShopScene.module.css";
 import { ShopBrand } from "./ShopBrand";
 

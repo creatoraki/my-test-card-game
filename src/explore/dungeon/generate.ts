@@ -9,9 +9,9 @@
 // ⑤ 传送门按门数规则分布: 2 门左右、3 门左中右、4 门等距; BOSS 红门与可交互物避开门附近槽位。
 // ============================================================================
 
-import { rngInt, shuffle } from "../../engine/rng";
-import { difficultyMapConfig } from "../../data";
-import { EXPLORE_RULES } from "../rules";
+import { rngInt, shuffle } from "@/engine/core/rng";
+import { difficultyMapConfig } from "@/data";
+import { EXPLORE_RULES } from "../core/exploreRules";
 import type { ExploreState } from "../types";
 import {
   corridorPortalSlotsFor, corridorSlotsFor, CORRIDOR, type CurioKind,
@@ -24,7 +24,7 @@ import { generatePlannedDungeon } from "./planned";
 import { growRooms } from "./growRooms";
 import { planRoomCurios } from "./curioPlan";
 import { rollCurioLevel } from "./curioLevel";
-import type { CurioLevel } from "../../data/curios/types";
+import type { CurioLevel } from "@/data/curios/types";
 
 /** 起始房间出发的最短步数。 */
 function markDepth(rooms: Record<string, RoomNode>, startId: string): void {

@@ -6,8 +6,8 @@
 // ============================================================================
 
 import type { BattleState, Card, ChallengeId, ChallengeRun, Combatant } from "../types";
-import { shuffle } from "../rng";
-import { RULES } from "../rules";
+import { shuffle } from "../core/rng";
+import { RULES } from "../core/battleRules";
 import {
   CHALLENGE_DEFS,
   CHALLENGE_PICK,

@@ -3,14 +3,14 @@
 // tab 定义与过滤规则都在 common/item/itemFilters.ts, 本组件只负责画。
 
 import type { ItemStack } from "@/items/types";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import {
   EQUIP_TABS,
   ITEM_TABS,
   tabCounts,
   type EquipTab,
   type ItemTab,
-} from "@/ui/common/item/itemFilters";
+} from "@/ui/common/item/shared/itemFilters";
 import s from "./ItemTabs.module.css";
 
 interface Props {

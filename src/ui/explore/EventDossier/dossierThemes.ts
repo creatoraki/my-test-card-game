@@ -1,4 +1,4 @@
-import { EVENT_DOSSIER_ART, type DossierArtKind } from "@/ui/art/eventDossierArt";
+import { EVENT_DOSSIER_ART, type DossierArtKind } from "@/ui/art/explore/eventDossierArt";
 
 /** 事件档案主题: 插图 + 主题色(--k, 驱动边框、标签、标题渐变与装饰线)。 */
 export type DossierThemeId = DossierArtKind;

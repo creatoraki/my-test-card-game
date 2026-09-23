@@ -1,5 +1,5 @@
 import type { ItemStack } from "@/items/types";
-import { techCostCheck, type TechCostCheck } from "../techCost";
+import { techCostCheck, type TechCostCheck } from "../crafting/techCost";
 import { TECH_NODES } from "./nodes";
 import type { TechNodeDef, TechNodeState, TechTreeState } from "./types";
 

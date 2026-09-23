@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import type { ItemStack } from "@/items/types";
-import { useExploreStore } from "@/store/exploreStore";
+import { useExploreStore } from "@/store/explore/exploreStore";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import s from "./LootPickup.module.css";
 

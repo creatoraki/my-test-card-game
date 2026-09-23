@@ -1,6 +1,6 @@
 // 引擎公开 API。UI / store 只从这里 import。
 
-import "./discard";
+import "./deck/discard";
 
 export * from "./types";
 export type { CardRarity } from "./types";
@@ -13,7 +13,7 @@ export {
   drawCostToday,
   lowerMinSizeCost,
   removeCostToday,
-} from "./rules";
+} from "./core/battleRules";
 export {
   ZERO_STATS,
   STAT_KEYS,
@@ -48,20 +48,20 @@ export {
   burdenDodgePenalty,
   burdenPrecisionPenalty,
   enemyBaselineStats,
-} from "./stats";
+} from "./combat/stats";
 export { STATUS_DEFS, getStatusDef } from "./statuses";
-export { cardCost, manaCostOf, starPayable, starlightPayment, starlightStacksOf } from "./cost";
-export { cardDamagePreview, cardHitChance } from "./hitPreview";
-export { CARD_MARK_DEFS } from "./cardMarks";
+export { cardCost, manaCostOf, starPayable, starlightPayment, starlightStacksOf } from "./cards/cost";
+export { cardDamagePreview, cardHitChance } from "./combat/hitPreview";
+export { CARD_MARK_DEFS } from "./cards/cardMarks";
 export {
   POLLUTION_RULES,
   QUIRK_DEFS,
   QUIRK_IDS,
   SICK_MOD,
   getQuirkDef,
-} from "./quirks";
-export { quirkIdsOf } from "./pollution";
-export type { QuirkDef, QuirkId } from "./quirks";
+} from "./combat/quirks";
+export { quirkIdsOf } from "./combat/pollution";
+export type { QuirkDef, QuirkId } from "./combat/quirks";
 export {
   createBattle,
   playCard,
@@ -74,21 +74,21 @@ export {
   resolvePendingChoice,
   cancelPendingChoice,
   playBlockReason,
-} from "./battle";
-export type { AllyInit, BattleSetup, PlayBlock, PlayRecorder } from "./battle";
-export { runEnemyFlee } from "./flee";
-export { foesOf, alliesOf, aliveOf, chooseRandomTarget, tauntedAmong, validFoeTargetIds } from "./targeting";
-export { getStatus } from "./ops";
-export { growInsurance, insuranceStacksOf, partyInsuranceStacks, settleInsurance } from "./insurance";
-export { enemyMoveWeight, biasConditionMet, pickScriptedTarget, pickAllyTarget } from "./enemyMovePick";
-export { pickScriptedMove, updateAiMemory } from "./enemyScript";
-export { moveToDiscard } from "./discard";
-export { addCardToHand, replaceHandCard, rotOverripeCards } from "./deck";
-export { isPassive, playableHandUids, handPassiveUids } from "./passive";
-export { avidyaPickCount } from "./handChoice";
-export { RELIC_TRIGGERS, fireRelic } from "./relics";
-export { RELIC_BEHAVIORS, runRelicHook } from "./relicBehaviors";
-export type { RelicBehavior, RelicBehaviorContext } from "./relicBehaviors";
+} from "./battle/battle";
+export type { AllyInit, BattleSetup, PlayBlock, PlayRecorder } from "./battle/battle";
+export { runEnemyFlee } from "./battle/flee";
+export { foesOf, alliesOf, aliveOf, chooseRandomTarget, tauntedAmong, validFoeTargetIds } from "./combat/targeting";
+export { getStatus } from "./core/ops";
+export { growInsurance, insuranceStacksOf, partyInsuranceStacks, settleInsurance } from "./combat/insurance";
+export { enemyMoveWeight, biasConditionMet, pickScriptedTarget, pickAllyTarget } from "./enemy/enemyMovePick";
+export { pickScriptedMove, updateAiMemory } from "./enemy/enemyScript";
+export { moveToDiscard } from "./deck/discard";
+export { addCardToHand, replaceHandCard, rotOverripeCards } from "./deck/deck";
+export { isPassive, playableHandUids, handPassiveUids } from "./combat/passive";
+export { avidyaPickCount } from "./deck/handChoice";
+export { RELIC_TRIGGERS, fireRelic } from "./relics/relics";
+export { RELIC_BEHAVIORS, runRelicHook } from "./relics/relicBehaviors";
+export type { RelicBehavior, RelicBehaviorContext } from "./relics/relicBehaviors";
 export {
   cultivateCanAdvance,
   cultivateOverripe,
@@ -97,11 +97,11 @@ export {
   effectiveTargeting,
   resetCultivate,
   tickCultivate,
-} from "./cultivate";
-export { applyPierce, mostPiercedFoe, pierceOf, removePierce, transferPierce } from "./pierce";
-export { emptyFullDraw, fullDrawBigHits, fullDrawHits, resolveFullDraw } from "./fullDraw";
-export { cardActivated, cardBoons } from "./cardBoon";
-export type { CardBoonId } from "./cardBoon";
+} from "./deck/cultivate";
+export { applyPierce, mostPiercedFoe, pierceOf, removePierce, transferPierce } from "./combat/pierce";
+export { emptyFullDraw, fullDrawBigHits, fullDrawHits, resolveFullDraw } from "./deck/fullDraw";
+export { cardActivated, cardBoons } from "./cards/cardBoon";
+export type { CardBoonId } from "./cards/cardBoon";
 export {
   ASSEMBLE_IDS,
   SQUAD_BUFF_DEFS,
@@ -113,12 +113,12 @@ export {
   removeRandomSquadBuff,
   removeSquadBuff,
   squadBuffIds,
-} from "./squadBuff";
-export type { AssembleId, AssembleRewardCategory, SquadBuffDef } from "./squadBuff";
-export { CARD_KEYWORD_INFOS, KEYWORD_DEFS, cardKeywordsIn, splitCardKeywords } from "./keywords";
-export type { CardKeywordInfo, KeywordCtx, KeywordDef } from "./keywords";
-export { cardDisplayName, effectDisplayValue, renderCardText } from "./cardText";
-export type { CardTextStats } from "./cardText";
+} from "./combat/squadBuff";
+export type { AssembleId, AssembleRewardCategory, SquadBuffDef } from "./combat/squadBuff";
+export { CARD_KEYWORD_INFOS, KEYWORD_DEFS, cardKeywordsIn, splitCardKeywords } from "./cards/keywords";
+export type { CardKeywordInfo, KeywordCtx, KeywordDef } from "./cards/keywords";
+export { cardDisplayName, effectDisplayValue, renderCardText } from "./cards/cardText";
+export type { CardTextStats } from "./cards/cardText";
 export {
   CHALLENGE_DEFS,
   CHALLENGE_PICK,

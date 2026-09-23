@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { useRunStore } from "@/store/runStore";
+import { useRunStore } from "@/store/run/runStore";
 import {
   bgmForScreen,
   getBgmEnabled,

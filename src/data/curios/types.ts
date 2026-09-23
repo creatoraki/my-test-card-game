@@ -1,6 +1,6 @@
 import type { ExploreEffect, ExploreState } from "@/explore/types";
 import type { ItemStack } from "@/items/types";
-import type { MechanicalCritterId } from "./critters";
+import type { MechanicalCritterId } from "./defs/critters";
 
 /** 物件等级：同一模板按等级放大奖励与惩罚，玩家不可见。 */
 export type CurioLevel = 1 | 2 | 3 | 4 | 5;

@@ -1,23 +1,23 @@
 import { CORRIDOR_CURIOS } from "@/data/curios";
 import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
 import type { NearMapVariant } from "@/explore/dungeon/types";
-import { roomMoveCostFor } from "@/explore/energyCost";
-import { useExploreStore } from "@/store/exploreStore";
+import { roomMoveCostFor } from "@/explore/resources/energyCost";
+import { useExploreStore } from "@/store/explore/exploreStore";
 import {
   CORRIDOR_PROP_Y_OFFSETS,
   CORRIDOR_ROOM_PORTAL_DISPLAY_HEIGHT,
   CORRIDOR_ROOM_PORTAL_Y_OFFSET,
-} from "@/ui/art/corridorArt";
-import { CorridorAbyss, CorridorFar, CorridorNear } from "./CorridorBackdrop";
-import { EcoArkArchitecture } from "./EcoArkArchitecture";
-import { CorridorSprite } from "./CorridorSprite";
-import { CorridorPlayer } from "./CorridorPlayer";
-import { RoomPortal } from "./RoomPortal";
-import { BossGate } from "./BossGate";
-import { ShadowEncounter } from "./ShadowEncounter";
+} from "@/ui/art/corridor/corridorArt";
+import { CorridorAbyss, CorridorFar, CorridorNear } from "./parts/CorridorBackdrop";
+import { EcoArkArchitecture } from "./parts/EcoArkArchitecture";
+import { CorridorSprite } from "./parts/CorridorSprite/CorridorSprite";
+import { CorridorPlayer } from "./parts/CorridorPlayer";
+import { RoomPortal } from "./parts/RoomPortal/RoomPortal";
+import { BossGate } from "./parts/BossGate/BossGate";
+import { ShadowEncounter } from "./parts/ShadowEncounter/ShadowEncounter";
 import { useCorridorMovement } from "./useCorridorMovement";
 import { useExplorerChatter } from "./useExplorerChatter";
-import { PlayerSpeech } from "./PlayerSpeech";
+import { PlayerSpeech } from "./parts/PlayerSpeech";
 import { cameraX, CORRIDOR_LAYOUT, CORRIDOR_SCENE_SCALE } from "./corridorLayout";
 import { applyCorridorFrame } from "./corridorFrame";
 import s from "./CorridorScene.module.css";

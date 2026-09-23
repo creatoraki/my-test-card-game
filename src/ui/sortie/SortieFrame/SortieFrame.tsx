@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./SortieFrame.module.css";
 
 interface Props {

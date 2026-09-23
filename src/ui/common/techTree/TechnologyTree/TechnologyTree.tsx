@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import { cx } from "@/ui/common/cx";
-import { DetailFrame } from "@/ui/common/DetailFrame";
+import { cx } from "@/ui/common/shared/cx";
+import { DetailFrame } from "@/ui/common/frame/DetailFrame";
 import { TechnologyBoard } from "@/ui/common/techTree/TechnologyBoard";
 import type { TechnologyCore, TechnologyNode } from "./types";
 import s from "./TechnologyTree.module.css";

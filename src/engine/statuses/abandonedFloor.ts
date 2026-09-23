@@ -1,5 +1,5 @@
 import type { DamageCtx, StatusCtx, StatusDef } from "../types";
-import { recordHitPart } from "../animHits";
+import { recordHitPart } from "../core/animHits";
 
 // 静电叠到该层数时清空并眩晕 1 拍。
 const STATIC_STUN_STACKS = 2;

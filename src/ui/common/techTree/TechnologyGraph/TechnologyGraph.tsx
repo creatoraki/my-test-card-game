@@ -1,4 +1,4 @@
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import { TechnologyMedallion } from "@/ui/common/techTree/TechnologyMedallion";
 import {
   technologyLevelText,

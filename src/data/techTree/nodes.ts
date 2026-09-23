@@ -1,4 +1,4 @@
-import type { TechCost } from "../techCost";
+import type { TechCost } from "../crafting/techCost";
 import type { TechNodeDef } from "./types";
 
 export const TECH_TREE_CANVAS = { width: 900, height: 480 } as const;

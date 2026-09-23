@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
 import { ShopHeader } from "@/ui/town/shop/ShopHeader";
 import { NavigationRail } from "@/ui/town/shop/ShopNavigation";
 import { ShopWindow } from "@/ui/town/shop/ShopWindow";
-import { codexProgress } from "../codexCatalog";
+import { codexProgress } from "../shared/codexCatalog";
 import { MuseumCardHall } from "../MuseumCardHall";
 import { MuseumEnemyHall } from "../MuseumEnemyHall";
 import { MuseumItemHall } from "../MuseumItemHall";

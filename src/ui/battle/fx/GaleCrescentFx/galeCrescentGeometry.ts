@@ -6,7 +6,7 @@
 // 沿刀痕迸出一串横向小裂斩。外层整体倾斜 TILT, 局部坐标中剑气只沿 X 轴飞行。
 // ============================================================================
 
-import type { ProcFxPreset } from "@/ui/battle/animations";
+import type { ProcFxPreset } from "@/ui/battle/choreo/animations";
 import { seededRange } from "@/ui/battle/fx/shared/fxKit";
 
 export const GALE_CRESCENT = {

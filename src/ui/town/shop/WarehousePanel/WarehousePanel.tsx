@@ -2,10 +2,10 @@ import { useMemo, useState, type CSSProperties } from "react";
 import { getItemDef } from "@/data";
 import { mergeStacksForDisplay, sortStacks } from "@/items/inventory";
 import { RARITY_ORDER } from "@/items/types";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import ItemTile from "@/ui/common/item/ItemTile";
 import ItemTabs from "@/ui/common/item/ItemTabs/ItemTabs";
-import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/itemFilters";
+import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/shared/itemFilters";
 import { WarehouseDetail } from "./WarehouseDetail";
 import s from "./WarehousePanel.module.css";
 

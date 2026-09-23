@@ -1,10 +1,10 @@
 // runStore 的状态形状 —— 拆出来是为了让 store/run/ 下的编排模块能拿到 set 的类型,
 // 又不必反向 import runStore(那会形成依赖环)。
 
-import type { ChallengeRun } from "../../engine";
-import type { ItemStack } from "../../items/types";
-import type { MapDifficulty } from "../../data/mapDifficulty";
-import type { ExpGain } from "../townStore";
+import type { ChallengeRun } from "@/engine";
+import type { ItemStack } from "@/items/types";
+import type { MapDifficulty } from "@/data/maps/mapDifficulty";
+import type { ExpGain } from "../town/townStore";
 
 // ★ "formation"(编队) 是据点的**一级全屏页**, 不是设施内浮层 ——
 //   入口是据点全景右下的「编队」按钮(见 ui/town/TownScreen), 医疗室提供「复苏舱」。

@@ -1,13 +1,13 @@
 // 疗养舱「设施升级」子页: 与商店 ShopUpgradePanel 同一块公共科技板, Esc / 返回按钮回到席位页。
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/town/townStore";
 import { TechnologyBoard } from "@/ui/common/techTree/TechnologyBoard";
 import {
   NUTRITION_TECHNOLOGY_CANVAS,
   NUTRITION_TECHNOLOGY_CORE,
   nutritionTechnologyNodes,
 } from "./nutritionTechnologyView";
-import s from "@/ui/common/techTree/techUpgradePanel.module.css";
+import s from "@/ui/common/techTree/styles/techUpgradePanel.module.css";
 
 export function NutritionUpgradePanel({ onBack }: { onBack: () => void }) {
   const rootRef = useRef<HTMLDivElement>(null);

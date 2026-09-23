@@ -9,7 +9,7 @@ import ItemTooltip, {
   tooltipPointFromElement,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
-import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/itemFilters";
+import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/shared/itemFilters";
 import s from "./StockPanels.module.css";
 import { RECYCLE_TOOLTIP_THEME } from "./tooltipTheme";
 

@@ -1,4 +1,4 @@
-import type { CardDef } from "../../../engine/types";
+import type { CardDef } from "@/engine/types";
 import { PROPHET_ATTACK_CARDS } from "./attack";
 import { PROPHET_SUPPORT_CARDS } from "./support";
 import { PROPHET_PASSIVE_CARDS } from "./passive";

@@ -1,35 +1,35 @@
-import { CONSUMABLE_ITEM_DEFS } from "./consumables";
+import { CONSUMABLE_ITEM_DEFS } from "./catalog/consumables";
 import { EQUIPMENT_ITEM_DEFS } from "./equipment";
-import { MATERIAL_ITEM_DEFS } from "./materials";
-import { BURDEN_ITEM_DEFS } from "./burden";
-import { SCRAP_ITEM_DEFS } from "./scrap";
-import { REGIONAL_MATERIAL_DEFS } from "./regional";
+import { MATERIAL_ITEM_DEFS } from "./catalog/materials";
+import { BURDEN_ITEM_DEFS } from "./rules/burden";
+import { SCRAP_ITEM_DEFS } from "./catalog/scrap";
+import { REGIONAL_MATERIAL_DEFS } from "./catalog/regional";
 import {
   GENERIC_MODULE_ITEM_DEFS,
   MODULE_CRATE_ITEM_DEFS,
   MODULE_ITEM_DEFS,
-} from "./modules";
+} from "./catalog/modules";
 import { RELIC_ITEM_DEFS } from "./relics";
 
-export { CONSUMABLE_ITEM_DEFS, NEAR_EXPIRY_FOOD_IDS } from "./consumables";
+export { CONSUMABLE_ITEM_DEFS, NEAR_EXPIRY_FOOD_IDS } from "./catalog/consumables";
 export { EQUIPMENT_ITEM_DEFS } from "./equipment";
-export { CRYSTAL_ITEM_DEFS, GENERAL_MATERIAL_DEFS, MATERIAL_ITEM_DEFS } from "./materials";
-export { BURDEN_ITEM_DEFS } from "./burden";
-export { SCRAP_ITEM_DEFS } from "./scrap";
+export { CRYSTAL_ITEM_DEFS, GENERAL_MATERIAL_DEFS, MATERIAL_ITEM_DEFS } from "./catalog/materials";
+export { BURDEN_ITEM_DEFS } from "./rules/burden";
+export { SCRAP_ITEM_DEFS } from "./catalog/scrap";
 export {
   DEFAULT_REGION_ID,
   REGIONAL_MATERIAL_DEFS,
   itemRegionId,
   regionalMaterial,
   regionalTierOf,
-} from "./regional";
-export type { RegionalMaterialDef, RegionalTier } from "./regional";
+} from "./catalog/regional";
+export type { RegionalMaterialDef, RegionalTier } from "./catalog/regional";
 export {
   GENERIC_MODULE_FAMILY,
   GENERIC_MODULE_ITEM_DEFS,
   MODULE_CRATE_ITEM_DEFS,
   MODULE_ITEM_DEFS,
-} from "./modules";
+} from "./catalog/modules";
 export { BLESSING_RELIC_DEFS, CURSE_RELIC_DEFS, RELIC_ITEM_DEFS, RELIC_ITEM_IDS } from "./relics";
 
 export const DESIGN_ITEM_DEFS = [

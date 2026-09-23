@@ -1,4 +1,4 @@
-import type { ItemDef } from "../../../items/types";
+import type { ItemDef } from "@/items/types";
 import { expandEquipTiers, TRINKET_PRESET, type EquipFamily } from "./equipModel";
 
 const TRINKET_FAMILIES: EquipFamily[] = [

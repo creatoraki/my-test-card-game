@@ -2,7 +2,7 @@ import type { Card } from "@/engine";
 import type { ItemStack } from "@/items/types";
 import { canEquipModule, getItemDef } from "@/data";
 import ItemSlot from "@/ui/common/item/ItemSlot";
-import { cx } from "@/ui/common/cx";
+import { cx } from "@/ui/common/shared/cx";
 import s from "./AssemblyModuleRack.module.css";
 
 interface Props {

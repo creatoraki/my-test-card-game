@@ -1,13 +1,13 @@
-import { DetailFrame } from "@/ui/common/DetailFrame";
-import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
-import { TooltipCard } from "@/ui/common/TooltipCard";
+import { DetailFrame } from "@/ui/common/frame/DetailFrame";
+import { HoverTooltip, useHoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
+import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { SLOT_LABEL } from "@/items/types";
-import { EQUIP_SLOTS } from "@/store/townStore";
+import { EQUIP_SLOTS } from "@/store/town/townStore";
 import ItemTooltip from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
-import { equipSlotIcon } from "@/ui/art/itemArt";
-import { cx } from "@/ui/common/cx";
+import { equipSlotIcon } from "@/ui/art/items/itemArt";
+import { cx } from "@/ui/common/shared/cx";
 import { SlotMark } from "./SlotMark";
 import s from "./EquipmentSlots.module.css";
 
