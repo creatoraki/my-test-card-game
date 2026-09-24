@@ -4,6 +4,7 @@ import { cardCost } from "../cards/cost";
 import { resolveEffects, type EffectResolution } from "../effects/effects";
 import { ops } from "../core/ops";
 import { playableHandUids } from "../cards/passiveCards";
+import { prophetIdOf } from "../prophet/prophetUnit";
 
 const emptyResolution = (): EffectResolution => ({ missed: [], hit: [] });
 
@@ -19,6 +20,36 @@ export function waterfallHolds(state: BattleState, card: Card): boolean {
       const other = state.cards[uid];
       return other != null && cost > cardCost(state, other);
     });
+}
+
+function cascadeStatus(state: BattleState) {
+  const prophetId = prophetIdOf(state);
+  const prophet = prophetId ? state.combatants[prophetId] : undefined;
+  const inst = prophet?.statuses.find((status) => status.id === "cascade" && status.stacks > 0);
+  return prophet && inst ? { prophet, inst } : undefined;
+}
+
+// 倒泻: 本张牌的当前费用低于上一张打出的牌 ⇒ 视为满足瀑布条件。只读判定, 供预览使用。
+function cascadeWouldHold(state: BattleState, faceCost: number): boolean {
+  return cascadeStatus(state) != null && state.lastPlayedCard != null && faceCost < state.lastPlayedCard.cost;
+}
+
+// 出牌时调用(无论这张牌有没有瀑布效果): 递减则保留倒泻并返回 true, 否则移除倒泻。
+export function evaluateCascade(state: BattleState, faceCost: number): boolean {
+  const cascade = cascadeStatus(state);
+  if (!cascade) return false;
+  if (cascadeWouldHold(state, faceCost)) return true;
+  cascade.prophet.statuses = cascade.prophet.statuses.filter((status) => status !== cascade.inst);
+  ops.log(state, "🌊 费用没有递减，倒泻结束");
+  return false;
+}
+
+// 手牌阶段的瀑布预判: 费用比较、倒泻、天顶星任一成立。
+export function waterfallWouldTrigger(state: BattleState, card: Card): boolean {
+  if (!hasWaterfallEffect(card)) return false;
+  if (waterfallHolds(state, card) || cascadeWouldHold(state, cardCost(state, card))) return true;
+  const owner = state.combatants[card.ownerCharId];
+  return Boolean(owner?.statuses.some((status) => status.id === "zenithStar" && status.stacks > 0));
 }
 
 export function consumeZenithStar(state: BattleState, card: Card): boolean {
@@ -69,4 +100,5 @@ export function fireWaterfallHooks(state: BattleState): void {
     const shield = drift?.data?.shield ?? 0;
     if (drift && shield > 0) ops.gainShield(state, drift.sourceId, ownerId, shield);
   }
+  ops.prophecyEvent(state, { type: "waterfall" });
 }

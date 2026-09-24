@@ -1,5 +1,6 @@
 import type { CounterSource, EffectTarget } from "./base";
 import type { CardType } from "./cards";
+import type { ProphecyId } from "./prophecy";
 import type { StatBlock } from "./stats";
 import type { StatusKind } from "./statuses";
 
@@ -44,7 +45,9 @@ export type EffectType =
   | "TRANSFORM_CARD"
   | "COPY_CARD_TO_HAND"
   | "CHOOSE_HAND_CARD"
-  | "REVEAL_CARDS";
+  | "REVEAL_CARDS"
+  | "START_PROPHECY" // 预言家打出预言(见 engine/prophecy)
+  | "DELAY_ENEMY_ACT"; // 目标敌人当前蓄力招式的发动时刻推迟 amount
 
 export interface EffectDescriptor {
   type: EffectType;
@@ -140,7 +143,8 @@ export interface EffectDescriptor {
     | "targetNotAttackedThisRound"
     | "fullyStarPaid"
     | "targetLacksStatus"
-    | "primaryBelowHpLimit"; // 满足条件时才结算
+    | "primaryBelowHpLimit"
+    | "primaryActsWithin"; // 满足条件时才结算。primaryActsWithin: 主目标敌人的招式将在 conditionValue 时刻内发动
   conditionValue?: number; // handHasCostAtLeast: 手牌中最低牌面费用; fastCardsInHandAtLeast: 手牌中速攻牌数量
   conditionValueMax?: number; // counterAtLeast: 可选闭区间上限
   conditionCounter?: CounterSource;
@@ -153,7 +157,7 @@ export interface EffectDescriptor {
   onNoneRemoved?: EffectDescriptor[]; // STRIP_STATUS: 一个状态都没有移除时结算
   recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
   recoverMark?: string; // RECOVER_FROM_DISCARD: 回收的牌附加标记
-  handChoiceAction?: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks"; // CHOOSE_HAND_CARD: 选牌后的动作
+  handChoiceAction?: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks" | "grantStarPact"; // CHOOSE_HAND_CARD: 选牌后的动作
   followUp?: EffectDescriptor[]; // CHOOSE_HAND_CARD: 选牌后的后续效果
   revealMode?: "costChain" | "attackOrDraw" | "scryPick"; // REVEAL_CARDS: 翻牌方式
   convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型
@@ -162,4 +166,5 @@ export interface EffectDescriptor {
   squadBuffPick?: "choose" | "randomMissing" | "random" | "all";
   resonatePick?: "handAll" | "lowerCost";
   fromModule?: string; // 由卡牌模组追加的效果标记(模组 itemId); 纯标记, 引擎结算不读取
+  prophecy?: ProphecyId; // START_PROPHECY: 预言 id
 }

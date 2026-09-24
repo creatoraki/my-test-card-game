@@ -1,4 +1,4 @@
-import type { EffectDescriptor } from "../types";
+import type { Card, EffectDescriptor } from "../types";
 
 export interface CardMarkDef {
   id: string;
@@ -10,6 +10,12 @@ export interface CardMarkDef {
   costOverride?: number;
   preEffects?: EffectDescriptor[];
   onDiscardEffects?: EffectDescriptor[];
+  // 星印: 预言家专属卡牌增益。费用 +1, 打出收益以预言家为来源结算, 离开手牌时移除。
+  starSeal?: true;
+  // 带此标记的牌打出时视为速攻(不推进时刻)。
+  playsAsFast?: true;
+  // 常驻增益: 打出或离开手牌都不移除, 不能被搬运或剥离。
+  persistent?: true;
 }
 
 export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
@@ -17,8 +23,9 @@ export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
     id: "starPact",
     name: "星契",
     emoji: "🌟",
-    desc: "这张牌可以用星辉替代法力水晶。",
+    desc: "这张牌的所属者变为预言家，并可以用星辉替代法力水晶。本场战斗持续。",
     effects: [],
+    persistent: true,
   },
   mindsEye: {
     id: "mindsEye",
@@ -31,9 +38,10 @@ export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
     id: "heavy",
     name: "沉重",
     emoji: "🪨",
-    desc: "这张牌的费用 +1。打出后移除。",
+    desc: "星印。这张牌的费用 +1。打出或离手后移除。",
     effects: [],
     costDelta: 1,
+    starSeal: true,
   },
   scorching: {
     id: "scorching",
@@ -46,17 +54,38 @@ export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
     id: "countercurrent",
     name: "逆流",
     emoji: "🌀",
-    desc: "这张牌的费用 +1。打出后获得 1 层星辉，离手时移除。",
+    desc: "星印。这张牌的费用 +1。打出后预言家汇星 1，离手时移除。",
     effects: [{ type: "APPLY_STATUS", status: "starlight", stacks: 1, target: "self" }],
     costDelta: 1,
+    starSeal: true,
   },
   domino: {
     id: "domino",
     name: "多米诺",
     emoji: "🁢",
-    desc: "这张牌的费用 +1。打出后抽 1 张牌，随后移除。",
+    desc: "星印。这张牌的费用 +1。打出后抽 1 张牌，离手时移除。",
     effects: [{ type: "DRAW", amount: 1 }],
     costDelta: 1,
+    starSeal: true,
+  },
+  cometTail: {
+    id: "cometTail",
+    name: "彗尾",
+    emoji: "☄️",
+    desc: "星印。这张牌的费用 +1。打出后对随机敌人造成预言家攻击力 30% 的伤害，离手时移除。",
+    effects: [{ type: "DAMAGE", multiplier: 0.3, target: "randomFoe" }],
+    costDelta: 1,
+    starSeal: true,
+  },
+  streamer: {
+    id: "streamer",
+    name: "流光",
+    emoji: "💫",
+    desc: "星印。这张牌的费用 +1。打出时视为速攻，不推进时刻，离手时移除。",
+    effects: [],
+    costDelta: 1,
+    starSeal: true,
+    playsAsFast: true,
   },
   swordMound: {
     id: "swordMound",
@@ -84,3 +113,17 @@ export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
     preEffects: [{ type: "PLAY_STAT_BONUS", stat: "attack", amount: 40, pct: true }],
   },
 };
+
+export function isPersistentMark(markId: string): boolean {
+  return CARD_MARK_DEFS[markId]?.persistent === true;
+}
+
+// 可被搬运 / 剥离 / 打出清除的卡牌增益(常驻增益除外)。
+export function transferableMarks(card: Pick<Card, "marks"> | undefined): string[] {
+  return (card?.marks ?? []).filter((markId) => !isPersistentMark(markId));
+}
+
+// 离开手牌时移除的标记: 所有星印与纳刀。
+export function dropsOnLeaveHand(markId: string): boolean {
+  return markId === "noto" || CARD_MARK_DEFS[markId]?.starSeal === true;
+}

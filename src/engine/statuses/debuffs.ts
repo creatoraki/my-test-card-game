@@ -69,6 +69,17 @@ export const DEBUFF_STATUS_DEFS: Record<string, StatusDef> = {
       },
     },
   },
+  blind: {
+    id: "blind",
+    name: "致盲",
+    emoji: "🌫️",
+    kind: "debuff",
+    stackMode: "max",
+    refreshMode: "max",
+    statMods: { hitRate: -20 },
+    resistMode: "duration",
+    desc: "命中率 -20%。持续指定拍数。",
+  },
   jam: {
     id: "jam",
     name: "电磁干扰",

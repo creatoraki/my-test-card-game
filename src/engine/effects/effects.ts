@@ -19,6 +19,7 @@ import { applyDamageEffect } from "./effectsDamage";
 import { applyStripStatusEffect } from "./effectsStrip";
 import { applyRevealEffect } from "./effectsReveal";
 import { applyStatusMoveEffect } from "./effectsStatusMove";
+import { applyProphetEffect } from "./effectsProphet";
 import { filterFullDrawTargets, fullDrawGateMatches } from "../deck/fullDraw";
 import { conditionMet } from "./effectConditions";
 import { reduceStatusStacks } from "../statuses/stacking";
@@ -239,6 +240,7 @@ function applyEffect(
           spent += 1;
         }
         state.playValueBonusPct += spent * boostPct;
+        if (spent > 0) ops.prophecyEvent(state, { type: "starlightSpent", amount: spent });
         break;
       }
       if (effect.boostSource === "fullDraw" && state.fullDraw.hitIds.length > 0)
@@ -264,6 +266,10 @@ function applyEffect(
       break;
     case "REVEAL_CARDS":
       return applyRevealEffect(state, effect, sourceId, resolveEffects);
+    case "START_PROPHECY":
+    case "DELAY_ENEMY_ACT":
+      applyProphetEffect(state, effect, sourceId, targetIds, primaryId);
+      break;
     case "APPLY_STATUS": {
       if (!effect.status) break;
       const generatedData = effect.statusDataFrom
@@ -366,7 +372,7 @@ function applyEffect(
         if (!target) continue;
         target.statuses = target.statuses.filter((status) => {
           const def = getStatusDef(status.id);
-          const removed = kind === "all" || def?.kind === kind;
+          const removed = !def?.undispellable && (kind === "all" || def?.kind === kind);
           if (removed) {
             state.lastRemovedStatusCount += 1;
             state.lastRemovedStatuses.push(structuredClone(status));

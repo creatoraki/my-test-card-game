@@ -4,7 +4,7 @@ import type { AnimHit, BattleState, Enemy, FxRecorder, Intent } from "../types";
 import { getEnemyDef, type EnemyMove } from "@/data";
 import { resolveEffects } from "../effects/effects";
 import { alliesOf, chooseRandomTarget, foesOf } from "../combat/targeting";
-import { allIds, getStatus, log, markDead } from "../core/ops";
+import { allIds, getStatus, log, markDead, ops } from "../core/ops";
 import { runEnemyTempo } from "../combat/statusLifecycle";
 import { attackDamage, enemyActDelay, statOf } from "../combat/stats";
 import { rngPickWeighted } from "../core/rng";
@@ -139,6 +139,8 @@ export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase
   const targetIds = collectMoveTargets(state, e, move, primaryId);
 
   log(state, `${e.emoji} ${e.name} 使用 ${move.name}`);
+  // 凶兆: 在招式结算前判定应验 / 落空; 应验时标记在本次结算期间削弱攻击, 结算后移除。
+  ops.prophecyEvent(state, { type: "beforeEnemyAct", enemyId, moveKind: move.kind });
   const moveHitBonus = move.hitBonus ?? 0;
   const effects = moveHitBonus
     ? move.effects.map((eff) =>
@@ -146,6 +148,7 @@ export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase
       )
     : move.effects;
   const resolution = resolveEffects(state, effects, enemyId, primaryId);
+  ops.prophecyEvent(state, { type: "afterEnemyAct", enemyId });
 
   if (e.hp <= 0) markDead(state, e);
   startCharge(state, enemyId);

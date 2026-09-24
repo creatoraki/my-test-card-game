@@ -63,12 +63,67 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
   {
     id: "starlight",
     name: "汇星",
-    desc: `打出后获得 ${RULES.combat.starlightMax} 层以内对应数量的星辉。`,
+    desc: `预言家获得对应层数的星辉。星辉上限 ${RULES.combat.starlightMax} 层，银河可以提高。`,
   },
   {
     id: "starPay",
     name: "应星",
     desc: "应星卡牌可以消耗星辉替代法力水晶，星辉不足时支付剩余法力水晶。",
+  },
+  {
+    id: "starPact",
+    name: "星契",
+    desc: "这张牌的所属者变为预言家，并可以用星辉替代法力水晶。本场战斗持续，不会被搬运或剥离。",
+  },
+  {
+    id: "starSeal",
+    name: "星印",
+    desc: "预言家专属的卡牌增益：费用 +1，打出后以预言家为来源结算收益，离开手牌时移除。同名星印不叠加。",
+  },
+  {
+    id: "heavy",
+    name: "沉重",
+    desc: "星印。费用 +1，没有打出收益。",
+  },
+  {
+    id: "cometTail",
+    name: "彗尾",
+    desc: "星印。费用 +1；打出后对随机敌人造成预言家攻击力 30% 的伤害。",
+  },
+  {
+    id: "streamer",
+    name: "流光",
+    desc: "星印。费用 +1；打出时视为速攻，不推进时刻。",
+  },
+  {
+    id: "prophecy",
+    name: "预言",
+    desc: "预言家对未来的断言。期限内条件达成即应验，期限结束仍未达成则落空。同时只能存在 1 个预言，新的预言会顶替旧的；同名预言只刷新期限。",
+  },
+  {
+    id: "fulfill",
+    name: "应验",
+    desc: "预言的条件在期限内达成，立即获得奖励并移除预言。",
+  },
+  {
+    id: "fail",
+    name: "落空",
+    desc: "预言的期限结束时条件仍未达成，结算落空效果并移除预言。",
+  },
+  {
+    id: "cascade",
+    name: "倒泻",
+    desc: "本回合打出的下一张牌若当前费用低于上一张打出的牌，视为满足瀑布条件并保留倒泻；否则移除倒泻。",
+  },
+  {
+    id: "milkyWay",
+    name: "银河",
+    desc: "本场战斗星辉上限 +2；汇星溢出时，溢出的星辉转为对受伤最重的队友的治疗。",
+  },
+  {
+    id: "blind",
+    name: "致盲",
+    desc: "命中率 -20%。",
   },
   {
     id: "waterfall",
@@ -93,12 +148,12 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
   {
     id: "countercurrent",
     name: "逆流",
-    desc: "费用 +1；打出后获得 1 层星辉，离手时移除。",
+    desc: "星印。费用 +1；打出后预言家汇星 1。",
   },
   {
     id: "domino",
     name: "多米诺",
-    desc: "费用 +1；打出后抽 1 张牌，持有多米诺被动时会重新附加到未带卡牌增益的手牌。",
+    desc: "星印。费用 +1；打出后抽 1 张牌，持有多米诺被动时会重新附加到未带卡牌增益的手牌。",
   },
   {
     id: "pierce",

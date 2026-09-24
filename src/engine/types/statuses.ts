@@ -87,6 +87,14 @@ export interface StatusHooks {
   onAfterAttack?: (c: StatusCtx, dmg: DamageCtx) => void;
   onCultivateStage?: (c: StatusCtx, card: Card, stage: CultivateStage) => void;
   onExpire?: (c: StatusCtx) => void; // 状态在本次节拍后过期时触发一次
+  onOverflow?: (c: StatusCtx, overflow: number) => void; // 施加层数超出上限时, 溢出部分的层数
+}
+
+// 状态详情里额外展示的数值行(预言进度等)。
+export interface StatusDetailStat {
+  label: string;
+  value: number;
+  suffix?: string;
 }
 
 export type CultivateStage = "growing" | "mature" | "overripe";
@@ -104,6 +112,9 @@ export interface StatusDef {
   kind: StatusKind;
   desc: string;
   maxStacks?: number; // 层数上限; 缺省 = 不封顶
+  maxStacksOf?: (state: BattleState, ownerId: string) => number; // 动态层数上限, 优先于 maxStacks
+  detailStats?: (inst: StatusInstance) => StatusDetailStat[];
+  undispellable?: true; // 不可被驱散 / 剥离 / 转移
   decay?: "one" | "half"; // 每拍层数衰减; 缺省 = 不衰减
   durationStartsImmediately?: boolean; // true = 施加当拍也扣除一次持续时间
   stackMode?: StackMode; // 同种状态再次施加时的层数合并方式

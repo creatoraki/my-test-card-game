@@ -25,7 +25,7 @@ import { currentRecorder, ensureCardFxSnapshot, recordCardTrigger, snapshotHp } 
 import { firePassive } from "../combat/passive";
 import { STATUS_DEFS } from "../core/hookRegistry";
 import { ctxFor } from "../core/ops";
-import { CARD_MARK_DEFS } from "../cards/cardMarks";
+import { CARD_MARK_DEFS, dropsOnLeaveHand } from "../cards/cardMarks";
 
 export { withDiscardRecorder, takeDiscardSnapshot } from "../cards/cardFx";
 
@@ -75,11 +75,8 @@ export function moveToDiscard(
   if (wasInHand && card) {
     resetCultivate(card);
     card.resonanceStacks = 0;
-    const consumedMarkDiscard = reason === "manual" || reason === "effect" || reason === "cost";
-    card.marks = card.marks?.filter((mark) =>
-      mark !== "heavy" && mark !== "noto" && mark !== "countercurrent" &&
-      !(consumedMarkDiscard && mark === "domino"),
-    );
+    // 星印与纳刀离开手牌即移除, 不结算收益; 常驻增益(星契)保留。
+    card.marks = card.marks?.filter((mark) => !dropsOnLeaveHand(mark));
     card.costStacks = 0;
   }
   const rule = RULES.discard.reasons[reason];

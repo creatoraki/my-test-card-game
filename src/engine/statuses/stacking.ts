@@ -106,14 +106,14 @@ export function tickStatus(inst: StatusInstance, def: StatusDef, tempo?: number)
   if (inst.duration != null) inst.duration -= 1;
 }
 
-export function capStatusStacks(inst: StatusInstance, def: StatusDef): void {
-  if (def.maxStacks == null) return;
+export function capStatusStacks(inst: StatusInstance, def: StatusDef, cap = def.maxStacks): void {
+  if (cap == null) return;
   if (def.stackMode !== "segments" || !inst.segments) {
-    inst.stacks = Math.min(inst.stacks, def.maxStacks);
+    inst.stacks = Math.min(inst.stacks, cap);
     return;
   }
 
-  let excess = Math.max(0, inst.stacks - def.maxStacks);
+  let excess = Math.max(0, inst.stacks - cap);
   for (const segment of [...inst.segments].sort((a, b) => segmentDuration(a) - segmentDuration(b))) {
     if (excess <= 0) break;
     const removed = Math.min(segment.stacks, excess);

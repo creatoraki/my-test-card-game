@@ -2,7 +2,7 @@ import type { BattleState, Card, EffectDescriptor } from "../types";
 import { cardCost } from "../cards/cost";
 import { counterOf } from "../combat/counters";
 import { hasDamageEffect } from "@/data/cardModules/types";
-import { ops, checkEnd } from "../core/ops";
+import { checkEnd } from "../core/ops";
 import { rngPick } from "../core/rng";
 import { foesOf } from "../combat/targeting";
 import { addMod, partyHandLimit } from "../combat/stats";
@@ -112,7 +112,6 @@ function revealCostChain(state: BattleState, effect: EffectDescriptor, resolve: 
 function revealAttackOrDraw(
   state: BattleState,
   effect: EffectDescriptor,
-  sourceId: string,
   resolve: ResolveEffectsFn,
 ): void {
   const uid = state.draw[0];
@@ -129,7 +128,6 @@ function revealAttackOrDraw(
     return;
   }
   state.draw.shift();
-  ops.applyStatus(state, sourceId, "zenithStar", 1);
   autoPlayRevealedCard(state, card, resolve);
 }
 
@@ -154,7 +152,7 @@ export function applyRevealEffect(
   resolve: ResolveEffectsFn,
 ): EffectResolution {
   if (effect.revealMode === "costChain") revealCostChain(state, effect, resolve);
-  else if (effect.revealMode === "attackOrDraw") revealAttackOrDraw(state, effect, sourceId, resolve);
+  else if (effect.revealMode === "attackOrDraw") revealAttackOrDraw(state, effect, resolve);
   else if (effect.revealMode === "scryPick") revealScryPick(state, effect);
   return emptyResolution();
 }

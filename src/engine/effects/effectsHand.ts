@@ -8,7 +8,8 @@ import { partyHandLimit } from "../combat/stats";
 import { rngPick } from "../core/rng";
 import { counterOf } from "../combat/counters";
 import { cardCost, starPayable } from "../cards/cost";
-import { CARD_MARK_DEFS } from "../cards/cardMarks";
+import { CARD_MARK_DEFS, transferableMarks } from "../cards/cardMarks";
+import { starPactCandidates } from "../prophet/starPact";
 import { isPassive, playableHandUids } from "../cards/passiveCards";
 import { advanceCultivate, cultivateCanAdvance, resetCultivate } from "../deck/cultivate";
 import { makeCard } from "@/data";
@@ -147,9 +148,13 @@ function applyMarkCards(state: BattleState, effect: EffectDescriptor, targetIds:
     if (card) markCard(state, card, effect.mark);
     return;
   }
-  const amountToMark = Math.max(0, Math.floor(effect.amount ?? 0));
+  const rawAmount = effect.amountFrom ? counterOf(state, effect.amountFrom) : effect.amount ?? 0;
+  const amountToMark = Math.min(effect.maxAmount ?? Infinity, Math.max(0, Math.floor(rawAmount)));
   if (effect.markPick === "handHighestCostRandom") {
-    const candidates = markable.map((uid) => state.cards[uid]).filter((card): card is Card => card != null);
+    // 已带有该标记的牌跳过(同名标记不叠加), 在剩余牌中取当前费用最高者。
+    const candidates = markable
+      .map((uid) => state.cards[uid])
+      .filter((card): card is Card => card != null && !card.marks?.includes(effect.mark!));
     const highestCost = Math.max(...candidates.map((card) => cardCost(state, card)), -Infinity);
     const highest = candidates.filter((card) => cardCost(state, card) === highestCost);
     const card = highest.length > 0 ? rngPick(state, highest) : undefined;
@@ -158,7 +163,7 @@ function applyMarkCards(state: BattleState, effect: EffectDescriptor, targetIds:
   }
   const pool = markable.filter((uid) => {
     const card = state.cards[uid];
-    if (!card) return false;
+    if (!card || card.marks?.includes(effect.mark!)) return false;
     if (effect.markPick === "handRandomUnmarked") return (card.marks?.length ?? 0) === 0;
     return effect.markPick !== "handRandomNonStarPay" || !starPayable(card);
   });
@@ -334,10 +339,18 @@ export function applyHandEffect(
         if (effect.followUp?.length) return resolve(state, effect.followUp, sourceId, undefined);
         return emptyResolution();
       }
+      const pending = state.pendingChoice;
+      if (effect.handChoiceAction === "grantStarPact" && pending?.kind === "pickHandCard" && pending.action === "grantStarPact") {
+        // 引力透镜让瀑布再结算一次: 叠加到同一次选择上, 多选一张。
+        pending.remaining += requestedAmount;
+        break;
+      }
+      const starPactPool = effect.handChoiceAction === "grantStarPact" ? starPactCandidates(state) : [];
       const candidates = playableHandUids(state).filter((uid) => {
+        if (effect.handChoiceAction === "grantStarPact") return starPactPool.includes(uid);
         if (effect.handChoiceAction === "markTarget" && uid === state.markTransferSourceUid) return false;
         if (effect.handChoiceAction === "markSource" || effect.handChoiceAction === "stripMarks") {
-          if ((state.cards[uid]?.marks?.length ?? 0) === 0) return false;
+          if (transferableMarks(state.cards[uid]).length === 0) return false;
         }
         if (effect.handChoiceAction !== "cultivateTick") return true;
         const card = state.cards[uid];
@@ -347,7 +360,7 @@ export function applyHandEffect(
         if (effect.handChoiceAction === "devour") state.chosenCardCost = 0;
         if (effect.handChoiceAction === "stripMarks") state.lastStrippedMarks = 0;
         if (effect.handChoiceAction === "markTarget") state.markTransferSourceUid = null;
-        if (["markSource", "markTarget", "devour", "stripMarks"].includes(effect.handChoiceAction ?? ""))
+        if (["markSource", "markTarget", "devour", "stripMarks", "grantStarPact"].includes(effect.handChoiceAction ?? ""))
           return emptyResolution();
         return effect.followUp?.length ? resolve(state, effect.followUp, sourceId, undefined) : emptyResolution();
       }

@@ -5,7 +5,7 @@ import { conditionMet } from "../effects/effects";
 import { counterOf } from "../combat/counters";
 import { cultivateOverripe, cultivateReady } from "../deck/cultivate";
 import { isPassive } from "../combat/passive";
-import { waterfallHolds } from "../battle/waterfall";
+import { waterfallWouldTrigger } from "../battle/waterfall";
 
 export type CardBoonId =
   | "cultivate"
@@ -87,7 +87,7 @@ export function cardBoons(state: BattleState, card: Card): CardBoonId[] {
     boons.push("selfStack");
   if (
     effects.some((effect) => effect.condition === "waterfall") &&
-    waterfallHolds(state, card)
+    waterfallWouldTrigger(state, card)
   )
     boons.push("waterfall");
   if (hasCounterBoon(state, card, effects)) boons.push("counter");

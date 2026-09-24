@@ -7,8 +7,9 @@ import { transferPierce } from "../combat/pierce";
 import { ops } from "../core/ops";
 
 function matchesKind(status: StatusInstance, kind: EffectDescriptor["statusKind"]): boolean {
-  const actual = getStatusDef(status.id)?.kind;
-  return kind === "all" || actual === (kind ?? "debuff");
+  const def = getStatusDef(status.id);
+  if (def?.undispellable) return false;
+  return kind === "all" || def?.kind === (kind ?? "debuff");
 }
 
 function extendStatuses(state: BattleState, effect: EffectDescriptor, targetIds: string[]): void {

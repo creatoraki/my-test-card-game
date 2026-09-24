@@ -171,7 +171,7 @@ export type PendingChoice =
       kind: "pickHandCard";
       sourceCardUid: string;
       ownerCharId: string;
-      action: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks";
+      action: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks" | "grantStarPact";
       remaining: number;
       followUp?: EffectDescriptor[];
     }

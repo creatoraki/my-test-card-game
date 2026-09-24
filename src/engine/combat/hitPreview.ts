@@ -8,7 +8,7 @@ import { addMod, attackDamage, damageMasteryOf, hitChance, statOf } from "./stat
 import { RULES } from "../core/battleRules";
 import { getStatusDef } from "../statuses";
 import { CARD_MARK_DEFS } from "../cards/cardMarks";
-import { waterfallHolds } from "../battle/waterfall";
+import { waterfallWouldTrigger } from "../battle/waterfall";
 import { pierceOf } from "./pierce";
 
 // 本卡自带的「出牌期临时面板」(模组的 PLAY_STAT_BONUS)。
@@ -55,10 +55,7 @@ function previewConditionMet(
   card: Card,
   targetId?: string,
 ): boolean {
-  if (effect.condition === "waterfall") {
-    const owner = state.combatants[card.ownerCharId];
-    return waterfallHolds(state, card) || Boolean(owner?.statuses.some((status) => status.id === "zenithStar" && status.stacks > 0));
-  }
+  if (effect.condition === "waterfall") return waterfallWouldTrigger(state, card);
   if (effect.condition === "fullyStarPaid") {
     const cost = cardCost(state, card);
     const spent = starlightPayment(state, card);

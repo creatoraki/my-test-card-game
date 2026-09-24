@@ -2,6 +2,7 @@ import type { FxRecorder } from "./anim";
 import type { DiscardReason } from "./base";
 import type { BattleState } from "./battleState";
 import type { PassiveEvent, RelicEvent } from "./cards";
+import type { ProphecyEvent } from "./prophecy";
 import type { StatBlock } from "./stats";
 import type { DamageResult } from "./statuses";
 
@@ -69,5 +70,7 @@ export interface EngineOps {
   draw(state: BattleState, n: number): void;
   firePassive(state: BattleState, event: PassiveEvent, rec?: FxRecorder): void;
   fireRelic(state: BattleState, event: RelicEvent, rec?: FxRecorder): void;
+  // 预言事件入口, 由 engine/prophecy/prophecy.ts 在加载时注入。
+  prophecyEvent(state: BattleState, event: ProphecyEvent): void;
   log(state: BattleState, text: string): void;
 }

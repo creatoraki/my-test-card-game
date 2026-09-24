@@ -34,7 +34,7 @@ export function applyStripStatusEffect(
     if (!target?.alive || amount <= 0) continue;
     const pool = target.statuses.filter((status) => {
       const def = getStatusDef(status.id);
-      return status.stacks > 0 && (kind === "all" || def?.kind === kind);
+      return status.stacks > 0 && !def?.undispellable && (kind === "all" || def?.kind === kind);
     });
     for (let i = 0; i < amount && pool.length > 0; i++) {
       const status = rngPick(state, pool);

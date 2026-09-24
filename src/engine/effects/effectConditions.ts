@@ -43,6 +43,11 @@ export function conditionMet(
     const primary = primaryId ? state.combatants[primaryId] : undefined;
     return Boolean(primary?.alive && primary.hp < primary.hpLimit);
   }
+  if (effect.condition === "primaryActsWithin") {
+    const primary = primaryId ? state.combatants[primaryId] : undefined;
+    if (!primary?.alive || primary.team !== "enemy" || primary.nextActTick == null) return false;
+    return primary.nextActTick - state.tick <= (effect.conditionValue ?? 0);
+  }
   if (effect.condition === "targetAttackedThisRound" || effect.condition === "targetNotAttackedThisRound") {
     const targetWasAttacked = targetIds == null
       ? state.attackedThisRound.length > 0 || state.playerIds.some((id) => feignsInjury(state, id))

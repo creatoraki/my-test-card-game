@@ -6,17 +6,8 @@ function isEnemy(combatant: Ally | Enemy): combatant is Enemy {
   return combatant.team === "enemy";
 }
 
+// 星辉定义在 statuses/prophet.ts(上限可被银河提高, 溢出转治疗)。
 export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
-  starlight: {
-    id: "starlight",
-    name: "星辉",
-    emoji: "✨",
-    kind: "buff",
-    maxStacks: RULES.combat.starlightMax,
-    stackMode: "add",
-    refreshMode: "max",
-    desc: "应星卡牌可以消耗星辉替代法力水晶。",
-  },
   ironwall: {
     id: "ironwall",
     name: "铁壁",

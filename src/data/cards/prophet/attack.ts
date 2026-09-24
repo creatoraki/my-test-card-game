@@ -2,6 +2,22 @@ import type { CardDef } from "@/engine/types";
 
 export const PROPHET_ATTACK_CARDS: CardDef[] = [
   {
+    id: "star-shatter",
+    name: "碎星",
+    ownerCharId: "prophet",
+    cost: 1,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "common",
+    starPay: true,
+    anim: "lightning",
+    effects: [
+      { type: "DAMAGE", multiplier: 0.7, target: "primary" },
+      { type: "MARK_CARDS", mark: "cometTail", markPick: "handRandom", amountFrom: "activeCardStarSpent" },
+    ],
+    text: "造成 {0} 点伤害。应星。每消耗 1 层星辉，随机使 1 张其他手牌获得彗尾。",
+  },
+  {
     id: "countercurrent",
     name: "逆流",
     ownerCharId: "prophet",
@@ -82,7 +98,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     rarity: "common",
     anim: "lightning",
     effects: [
-      { type: "DAMAGE", multiplier: 0.5, target: "primary" },
+      { type: "DAMAGE", multiplier: 0.4, target: "primary" },
       {
         type: "DAMAGE",
         multiplier: 1,
@@ -93,6 +109,28 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
       },
     ],
     text: "造成 {0} 点伤害。瀑布：额外造成 100% + 当前费用 ×50% 攻击力的伤害。",
+  },
+  {
+    id: "celestial-verdict",
+    name: "天穹断罪",
+    ownerCharId: "prophet",
+    cost: 3,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "common",
+    starPay: true,
+    anim: "lightning",
+    effects: [
+      { type: "DAMAGE", multiplier: 1.8, target: "primary" },
+      {
+        type: "DELAY_ENEMY_ACT",
+        amount: 1,
+        target: "primary",
+        condition: "primaryActsWithin",
+        conditionValue: 1,
+      },
+    ],
+    text: "造成 {0} 点伤害。应星。若目标的招式即将发动，将其推迟 1 时刻。",
   },
   {
     id: "zenith-star",
@@ -127,7 +165,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     cost: 2,
     cardType: "normal",
     targeting: "foe",
-    rarity: "common",
+    rarity: "uncommon",
     starPay: true,
     anim: "lightning",
     effects: [
@@ -141,6 +179,38 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
       },
     ],
     text: "造成 {0} 点伤害。应星。费用全由星辉支付时，获得【引力透镜】。",
+  },
+  {
+    id: "star-curtain",
+    name: "星幕",
+    ownerCharId: "prophet",
+    cost: 3,
+    cardType: "normal",
+    targeting: "allFoes",
+    rarity: "uncommon",
+    starPay: true,
+    anim: "lightning",
+    effects: [
+      { type: "DAMAGE", multiplier: 0.8, target: "allFoes" },
+      // 敌人的拍点在行动前扣减: 2 拍恰好覆盖目标的下一次行动。
+      { type: "APPLY_STATUS", status: "blind", stacks: 1, duration: 2, target: "allFoes", condition: "waterfall" },
+    ],
+    text: "对所有敌人造成 {0} 点伤害。应星。瀑布：所有敌人获得致盲，持续到其下次行动结束。",
+  },
+  {
+    id: "brand",
+    name: "烙印",
+    ownerCharId: "prophet",
+    cost: 2,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "uncommon",
+    anim: "lightning",
+    effects: [
+      { type: "DAMAGE", multiplier: 1, target: "primary" },
+      { type: "CHOOSE_HAND_CARD", handChoiceAction: "grantStarPact", condition: "waterfall" },
+    ],
+    text: "造成 {0} 点伤害。瀑布：使一张队友的手牌获得星契。",
   },
   {
     id: "falling-star-sequence",
@@ -162,5 +232,21 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
       },
     ],
     text: "造成 {0} 点伤害。应星。每消耗 1 层星辉，翻牌并尝试自动打出一张费用递减的牌，最多 3 张；翻到费用不递减的牌时终止。",
+  },
+  {
+    id: "galaxy-cascade",
+    name: "星河倒泻",
+    ownerCharId: "prophet",
+    cost: 3,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "rare",
+    starPay: true,
+    anim: "lightning",
+    effects: [
+      { type: "DAMAGE", multiplier: 1.5, target: "primary" },
+      { type: "APPLY_STATUS", status: "cascade", stacks: 1, duration: 1, target: "self", condition: "waterfall" },
+    ],
+    text: "造成 {0} 点伤害。应星。瀑布：获得倒泻，本回合接下来按费用递减出牌时，每张都视为触发瀑布。",
   },
 ];

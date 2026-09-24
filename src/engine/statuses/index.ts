@@ -8,6 +8,7 @@ import { ACTUARY_STATUS_DEFS } from "./actuary";
 import { SWORDSMAN_STATUS_DEFS } from "./swordsman";
 import { BOTANIST_STATUS_DEFS } from "./botanist";
 import { PROPHET_STATUS_DEFS } from "./prophet";
+import { PROPHECY_STATUS_DEFS } from "./prophecy";
 import { ABANDONED_FLOOR_STATUS_DEFS } from "./abandonedFloor";
 import { ALCHEMIST_STATUS_DEFS } from "./alchemist";
 
@@ -20,6 +21,7 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
   ...SWORDSMAN_STATUS_DEFS,
   ...BOTANIST_STATUS_DEFS,
   ...PROPHET_STATUS_DEFS,
+  ...PROPHECY_STATUS_DEFS,
   ...ABANDONED_FLOOR_STATUS_DEFS,
   ...ALCHEMIST_STATUS_DEFS,
 };

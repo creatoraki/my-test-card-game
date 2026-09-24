@@ -63,6 +63,7 @@ export function markDead(state: BattleState, cmb: Combatant): void {
       targetStatuses: structuredClone(cmb.statuses),
     });
     runRelicHook(state, "onEnemyKilled", cmb.id);
+    ops.prophecyEvent(state, { type: "enemyKilled", enemyId: cmb.id });
   }
   cmb.hp = 0;
   cmb.alive = false;
@@ -238,8 +239,14 @@ export function applyStatus(
     log(state, `${t.emoji} ${t.name} 的${def?.name ?? statusId}被移除`);
     return;
   }
-  if (def) capStatusStacks(inst, def);
+  let overflow = 0;
+  if (def) {
+    const cap = def.maxStacksOf?.(state, targetId) ?? def.maxStacks;
+    if (stacks > 0 && cap != null) overflow = Math.max(0, Math.min(stacks, inst.stacks - cap));
+    capStatusStacks(inst, def, cap);
+  }
   if (def) def.hooks?.onApplied?.(ctxFor(state, targetId, inst));
+  if (def && overflow > 0) def.hooks?.onOverflow?.(ctxFor(state, targetId, inst), overflow);
   cleanup(t);
   log(state, `${t.emoji} ${t.name} 获得 ${def?.name ?? statusId} ${stacks > 0 ? "+" : ""}${stacks}`);
 }
@@ -283,6 +290,7 @@ export const ops: EngineOps = {
   draw: () => undefined,
   firePassive: () => undefined,
   fireRelic: () => undefined,
+  prophecyEvent: () => undefined,
   log,
 };
 

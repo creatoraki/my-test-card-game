@@ -1,0 +1,57 @@
+import type { CardDef } from "@/engine/types";
+
+// 预言牌: 条件、期限与奖励定义在 engine/prophecy/prophecyDefs.ts。同时只能存在 1 个预言。
+export const PROPHET_PROPHECY_CARDS: CardDef[] = [
+  {
+    id: "good-omen",
+    name: "吉兆",
+    ownerCharId: "prophet",
+    cost: 0,
+    cardType: "fast",
+    targeting: "self",
+    rarity: "common",
+    anim: "buff",
+    effects: [{ type: "START_PROPHECY", prophecy: "goodOmen", target: "self" }],
+    text: "预言（至下回合结束）：有敌人被击杀。应验：汇星 2。",
+  },
+  {
+    id: "omen",
+    name: "预兆",
+    ownerCharId: "prophet",
+    cost: 1,
+    cardType: "fast",
+    targeting: "self",
+    rarity: "uncommon",
+    anim: "buff",
+    effects: [
+      { type: "APPLY_STATUS", status: "starlight", stacks: 1, target: "self" },
+      { type: "START_PROPHECY", prophecy: "omen", target: "self" },
+    ],
+    text: "汇星 1。预言（本回合）：有牌触发瀑布。应验：汇星 1，抽 1 张牌。",
+  },
+  {
+    id: "ill-omen",
+    name: "凶兆",
+    ownerCharId: "prophet",
+    cost: 1,
+    cardType: "fast",
+    targeting: "foe",
+    rarity: "uncommon",
+    anim: "buff",
+    effects: [{ type: "START_PROPHECY", prophecy: "illOmen", target: "primary" }],
+    text: "预言：该敌人下次行动是攻击。应验：该次攻击伤害 -50%，汇星 1。落空：抽 1 张牌。",
+  },
+  {
+    id: "apocalypse",
+    name: "天启",
+    ownerCharId: "prophet",
+    cost: 2,
+    cardType: "normal",
+    targeting: "self",
+    rarity: "rare",
+    exhaust: true,
+    anim: "buff",
+    effects: [{ type: "START_PROPHECY", prophecy: "apocalypse", target: "self" }],
+    text: "预言（3 回合内）：累计消耗 6 层星辉。应验：对所有敌人造成攻击力 250% 的伤害。打出后消耗。",
+  },
+];

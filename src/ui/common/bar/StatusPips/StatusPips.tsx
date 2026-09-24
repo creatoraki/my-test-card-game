@@ -39,11 +39,11 @@ export function StatusPips({
 
   const durationUnit = team === "enemy" ? "次行动" : "回合";
 
-  const statsOf = (shieldPip: boolean, stacks: number, duration?: number): BuffStat[] => {
+  const statsOf = (shieldPip: boolean, stacks: number, duration?: number, extra: BuffStat[] = []): BuffStat[] => {
     if (shieldPip) return [{ label: "护盾值", value: stacks }];
     const stats: BuffStat[] = [{ label: "当前层数", value: stacks }];
     if (duration != null) stats.push({ label: "剩余", value: duration, suffix: durationUnit });
-    return stats;
+    return [...stats, ...extra];
   };
 
   const renderPip = ({
@@ -58,6 +58,7 @@ export function StatusPips({
     icon,
     detailIcon,
     accent,
+    extraStats,
   }: {
     key: string;
     emoji?: string;
@@ -70,6 +71,7 @@ export function StatusPips({
     duration?: number;
     shieldPip?: boolean;
     accent: string;
+    extraStats?: BuffStat[];
   }) => (
     <span
       key={key}
@@ -97,7 +99,7 @@ export function StatusPips({
             title={name}
             desc={desc}
             accent={accent}
-            stats={statsOf(shieldPip, stacks, duration)}
+            stats={statsOf(shieldPip, stacks, duration, extraStats)}
           />
         </RailPopover>
       )}
@@ -133,6 +135,7 @@ export function StatusPips({
           kind: def?.kind ?? "buff",
           duration: st.duration,
           accent: statusAccentOf(st.id, def?.kind),
+          extraStats: def?.detailStats?.(st),
         });
       })}
     </div>

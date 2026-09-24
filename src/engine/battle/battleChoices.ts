@@ -6,6 +6,8 @@ import { resolveEffects } from "../effects/effects";
 import { firePassive } from "../combat/passive";
 import { log, ops } from "../core/ops";
 import { partyHandLimit } from "../combat/stats";
+import { transferableMarks } from "../cards/cardMarks";
+import { grantStarPact, starPactCandidates } from "../prophet/starPact";
 
 export function resolvePendingChoice(state: BattleState, uid: string): boolean {
   const choice = state.pendingChoice;
@@ -56,17 +58,20 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
       if (card) card.notoPending = true;
       ops.discard(state, uid, "effect");
     } else if (choice.action === "markSource") {
-      if (!card?.marks?.length) return false;
+      if (transferableMarks(card).length === 0) return false;
       state.markTransferSourceUid = uid;
     } else if (choice.action === "markTarget") {
       const sourceUid = state.markTransferSourceUid;
       const source = sourceUid ? state.cards[sourceUid] : undefined;
       if (!source || sourceUid === uid) return false;
+      const moved = transferableMarks(source);
       const targetMarks = new Set(card?.marks ?? []);
-      for (const mark of source.marks ?? []) targetMarks.add(mark);
+      for (const mark of moved) targetMarks.add(mark);
       if (card) card.marks = [...targetMarks];
-      source.marks = [];
+      source.marks = (source.marks ?? []).filter((mark) => !moved.includes(mark));
       state.markTransferSourceUid = null;
+    } else if (choice.action === "grantStarPact") {
+      if (!card || !starPactCandidates(state).includes(uid) || !grantStarPact(state, card)) return false;
     } else if (choice.action === "devour") {
       if (!card) return false;
       state.chosenCardCost = cardCost(state, card);
@@ -77,20 +82,25 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
       card.resonanceStacks = 0;
       resetCultivate(card);
     } else if (choice.action === "stripMarks") {
-      if (!card?.marks?.length) return false;
-      const stripped = card.marks.slice(0, 2);
+      const strippable = transferableMarks(card);
+      if (!card || strippable.length === 0) return false;
+      const stripped = strippable.slice(0, 2);
       state.lastStrippedMarks = stripped.length;
       dominoMarkConsumed = stripped.includes("domino");
-      card.marks = card.marks.slice(stripped.length);
+      card.marks = (card.marks ?? []).filter((mark) => !stripped.includes(mark));
     }
     const nextRemaining = choice.remaining - 1;
-    const canContinue = nextRemaining > 0 && choice.action === "cultivateTick" && state.hand.some((handUid) => {
-      const handCard = state.cards[handUid];
-      return handCard != null && cultivateCanAdvance(handCard);
-    });
+    const canContinue = nextRemaining > 0 && (
+      choice.action === "cultivateTick"
+        ? state.hand.some((handUid) => {
+          const handCard = state.cards[handUid];
+          return handCard != null && cultivateCanAdvance(handCard);
+        })
+        : choice.action === "grantStarPact" && starPactCandidates(state).length > 0
+    );
     if (canContinue) {
       choice.remaining = nextRemaining;
-      log(state, `还需催熟 ${nextRemaining} 张牌`);
+      log(state, choice.action === "grantStarPact" ? `还可赋予 ${nextRemaining} 张牌星契` : `还需催熟 ${nextRemaining} 张牌`);
       return true;
     }
     state.pendingChoice = null;
