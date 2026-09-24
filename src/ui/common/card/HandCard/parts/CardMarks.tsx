@@ -12,6 +12,20 @@ interface Props {
   leaving?: boolean;
 }
 
+function cultivateTip(card: Card): string {
+  const left = card.cultivateLeft ?? card.cultivate?.turns ?? 0;
+  if (card.grafted)
+    return cultivateReady(card)
+      ? "已成熟：打出时本牌数值 +40%。嫁接牌不会过熟。"
+      : `还需经过 ${left} 个回合成熟；成熟后本牌数值 +40%，且不会过熟。`;
+  if (cultivateOverripe(card)) return "已过熟：打出时结算过熟效果；本回合结束时仍在手牌中会腐烂。";
+  if (cultivateReady(card))
+    return card.cultivate?.evergreen
+      ? "已就绪：打出时触发额外效果。常青：不会过熟；留在手牌中每回合开始结算常青效果。"
+      : "已就绪：打出时触发额外效果。";
+  return `还需经过 ${left} 个回合。`;
+}
+
 export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
   if (variant === "pile") {
     return (
@@ -70,14 +84,8 @@ export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
             </span>
             <span className={s["hc-mark-tip"]} role="tooltip">
               <TooltipCard
-                title="培育"
-                desc={
-                  cultivateOverripe(card)
-                    ? "已过熟：打出时结算过熟效果；本回合结束时仍在手牌中会腐烂。"
-                    : cultivateReady(card)
-                    ? "已就绪：打出时触发额外效果。"
-                    : `还需经过 ${card.cultivateLeft ?? card.cultivate.turns} 个回合。`
-                }
+                title={card.grafted ? "嫁接" : "培育"}
+                desc={cultivateTip(card)}
               />
             </span>
           </span>

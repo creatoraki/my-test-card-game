@@ -128,12 +128,12 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
     maxStacks: 1,
     stackMode: "max",
     refreshMode: "override",
-    desc: "护盾存在期间受到攻击时，使攻击者中毒；护盾被击破时移除。",
+    desc: "护盾存在期间受到攻击时，使攻击者中毒，持续 2 回合；护盾被击破时移除。",
     hooks: {
       onAfterAttacked: (c: StatusCtx, dmg: DamageCtx) => {
         const poisonStacks = c.inst.data?.poisonStacks ?? 0;
         if (c.inst.stacks > 0 && dmg.isAttack && dmg.sourceId && poisonStacks > 0)
-          c.ops.applyStatus(c.state, dmg.sourceId, "poison", poisonStacks, undefined, undefined, c.ownerId);
+          c.ops.applyStatus(c.state, dmg.sourceId, "poison", poisonStacks, 2, undefined, c.ownerId);
       },
       onShieldBroken: (c: StatusCtx) => {
         c.inst.stacks = 0;

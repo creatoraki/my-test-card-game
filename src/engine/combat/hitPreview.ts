@@ -9,6 +9,7 @@ import { RULES } from "../core/battleRules";
 import { getStatusDef } from "../statuses";
 import { CARD_MARK_DEFS } from "../cards/cardMarks";
 import { waterfallWouldTrigger } from "../battle/waterfall";
+import { graftBonusPct } from "../battle/cultivatePlay";
 import { pierceOf } from "./pierce";
 
 // 本卡自带的「出牌期临时面板」(模组的 PLAY_STAT_BONUS)。
@@ -92,12 +93,26 @@ function withPlayStatBonuses<T>(state: BattleState, card: Card, targetId: string
   }
 }
 
+// 带条件的互斥伤害(蒺藜箭 / 汲血蔓)按当前目标判定; 计数源读 activeCardPrimaryId, 预览期间临时写入后原样撤回。
+function previewDamageConditionMet(state: BattleState, effect: EffectDescriptor, card: Card, targetId?: string): boolean {
+  if (!effect.condition) return true;
+  const previousPrimary = state.activeCardPrimaryId;
+  state.activeCardPrimaryId = targetId ?? previousPrimary;
+  try {
+    return previewConditionMet(state, effect, card, targetId);
+  } finally {
+    state.activeCardPrimaryId = previousPrimary;
+  }
+}
+
 function firstDamageEffect(state: BattleState, card: Card, targetId?: string): EffectDescriptor | undefined {
   const fullDraw = willFullDraw(state, card, targetId);
-  return activeEffectsOf(card).find((candidate) =>
+  const candidates = activeEffectsOf(card).filter((candidate) =>
     candidate.type === "DAMAGE" &&
     (!candidate.fullDraw || (candidate.fullDraw === "hit" ? fullDraw : !fullDraw)),
   );
+  // 没有任何分支满足条件时仍按第一个伤害预览, 保持旧口径(单条件伤害牌照常显示命中徽章)。
+  return candidates.find((candidate) => previewDamageConditionMet(state, candidate, card, targetId)) ?? candidates[0];
 }
 
 function cardAttack(state: BattleState, card: Card, targetId?: string): number {
@@ -171,7 +186,7 @@ export function cardDamagePreview(state: BattleState, card: Card, targetId: stri
     const fullDrawBonus = activeEffectsOf(card)
       .filter((candidate) => candidate.type === "VALUE_BOOST" && candidate.boostSource === "fullDraw" && willFullDraw(state, card, targetId))
       .reduce((sum, candidate) => sum + (candidate.boostPct ?? 0), 0);
-    const valueMultiplier = 1 + (state.playValueBonusPct + fullDrawBonus) / 100;
+    const valueMultiplier = 1 + (state.playValueBonusPct + graftBonusPct(state, card) + fullDrawBonus) / 100;
     const rawDamage = fixed
       ? (effect.amount ?? 0) * (1 + bonusMult) * valueMultiplier * valueScale
       : attackDamage(cardAttack(state, card, targetId), damageMultiplier) * valueMultiplier * valueScale;

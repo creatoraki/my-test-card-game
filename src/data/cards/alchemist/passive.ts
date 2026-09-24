@@ -13,10 +13,10 @@ export const ALCHEMIST_PASSIVE_CARDS: CardDef[] = [
     effects: [],
     passive: {
       on: "roundEnd",
-      effects: [{ type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.05 }, target: "allFoes", targetHasStatus: "poison" }],
+      effects: [{ type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.05 }, duration: 2, target: "allFoes", targetHasStatus: "poison" }],
     },
     onDiscard: { mode: "custom", effects: [{ type: "TICK_STATUS", status: "poison", target: "allFoes" }] },
-    text: "被动：回合结束时，使所有已中毒的敌人额外获得攻击力 1% 层数的中毒。本卡被丢弃时，立即结算一次全场中毒伤害。",
+    text: "被动：回合结束时，使所有已中毒的敌人额外获得攻击力 1% 层数的中毒，持续 2 回合。本卡被丢弃时，立即结算一次全场中毒伤害。",
   },
   {
     id: "eternal-furnace-core",

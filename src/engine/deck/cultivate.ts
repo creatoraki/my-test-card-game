@@ -9,7 +9,23 @@ export function cultivateStage(card: Card): CultivateStage | null {
   return left === 0 ? "mature" : "growing";
 }
 
+// 常青牌与嫁接牌成熟后停在成熟: 不会过熟, 也不能被催熟。
+export function capsAtMature(card: Card): boolean {
+  return Boolean(card.cultivate?.evergreen || card.grafted);
+}
+
+// 嫁接只挂在实例上, 离手 / 打出后连同临时培育一起剥离。
+function stripGraft(card: Card): void {
+  delete card.cultivate;
+  delete card.cultivateLeft;
+  delete card.grafted;
+}
+
 export function resetCultivate(card: Card): void {
+  if (card.grafted) {
+    stripGraft(card);
+    return;
+  }
   if (card.cultivate) card.cultivateLeft = card.cultivate.turns;
 }
 
@@ -29,6 +45,7 @@ export function advanceCultivate(state: BattleState, card: Card, delta: number):
     const before = cultivateStage(card);
     const left = card.cultivateLeft ?? card.cultivate.turns;
     if (left <= -1) break;
+    if (left <= 0 && capsAtMature(card)) break;
     card.cultivateLeft = left - 1;
     const after = cultivateStage(card);
     if (after && after !== before) notifyCultivateStage(state, card, after);
@@ -45,12 +62,13 @@ export function cultivateOverripe(card: Card): boolean {
 
 export function cultivateCanAdvance(card: Card): boolean {
   const stage = cultivateStage(card);
-  return stage === "growing" || stage === "mature";
+  if (stage === "mature") return !capsAtMature(card);
+  return stage === "growing";
 }
 
 export function effectiveTargeting(card: Card): Targeting {
   if (cultivateOverripe(card))
-    return card.cultivate?.overripe.targeting ?? card.cultivateTargeting ?? card.targeting;
+    return card.cultivate?.overripe?.targeting ?? card.cultivateTargeting ?? card.targeting;
   return cultivateReady(card) ? card.cultivateTargeting ?? card.targeting : card.targeting;
 }
 

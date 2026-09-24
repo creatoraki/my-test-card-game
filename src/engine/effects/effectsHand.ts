@@ -12,6 +12,7 @@ import { CARD_MARK_DEFS, transferableMarks } from "../cards/cardMarks";
 import { starPactCandidates } from "../prophet/starPact";
 import { isPassive, playableHandUids } from "../cards/passiveCards";
 import { advanceCultivate, cultivateCanAdvance, resetCultivate } from "../deck/cultivate";
+import { graftCandidates } from "../deck/graft";
 import { makeCard } from "@/data";
 
 function emptyResolution(): EffectResolution {
@@ -346,8 +347,10 @@ export function applyHandEffect(
         break;
       }
       const starPactPool = effect.handChoiceAction === "grantStarPact" ? starPactCandidates(state) : [];
+      const graftPool = effect.handChoiceAction === "graft" ? graftCandidates(state, sourceId) : [];
       const candidates = playableHandUids(state).filter((uid) => {
         if (effect.handChoiceAction === "grantStarPact") return starPactPool.includes(uid);
+        if (effect.handChoiceAction === "graft") return graftPool.includes(uid);
         if (effect.handChoiceAction === "markTarget" && uid === state.markTransferSourceUid) return false;
         if (effect.handChoiceAction === "markSource" || effect.handChoiceAction === "stripMarks") {
           if (transferableMarks(state.cards[uid]).length === 0) return false;
@@ -360,7 +363,7 @@ export function applyHandEffect(
         if (effect.handChoiceAction === "devour") state.chosenCardCost = 0;
         if (effect.handChoiceAction === "stripMarks") state.lastStrippedMarks = 0;
         if (effect.handChoiceAction === "markTarget") state.markTransferSourceUid = null;
-        if (["markSource", "markTarget", "devour", "stripMarks", "grantStarPact"].includes(effect.handChoiceAction ?? ""))
+        if (["markSource", "markTarget", "devour", "stripMarks", "grantStarPact", "graft"].includes(effect.handChoiceAction ?? ""))
           return emptyResolution();
         return effect.followUp?.length ? resolve(state, effect.followUp, sourceId, undefined) : emptyResolution();
       }

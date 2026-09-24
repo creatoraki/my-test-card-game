@@ -87,6 +87,8 @@ export interface StatusHooks {
   onAfterAttack?: (c: StatusCtx, dmg: DamageCtx) => void;
   onCultivateStage?: (c: StatusCtx, card: Card, stage: CultivateStage) => void;
   onExpire?: (c: StatusCtx) => void; // 状态在本次节拍后过期时触发一次
+  onFoePoisonTick?: (c: StatusCtx, victimId: string) => void; // 我方持有者: 任意单位的中毒结算一次后(含毒发)
+  onBeforeAct?: (c: StatusCtx) => void; // 敌方持有者: 发动招式前(眩晕判定之后、选招之前)
   onOverflow?: (c: StatusCtx, overflow: number) => void; // 施加层数超出上限时, 溢出部分的层数
 }
 
@@ -115,6 +117,7 @@ export interface StatusDef {
   maxStacksOf?: (state: BattleState, ownerId: string) => number; // 动态层数上限, 优先于 maxStacks
   detailStats?: (inst: StatusInstance) => StatusDetailStat[];
   undispellable?: true; // 不可被驱散 / 剥离 / 转移
+  expiresOnAct?: true; // 敌方持有者发动招式后移除
   decay?: "one" | "half"; // 每拍层数衰减; 缺省 = 不衰减
   durationStartsImmediately?: boolean; // true = 施加当拍也扣除一次持续时间
   stackMode?: StackMode; // 同种状态再次施加时的层数合并方式

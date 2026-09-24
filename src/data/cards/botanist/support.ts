@@ -1,52 +1,7 @@
 import type { CardDef } from "@/engine/types";
 
+// 愈 —— 治疗 / 护盾 / 嘲讽: 支援队友, 多数通过培育成长。
 export const BOTANIST_SUPPORT_CARDS: CardDef[] = [
-  {
-    id: "twin-flower",
-    name: "双生花",
-    ownerCharId: "botanist",
-    cost: 1,
-    cardType: "normal",
-    targeting: "ally",
-    rarity: "common",
-    anim: "heal",
-    effects: [{ type: "HEAL", multiplier: 0.5, target: "primary" }],
-    cultivate: {
-      turns: 2,
-      effects: [{ type: "ADD_CARD_TO_HAND", cardId: "twin-flower-sprout", amount: 1, target: "self" }],
-      overripe: {
-        targeting: "allAllies",
-        effects: [{ type: "HEAL", multiplier: 0.25, target: "allAllies" }],
-      },
-    },
-    text: "为一名队友恢复 {0} 点生命。培育 {c}：额外生成 1 张双生花·子株。过熟：为全队恢复 {o0} 点生命。",
-  },
-  {
-    id: "photosynthesis",
-    name: "光合储能",
-    ownerCharId: "botanist",
-    cost: 1,
-    cardType: "normal",
-    targeting: "self",
-    rarity: "common",
-    anim: "buff",
-    effects: [{ type: "DRAW", amount: 1 }],
-    cultivate: {
-      turns: 2,
-      mode: "replace",
-      effects: [
-        { type: "DRAW", amount: 1 },
-        { type: "CHOOSE_HAND_CARD", amount: 1, handChoiceAction: "cultivateTick" },
-      ],
-      overripe: {
-        effects: [
-          { type: "DRAW", amount: 1 },
-          { type: "GAIN_RESOURCE", amount: 1, resource: "mana" },
-        ],
-      },
-    },
-    text: "抽 1 张牌。培育 {c}（替换）：抽 1 张牌，催熟 1。过熟：抽 1 张牌，回复 1 点法力。",
-  },
   {
     id: "cactus-armor",
     name: "仙人掌护甲",
@@ -90,34 +45,6 @@ export const BOTANIST_SUPPORT_CARDS: CardDef[] = [
       },
     },
     text: "目标获得嘲讽，持续 1 回合。培育 {c}：目标受到攻击时，为攻击者附加棘冠穿孔。过熟：目标获得嘲讽，并获得 {o1} 点护盾。",
-  },
-  {
-    id: "new-leaf",
-    name: "新叶萌发",
-    ownerCharId: "botanist",
-    cost: 1,
-    cardType: "normal",
-    targeting: "ally",
-    rarity: "common",
-    anim: "heal",
-    effects: [
-      { type: "EXHAUST_HAND_CARDS", cardId: "rotten-fruit", target: "self" },
-      {
-        type: "APPLY_STATUS",
-        status: "vitality",
-        stacks: 1,
-        duration: 2,
-        durationFrom: { counter: "lastExhaustedHandCards" },
-        statusDataFrom: { key: "healAmount", stat: "healPower", multiplier: 0.25 },
-        target: "primary",
-      },
-      {
-        type: "CHOOSE_HAND_CARD",
-        amountFrom: "lastExhaustedHandCards",
-        handChoiceAction: "cultivateTick",
-      },
-    ],
-    text: "先消耗手牌中所有腐烂的果实，再使目标获得生机：持续 2 回合，每回合恢复 {1} 点生命；每消耗 1 张果实，持续时间 +1 回合并催熟 1。",
   },
   {
     id: "agave",
@@ -165,53 +92,5 @@ export const BOTANIST_SUPPORT_CARDS: CardDef[] = [
       },
     },
     text: "移除目标所有负面状态并恢复 {1} 点生命。培育 {c}：目标免疫负面状态 1 回合。过熟：不治疗，将移除的负面状态转移给一名随机敌人，持续 1 回合。",
-  },
-  {
-    id: "spore-cloud",
-    name: "孢子云雾",
-    ownerCharId: "botanist",
-    cost: 2,
-    cardType: "normal",
-    targeting: "allFoes",
-    rarity: "common",
-    anim: "poison",
-    effects: [
-      { type: "DAMAGE", multiplier: 0.4, target: "allFoes" },
-      {
-        type: "APPLY_STATUS",
-        status: "poison",
-        stacksFromStat: { stat: "attack", multiplier: 0.4, bonusMultiplierFrom: "handRottenFruit", bonusMultiplierPer: 0.1 },
-        duration: 2,
-        target: "allFoes",
-      },
-    ],
-    cultivate: {
-      turns: 2,
-      mode: "replace",
-      effects: [
-        { type: "DAMAGE", multiplier: 0.4, target: "allFoes" },
-        {
-          type: "APPLY_STATUS",
-          status: "poison",
-          stacksFromStat: { stat: "attack", multiplier: 0.4, bonusMultiplierFrom: "handRottenFruit", bonusMultiplierPer: 0.1 },
-          duration: 4,
-          target: "allFoes",
-        },
-      ],
-      overripe: {
-        effects: [
-          { type: "DAMAGE", multiplier: 0.4, target: "allFoes" },
-          {
-            type: "APPLY_STATUS",
-            status: "poison",
-            stacksFromStat: { stat: "attack", multiplier: 0.4, bonusMultiplierFrom: "handRottenFruit", bonusMultiplierPer: 0.1 },
-            duration: 2,
-            tickNow: true,
-            target: "allFoes",
-          },
-        ],
-      },
-    },
-    text: "对所有敌人造成 {0} 点伤害，附加 {1} 层中毒，持续 2 回合；手牌中每有 1 张腐烂的果实，中毒增加 10% 攻击力。培育 {c}（替换）：中毒持续 4 回合。过熟：中毒附加后立即结算一次。",
   },
 ];

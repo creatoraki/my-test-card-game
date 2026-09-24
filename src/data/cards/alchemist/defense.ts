@@ -64,7 +64,7 @@ export const ALCHEMIST_DEFENSE_CARDS: CardDef[] = [
       { type: "APPLY_STATUS", status: "retortWall", stacks: 1, statusDataFrom: { key: "poisonStacks", stat: "attack", multiplier: 0.05 }, target: "allAllies" },
       { type: "GAIN_SQUAD_BUFF", squadBuff: "assembleD", target: "self" },
     ],
-    text: "全队获得 {0} 点护盾；护盾存在期间队伍每受到 1 次攻击，使攻击者获得 {1} 层中毒；组装 D。",
+    text: "全队获得 {0} 点护盾；护盾存在期间队伍每受到 1 次攻击，使攻击者获得 {1} 层中毒，持续 2 回合；组装 D。",
   },
   {
     id: "buffer-solution",

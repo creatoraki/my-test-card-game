@@ -1,4 +1,5 @@
 import type { DamageCtx, StatusCtx, StatusDef } from "../types";
+import { notifyPoisonTick } from "./poisonEvents";
 
 export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
   poison: {
@@ -11,14 +12,15 @@ export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
     resistMode: "stacks",
     hooks: {
       onTempo: (c: StatusCtx) => {
-        if (c.stacks > 0)
-          c.ops.dealDamage(c.state, undefined, c.ownerId, c.stacks, {
-            flags: ["poison"],
-            fixed: true,
-            pure: true,
-            unblockable: true,
-            noLimitLoss: true,
-          });
+        if (c.stacks <= 0) return;
+        c.ops.dealDamage(c.state, undefined, c.ownerId, c.stacks, {
+          flags: ["poison"],
+          fixed: true,
+          pure: true,
+          unblockable: true,
+          noLimitLoss: true,
+        });
+        notifyPoisonTick(c.state, c.ownerId);
       },
     },
   },

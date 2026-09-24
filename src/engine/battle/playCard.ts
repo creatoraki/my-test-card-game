@@ -21,6 +21,7 @@ import { firePassive, isPassive, playableHandUids } from "../combat/passive";
 import { fireRelic } from "../relics/relics";
 import { validFoeTargetIds } from "../combat/targeting";
 import { cultivateReady, effectiveTargeting, resetCultivate } from "../deck/cultivate";
+import { bloomExtraEffects, graftBonusPct } from "./cultivatePlay";
 import { emptyFullDraw, resolveFullDraw } from "../deck/fullDraw";
 import { withHitRecorder } from "../core/animHits";
 import { prophetIdOf } from "../prophet/prophetUnit";
@@ -143,7 +144,8 @@ export function playCard(
   //   引擎里 HP 的写入口只有 dealDamage / heal(markDead 与 maxHp 修正除外), 记录器已经全覆盖。
   const cardHits = withHitRecorder(() => {
     withDiscardRecorder(discardRecorder, () => {
-      state.playValueBonusPct = 0;
+      // 嫁接加成与本卡数值同一乘区; 须在 resetCultivate 之前读取培育阶段。
+      state.playValueBonusPct = graftBonusPct(state, card);
       revertPlayStatMods(state);
       state.activeCardCost = faceCost;
       state.activeCardType = playedType;
@@ -163,6 +165,7 @@ export function playCard(
         const cultivated = cultivateReady(card);
         const cultivateMode = card.cultivate?.mode ?? "append";
         const baseEffects = baseEffectsOf(card);
+        const bloomEffects = bloomExtraEffects(state, card);
         mergeCardResolution(prepareWaterfallEncore(state, card, primaryId));
         mergeCardResolution(resolveEffects(state, baseEffects, card.ownerCharId, primaryId));
         if (state.waterfallPlay) {
@@ -172,6 +175,9 @@ export function playCard(
 
         if (cultivated && cultivateMode !== "replace")
           mergeCardResolution(resolveEffects(state, card.cultivate!.effects, card.ownerCharId, primaryId));
+        // 盛放(花期): 成熟牌的培育效果 / 过熟牌的过熟效果再结算一次。
+        if (bloomEffects.length)
+          mergeCardResolution(resolveEffects(state, bloomEffects, card.ownerCharId, primaryId));
         if (
           state.pendingChoice?.kind === "recoverFromDiscard" &&
           state.pendingChoice.sourceCardUid === card.ownerCharId

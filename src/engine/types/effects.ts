@@ -67,7 +67,7 @@ export interface EffectDescriptor {
   stacks?: number; // APPLY_STATUS: 层数
   setStacks?: boolean; // APPLY_STATUS: 覆盖已有层数，0 层时移除
   maxStacks?: number; // CONSUME_STATUS: 单次最多消耗的层数；APPLY_STATUS: 本次附加层数上限
-  stacksFromStat?: { stat: keyof StatBlock; multiplier: number; bonusMultiplierFrom?: CounterSource; bonusMultiplierPer?: number }; // APPLY_STATUS: 层数 = 施放者属性 × 倍率, 可按计数增加倍率
+  stacksFromStat?: { stat: keyof StatBlock; multiplier: number; bonusMultiplierFrom?: CounterSource; bonusMultiplierPer?: number; bonusMultiplierMax?: number }; // APPLY_STATUS: 层数 = 施放者属性 × 倍率, 可按计数增加倍率(bonusMultiplierMax 为加成上限)
   spreadPct?: number; // SPREAD_STATUS: 复制给其他目标的状态层数比例
   boostSource?: "spendPartyStarlight" | "fullDraw"; // VALUE_BOOST: 数值加成来源
   boostPct?: number; // VALUE_BOOST: 每次成功触发增加的百分点
@@ -94,6 +94,7 @@ export interface EffectDescriptor {
   flags?: string[]; // 例如 ["unblockable", "mustHit"]
   hits?: number; // DAMAGE: 段数, 缺省 1
   pierceOnHit?: number; // DAMAGE: 每段命中后为目标附加的穿孔层数
+  pierceOnPoisonedHit?: number; // DAMAGE(毒箭): 命中前目标带中毒时, 每段命中额外附加的穿孔层数
   hitsFrom?: CounterSource; // DAMAGE: 段数直接等于计数, 可为 0
   maxHits?: number; // DAMAGE: 直接取段数的上限
   bonusHitsFrom?: CounterSource; // DAMAGE: 每 1 点计数追加 1 段
@@ -143,6 +144,7 @@ export interface EffectDescriptor {
     | "targetNotAttackedThisRound"
     | "fullyStarPaid"
     | "targetLacksStatus"
+    | "targetHasStatus"
     | "primaryBelowHpLimit"
     | "primaryActsWithin"; // 满足条件时才结算。primaryActsWithin: 主目标敌人的招式将在 conditionValue 时刻内发动
   conditionValue?: number; // handHasCostAtLeast: 手牌中最低牌面费用; fastCardsInHandAtLeast: 手牌中速攻牌数量
@@ -157,7 +159,7 @@ export interface EffectDescriptor {
   onNoneRemoved?: EffectDescriptor[]; // STRIP_STATUS: 一个状态都没有移除时结算
   recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
   recoverMark?: string; // RECOVER_FROM_DISCARD: 回收的牌附加标记
-  handChoiceAction?: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks" | "grantStarPact"; // CHOOSE_HAND_CARD: 选牌后的动作
+  handChoiceAction?: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks" | "grantStarPact" | "graft"; // CHOOSE_HAND_CARD: 选牌后的动作
   followUp?: EffectDescriptor[]; // CHOOSE_HAND_CARD: 选牌后的后续效果
   revealMode?: "costChain" | "attackOrDraw" | "scryPick"; // REVEAL_CARDS: 翻牌方式
   convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型

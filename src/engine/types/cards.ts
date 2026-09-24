@@ -79,7 +79,10 @@ export interface CardDef {
     turns: number;
     effects: EffectDescriptor[];
     mode?: "append" | "replace";
-    overripe: { effects: EffectDescriptor[]; targeting?: Targeting };
+    // 过熟分支。常青牌(evergreen)不会过熟, 可以不写。
+    overripe?: { effects: EffectDescriptor[]; targeting?: Targeting };
+    // 常青: 成熟后不再推进(不会过熟、不可催熟); 仍在手牌中时每回合开始结算一次 effects。
+    evergreen?: { effects: EffectDescriptor[] };
   };
   volley?: { threshold: number; consumeAll?: boolean };
   handAura?: { cardId: string; cost: number };
@@ -156,6 +159,7 @@ export interface Card extends CardDef {
   notoPending?: boolean; // 纳刀待取回标记
   marks?: string[];
   cultivateLeft?: number;
+  grafted?: boolean; // 嫁接: 实例被临时挂上培育 1, 成熟后数值提高且不会过熟; 离手或打出后剥离
   discardStacks?: number; // returnToHand 类弃牌触发的累计层数; 打出后清零
   cardModule?: { uid: string; itemId: string } | null;
 }
@@ -171,7 +175,7 @@ export type PendingChoice =
       kind: "pickHandCard";
       sourceCardUid: string;
       ownerCharId: string;
-      action: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks" | "grantStarPact";
+      action: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks" | "grantStarPact" | "graft";
       remaining: number;
       followUp?: EffectDescriptor[];
     }

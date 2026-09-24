@@ -26,6 +26,19 @@ export function counterOf(state: BattleState, source: CounterSource, card?: Card
       ? new Set(target.statuses.filter((status) => status.id !== "pierce" && getStatusDef(status.id)?.kind === "debuff" && status.stacks > 0).map((status) => status.id)).size
       : 0;
   }
+  if (source === "primaryPierce" || source === "primaryPierceTriples") {
+    const target = state.activeCardPrimaryId ? state.combatants[state.activeCardPrimaryId] : undefined;
+    const pierce = target?.statuses.find((status) => status.id === "pierce")?.stacks ?? 0;
+    return source === "primaryPierce" ? pierce : Math.floor(pierce / 3);
+  }
+  if (source === "primaryPoisonTurns") {
+    const target = state.activeCardPrimaryId ? state.combatants[state.activeCardPrimaryId] : undefined;
+    const poison = target?.statuses.find((status) => status.id === "poison" && status.stacks > 0);
+    if (!poison) return 0;
+    const segments = poison.segments ?? [{ stacks: poison.stacks, duration: poison.duration, appliedAt: 0 }];
+    // 无期限分段视为无限长, 交给效果的 maxStacks 截断。
+    return Math.max(0, ...segments.map((segment) => segment.duration ?? Infinity));
+  }
   if (source === "handRottenFruit")
     return state.hand.filter((uid) => state.cards[uid]?.id === "rotten-fruit").length;
   if (source === "lastExhaustedHandCards") return state.lastExhaustedHandCards;

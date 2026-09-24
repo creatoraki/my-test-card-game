@@ -90,6 +90,9 @@ export function applyDamageEffect(
           damageBonus = stackCount * bonus.multiplier;
         }
       }
+      // 毒箭读取命中前的中毒: 本卡自己附加的中毒不计入。
+      const poisonedBefore = Boolean(effect.pierceOnPoisonedHit) &&
+        (targetUnit?.statuses.some((status) => status.id === "poison" && status.stacks > 0) ?? false);
       const damageMultiplier = baseMultiplier + damageBonus;
       const valueMultiplier = 1 + state.playValueBonusPct / 100;
       const dmg = fixed
@@ -116,6 +119,8 @@ export function applyDamageEffect(
         firstHitTarget ??= id;
         if (effect.pierceOnHit && !state.fullDraw.hitIds.includes(id))
           applyPierce(state, id, effect.pierceOnHit, sourceId);
+        if (poisonedBefore && effect.pierceOnPoisonedHit && !state.fullDraw.hitIds.includes(id))
+          applyPierce(state, id, effect.pierceOnPoisonedHit, sourceId);
       }
       if (
         effect.onKill?.length &&

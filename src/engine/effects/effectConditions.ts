@@ -39,6 +39,10 @@ export function conditionMet(
     return Boolean(effect.conditionStatus) && (targetIds ?? []).every((id) =>
       !state.combatants[id]?.statuses.some((status) => status.id === effect.conditionStatus && status.stacks > 0),
     );
+  if (effect.condition === "targetHasStatus")
+    return Boolean(effect.conditionStatus) && (targetIds ?? []).some((id) =>
+      state.combatants[id]?.statuses.some((status) => status.id === effect.conditionStatus && status.stacks > 0),
+    );
   if (effect.condition === "primaryBelowHpLimit") {
     const primary = primaryId ? state.combatants[primaryId] : undefined;
     return Boolean(primary?.alive && primary.hp < primary.hpLimit);

@@ -184,6 +184,7 @@ export function BattleScreen() {
       devour: "请选择要吞噬的手牌",
       stripMarks: "请选择要分解的手牌",
       grantStarPact: "请选择要赋予星契的手牌",
+      graft: "请选择要嫁接的其他角色手牌",
     };
     showBattleToast(prompts[action] ?? "请选择一张手牌");
   }, [battle?.pendingChoice]);

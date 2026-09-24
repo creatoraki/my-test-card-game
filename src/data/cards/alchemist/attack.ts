@@ -27,11 +27,11 @@ export const ALCHEMIST_ATTACK_CARDS: CardDef[] = [
     rarity: "common",
     anim: "poison",
     effects: [
-      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.1 }, target: "allFoes" },
-      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.05 }, scaleByCounter: { counter: "squadBuffCount" }, target: "allFoes" },
+      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.1 }, duration: 2, target: "allFoes" },
+      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.05 }, scaleByCounter: { counter: "squadBuffCount" }, duration: 2, target: "allFoes" },
       { type: "GAIN_SQUAD_BUFF", squadBuff: "assembleB", target: "self" },
     ],
-    text: "对所有敌人施加 {0} 层中毒；每拥有 1 个组装 BUFF，额外施加 {1} 层中毒；组装 B。",
+    text: "对所有敌人施加 {0} 层中毒，持续 2 回合；每拥有 1 个组装 BUFF，额外施加 {1} 层中毒；组装 B。",
   },
   {
     id: "catalytic-detonation",
@@ -113,9 +113,9 @@ export const ALCHEMIST_ATTACK_CARDS: CardDef[] = [
     effects: [
       { type: "REMOVE_SQUAD_BUFF", squadBuffPick: "all", target: "self" },
       { type: "APPLY_STATUS", status: "burn", stacksFromStat: { stat: "attack", multiplier: 0.6 }, scaleByCounter: { counter: "lastSquadBuffConsumed", add: 1 }, duration: 2, target: "allFoes" },
-      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.15 }, scaleByCounter: { counter: "lastSquadBuffConsumed", add: 1 }, target: "allFoes" },
+      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.15 }, scaleByCounter: { counter: "lastSquadBuffConsumed", add: 1 }, duration: 2, target: "allFoes" },
       { type: "GAIN_SHIELD", multiplier: 0.4, target: "allAllies", condition: "counterAtLeast", conditionCounter: "lastSquadBuffConsumed", conditionValue: 2 },
     ],
-    text: "消耗当前全部组装 BUFF（不触发组装成功），按“消耗数 + 1”次结算：对所有敌人施加 {1} 层灼烧（持续 2 回合）与 {2} 层中毒；若消耗了至少 2 个，全队获得 {3} 点护盾。打出后消耗。",
+    text: "消耗当前全部组装 BUFF（不触发组装成功），按“消耗数 + 1”次结算：对所有敌人施加 {1} 层灼烧与 {2} 层中毒（均持续 2 回合）；若消耗了至少 2 个，全队获得 {3} 点护盾。打出后消耗。",
   },
 ];

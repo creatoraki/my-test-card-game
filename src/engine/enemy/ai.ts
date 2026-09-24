@@ -4,7 +4,8 @@ import type { AnimHit, BattleState, Enemy, FxRecorder, Intent } from "../types";
 import { getEnemyDef, type EnemyMove } from "@/data";
 import { resolveEffects } from "../effects/effects";
 import { alliesOf, chooseRandomTarget, foesOf } from "../combat/targeting";
-import { allIds, getStatus, log, markDead, ops } from "../core/ops";
+import { allIds, cleanup, ctxFor, getStatus, log, markDead, ops } from "../core/ops";
+import { STATUS_DEFS } from "../core/hookRegistry";
 import { runEnemyTempo } from "../combat/statusLifecycle";
 import { attackDamage, enemyActDelay, statOf } from "../combat/stats";
 import { rngPickWeighted } from "../core/rng";
@@ -102,6 +103,15 @@ export function runEnemyTempoPhase(state: BattleState, enemyId: string): TempoPh
   return { stunnedBefore, alive: runEnemyTempo(state, enemyId) };
 }
 
+function runBeforeActHooks(state: BattleState, e: Enemy): void {
+  for (const inst of [...e.statuses]) {
+    if (!e.alive) break;
+    STATUS_DEFS[inst.id]?.hooks?.onBeforeAct?.(ctxFor(state, e.id, inst));
+  }
+  cleanup(e);
+  if (e.alive && e.hp <= 0) markDead(state, e);
+}
+
 // 敌人执行它当前的意图。返回本次行动的描述(供动画帧记录)。
 // phase 已在外部跑过时直接复用, 不再重复推进节拍。
 export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase): EnemyActResult {
@@ -121,6 +131,11 @@ export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase
     startCharge(state, enemyId);
     return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [enemyId], missedIds: [] };
   }
+
+  // 出招前钩子(捕虫夹): 若因此被击杀, 招式直接取消。
+  runBeforeActHooks(state, e);
+  if (!e.alive)
+    return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [enemyId], missedIds: [] };
 
   const def = getEnemyDef(e.enemyDefId);
   const scriptedMove = def.ai && e.aiMemory?.justBrokeShell ? pickScriptedMove(state, e, def) : undefined;
@@ -151,6 +166,8 @@ export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase
   ops.prophecyEvent(state, { type: "afterEnemyAct", enemyId });
 
   if (e.hp <= 0) markDead(state, e);
+  // 招式发动后移除的状态(迟滞等) —— 必须早于 startCharge, 否则会拖累下一招。
+  e.statuses = e.statuses.filter((inst) => !STATUS_DEFS[inst.id]?.expiresOnAct);
   startCharge(state, enemyId);
   const hitIds = new Set(resolution.hit);
   return {

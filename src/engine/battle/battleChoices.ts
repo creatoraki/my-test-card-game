@@ -8,6 +8,7 @@ import { log, ops } from "../core/ops";
 import { partyHandLimit } from "../combat/stats";
 import { transferableMarks } from "../cards/cardMarks";
 import { grantStarPact, starPactCandidates } from "../prophet/starPact";
+import { applyGraft, canGraft, graftCandidates } from "../deck/graft";
 
 export function resolvePendingChoice(state: BattleState, uid: string): boolean {
   const choice = state.pendingChoice;
@@ -70,6 +71,9 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
       if (card) card.marks = [...targetMarks];
       source.marks = (source.marks ?? []).filter((mark) => !moved.includes(mark));
       state.markTransferSourceUid = null;
+    } else if (choice.action === "graft") {
+      if (!canGraft(card, choice.ownerCharId) || !graftCandidates(state, choice.ownerCharId).includes(uid)) return false;
+      applyGraft(state, card);
     } else if (choice.action === "grantStarPact") {
       if (!card || !starPactCandidates(state).includes(uid) || !grantStarPact(state, card)) return false;
     } else if (choice.action === "devour") {

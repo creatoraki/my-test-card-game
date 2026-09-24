@@ -31,6 +31,7 @@ import { flushAutoPlays, moveToDiscard, withDiscardRecorder } from "../deck/disc
 import { firePassive, isPassive, recycleHandPassives } from "../combat/passive";
 import { fireRelic } from "../relics/relics";
 import { resetCultivate, tickCultivate } from "../deck/cultivate";
+import { runEvergreen } from "../deck/evergreen";
 import { withHitRecorder } from "../core/animHits";
 import { runEnemyFlee } from "./flee";
 import { createBattleState } from "./battleSetup";
@@ -89,6 +90,7 @@ export function startRound(state: BattleState): void {
   state.round += 1;
   state.tick = RULES.timeline.startTick;
   tickCultivate(state);
+  runEvergreen(state);
   state.redrawsThisRound = 0;
   state.waitsThisRound = 0;
   state.challengeFocusTargetId = null;

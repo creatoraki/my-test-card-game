@@ -21,9 +21,9 @@ export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
     anim: "fire",
     effects: [
       { type: "APPLY_STATUS", status: "burn", stacksFromStat: { stat: "attack", multiplier: 0.75 }, duration: 2, target: "primary" },
-      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.2 }, target: "primary" },
+      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.2 }, duration: 2, target: "primary" },
     ],
-    text: "对目标施加 {0} 层灼烧（持续 2 回合）与 {1} 层中毒。打出后消耗。",
+    text: "对目标施加 {0} 层灼烧与 {1} 层中毒，均持续 2 回合。打出后消耗。",
   },
   {
     ...rewardBase,
