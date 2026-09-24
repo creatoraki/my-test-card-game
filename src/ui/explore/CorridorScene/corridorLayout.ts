@@ -9,16 +9,22 @@ export const CORRIDOR_SCENE_SCALE = 1;
 export const CORRIDOR_VIEWPORT_WORLD_WIDTH = CORRIDOR.viewportWidth / CORRIDOR_SCENE_SCALE;
 
 const NEAR_FLOOR_Y_AT_1080: Record<NearMapVariant, number> = {
-  ecoArk: 458 / 724 * 1080, // 方舟平台行走面：原图 y=458 / 高 724
   standard: 742, // 原 1080px 高布局的平台顶面位置
   alternate: 621, // 原 1080px 高布局的平台顶面位置
   third: 956, // 测试3平台顶面约在原图 y=680，按近景缩放比例换算
+  ecoArk1: 458 / 724 * 1080,
+  ecoArk2: 458 / 724 * 1080,
+  ecoArk3: 516 / 821 * 1080,
+  ecoArk4: 603 / 821 * 1080,
 };
 const NEAR_MAP_OFFSET_Y: Record<NearMapVariant, number> = {
-  ecoArk: 0,
   standard: 0,
   alternate: -16,
   third: 0,
+  ecoArk1: 0,
+  ecoArk2: 0,
+  ecoArk3: 0,
+  ecoArk4: 0,
 };
 
 function nearMapFloorY(variant: NearMapVariant): number {

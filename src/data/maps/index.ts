@@ -28,6 +28,8 @@ export interface MapDef {
   roomCount: number;
   /** 地区近景决定实际房间宽度、传送门与物件布局。 */
   nearMapVariant?: NearMapVariant;
+  /** 地区有多种近景时，按房间随机分配，并让每种素材至少出现一次。 */
+  nearMapVariants?: readonly NearMapVariant[];
   /** 有蓝图时按蓝图生成直线房间图；roomCount 应与蓝图长度一致。 */
   dungeonPlan?: readonly DungeonRoomPlan[];
   /** 随机房间图的物件等级区间 [最低, 最高]；越深的房间越接近最高级。 */

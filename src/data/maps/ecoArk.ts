@@ -9,7 +9,7 @@ export const ECO_ARK_MAP: MapDef = {
   emoji: "🌳",
   maxEquipRarity: "common",
   roomCount: 12,
-  nearMapVariant: "ecoArk",
+  nearMapVariants: ["ecoArk1", "ecoArk2", "ecoArk3", "ecoArk4"],
   curioLevelRange: [1, 3],
   battleEncounters: {
     t1: ["a-t1-cargo", "a-t1-seeds", "a-t1-water"],

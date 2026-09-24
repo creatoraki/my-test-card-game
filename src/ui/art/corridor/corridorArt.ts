@@ -20,7 +20,7 @@ import corridorNearThirdArt from "@/assets/explore-corridor/废弃楼层/近景/
 import type { NearMapVariant } from "@/explore/dungeon/types";
 import type { CurioKind } from "@/explore/corridor/types";
 import { ECO_ARK_SCENERY, ECO_ARK_SCENERY_SOURCES } from "../ecoArk/ecoArkScenery";
-import { ECO_ARK_ARCHITECTURE_SOURCES } from "../ecoArk/ecoArkArchitectureArt";
+import { ECO_ARK_NEAR_ART } from "../ecoArk/ecoArkNearArt";
 import { ECO_ARK_PROP_ART } from "../ecoArk/ecoArkPropArt";
 
 export const CORRIDOR_PROP_SCALES = {
@@ -57,7 +57,7 @@ export const CORRIDOR_ROOM_PORTAL_ANCHOR_SHIFT = 79;
 /** 首领红门沿用单帧传送门素材，并在组件中做红色调色。 */
 export const CORRIDOR_BOSS_GATE_ART = bossGateArt;
 export const CORRIDOR_NEAR_ART: Record<NearMapVariant, string> = {
-  ecoArk: ECO_ARK_SCENERY.near,
+  ...ECO_ARK_NEAR_ART,
   standard: corridorNearStandardArt,
   alternate: corridorNearAlternateArt,
   third: corridorNearThirdArt,
@@ -162,7 +162,6 @@ export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
 
 export const CORRIDOR_ART_SOURCES: readonly string[] = [
   ...ECO_ARK_SCENERY_SOURCES,
-  ...ECO_ARK_ARCHITECTURE_SOURCES,
   corridorFarArt,
   ...Object.values(CORRIDOR_NEAR_ART),
   roomPortalSpriteArt,

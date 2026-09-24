@@ -21,6 +21,7 @@ import {
   type DungeonState, type RoomNode,
 } from "./types";
 import { generatePlannedDungeon } from "./planned";
+import { assignNearMapVariants } from "./nearMapAssignment";
 import { growRooms } from "./growRooms";
 import { planRoomCurios } from "./curioPlan";
 import { rollCurioLevel } from "./curioLevel";
@@ -110,7 +111,9 @@ export function generateDungeon(s: ExploreState): DungeonState {
   if (map.dungeonPlan) return generatePlannedDungeon(s, map.dungeonPlan);
   const roomCount = Math.max(2, map.roomCount);
   const { rooms, order } = growRooms(s, roomCount);
-  if (map.nearMapVariant) {
+  if (map.nearMapVariants) {
+    assignNearMapVariants(s, rooms, order, map.nearMapVariants);
+  } else if (map.nearMapVariant) {
     for (const room of Object.values(rooms)) room.nearMapVariant = map.nearMapVariant;
   }
   const startId = order[0];

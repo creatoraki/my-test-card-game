@@ -13,7 +13,14 @@ import type { BattleTier } from "../types";
 
 export type PortalDir = "up" | "down" | "left" | "right";
 export type RoomKind = "start" | "normal" | "battle" | "trap" | "boss";
-export type NearMapVariant = "standard" | "alternate" | "third" | "ecoArk";
+export type NearMapVariant =
+  | "standard"
+  | "alternate"
+  | "third"
+  | "ecoArk1"
+  | "ecoArk2"
+  | "ecoArk3"
+  | "ecoArk4";
 
 export interface DungeonRoomPlan {
   kind: RoomKind;

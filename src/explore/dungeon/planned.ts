@@ -1,16 +1,11 @@
-import { rngPick, shuffle } from "@/engine/core/rng";
 import { corridorPortalEdgeSlotsFor, corridorSlotsFor } from "../corridor/types";
 import type { ExploreState } from "../types";
 import { link, makeRoom } from "./roomNode";
-import type { DungeonRoomPlan, DungeonState, NearMapVariant, RoomNode } from "./types";
+import { assignNearMapVariants } from "./nearMapAssignment";
+import type { DungeonRoomPlan, DungeonState, RoomNode } from "./types";
 
 function assignTutorialNearMaps(s: ExploreState, rooms: Record<string, RoomNode>, order: string[]): void {
-  if (!order.length) return;
-  const randomizedRooms = shuffle(s, [...order]);
-  const variants = shuffle<NearMapVariant>(s, ["standard", "alternate", "third"]);
-  for (const [index, id] of randomizedRooms.entries()) {
-    rooms[id].nearMapVariant = variants[index] ?? rngPick(s, variants);
-  }
+  assignNearMapVariants(s, rooms, order, ["standard", "alternate", "third"]);
 }
 
 function middleSlotIndex(index: number, count: number): number {

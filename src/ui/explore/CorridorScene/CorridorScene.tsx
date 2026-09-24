@@ -9,7 +9,6 @@ import {
   CORRIDOR_ROOM_PORTAL_Y_OFFSET,
 } from "@/ui/art/corridor/corridorArt";
 import { CorridorAbyss, CorridorFar, CorridorNear } from "./parts/CorridorBackdrop";
-import { EcoArkArchitecture } from "./parts/EcoArkArchitecture";
 import { CorridorSprite } from "./parts/CorridorSprite/CorridorSprite";
 import { CorridorPlayer } from "./parts/CorridorPlayer";
 import { RoomPortal } from "./parts/RoomPortal/RoomPortal";
@@ -75,15 +74,6 @@ export const CorridorScene = memo(function CorridorScene({ corridor, blocked, en
     <div className={s.stage}>
       <div ref={worldRef} className={s.world} style={{ width: corridor.width }}>
         <CorridorNear width={corridor.width} variant={nearMapVariant} />
-        {nearMapVariant === "ecoArk" && <EcoArkArchitecture
-          roomId={corridor.roomId}
-          width={corridor.width}
-          occupiedX={[
-            ...corridor.portals.map((portal) => portal.x),
-            ...corridor.objects.map((object) => object.x),
-            ...(corridor.bossGate ? [corridor.bossGate.x] : []),
-          ]}
-        />}
         {corridor.portals.map((portal) => {
           const standing = movement.standingPortal?.dir === portal.dir;
           return <div key={portal.dir} className={`${s.object} ${s.portal}`} style={{ left: portal.x, top: entityFloorY + CORRIDOR_ROOM_PORTAL_Y_OFFSET }}>
