@@ -1,6 +1,9 @@
 import type { NearMapVariant } from "./types";
 
-export const NEAR_MAP_ART_SCALE = 1.7;
+/** 近景图层相对原校准尺寸的放大倍率；地面线由 nearTop 按素材高度重新对齐，基线位置不变。 */
+export const NEAR_MAP_ZOOM = 1.3;
+
+export const NEAR_MAP_ART_SCALE = 1.7 * NEAR_MAP_ZOOM;
 
 /** 近景素材原始尺寸。 */
 const NEAR_MAP_SOURCE_GEOMETRY = {

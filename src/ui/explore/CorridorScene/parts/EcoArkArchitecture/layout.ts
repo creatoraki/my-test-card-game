@@ -1,4 +1,5 @@
 import { ECO_ARK_ARCHITECTURE_ART, type EcoArkArchitectureArt } from "@/ui/art/ecoArk/ecoArkArchitectureArt";
+import { NEAR_MAP_ZOOM } from "@/explore/dungeon/nearMapGeometry";
 
 export interface EcoArkArchitecturePlacement {
   id: string;
@@ -46,7 +47,7 @@ export function buildEcoArkArchitectureLayout(
   const attempts = candidates.map((x) => {
     const art = ECO_ARK_ARCHITECTURE_ART[Math.floor(random() * ECO_ARK_ARCHITECTURE_ART.length)];
     const scale = 1.02 + random() * 0.12;
-    const height = Math.round(art.displayHeight * scale);
+    const height = Math.round(art.displayHeight * NEAR_MAP_ZOOM * scale);
     return { x, art, height, renderedWidth: height * art.aspectRatio, mirrored: random() > 0.5 };
   });
   const placements: EcoArkArchitecturePlacement[] = [];
@@ -76,7 +77,7 @@ export function buildEcoArkArchitectureLayout(
       const x = roomWidth * (0.12 + 0.76 * index / Math.max(1, targetCount - 1));
       const fittingArt = ECO_ARK_ARCHITECTURE_ART.map((art) => {
         const scale = 1.02 + random() * 0.12;
-        const height = Math.round(art.displayHeight * scale);
+        const height = Math.round(art.displayHeight * NEAR_MAP_ZOOM * scale);
         return { art, height, renderedWidth: height * art.aspectRatio, mirrored: random() > 0.5 };
       }).filter((candidate) => (
         x - candidate.renderedWidth / 2 >= 40
