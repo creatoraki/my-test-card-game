@@ -1,0 +1,45 @@
+/* 全场景共用的环境动效：瀑布流动、发光呼吸、藤蔓摇曳。 */
+
+.fall {
+  stroke-dasharray: 26 38;
+  animation: fall 0.9s linear infinite;
+}
+
+.fallSlow {
+  stroke-dasharray: 20 44;
+  animation: fall 1.6s linear infinite;
+}
+
+.pulse {
+  animation: pulse 2.6s ease-in-out infinite;
+}
+
+.sway {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: sway 4.2s ease-in-out infinite;
+}
+
+.bob {
+  animation: bob 3.4s ease-in-out infinite;
+}
+
+@keyframes fall {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -64; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50% { transform: rotate(2.5deg); }
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}

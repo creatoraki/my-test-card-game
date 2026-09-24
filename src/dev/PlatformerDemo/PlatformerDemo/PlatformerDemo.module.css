@@ -1,0 +1,22 @@
+.viewport {
+  width: 100%;
+  height: 100%;
+}
+
+.stage {
+  overflow: hidden;
+  background: #10122b;
+  user-select: none;
+}
+
+/* 世界 DOM 层：承载角色与拾取热区，由游戏循环按像素对齐的镜头位置平移。 */
+.world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  width: 7200px;
+  height: 1080px;
+  pointer-events: none;
+  will-change: transform;
+}
