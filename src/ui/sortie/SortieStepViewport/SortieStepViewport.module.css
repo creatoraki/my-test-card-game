@@ -5,16 +5,25 @@
   overflow: hidden;
 }
 
-.currentLayer,
-.exitingLayer {
+.layer {
   position: absolute;
   inset: 0;
-}
-
-.currentLayer {
   z-index: 2;
 }
 
-.exitingLayer {
+/* 离场层压在入场层之下: 两者在重叠段同时可见, 新步骤始终在上。 */
+.layer[data-motion="exit"] {
   z-index: 1;
+  pointer-events: none;
+}
+
+.layer[data-motion="enter"] {
+  pointer-events: none;
+}
+
+.layer[data-motion="hidden"] {
+  z-index: 0;
+  visibility: hidden;
+  content-visibility: hidden;
+  pointer-events: none;
 }

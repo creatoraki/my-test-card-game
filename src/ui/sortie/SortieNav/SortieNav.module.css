@@ -5,6 +5,12 @@
   pointer-events: none;
 }
 
+.group {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .back,
 .confirm {
   position: absolute;
@@ -24,7 +30,7 @@
   transform: skewX(-9.55deg);
   cursor: var(--cursor-pointer);
   pointer-events: auto;
-  transition: left 460ms cubic-bezier(.22, .9, .24, 1), filter 180ms ease;
+  transition: filter 180ms ease;
   animation: buttonRise 420ms 180ms cubic-bezier(.2, .72, .28, 1) backwards;
 }
 
@@ -71,7 +77,7 @@
   background: linear-gradient(110deg, #396481c9, #111d26d4 40%, #253a49c9);
 }
 
-.nav[data-step="prep"] .back {
+.group[data-step="prep"] .back {
   left: 1328px;
   width: 280px;
 }
@@ -103,5 +109,25 @@
   from {
     opacity: 0;
     transform: skewX(-9.55deg) translateY(14px);
+  }
+}
+
+/* ── 步骤过场: 新一组在 --sx-delay 后升起, 旧一组下沉淡出。时长读 --sx-*。
+   ★ enter 与静息共用 buttonRise, 只改 delay —— 过场结束切回 rest 时动画不会重播。 ── */
+.group[data-phase="enter"] :is(.back, .confirm) {
+  pointer-events: none;
+  animation-duration: var(--sx-enter);
+  animation-delay: var(--sx-delay);
+}
+
+.group[data-phase="exit"] :is(.back, .confirm) {
+  pointer-events: none;
+  animation: buttonDrop var(--sx-exit) cubic-bezier(.4, 0, 1, 1) both;
+}
+
+@keyframes buttonDrop {
+  to {
+    opacity: 0;
+    transform: skewX(-9.55deg) translateY(10px);
   }
 }

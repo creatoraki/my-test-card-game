@@ -30,7 +30,7 @@
   inset: 0;
   z-index: -1;
   background: linear-gradient(110deg, #17242cda, #0b1218d4 60%, #25343ed4);
-  backdrop-filter: blur(5px);
+  backdrop-filter: var(--sm-glass-filter-soft, blur(5px));
   clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
 }
 
@@ -189,4 +189,40 @@
   align-items: flex-start;
   gap: 28px;
   margin-top: 35px;
+}
+
+/* ── 步骤进出场: 难度区与奖励区朝左错峰退出/进入。时长读 --sx-*。
+   过场期间关掉小面积毛玻璃(PanelItemRow 同读此变量), 免得父级淡入时模糊「失效再突然出现」。 ── */
+.panel[data-motion="enter"],
+.panel[data-motion="exit"] {
+  --sm-glass-filter-soft: none;
+}
+
+.panel > :first-child { --i: 0; }
+.rewards { --i: 1; }
+
+.panel[data-motion="enter"] > :is(:first-child, .rewards) {
+  animation: panelIn var(--sx-enter) cubic-bezier(.2, .72, .28, 1) both;
+  animation-delay: calc(var(--sx-delay) + var(--sx-stagger) * var(--i));
+  will-change: transform, opacity;
+}
+
+.panel[data-motion="exit"] > :is(:first-child, .rewards) {
+  animation: panelOut var(--sx-exit) cubic-bezier(.4, 0, 1, 1) both;
+  animation-delay: calc(30ms * var(--i));
+  will-change: transform, opacity;
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+}
+
+@keyframes panelOut {
+  to {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
 }

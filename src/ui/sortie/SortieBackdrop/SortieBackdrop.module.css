@@ -21,6 +21,18 @@
   animation-name: backgroundOut;
 }
 
+.layers {
+  position: absolute;
+  inset: 0;
+  transition: transform var(--sx-total, 680ms) cubic-bezier(.22, .9, .24, 1);
+  will-change: transform;
+}
+
+/* 物资准备 = 镜头推近一层。只动合成层 transform; will-change 常驻是因为这一层本就全屏常驻。 */
+.backdrop[data-depth="prep"] .layers {
+  transform: scale(1.05);
+}
+
 .veil {
   position: absolute;
   inset: 0;
@@ -52,4 +64,19 @@
     opacity: 0;
     transform: translateY(calc(var(--dir, 1) * -6%));
   }
+}
+
+/* 纵深暗幕: 进物资准备时压暗背景, 让前景的玻璃面板读得更清楚。 */
+.depthShade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, #02070a8c, #02070acc);
+  opacity: 0;
+  transition: opacity var(--sx-total, 680ms) ease;
+}
+
+.backdrop[data-depth="prep"] .depthShade {
+  opacity: .35;
 }

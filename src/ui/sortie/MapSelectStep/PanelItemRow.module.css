@@ -14,7 +14,7 @@
   z-index: -1;
   clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
   background: linear-gradient(115deg, #10191fdd, #0d151bcb 65%, #34404b99);
-  backdrop-filter: blur(5px);
+  backdrop-filter: var(--sm-glass-filter-soft, blur(5px));
 }
 
 .rewardHeading {

@@ -1,21 +1,19 @@
 import type { MapDef } from "@/data";
 import { SortieFrame } from "@/ui/sortie/SortieFrame";
 import { SortieGlyph } from "@/ui/sortie/SortieGlyph";
+import type { StepMotion } from "@/ui/sortie/SortieScreen/sortieStepTransition";
 import s from "./MapMissionInfo.module.css";
 
 interface Props {
   map: MapDef;
   index: number;
-  intro: boolean;
-  entering: boolean;
-  exiting: boolean;
+  motion: StepMotion;
   lockReason: string | null;
 }
 
-export function MapMissionInfo({ map, index, intro, entering, exiting, lockReason }: Props) {
+export function MapMissionInfo({ map, index, motion, lockReason }: Props) {
   return (
-    <header className={s.info} data-intro={intro || undefined} data-entering={entering || undefined}
-      data-exiting={exiting || undefined} aria-live="polite">
+    <header className={s.info} data-motion={motion} aria-live="polite">
       <div className={s.surface} />
       <SortieFrame width={660} height={236} />
       <span className={s.serial}>任务<b>{String(index + 1).padStart(2, "0")}</b></span>

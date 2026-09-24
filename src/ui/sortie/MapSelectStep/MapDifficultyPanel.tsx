@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import {
   difficultyLockReason,
   getMapDifficulty,
@@ -15,6 +15,7 @@ import { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/Ite
 import { PanelItemRow } from "./PanelItemRow";
 import { SortieFrame } from "@/ui/sortie/SortieFrame";
 import { SortieGlyph } from "@/ui/sortie/SortieGlyph";
+import { isMotionActive, type StepMotion } from "@/ui/sortie/SortieScreen/sortieStepTransition";
 import s from "./MapDifficultyPanel.module.css";
 
 interface Props {
@@ -23,38 +24,42 @@ interface Props {
   clearedKeys: readonly string[];
   rewards: ItemStack[];
   onSelect: (difficulty: MapDifficulty) => void;
-  active: boolean;
+  motion: StepMotion;
 }
 
-export function MapDifficultyPanel({
+function MapDifficultyPanel({
   mapId,
   difficulty,
   clearedKeys,
   rewards,
   onSelect,
-  active,
+  motion,
 }: Props) {
   const [lockTooltip, setLockTooltip] = useState<{
     name: string;
     reason: string;
     point: TooltipPoint;
   } | null>(null);
+  const active = isMotionActive(motion);
   const aidStacks = useMemo(() => makeAidSupplyStacks(mapId, difficulty), [mapId, difficulty]);
+  const groupedRewards = useMemo(
+    () => Object.values(rewards.reduce<Record<string, ItemStack>>((result, stack) => {
+      const existing = result[stack.itemId];
+      if (existing) existing.count += stack.count;
+      else result[stack.itemId] = { ...stack };
+      return result;
+    }, {})),
+    [rewards],
+  );
   const difficultyIds = mapDifficultyIds(mapId);
   const hasDifficultySelection = difficultyIds.length > 0;
 
   if (!hasDifficultySelection && !fixedClearRewardOf(mapId)) return null;
 
-  const grouped = rewards.reduce<Record<string, ItemStack>>((result, stack) => {
-    const existing = result[stack.itemId];
-    if (existing) existing.count += stack.count;
-    else result[stack.itemId] = { ...stack };
-    return result;
-  }, {});
-
   return (
     <aside
       className={s.panel}
+      data-motion={motion}
       data-active={active}
       aria-hidden={!active}
       aria-label={hasDifficultySelection ? "难度、配额物资与通关奖励" : "配额物资与通关奖励"}
@@ -121,7 +126,7 @@ export function MapDifficultyPanel({
         <PanelItemRow
           title="通关奖励"
           kind="daily"
-          stacks={Object.values(grouped)}
+          stacks={groupedRewards}
           active={active}
         />
       </div>
@@ -135,4 +140,6 @@ export function MapDifficultyPanel({
   );
 }
 
-export default MapDifficultyPanel;
+const MemoMapDifficultyPanel = memo(MapDifficultyPanel);
+export { MemoMapDifficultyPanel as MapDifficultyPanel };
+export default MemoMapDifficultyPanel;

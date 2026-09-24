@@ -1,10 +1,14 @@
+import { memo } from "react";
 import type { SortieStep } from "@/store/sortie/sortieStore";
-import { SortieFrame } from "@/ui/sortie/SortieFrame";
-import { SortieGlyph } from "@/ui/sortie/SortieGlyph";
+import { SortieNavButtons } from "./SortieNavButtons";
 import s from "./SortieNav.module.css";
 
 interface Props {
   step: SortieStep;
+  /** 过场中正在退场的步骤: 它那一组按钮留下来演完下沉淡出。 */
+  exitingStep: SortieStep | null;
+  transitioning: boolean;
+  /** 真实禁用(已出击)。过场期间的输入屏蔽由按钮组自己处理。 */
   disabled: boolean;
   canConfirmMap: boolean;
   onBackToTown: () => void;
@@ -13,8 +17,10 @@ interface Props {
   onStartExpedition: () => void;
 }
 
-export function SortieNav({
+function SortieNav({
   step,
+  exitingStep,
+  transitioning,
   disabled,
   canConfirmMap,
   onBackToTown,
@@ -22,37 +28,34 @@ export function SortieNav({
   onConfirmMap,
   onStartExpedition,
 }: Props) {
-  const onBack = step === "map" ? onBackToTown : onBackToMap;
-  const onNext = step === "map" ? onConfirmMap : onStartExpedition;
-  const nextDisabled = disabled || (step === "map" && !canConfirmMap);
-  const backLabel = step === "map" ? "返回据点" : "返回选择目标层";
+  const handlersOf = (target: SortieStep) => target === "map"
+    ? { onBack: onBackToTown, onNext: onConfirmMap }
+    : { onBack: onBackToMap, onNext: onStartExpedition };
 
+  // ★ 两组都按 step 做 key: 旧的一组原地切到 exit 演退场, 新的一组挂载即升起 —— 不重挂载旧组。
   return (
-    <nav className={s.nav} data-step={step} aria-label="出击流程导航">
-      <button
-        className={s.back}
-        type="button"
-        data-sfx="back"
-        onClick={onBack}
+    <nav className={s.nav} aria-label="出击流程导航">
+      {exitingStep && exitingStep !== step && (
+        <SortieNavButtons
+          key={exitingStep}
+          step={exitingStep}
+          phase="exit"
+          disabled={disabled}
+          canConfirmMap={canConfirmMap}
+          {...handlersOf(exitingStep)}
+        />
+      )}
+      <SortieNavButtons
+        key={step}
+        step={step}
+        phase={transitioning ? "enter" : "rest"}
         disabled={disabled}
-      >
-        <SortieFrame width={step === "map" ? 216 : 280} height={56} notch={10} />
-        <span className={s.buttonCopy}>
-          <SortieGlyph name="back" className={s.buttonIcon} />{backLabel}
-        </span>
-      </button>
-      <button
-        className={s.confirm}
-        type="button"
-        data-sfx="confirm"
-        onClick={onNext}
-        disabled={nextDisabled}
-      >
-        <SortieFrame width={206} height={56} notch={10} selected={step === "map" && !nextDisabled} />
-        <span className={s.buttonCopy}>
-          {step === "map" ? "确认" : "出击"}<SortieGlyph name="next" className={s.buttonIcon} />
-        </span>
-      </button>
+        canConfirmMap={canConfirmMap}
+        {...handlersOf(step)}
+      />
     </nav>
   );
 }
+
+const MemoSortieNav = memo(SortieNav);
+export { MemoSortieNav as SortieNav };

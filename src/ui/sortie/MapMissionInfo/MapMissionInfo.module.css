@@ -16,7 +16,7 @@
   inset: 0;
   z-index: -1;
   background: linear-gradient(110deg, #0b1114ec, #0a1014c4 60%, #253039a8);
-  backdrop-filter: blur(5px);
+  backdrop-filter: var(--sm-glass-filter-soft, blur(5px));
   clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
 }
 
@@ -123,28 +123,36 @@
   height: 20px;
 }
 
-.info[data-intro] {
+/* ── 步骤进出场: 与左侧难度面板同一方向(朝左), 时长读 --sx-*。
+   过场期间关掉毛玻璃, 免得自身淡入时模糊「失效再突然出现」。 ── */
+.info[data-motion="intro"] {
   animation: appear 460ms 60ms ease-out backwards;
 }
 
-.info[data-entering] {
-  animation: appear 460ms ease-out both;
+.info[data-motion="enter"],
+.info[data-motion="exit"] {
+  --sm-glass-filter-soft: none;
+  will-change: transform, opacity;
 }
 
-.info[data-exiting] {
-  animation: leave 460ms ease-in both;
+.info[data-motion="enter"] {
+  animation: appear var(--sx-enter) cubic-bezier(.2, .72, .28, 1) var(--sx-delay) both;
+}
+
+.info[data-motion="exit"] {
+  animation: leave var(--sx-exit) cubic-bezier(.4, 0, 1, 1) both;
 }
 
 @keyframes appear {
   from {
     opacity: 0;
-    transform: translateX(45px);
+    transform: translateX(-45px);
   }
 }
 
 @keyframes leave {
   to {
     opacity: 0;
-    transform: translateX(90px);
+    transform: translateX(-60px);
   }
 }

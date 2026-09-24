@@ -1,6 +1,5 @@
 .sm-step {
-  /* 1920×1080 设计坐标；162px 槽位步进与 useInfiniteBand 的 sliceStep 一致。
-     --neighbor-shift 由本组件 TSX 下发，相邻卡片为中央放大卡让位。 */
+  /* 1920×1080 设计坐标。地图卡的槽位与让位样式见 MapSlice.module.css。 */
   --band-skew: -9.55deg;
   position: relative;
   z-index: 1;
@@ -86,6 +85,7 @@
   left: -22px;
   right: 0;
   overflow: hidden;
+  contain: paint;
 }
 
 .sm-band-list {
@@ -97,237 +97,41 @@
   transition: transform 420ms cubic-bezier(.22, .9, .24, 1);
 }
 
+.sm-step[data-moving="true"] .sm-band-list {
+  will-change: transform;
+}
+
 .sm-band-list-reset {
   transition: none !important;
 }
 
-.sm-slice-slot {
-  position: relative;
-  height: 162px;
-}
-
-.sm-slice {
-  position: absolute;
-  top: calc(8px + var(--neighbor-shift));
-  left: 22px;
-  width: 474px;
-  height: 146px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  clip-path: none;
-  text-align: left;
-  color: #f6f8fa;
-  transition: top 420ms ease, height 420ms ease, width 420ms ease, left 420ms ease, filter 180ms ease;
-}
-
-.sm-slice-surface {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: #0a1119;
-  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
-}
-
-.sm-slice-surface::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-  background: linear-gradient(90deg, #070d14df 4%, #070d148c 38%, #070d1408 78%, #070d1470), linear-gradient(0deg, #01060b80, transparent 60%);
-  box-shadow: inset 0 0 24px #c6e2f112;
-}
-
-.sm-slice-art {
-  position: absolute;
-  inset: -46px -25px;
-  width: calc(100% + 50px);
-  height: calc(100% + 92px);
-  object-fit: cover;
-  transform: skewX(9.55deg);
-  filter: saturate(.4) brightness(.64);
-  transition: filter 300ms ease;
-}
-
-.sm-slice-copy {
-  position: absolute;
-  top: 43px;
-  left: 37px;
-  right: 55px;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transform: skewX(9.55deg);
-}
-
-.sm-slice-name {
-  font-size: 32px;
-  font-weight: 750;
-  line-height: 1.25;
-  letter-spacing: 1px;
-  text-shadow: 0 2px 5px #000;
-}
-
-.sm-slice-status {
-  color: #b6d4e7;
-  font-size: 21px;
-  line-height: 1.4;
-  letter-spacing: 0;
-}
-
-.sm-slice-lock {
-  position: absolute;
-  right: 32px;
-  top: 59px;
-  width: 35px;
-  height: 35px;
-  color: #bccbd7;
-  transform: skewX(9.55deg);
-}
-
-.sm-slice-detail {
-  position: absolute;
-  right: 18px;
-  top: 8px;
-  color: #d0e4ee;
-  letter-spacing: 3px;
-  font-size: 18px;
-}
-
-.sm-step .sm-slice:hover {
-  filter: brightness(1.2);
-  background: transparent;
-}
-
-.sm-step .sm-slice:active {
-  transform: none;
-}
-
-.sm-step .sm-slice:focus-visible {
-  outline: 2px solid #b6e8ff;
-  outline-offset: 5px;
-}
-
-.sm-step[data-moving="true"] .sm-slice {
-  pointer-events: none;
-}
-
-.sm-step[data-resetting] .sm-slice {
-  transition: none;
-}
-
-.sm-step .sm-slice.sm-is-on {
-  z-index: 2;
-  top: -13px;
-  left: 18px;
-  width: 516px;
-  height: 188px;
-}
-
-.sm-is-on .sm-slice-art {
-  filter: saturate(.85) brightness(.96);
-}
-
-.sm-is-on .sm-slice-surface::after {
-  background: linear-gradient(90deg, #061725a8, #07132125 60%, transparent), linear-gradient(0deg, #020a1326, transparent);
-  box-shadow: inset 0 0 28px #86d4ff40;
-}
-
-.sm-is-on .sm-slice-copy {
-  top: 55px;
-  left: 42px;
-}
-
-.sm-is-on .sm-slice-name {
-  font-size: 35px;
-}
-
-.sm-is-on .sm-slice-lock {
-  right: 27px;
-  top: 95px;
-}
-
-.sm-is-on .sm-slice-detail {
-  display: none;
-}
-
-.sm-current-tag {
-  position: absolute;
-  z-index: 3;
-  right: 14px;
-  top: 13px;
-  width: 114px;
-  height: 39px;
-  display: grid;
-  place-items: center;
-  color: #d5f1ff;
-  font-size: 22px;
-  letter-spacing: 1px;
-}
-
-.sm-current-tag::before {
-  position: absolute;
-  inset: 0;
-  content: "";
-  background: linear-gradient(120deg, #12212dda, #12212d88);
-  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
-}
-
-.sm-current-label {
-  transform: skewX(9.55deg);
-}
-
-.sm-locator {
-  position: absolute;
-  left: -16px;
-  top: 105px;
-  z-index: 4;
-  width: 34px;
-  height: 34px;
-  border: 2px solid #d3f1ff;
-  border-radius: 50%;
-  background: #1c4359;
-  box-shadow: 0 0 10px #70cfff6b;
-  transform: skewX(9.55deg);
-}
-
-.sm-locator::after {
-  position: absolute;
-  inset: 7px;
-  border-radius: 50%;
-  background: #e7f8ff;
-  content: "";
-}
-
-.sm-current-icon {
-  position: absolute;
-  top: 19px;
-  left: 29px;
-  width: 22px;
-  height: 22px;
-  color: #d0f1ff;
-  transform: skewX(9.55deg);
-}
-
-.sm-current-rule {
-  width: 118px;
-  height: 1px;
-  margin-top: 9px;
-  background: linear-gradient(90deg, #d2f2ff 65%, #9ad6f350 65%);
-}
-
-.sm-band-intro {
+/* ── 步骤进出场 ──
+   时长读 SortieScreen 下发的 --sx-*(真相点在 sortieStepTransition.ts)。
+   斜切带朝右边退场/入场, 左侧的难度面板与框线各自在自己的组件里编排。 */
+.sm-step[data-motion="intro"] .sm-band {
   animation: bandIn 520ms 80ms cubic-bezier(.2, .72, .28, 1) backwards;
 }
 
-.sm-band-enter {
-  animation: bandIn 460ms cubic-bezier(.2, .72, .28, 1) both;
+.sm-step[data-motion="enter"] .sm-band {
+  animation: bandIn var(--sx-enter) cubic-bezier(.2, .72, .28, 1) var(--sx-delay) both;
+  will-change: transform, opacity;
+}
+
+.sm-step[data-motion="exit"] .sm-band {
+  animation: bandOut var(--sx-exit) cubic-bezier(.4, 0, 1, 1) both;
+  will-change: transform, opacity;
 }
 
 @keyframes bandIn {
   from {
     opacity: 0;
     transform: skewX(var(--band-skew)) translateX(80px);
+  }
+}
+
+@keyframes bandOut {
+  to {
+    opacity: 0;
+    transform: skewX(var(--band-skew)) translateX(120px);
   }
 }

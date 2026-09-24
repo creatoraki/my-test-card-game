@@ -1,7 +1,10 @@
+import { memo } from "react";
+import type { StepMotion } from "@/ui/sortie/SortieScreen/sortieStepTransition";
 import s from "./MapSelectChrome.module.css";
 
-export function MapSelectChrome() {
-  return <div className={s.chrome} aria-hidden="true">
+// 纯装饰层, 只随 motion 变化; memo 掉转轮每一格带来的重渲染。
+export const MapSelectChrome = memo(function MapSelectChrome({ motion }: { motion: StepMotion }) {
+  return <div className={s.chrome} data-motion={motion} aria-hidden="true">
     <svg className={s.lines} viewBox="0 0 1920 1080" fill="none">
       <defs>
         <linearGradient id="sortie-chrome-line"><stop stopColor="#d2e6f2" stopOpacity=".65" /><stop offset="1" stopColor="#b9d6e8" stopOpacity=".05" /></linearGradient>
@@ -17,4 +20,4 @@ export function MapSelectChrome() {
     </svg>
     <div className={s.breadcrumb}>目标区域 <span>／</span> 选择行动路线</div>
   </div>;
-}
+});

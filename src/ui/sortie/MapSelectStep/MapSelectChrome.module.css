@@ -26,3 +26,40 @@
 .breadcrumb span {
   margin: 0 9px;
 }
+
+/* ── 步骤进出场: 框线整体淡入淡出, 面包屑上下错位。时长读 --sx-*。 ── */
+.chrome[data-motion="enter"] .lines {
+  animation: chromeFade var(--sx-enter) ease-out var(--sx-delay) both;
+}
+
+.chrome[data-motion="enter"] .breadcrumb {
+  animation: crumbIn var(--sx-enter) cubic-bezier(.2, .72, .28, 1) var(--sx-delay) both;
+}
+
+.chrome[data-motion="exit"] .lines {
+  animation: chromeFade var(--sx-exit) ease-in reverse both;
+}
+
+.chrome[data-motion="exit"] .breadcrumb {
+  animation: crumbOut var(--sx-exit) cubic-bezier(.4, 0, 1, 1) both;
+}
+
+@keyframes chromeFade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes crumbIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes crumbOut {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}

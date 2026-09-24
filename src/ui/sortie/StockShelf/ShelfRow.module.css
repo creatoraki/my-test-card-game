@@ -15,15 +15,22 @@
   padding: 0 6px;
 }
 
-.goodsLineEnter > * {
-  animation: slotIn 480ms cubic-bezier(0.16, 0.86, 0.24, 1) backwards;
+/* 货位逐个落上层板。起点与货架面板入场对齐(PrepStep 里货架是第 2 档错峰); 最后一格必须在 --sx-total 内落定,
+   否则过场结束摘掉类名时会被截断跳帧(6 格: 220 + 125 + 320 = 665ms < 680ms)。 */
+.goodsLineEnter {
+  --slot-base: calc(var(--sx-delay, 0ms) + var(--sx-stagger, 0ms) * 2);
 }
 
-.goodsLineEnter > *:nth-child(2) { animation-delay: 45ms; }
-.goodsLineEnter > *:nth-child(3) { animation-delay: 90ms; }
-.goodsLineEnter > *:nth-child(4) { animation-delay: 135ms; }
-.goodsLineEnter > *:nth-child(5) { animation-delay: 180ms; }
-.goodsLineEnter > *:nth-child(6) { animation-delay: 225ms; }
+.goodsLineEnter > * {
+  animation: slotIn 320ms cubic-bezier(0.16, 0.86, 0.24, 1) backwards;
+  animation-delay: var(--slot-base);
+}
+
+.goodsLineEnter > *:nth-child(2) { animation-delay: calc(var(--slot-base) + 25ms); }
+.goodsLineEnter > *:nth-child(3) { animation-delay: calc(var(--slot-base) + 50ms); }
+.goodsLineEnter > *:nth-child(4) { animation-delay: calc(var(--slot-base) + 75ms); }
+.goodsLineEnter > *:nth-child(5) { animation-delay: calc(var(--slot-base) + 100ms); }
+.goodsLineEnter > *:nth-child(6) { animation-delay: calc(var(--slot-base) + 125ms); }
 
 /* 层板本体: 顶面高光 + 板厚 + 板下阴影, 三段渐变堆出「一块真的板」。 */
 .board {

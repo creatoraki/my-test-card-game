@@ -1,22 +1,19 @@
-import { type CSSProperties } from "react";
+import { memo, useMemo, type CSSProperties } from "react";
 import { isMapUnlocked, mapLockReason, type MapDef, type MapDifficulty } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { cx } from "@/ui/common/shared/cx";
-import { mapArt } from "@/ui/art/explore/mapArt";
 import { COPY_COUNT, MIDDLE_COPY, useInfiniteBand } from "@/ui/sortie/hooks";
-import { SortieFrame } from "@/ui/sortie/SortieFrame";
-import { SortieGlyph } from "@/ui/sortie/SortieGlyph";
+import { isMotionActive, type StepMotion } from "@/ui/sortie/SortieScreen/sortieStepTransition";
 import { MapSelectChrome } from "./MapSelectChrome";
 import { MapDifficultyPanel } from "./MapDifficultyPanel";
+import MapSlice from "./MapSlice";
 import s from "./MapSelectStep.module.css";
 
 const isTest = import.meta.env.isTest === "true";
 
 interface Props {
   maps: readonly MapDef[];
-  active: boolean;
-  entering: boolean;
-  intro: boolean;
+  motion: StepMotion;
   selectedMapId: string;
   difficulty: MapDifficulty;
   clearedMaps: readonly string[];
@@ -26,11 +23,9 @@ interface Props {
   onSelectDifficulty: (difficulty: MapDifficulty) => void;
 }
 
-export function MapSelectStep({
+function MapSelectStep({
   maps,
-  active,
-  entering,
-  intro,
+  motion,
   selectedMapId,
   difficulty,
   clearedMaps,
@@ -39,9 +34,18 @@ export function MapSelectStep({
   onSelectMap,
   onSelectDifficulty,
 }: Props) {
+  const active = isMotionActive(motion);
   const selected = maps.find((map) => map.id === selectedMapId) ?? maps[0];
   const selectedIndex = selected ? Math.max(0, maps.findIndex((map) => map.id === selected.id)) : 0;
   const mapCount = maps.length;
+  // 锁定信息按地图算一次, 三份副本共用。
+  const lockInfo = useMemo(
+    () => maps.map((map) => ({
+      locked: !isTest && !isMapUnlocked(map.id, clearedMaps),
+      reason: isTest ? null : mapLockReason(map.id, clearedMaps),
+    })),
+    [maps, clearedMaps],
+  );
 
   const { virtualIndex, isMoving, isResetting, shift, listRef, select, onListTransitionEnd } =
     useInfiniteBand({
@@ -61,6 +65,7 @@ export function MapSelectStep({
   return (
     <section
       className={s["sm-step"]}
+      data-motion={motion}
       data-active={active}
       data-moving={isMoving}
       data-resetting={isResetting || undefined}
@@ -68,70 +73,43 @@ export function MapSelectStep({
       aria-busy={isMoving}
       aria-label="目标层选择"
     >
-      <MapSelectChrome />
-      <div className={cx(s["sm-band"], intro && s["sm-band-intro"], entering && s["sm-band-enter"])}>
+      <MapSelectChrome motion={motion} />
+      <div className={s["sm-band"]}>
         <div className={s["sm-band-heading"]} aria-hidden="true">
           <span>····<br />···−</span><i />行动区域 <b>／／</b>
         </div>
         <div className={s["sm-band-window"]}>
-        <div
-          ref={listRef}
-          className={cx(s["sm-band-list"], isResetting && s["sm-band-list-reset"])}
-          style={{ "--shift": shift } as CSSProperties}
-          role="listbox"
-          aria-label="目标层"
-          onTransitionEnd={onListTransitionEnd}
-        >
-          {Array.from({ length: COPY_COUNT }, (_, copy) =>
-            maps.map((map, index) => {
-              const itemIndex = copy * mapCount + index;
-              const isCurrent = itemIndex === virtualIndex;
-              const isSemantic = copy === MIDDLE_COPY;
-              const locked = !isTest && !isMapUnlocked(map.id, clearedMaps);
-              const lockReason = isTest ? null : mapLockReason(map.id, clearedMaps);
-
-              return (
-                <div
-                  key={`${copy}-${map.id}`}
-                  className={s["sm-slice-slot"]}
-                  style={{ "--neighbor-shift": `${itemIndex < virtualIndex ? -21 : itemIndex > virtualIndex ? 21 : 0}px` } as CSSProperties}
-                >
-                <button
-                  className={cx(s["sm-slice"], isCurrent && s["sm-is-on"])}
-                  type="button"
-                  data-locked={locked ? "true" : undefined}
-                  role={isSemantic ? "option" : undefined}
-                  aria-selected={isSemantic ? map.id === selected.id : undefined}
-                  aria-hidden={isSemantic ? undefined : true}
-                  tabIndex={isSemantic && active ? 0 : -1}
-                  aria-label={locked ? `${map.name}（未开放）` : `选择${map.name}`}
-                  onClick={() => select(index)}
-                >
-                  <span className={s["sm-slice-surface"]}>
-                    <img className={s["sm-slice-art"]} src={mapArt(map.id)} alt="" draggable={false} />
-                  </span>
-                  <SortieFrame width={isCurrent ? 516 : 474} height={isCurrent ? 188 : 146} selected={isCurrent} />
-                  <span className={s["sm-slice-detail"]} aria-hidden="true">···</span>
-                  {isCurrent && <>
-                    <span className={s["sm-current-tag"]}>
-                      <SortieFrame width={114} height={39} notch={8} metal={false} />
-                      <span className={s["sm-current-label"]}>当前</span>
-                    </span>
-                    <span className={s["sm-locator"]} />
-                    <SortieGlyph name="beacon" className={s["sm-current-icon"]} />
-                  </>}
-                  <span className={s["sm-slice-copy"]}>
-                    <strong className={s["sm-slice-name"]}>{map.name}</strong>
-                    {locked && <span className={s["sm-slice-status"]}>{isCurrent ? lockReason ?? "暂未开放" : "暂未开放"}</span>}
-                    {isCurrent && <span className={s["sm-current-rule"]} aria-hidden="true" />}
-                  </span>
-                  {locked && <SortieGlyph name="lock" className={s["sm-slice-lock"]} />}
-                </button>
-                </div>
-              );
-            }),
-          )}
-        </div>
+          <div
+            ref={listRef}
+            className={cx(s["sm-band-list"], isResetting && s["sm-band-list-reset"])}
+            style={{ "--shift": shift } as CSSProperties}
+            role="listbox"
+            aria-label="目标层"
+            onTransitionEnd={onListTransitionEnd}
+          >
+            {Array.from({ length: COPY_COUNT }, (_, copy) =>
+              maps.map((map, index) => {
+                const itemIndex = copy * mapCount + index;
+                const isSemantic = copy === MIDDLE_COPY;
+                return (
+                  <MapSlice
+                    key={`${copy}-${map.id}`}
+                    mapId={map.id}
+                    name={map.name}
+                    index={index}
+                    isCurrent={itemIndex === virtualIndex}
+                    neighbor={itemIndex < virtualIndex ? -1 : itemIndex > virtualIndex ? 1 : 0}
+                    semantic={isSemantic}
+                    selected={isSemantic && map.id === selected.id}
+                    focusable={active}
+                    locked={lockInfo[index].locked}
+                    lockReason={lockInfo[index].reason}
+                    onSelect={select}
+                  />
+                );
+              }),
+            )}
+          </div>
         </div>
         <div className={s["sm-band-footer"]} aria-hidden="true">···−<i /></div>
       </div>
@@ -141,10 +119,11 @@ export function MapSelectStep({
         clearedKeys={clearedKeys}
         rewards={dailyRewards}
         onSelect={onSelectDifficulty}
-        active={active}
+        motion={motion}
       />
     </section>
   );
 }
 
-export default MapSelectStep;
+const MemoMapSelectStep = memo(MapSelectStep);
+export default MemoMapSelectStep;

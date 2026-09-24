@@ -3,7 +3,7 @@
 // ★ 口径全部来自 items/equipRoll.ts 的 upgradeEquipment(): 升阶不是重掷, 而是在原 roll 上继续加点。
 //   1. 每条正面词条先抬到新阶模型的 affix.min 地板: max(affix.min, 旧值)。
 //   2. 负面词条**整条重置**为 -rolledCost(数据上 min === max, 所以是确定值, 不是区间)。
-//   3. 增量预算 = randomInt(upgradeAdd) + 新阶返还 - 旧 cost 按新阶费率折算的返还(武器每阶 9~10, 其余 4~5)。
+//   3. 增量预算 = randomInt(upgradeAdd) + 新阶返还 - 旧 cost 按新阶费率折算的返还(通用表每阶 9~10)。
 //   4. 这份预算按权重随机分配到各正面词条, 单条不超过 affix.max。
 //
 // ⚠ 下限通常等于地板值(这一条可能一点都没分到); 只有**其余词条全部封顶**、预算无处可去时,

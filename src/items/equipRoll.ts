@@ -26,7 +26,7 @@ export const AFFIX_SCALE: Partial<Record<keyof StatBlock, number>> = {
   ailmentResist: 2,
 };
 
-/** 升阶固定投入的模型值区间缺省值；模型可用 upgradeAdd 覆盖(如武器每阶 +10 上限)。 */
+/** 升阶固定投入的模型值区间缺省值；装备模型可用 upgradeAdd 覆盖(见 data/items/equipment/equipModel)。 */
 export const DEFAULT_UPGRADE_ADD: readonly [number, number] = [4, 5];
 
 export const COST_ALLOWED_STATS: ReadonlySet<keyof StatBlock> = new Set([

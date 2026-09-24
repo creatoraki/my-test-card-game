@@ -46,8 +46,8 @@
 
 | 目录 | 作用 |
 | --- | --- |
-| [SortieScreen/](../../src/ui/sortie/SortieScreen/SortieScreen.tsx) + [SortieStepViewport/](../../src/ui/sortie/SortieStepViewport/SortieStepViewport.tsx) + [sortieStepTransition.ts](../../src/ui/sortie/SortieScreen/sortieStepTransition.ts) | 页面根组件和两个步骤之间的切换演出。 |
-| [MapSelectStep/](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) / [MapMissionInfo/](../../src/ui/sortie/MapMissionInfo/MapMissionInfo.tsx) | 选择地图和难度，显示任务信息与奖励。 |
+| [SortieScreen/](../../src/ui/sortie/SortieScreen/SortieScreen.tsx) + [SortieStepViewport/](../../src/ui/sortie/SortieStepViewport/SortieStepViewport.tsx) + [sortieStepTransition.ts](../../src/ui/sortie/SortieScreen/sortieStepTransition.ts) | 页面根组件和两个步骤之间的切换演出。两个步骤常驻挂载，时序只在 sortieStepTransition 定义（经 `--sx-*` 变量下发给 CSS）；出击成功的会话在界面卸载时才 clear()。 |
+| [MapSelectStep/](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) / [MapMissionInfo/](../../src/ui/sortie/MapMissionInfo/MapMissionInfo.tsx) | 选择地图和难度，显示任务信息与奖励。地图卡是 memo 化的 MapSlice。 |
 | [PrepStep/](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备。所有反馈（买到了、买不起、装不下、退款）都由补给机器人说出来。 |
 | [StockShelf/](../../src/ui/sortie/StockShelf/StockShelf.tsx) / [StorageInventory/](../../src/ui/sortie/StorageInventory/StorageInventory.tsx) | 常驻补给货架；仓库和出击背包。 |
 | [SortieRelicBar/](../../src/ui/sortie/SortieRelicBar/SortieRelicBar.tsx) / [SortieRelicPanel/](../../src/ui/sortie/SortieRelicPanel/SortieRelicPanel.tsx) | 携带遗物栏和选择面板。 |

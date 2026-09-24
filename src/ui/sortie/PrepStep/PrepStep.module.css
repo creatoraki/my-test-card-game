@@ -127,67 +127,43 @@
   height: 340px;
 }
 
-/* ── 步骤进出场。左右两侧各自朝外滑, 与选层步骤的方向语言一致。 ── */
-.slideInLeft {
-  animation: slideInLeft 460ms var(--sm-ease) both;
+/* ── 步骤进出场 ──
+   时长全部读 SortieScreen 下发的 --sx-*(真相点在 sortieStepTransition.ts)。
+   左列朝左、背包朝右、机器人朝下, 各自回到最近的屏幕边; 入场按 --i 错峰。
+   过场期间关掉毛玻璃模糊、压深底色(见 sortieGlass .glass), 落定后自动淡回。 */
+.step[data-motion="enter"],
+.step[data-motion="exit"] {
+  --sm-glass-filter: none;
+  --sm-glass-base: #061416d9;
 }
 
-.slideOutLeft {
-  animation: slideOutLeft 460ms var(--sm-ease) both;
+.credits { --i: 0; --dx: -72px; --dy: 0px; }
+.topRow { --i: 1; --dx: -72px; --dy: 0px; }
+.areaShelf { --i: 2; --dx: -72px; --dy: 0px; }
+.right { --i: 1; --dx: 72px; --dy: 0px; }
+.areaVendor { --i: 3; --dx: 0px; --dy: 48px; }
+
+.step[data-motion="enter"] :is(.credits, .topRow, .areaShelf, .right, .areaVendor) {
+  animation: prepIn var(--sx-enter) var(--sm-ease) both;
+  animation-delay: calc(var(--sx-delay) + var(--sx-stagger) * var(--i));
+  will-change: transform, opacity;
 }
 
-.slideInRight {
-  animation: slideInRight 460ms var(--sm-ease) both;
+.step[data-motion="exit"] :is(.credits, .topRow, .areaShelf, .right, .areaVendor) {
+  animation: prepOut var(--sx-exit) cubic-bezier(0.4, 0, 1, 1) both;
+  will-change: transform, opacity;
 }
 
-.slideOutRight {
-  animation: slideOutRight 460ms var(--sm-ease) both;
-}
-
-@keyframes slideInLeft {
+@keyframes prepIn {
   from {
     opacity: 0;
-    transform: translateX(-100%);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
+    transform: translate(var(--dx), var(--dy));
   }
 }
 
-@keyframes slideOutLeft {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
+@keyframes prepOut {
   to {
     opacity: 0;
-    transform: translateX(-100%);
-  }
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideOutRight {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX(100%);
+    transform: translate(var(--dx), var(--dy));
   }
 }
