@@ -13,6 +13,12 @@
 //
 // ⚠ assetPreloader 保证的是「下载 + 一次 decode」, 保证不了「以详情页那个尺寸绘制过」——
 //   每位角色的立绘是各自独立的 PNG, 解码缓存互不相通, 所以要**逐位**轮一遍。
+//
+// ⚠⚠ 开工时刻必须等卡阵入场动画播完(startAfterMs)。入场动画只动 transform/opacity, 跑在合成线程上,
+//   主线程在浏览器眼里是「空闲」的, requestIdleCallback 照样会立刻回调 —— 旧版正是这样把第一笔
+//   (也是最重的一笔: 整棵详情树的首次挂载 + 光栅化)压在了入场动画中间, 表现为进页面卡一下。
+// ⚠⚠ 轮换期间预热层**不卸载**, 只换 charId: 第一步付掉结构的账之后, 后面每步 React 只 diff 出
+//   立绘与几个数字。旧版每步之间先置 null 再挂下一位, 等于每位角色都把整棵树重建一遍。
 
 import { useEffect, useState } from "react";
 import { scheduleLowPriority } from "@/ui/art/loader/assetLoader";
@@ -22,49 +28,72 @@ import { scheduleLowPriority } from "@/ui/art/loader/assetLoader";
 const warmed = new Set<string>();
 
 /**
- * @param roster  编队页当前的展示名册(顺序即预热顺序)。
- * @param enabled 只在编队态且没有过场在跑时为 true —— 玩家一点卡就立刻让位, 绝不和真实过场抢主线程。
+ * @param roster       编队页当前的展示名册(顺序即预热顺序)。
+ * @param enabled      只在编队态且没有过场在跑时为 true —— 玩家一点卡就立刻让位, 绝不和真实过场抢主线程。
+ * @param startAfterMs 挂载后至少等这么久才开工(卡阵入场动画的总时长)。
  * @returns 这一步该预热的角色 id; null = 不挂预热层。
  */
-export function useDetailPrewarm(roster: readonly string[], enabled: boolean): string | null {
+export function useDetailPrewarm(roster: readonly string[], enabled: boolean, startAfterMs = 0): string | null {
+  const [started, setStarted] = useState(startAfterMs <= 0);
   const [target, setTarget] = useState<string | null>(null);
+  // 当前这一位是否已真正绘制过一帧。与 warmed 分开记: warmed 是模块级的, 改它不会触发重渲染。
+  const [painted, setPainted] = useState(false);
 
-  // 排下一位。⚠ 连第一位也走空闲回调: 页面入场动画期间浏览器并不空闲, requestIdleCallback
-  //   天然会把预热排到动画之后, 不必再手写一层等待。
+  // 等入场动画播完。
   useEffect(() => {
-    if (!enabled || target) return;
+    if (started) return;
+    const timer = window.setTimeout(() => setStarted(true), startAfterMs);
+    return () => window.clearTimeout(timer);
+  }, [started, startAfterMs]);
+
+  const active = enabled && started;
+
+  // 排下一位(当前没有目标, 或当前这一位已经热完)。
+  // ⚠ 连第一位也走空闲回调: 等入场结束后仍可能有别的主线程任务, 让它们先走。
+  useEffect(() => {
+    if (!active) return;
+    if (target && !painted) return;
     const next = roster.find((id) => !warmed.has(id));
-    if (!next) return;
+    if (!next) {
+      // 全员热完: 卸掉预热层, 之后编队态不再背着一整棵隐藏的详情树。
+      if (target) setTarget(null);
+      return;
+    }
     let cancelled = false;
     scheduleLowPriority(() => {
-      if (!cancelled) setTarget(next);
+      if (cancelled) return;
+      setTarget(next);
+      setPainted(false);
     });
     return () => {
       cancelled = true;
     };
-  }, [enabled, target, roster]);
+  }, [active, target, painted, roster]);
 
   // 这一位**真的绘制过一帧**之后才算热完, 再轮下一位。
   // ⚠ 必须双 rAF: 单个 rAF 回调跑在本帧绘制**之前**, 那会儿这棵树还没落到屏幕上。
   useEffect(() => {
-    if (!target) return;
+    if (!active || !target || painted) return;
     let second = 0;
     const first = requestAnimationFrame(() => {
       second = requestAnimationFrame(() => {
         warmed.add(target);
-        setTarget(null);
+        setPainted(true);
       });
     });
     return () => {
       cancelAnimationFrame(first);
       cancelAnimationFrame(second);
     };
-  }, [target]);
+  }, [active, target, painted]);
 
   // 玩家点开详情(或过场起跑): 预热层立刻卸载; 这一位没热完就留给下一次, 不记账。
   useEffect(() => {
-    if (!enabled) setTarget(null);
+    if (!enabled) {
+      setTarget(null);
+      setPainted(false);
+    }
   }, [enabled]);
 
-  return enabled ? target : null;
+  return active ? target : null;
 }

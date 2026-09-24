@@ -34,6 +34,7 @@ import { CharacterDetailView } from "@/ui/character/CharacterDetailView";
 import { SquadTalentModal } from "@/ui/town/training/SquadTalentModal";
 import { markTownReturn } from "@/ui/town/shared/townReturn";
 import { useSquadTalent } from "@/ui/town/training/SquadTalentModal/useSquadTalent";
+import { crewEntranceMs } from "./parts/CrewCard";
 import { CrewGrid } from "./parts/CrewGrid";
 import { SquadHud } from "./parts/SquadHud";
 import { DetailPrewarm, useDetailPrewarm } from "./parts/DetailPrewarm";
@@ -109,9 +110,13 @@ export function FormationScreen() {
   //   过去它整个落在第一次点卡那 620ms 的过场里, 表现就是"第一次切换卡, 之后丝滑"。
   //   这里趁编队态的空闲把它提前付掉, 逐位把名册轮一遍; 详见 detailPrewarm/useDetailPrewarm.ts。
   // ⚠ 只在编队态、没过场、没浮层时开工 —— 玩家一点卡, 预热层当帧让位。
+  // ⚠ 且要等卡阵入场动画整段播完再开工, 否则第一笔(整棵详情树的首次挂载)正好压在进页动画上。
+  //   时长按挂载时的人数定死, 与入场动画一样只算这一次。
+  const [prewarmDelayMs] = useState(() => crewEntranceMs(baseOrder.length));
   const prewarmCharId = useDetailPrewarm(
     roster,
     morph.mode === "roster" && morph.phase === "idle" && talentMorph.panel === null,
+    prewarmDelayMs,
   );
 
   const detailIndex = morph.charId ? roster.indexOf(morph.charId) : -1;

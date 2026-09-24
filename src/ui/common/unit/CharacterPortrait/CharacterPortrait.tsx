@@ -52,9 +52,14 @@ interface Props {
   emoji: string;
   alt: string;
   className?: string;
+  /**
+   * 立绘解码时机。1152×2048 的立绘同步解码会把所在那一帧整个拖住;
+   * 首帧本来就看不见立绘的场合(如编队卡还在入场淡入前的等待期)传 "async", 让解码不阻塞上屏。
+   */
+  decoding?: "async" | "sync" | "auto";
 }
 
-export function CharacterPortrait({ characterId, emoji, alt, className }: Props) {
+export function CharacterPortrait({ characterId, emoji, alt, className, decoding }: Props) {
   const art = characterId ? CHARACTER_ART[characterId] : undefined;
 
   if (art) {
@@ -71,6 +76,7 @@ export function CharacterPortrait({ characterId, emoji, alt, className }: Props)
         className={cx(s["portrait-image"], className)}
         src={art.src}
         alt={alt}
+        decoding={decoding}
         style={
           {
             "--portrait-dx": `${art.dx ?? 0}px`,

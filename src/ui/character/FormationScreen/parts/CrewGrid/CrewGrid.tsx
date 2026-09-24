@@ -12,7 +12,7 @@
 
 import type { CharacterState } from "@/store/town/townStore";
 import type { CSSProperties } from "react";
-import { CrewCard } from "../CrewCard";
+import { CREW_ENTRANCE_VARS, CrewCard } from "../CrewCard";
 import s from "./CrewGrid.module.css";
 
 // 卡阵一行的列数。⚠ 与 CrewGrid.module.css 的 grid-template-columns 是同一个事实:
@@ -65,7 +65,7 @@ export function CrewGrid({
   }
 
   return (
-    <div className={s.grid} style={style}>
+    <div className={s.grid} style={{ ...CREW_ENTRANCE_VARS, ...style } as CSSProperties}>
       {roster.map((id, i) => {
         const cs = characters[id];
         if (!cs) return null;

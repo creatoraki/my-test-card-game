@@ -122,6 +122,9 @@ function CrewCardView({
               emoji={def.emoji}
               alt={def.name}
               className={s.bust}
+              // 进页那一帧要同时铺开整片卡阵, 立绘若同步解码会把首帧拖住;
+              // 卡片此刻还在入场延迟里(透明), 异步解码晚一两帧上屏也看不出来。
+              decoding="async"
             />
             <span className={s.scrim} aria-hidden="true" />
             <CrewNameplate charId={def.id} name={def.name} onField={onField} />
