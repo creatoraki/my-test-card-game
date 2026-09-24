@@ -1,0 +1,105 @@
+/* 顶部居中铭牌: 避开左上小地图与右上能量读数。 */
+.plate {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  justify-content: center;
+  column-gap: 14px;
+  row-gap: 6px;
+  padding: 10px 26px 12px;
+  color: #e8dcc2;
+  background: linear-gradient(180deg, rgba(10, 13, 15, 0.82), rgba(10, 13, 15, 0.5));
+  border-top: 1px solid rgba(214, 182, 124, 0.35);
+  border-bottom: 1px solid rgba(214, 182, 124, 0.12);
+  pointer-events: none;
+}
+
+.floor {
+  font-size: 18px;
+  letter-spacing: 0.2em;
+  color: #a99b80;
+}
+
+.divider {
+  width: 7px;
+  height: 7px;
+  transform: rotate(45deg);
+  background: #d6b67c;
+}
+
+.room {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.controls {
+  grid-column: 1 / -1;
+  justify-self: center;
+  font-size: 18px;
+  color: #7f8a8c;
+  letter-spacing: 0.04em;
+}
+
+/* 进房大标题: 屏幕上部偏中, 字距从紧到松地展开后淡出。 */
+.banner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 250px;
+  z-index: 26;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  animation: bannerLife 3200ms ease both;
+  animation-delay: 300ms;
+  opacity: 0;
+}
+
+.bannerFloor {
+  font-size: 22px;
+  letter-spacing: 0.5em;
+  color: #b8a888;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+}
+
+.bannerName {
+  font-size: 64px;
+  font-weight: 700;
+  color: #f1e6cd;
+  text-shadow: 0 0 24px rgba(0, 0, 0, 0.95), 0 0 60px rgba(0, 0, 0, 0.8);
+  animation: bannerSpread 3200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 300ms;
+}
+
+.bannerRule {
+  width: 360px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(214, 182, 124, 0.8), transparent);
+  animation: bannerRule 3200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 300ms;
+}
+
+@keyframes bannerLife {
+  0% { opacity: 0; transform: translateY(10px); }
+  15% { opacity: 1; transform: translateY(0); }
+  72% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+@keyframes bannerSpread {
+  from { letter-spacing: 0.05em; }
+  to { letter-spacing: 0.28em; }
+}
+
+@keyframes bannerRule {
+  from { transform: scaleX(0.2); }
+  to { transform: scaleX(1); }
+}

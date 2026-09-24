@@ -1,0 +1,12 @@
+.viewport { background: #030405; }
+.screen { background: #040506; color: #e5dbc8; font-size: 18px; isolation: isolate; overflow: hidden; }
+
+/* 右上角能量读数卡的定位(与正式探索界面一致)。 */
+.readout { position: absolute; top: 0; right: 0; z-index: 30; }
+
+/* 过门黑幕: 先压黑, 换房后揭开。 */
+.curtain { position: absolute; inset: 0; z-index: 1000; background: #000; pointer-events: auto; }
+.fadeOut { animation: curtainIn 300ms ease-in forwards; }
+.fadeIn { animation: curtainOut 520ms ease-out forwards; }
+@keyframes curtainIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes curtainOut { from { opacity: 1; } to { opacity: 0; } }
