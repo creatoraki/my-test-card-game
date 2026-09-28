@@ -7,6 +7,7 @@ import type { ExploreEffect, ExploreState, PartySnapshot } from "../../types";
 import { addPendingLoot } from "./backpack";
 import { dropContext } from "./drops";
 import { applyEffect } from "../core/effects";
+import { restoreLimit } from "../core/party";
 import { logLine } from "../core/log";
 
 // 消耗品的可用阶段 ⊂ canOpenBackpack: 设计文档 §6.4 只点名「不限时的待决策阶段」。
@@ -37,7 +38,7 @@ function aliveTargetOf(s: ExploreState, charId: string | undefined): PartySnapsh
 
 // 使用一件消耗品。★ 不额外消耗净化粒子 —— 携带成本已由负重收过一次, 不重复收费(§6.4)。
 // 需要指定目标的 ItemUse 必须带 targetCharId, 否则返回 null(物品不消耗);
-// 目标状态无效(满血/无体力极限损伤)同样返回 null 且不消耗; 用不了返回 null。
+// 目标状态无效(满血 / 体力极限与生命皆满)同样返回 null 且不消耗; 用不了返回 null。
 export function useItem(s: ExploreState, uid: string, targetCharId?: string): ItemUseResult | null {
   if (!canUseItem(s)) return null;
   const st = findByUid(s.backpack, uid);
@@ -62,13 +63,11 @@ export function useItem(s: ExploreState, uid: string, targetCharId?: string): It
     case "healLimitOne": {
       const target = aliveTargetOf(s, targetCharId);
       if (!target) return null;
-      if (target.hpLimit >= target.maxHp) return null; // 没有体力极限损伤(§2.2: 无合法目标)
+      // 体力极限与当前生命都已满才算无效果(§2.2: 无合法目标); 只满其一照样可用。
+      if (target.hpLimit >= target.maxHp && target.hp >= target.hpLimit) return null;
       const amount = Math.max(0, Math.floor(u.amount));
-      const before = target.hpLimit;
-      target.hpLimit = Math.min(target.maxHp, target.hpLimit + amount);
-      const restored = target.hpLimit - before;
-      target.hp = Math.min(target.hpLimit, target.hp + restored);
-      note = `${target.name} 体力极限修复 ${restored} 点，当前生命回复等值`;
+      restoreLimit(target, amount);
+      note = `${target.name} 体力极限修复 ${amount} 点，当前生命回复等值`;
       break;
     }
     case "reducePollutionOne": {

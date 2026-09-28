@@ -6,6 +6,7 @@ import { rngInt } from "@/engine/core/rng";
 import { findByUid } from "@/items/inventory";
 import type { ExploreState } from "../../types";
 import { addPendingLoot } from "../loot/backpack";
+import { restoreLimit } from "./party";
 
 export interface PendingContamination {
   total: number;
@@ -60,9 +61,8 @@ export function resolvePendingHealing(s: ExploreState, charId: string, limit: bo
   if (!target) return false;
   if (limit) {
     if (action.kind !== "healLimitOne") return false;
-    target.hpLimit = action.full
-      ? target.maxHp
-      : Math.min(target.maxHp, target.hpLimit + Math.ceil(target.maxHp * action.percent));
+    // 全恢复按满额 maxHp 计: 体力极限回满, 当前生命也同步回满。
+    restoreLimit(target, action.full ? target.maxHp : Math.ceil(target.maxHp * action.percent));
   } else {
     if (action.kind !== "healOne") return false;
     target.hp = Math.min(

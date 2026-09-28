@@ -278,17 +278,18 @@ function applyEffect(
     }
     case "RESTORE_HP_LIMIT":
       {
-        const restoreAmount =
+        // 取整: 体力极限是整数口径, 倍率算出的小数不能直接落进 hpLimit。
+        const restoreAmount = Math.round(
           (effect.multiplier != null ? healValue(offenseStatOf(state, src, "healPower"), effect.multiplier) : amount) *
-          scaleFactor(state, effect);
+          (1 + state.playValueBonusPct / 100) * scaleFactor(state, effect),
+        );
       for (const id of targetIds) {
         const target = state.combatants[id];
         if (!target || !target.alive || restoreAmount <= 0) continue;
-        const before = target.hpLimit;
+        // 体力极限与当前生命按同一名义额度恢复: 体力极限已满时, 生命回复照样落地。
         target.hpLimit = Math.min(target.maxHp, target.hpLimit + restoreAmount);
-        const restored = target.hpLimit - before;
-        ops.heal(state, undefined, id, restored);
-        ops.log(state, `${target.emoji} ${target.name} 体力极限恢复 ${restored}`);
+        ops.heal(state, undefined, id, restoreAmount);
+        ops.log(state, `${target.emoji} ${target.name} 体力极限恢复 ${restoreAmount}`);
       }
       break;
       }

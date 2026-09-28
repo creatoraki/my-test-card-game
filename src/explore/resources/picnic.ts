@@ -3,6 +3,7 @@ import type { PicnicReward } from "@/data/facilities/picnicRecipes";
 import { consumeItems, countByItemId } from "@/items/inventory";
 import type { ExploreState } from "../types";
 import { logLine } from "../session";
+import { restoreLimit } from "../session/core/party";
 import { EXPLORE_RULES } from "../core/exploreRules";
 import { fireExploreRelic } from "../relics/relics";
 
@@ -40,10 +41,7 @@ function validPicks(s: ExploreState, picks: Record<string, number>): boolean {
 
 function recoverPartyLimit(s: ExploreState, amount: number): void {
   for (const member of s.party) {
-    if (!member.alive) continue;
-    const beforeLimit = member.hpLimit;
-    member.hpLimit = Math.min(member.maxHp, member.hpLimit + amount);
-    member.hp = Math.min(member.hpLimit, member.hp + member.hpLimit - beforeLimit);
+    if (member.alive) restoreLimit(member, amount);
   }
 }
 

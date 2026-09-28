@@ -35,9 +35,11 @@ export function hasScaledDamage(def: CardDef): boolean {
   return def.effects.some((effect) => effect.type === "DAMAGE" && effect.multiplier != null);
 }
 
-/** 含**治愈力倍率**治疗或护盾。同理挡住治愈力模组装在固定值护盾牌上。 */
+/** 含**治愈力倍率**治疗、护盾或体力极限恢复。同理挡住治愈力模组装在固定值护盾牌上。 */
 export function hasScaledSupport(def: CardDef): boolean {
   return def.effects.some(
-    (effect) => (effect.type === "HEAL" || effect.type === "GAIN_SHIELD") && effect.multiplier != null,
+    (effect) =>
+      (effect.type === "HEAL" || effect.type === "GAIN_SHIELD" || effect.type === "RESTORE_HP_LIMIT") &&
+      effect.multiplier != null,
   );
 }

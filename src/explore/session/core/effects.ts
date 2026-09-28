@@ -11,7 +11,7 @@ import type { EventOutcome, ExploreEffect, ExploreState } from "../../types";
 import { addItems, addPendingLoot, forceDiscardSlots } from "../loot/backpack";
 import { dropCoefficient, dropContext } from "../loot/drops";
 import { BATTLE_TIER_NAME, rewardMultiplier } from "./energy";
-import { damagePartyPercent, healParty } from "./party";
+import { damagePartyPercent, healParty, restoreLimit } from "./party";
 import {
   deferEffectLoot,
   grantRelic,
@@ -127,10 +127,7 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
       return e.full ? "获得一次指定角色生命回满" : `获得一次指定角色治疗 ${Math.round(e.percent * 100)}%`;
     case "HEAL_LIMIT_PARTY": {
       for (const p of s.party) {
-        if (!p.alive) continue;
-        const amount = Math.ceil(p.maxHp * e.percent);
-        p.hpLimit = Math.min(p.maxHp, p.hpLimit + amount);
-        p.hp = Math.min(p.hpLimit, p.hp + amount);
+        if (p.alive) restoreLimit(p, Math.ceil(p.maxHp * e.percent));
       }
       return `全队体力极限恢复 ${Math.round(e.percent * 100)}%`;
     }

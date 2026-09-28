@@ -52,10 +52,8 @@ export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
     name: "回生药剂",
     targeting: "ally",
     anim: "heal",
-    effects: [
-      { type: "HEAL", multiplier: 0.6, target: "primary" },
-      { type: "RESTORE_HP_LIMIT", multiplier: 0.6, target: "primary" },
-    ],
+    // 体力极限恢复自带等额生命回复, 不再单独挂 HEAL(否则生命会回两遍)。
+    effects: [{ type: "RESTORE_HP_LIMIT", multiplier: 0.6, target: "primary" }],
     text: "选择一名队友，回复 {0} 点生命并恢复等额体力极限。打出后消耗。",
   },
   {

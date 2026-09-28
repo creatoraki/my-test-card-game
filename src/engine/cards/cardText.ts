@@ -50,6 +50,7 @@ export function effectDisplayValue(
           );
     case "HEAL":
     case "GAIN_SHIELD":
+    case "RESTORE_HP_LIMIT":
       return effect.multiplier != null
         ? Math.round(healValue(stats.healPower, effect.multiplier))
         : effect.amount ?? null;

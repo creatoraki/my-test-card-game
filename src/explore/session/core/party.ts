@@ -1,7 +1,7 @@
 // 队伍快照的增减 —— 回血、掉血、换装同步、团灭与战斗回填。
 
 import { EXPLORE_RULES } from "../../core/exploreRules";
-import type { ExploreState } from "../../types";
+import type { ExploreState, PartySnapshot } from "../../types";
 import { logLine } from "./log";
 
 // 换装后同步队伍快照。★ 只裁不补(产品口径): 装备变强不回血, 变弱也不会把人打死。
@@ -30,6 +30,14 @@ export function healParty(s: ExploreState, percent: number): void {
     if (!p.alive) continue; // 回血不复活阵亡者
     p.hp = Math.min(p.hpLimit, p.hp + Math.ceil(p.maxHp * percent));
   }
+}
+
+// 体力极限恢复的唯一口径: 体力极限 +amount(封顶 maxHp), 当前生命同步 +amount(封顶新体力极限)。
+// ★ 生命按**名义额度**回复, 而不是体力极限实际涨了多少 —— 体力极限已满时照样回血, 不会被吞掉。
+export function restoreLimit(member: PartySnapshot, amount: number): void {
+  const value = Math.max(0, amount);
+  member.hpLimit = Math.min(member.maxHp, member.hpLimit + value);
+  member.hp = Math.min(member.hpLimit, member.hp + value);
 }
 
 export function damagePartyPercent(s: ExploreState, percent: number): void {
