@@ -8,19 +8,20 @@ import type {
   AnimHit,
   BattleSetup,
   BattleState,
+  ChoiceRecorder,
   EncounterModifier,
   FxStep,
   PlayRecorder,
 } from "@/engine";
 import type { BondDef, BondTier } from "@/data";
 import {
-  cancelPendingChoice,
+  cancelChoiceRecorded,
   createBattle,
   discardHandCard,
   endRound,
   playCard,
   redrawHandCard,
-  resolvePendingChoice,
+  resolveChoiceRecorded,
   waitTick,
 } from "@/engine";
 
@@ -40,6 +41,16 @@ export interface PlayPlan {
 export interface DiscardPlan {
   final: BattleState;
   steps: FxStep[];
+}
+
+// 一次待选结算的动画计划: 选牌后续效果(若有)先播一帧出牌动画, 再播补推进时刻触发的敌人行动。
+export interface ChoicePlan {
+  cardHits: AnimHit[] | null;
+  cardSnapshot: BattleState;
+  sourceCardUid: string | null;
+  actorId: string | null;
+  steps: FxStep[];
+  final: BattleState;
 }
 
 // 一次结束回合的动画计划: 逐帧播放冲刷的敌人行动, 最后落到 final(下一回合起始态)。
@@ -75,8 +86,8 @@ interface BattleStore {
   play: (uid: string, targetId?: string, discardPicks?: string[]) => PlayPlan | null;
   redrawCard: (uid: string) => BattleState | null;
   discardCard: (uid: string) => DiscardPlan | null;
-  pickPendingChoice: (uid: string) => BattleState | null;
-  cancelPendingChoice: () => BattleState | null;
+  pickPendingChoice: (uid: string) => ChoicePlan | null;
+  cancelPendingChoice: () => EndPlan | null;
   end: () => EndPlan | null;
   wait: () => EndPlan | null;
   commit: (snapshot: BattleState) => void;
@@ -129,14 +140,24 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     const b = get().battle;
     if (!b) return null;
     const draft = structuredClone(b);
-    return resolvePendingChoice(draft, uid) ? draft : null;
+    const rec: ChoiceRecorder = { steps: [] };
+    if (!resolveChoiceRecorded(draft, uid, rec)) return null;
+    return {
+      cardHits: rec.cardHits ?? null,
+      cardSnapshot: rec.cardSnapshot ?? draft,
+      sourceCardUid: rec.sourceCardUid ?? null,
+      actorId: rec.actorId ?? null,
+      steps: rec.steps,
+      final: draft,
+    };
   },
 
   cancelPendingChoice: () => {
     const b = get().battle;
     if (!b) return null;
     const draft = structuredClone(b);
-    return cancelPendingChoice(draft) ? draft : null;
+    const rec = { steps: [] as FxStep[] };
+    return cancelChoiceRecorded(draft, rec) ? { steps: rec.steps, final: draft } : null;
   },
 
   end: () => {

@@ -271,7 +271,9 @@ export function playCard(
   if (state.phase === "player") {
     const adv =
       playedType === "normal" ? RULES.timeline.normalCardAdvance : RULES.timeline.fastCardAdvance;
-    if (adv > 0) withDiscardRecorder(rec, () => advanceTick(state, adv, rec));
+    // 出牌留下了待选(选手牌 / 弃牌堆 / 抽牌堆等): 先等玩家完成选择再推进, 见 choiceResolve.ts。
+    if (state.pendingChoice) state.deferredTickAdvance = adv;
+    else if (adv > 0) withDiscardRecorder(rec, () => advanceTick(state, adv, rec));
   }
 
   return true;

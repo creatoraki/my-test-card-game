@@ -7,7 +7,7 @@
 // 只依赖入参、不碰任何 React 状态, 单独放这里便于调参与复用。
 // ============================================================================
 
-import type { AnimHit, CardAnim } from "@/engine";
+import type { AnimHit, AnimHitPart, CardAnim } from "@/engine";
 import { ANIM, type FloatText, type HitFx } from "./animations";
 import type { AnimSfxCue } from "./animSfx";
 
@@ -41,8 +41,23 @@ function floatStagger(anim: CardAnim, count: number): number {
   return Math.max(FLOAT_STAGGER_MIN, Math.min(HIT_STAGGER.float, budget / (count - 1)));
 }
 
+// 攻击一段的飘字: 护盾吸收量(蓝白)与扣血量(红)拆成两个数字依次弹出;
+// 触发格挡时整段改为放大的蓝白字效, 最后一个数字尾缀 "(BLOCK!)"。
+function attackPartFloats(part: AnimHitPart): FloatText[] {
+  const shield = Math.max(0, Math.round(part.shield ?? 0));
+  const hp = Math.max(0, part.hpDelta);
+  const floats: FloatText[] = [];
+  if (shield > 0) floats.push({ text: `-${shield}`, tone: "shield", delayMs: 0, crit: part.crit });
+  if (hp > 0) floats.push({ text: part.crit ? `-${hp}!` : `-${hp}`, tone: "dmg", delayMs: 0, crit: part.crit });
+  if (!part.blocked) return floats;
+  if (floats.length === 0) floats.push({ text: "-0", tone: "block", delayMs: 0, crit: part.crit });
+  floats.forEach((float) => { float.tone = "block"; });
+  floats[floats.length - 1].suffix = "(BLOCK!)";
+  return floats;
+}
+
 // 把一个目标的命中拆成飘字序列。
-// 攻击: 每段一个 -N(该段闪避则 MISS); 辅助: 每段一个 +N。
+// 攻击: 每段一个 -N(打在护盾上的部分另起一个蓝白数字; 该段闪避则 MISS); 辅助: 每段一个 +N。
 // 没有 parts(旧路径/兜底目标)时退化为单条, 与改造前逐帧一致。
 function floatsOf(hit: AnimHit, anim: CardAnim): FloatText[] {
   const kind = ANIM[anim].kind;
@@ -50,20 +65,16 @@ function floatsOf(hit: AnimHit, anim: CardAnim): FloatText[] {
   const floats: FloatText[] = [];
   for (const part of parts) {
     if (floats.length >= HIT_STAGGER.maxFloats) break;
-    let text: string | null = null;
-    let tone: FloatText["tone"] = "dmg";
     if (part.missed) {
-      text = "MISS";
-      tone = "miss";
-    } else if (kind === "attack" && part.hpDelta > 0) {
-      text = part.crit ? `-${part.hpDelta}!` : `-${part.hpDelta}`;
+      floats.push({ text: "MISS", tone: "miss", delayMs: 0 });
+    } else if (kind === "attack") {
+      floats.push(...attackPartFloats(part));
     } else if (kind === "support" && part.hpDelta < 0) {
-      text = `+${-part.hpDelta}`;
-      tone = "heal";
+      floats.push({ text: `+${-part.hpDelta}`, tone: "heal", delayMs: 0 });
     }
-    // hpDelta 为 0 且未闪避 = 只吃了护盾/状态, 照旧只闪特效不飘字。
-    if (text != null) floats.push({ text, tone, delayMs: 0, crit: part.crit });
+    // 辅助动画下 hpDelta 为 0 = 只吃了护盾/状态, 照旧只闪特效不飘字。
   }
+  floats.length = Math.min(floats.length, HIT_STAGGER.maxFloats);
   const stagger = floatStagger(anim, floats.length);
   floats.forEach((float, index) => {
     float.delayMs = index * stagger;
@@ -73,9 +84,10 @@ function floatsOf(hit: AnimHit, anim: CardAnim): FloatText[] {
 }
 
 // 构建本次命中的「单位 → 特效」表, 直接交给 setHits。
+// 护航代挡的单位带 guard: 仍沿用本次攻击的 anim 对齐命中时刻, 表现改为护盾抵挡。
 export function buildHitFx(hits: readonly AnimHit[], anim: CardAnim, seq: number): Record<string, HitFx> {
   const map: Record<string, HitFx> = {};
-  for (const hit of hits) map[hit.id] = { anim, seq, floats: floatsOf(hit, anim) };
+  for (const hit of hits) map[hit.id] = { anim, seq, floats: floatsOf(hit, anim), guard: hit.guard || undefined };
   return map;
 }
 

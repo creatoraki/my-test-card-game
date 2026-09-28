@@ -73,9 +73,11 @@ export {
   discardHandCard,
   resolvePendingChoice,
   cancelPendingChoice,
+  resolveChoiceRecorded,
+  cancelChoiceRecorded,
   playBlockReason,
 } from "./battle/battle";
-export type { AllyInit, BattleSetup, PlayBlock, PlayRecorder } from "./battle/battle";
+export type { AllyInit, BattleSetup, ChoiceRecorder, PlayBlock, PlayRecorder } from "./battle/battle";
 export { runEnemyFlee } from "./battle/flee";
 export { foesOf, alliesOf, aliveOf, chooseRandomTarget, tauntedAmong, validFoeTargetIds } from "./combat/targeting";
 export { getStatus } from "./core/ops";

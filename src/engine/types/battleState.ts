@@ -57,6 +57,8 @@ export interface BattleState {
   lastDiscardBatchFast: number;
   lastRecoverBatchFast: number;
   pendingChoice: PendingChoice | null;
+  // 出牌留下待选时暂缓的时刻推进: 选择完成(或放弃)后再推进, 敌人不会抢在选牌结算之前行动。
+  deferredTickAdvance: number;
   pendingDiscardPicks: string[];
   waterfallPlay: boolean;
   playValueBonusPct: number;

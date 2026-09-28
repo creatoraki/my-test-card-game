@@ -1,5 +1,6 @@
 import { effectiveTargeting, type AnimFrame, type BattleState, type Card, type DiscardTriggerFx, type FxStep, type RelicTriggerFx, type TempoFx } from "@/engine";
 import { getEnemyDef } from "@/data";
+import type { ChoicePlan } from "@/store/battle/battleStore";
 import { type ChoreoStep } from "@/ui/battle/camera";
 import { cardAnim, moveAnim } from "@/ui/battle/choreo/animations";
 
@@ -53,6 +54,27 @@ export function stepFromFx(battle: BattleState, fx: FxStep): ChoreoStep {
     return { kind: "flee", actorId: fx.actorId, anim: "buff", snapshot: fx.snapshot, hits: [] };
   }
   return stepFromDiscard(battle, fx);
+}
+
+// 待选结算的分镜: 选牌后续效果先演一帧出牌动作(打到敌人用卡面动画, 否则按护盾 / 增益演),
+// 再接补推进时刻触发的敌人行动。
+export function choiceSteps(battle: BattleState, plan: ChoicePlan): ChoreoStep[] {
+  const steps: ChoreoStep[] = [];
+  if (plan.actorId && plan.cardHits?.length) {
+    const card = plan.sourceCardUid
+      ? plan.cardSnapshot.cards[plan.sourceCardUid] ?? battle.cards[plan.sourceCardUid]
+      : undefined;
+    const hitsFoe = plan.cardHits.some((hit) => battle.enemyIds.includes(hit.id));
+    const shieldOnly = plan.cardHits.every((hit) => hit.hpDelta === 0 && !hit.missed);
+    steps.push({
+      actorId: plan.actorId,
+      anim: hitsFoe && card ? cardAnim(card) : shieldOnly ? "shield" : "buff",
+      snapshot: plan.cardSnapshot,
+      hits: plan.cardHits,
+    });
+  }
+  steps.push(...plan.steps.map((step) => stepFromFx(battle, step)));
+  return steps;
 }
 
 export function fxTargets(battle: BattleState, uid: string, primaryId?: string): string[] {

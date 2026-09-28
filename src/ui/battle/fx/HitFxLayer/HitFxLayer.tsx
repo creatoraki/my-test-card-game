@@ -41,6 +41,9 @@ const ICON_FX: Partial<Record<CardAnim, ComponentType<{ className?: string }>>> 
   shield: ShieldIcon,
 };
 
+// 护航代挡的主色: 与护盾飘字同一蓝白。
+const GUARD_COLOR = "#9fd8ff";
+
 // 由 hit 推出「受击反应 + CSS 变量」, 交给单位外壳挂在根节点上。
 // ★ 返回的不再是**类名**而是 UnitReact 词元("hit" / "bless" / null): 两种外壳分属两个组件,
 //   Modules 之后本文件的类名根本传不过去。词元经 unitShellAttrs 落成 data-react, 由本文件
@@ -51,7 +54,7 @@ const ICON_FX: Partial<Record<CardAnim, ComponentType<{ className?: string }>>> 
 //   --vfx-float-delay/--vfx-float-dur: 飘字延迟与时长, 程序化攻击使用(把飘字推迟到
 //                 斩击爆发瞬间并压缩时长, 保证在命中特效 hold 卸载前收尾); 其余动画缺省值下
 //                 与原行为逐帧等价。
-// 攻击 → 受击抖动闪光; 辅助 → 柔和光晕。
+// 攻击 → 受击抖动闪光; 辅助 → 柔和光晕; 护航代挡 → 举盾顶住(轻微后仰 + 蓝白闪光)。
 export function hitFxVars(hit: HitFx | null): {
   react: UnitReact;
   vars: Record<string, string>;
@@ -59,9 +62,9 @@ export function hitFxVars(hit: HitFx | null): {
   const preset = hit ? ANIM[hit.anim] : null;
   if (!preset) return { react: null, vars: {} };
   return {
-    react: preset.kind === "attack" ? "hit" : "bless",
+    react: hit?.guard ? "guard" : preset.kind === "attack" ? "hit" : "bless",
     vars: {
-      "--vfx-color": preset.color,
+      "--vfx-color": hit?.guard ? GUARD_COLOR : preset.color,
       "--vfx-impact": `${preset.proc?.impactMs ?? 0}ms`,
       "--vfx-float-delay": `${preset.proc?.impactMs ?? 0}ms`,
       "--vfx-float-dur": `${preset.proc?.floatMs ?? 950}ms`,
@@ -80,7 +83,17 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
 
   return (
     <>
-      {hit && preset && (
+      {/* 护航代挡: 不演攻击特效, 只在攻击命中时刻(--vfx-impact)举起护盾顶住一击。 */}
+      {hit?.guard && (
+        <div className={cx(s["vfx"], s["vfx-guard"])} key={`g${hit.seq}`} aria-hidden>
+          <span className={s["guard-ring"]} />
+          <span className={s["guard-icon"]}>
+            <ShieldIcon />
+          </span>
+          <span className={s["guard-spark"]} />
+        </div>
+      )}
+      {hit && !hit.guard && preset && (
         <div
           className={cx(s["vfx"], s[`vfx-${hit.anim}`], s[`vfx-${preset.kind}`])}
           key={hit.seq}
@@ -111,6 +124,7 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
             style={{ "--vfx-float-stagger": `${float.delayMs}ms` } as CSSProperties}
           >
             {float.text}
+            {float.suffix && <span className={s["float-suffix"]}>{float.suffix}</span>}
           </div>
         </div>
       ))}

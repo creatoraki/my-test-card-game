@@ -98,10 +98,11 @@ export const ABANDONED_FLOOR_STATUS_DEFS: Record<string, StatusDef> = {
         ) return;
         const share = Math.round(dmg.amount * 0.4);
         if (share <= 0) return;
-        holder.shield = Math.max(0, holder.shield - Math.min(holder.shield, share));
+        const absorbed = Math.min(holder.shield, share);
+        holder.shield = Math.max(0, holder.shield - absorbed);
         dmg.amount = Math.max(0, dmg.amount - share);
         dmg.guarded = true;
-        recordHitPart(holder.id, 0);
+        recordHitPart(holder.id, 0, false, false, { shield: absorbed, guard: true });
         if (holder.shield === 0) clearOnShieldBroken(c);
       },
       onAfterAttacked: addStaticAfterShieldHit,

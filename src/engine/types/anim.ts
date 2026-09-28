@@ -10,6 +10,9 @@ export interface AnimHitPart {
   hpDelta: number; // >0 掉血, <0 回血, 0 = 命中但无 HP 变化(护盾全吃/濒死顶住)
   missed?: boolean;
   crit?: boolean; // 仅供 UI 飘字强调, 引擎不读取
+  shield?: number; // 本段被护盾吸收的量(护航分担同样计入持有者), 供 UI 飘蓝白数字
+  blocked?: boolean; // 本段触发了格挡(伤害减半), 供 UI 飘放大的 BLOCK 字样
+  guard?: boolean; // 本段是护航替友方分担的伤害 —— UI 演护盾抵挡而不是受击
 }
 
 export interface AnimHit {
@@ -19,6 +22,7 @@ export interface AnimHit {
   // 逐段明细(见 animHits.ts)。缺省 = 单段, UI 退化为一个数字一声音效。
   // UI 靠它渲染多个飘字与多次 HIT 音效; 引擎自身不读取。
   parts?: AnimHitPart[];
+  guard?: boolean; // 合计口径: 所有段都是护航分担才为 true(只演护盾抵挡, 不演攻击特效)
 }
 
 export interface AnimFrame {

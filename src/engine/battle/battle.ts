@@ -93,6 +93,7 @@ export function startRound(state: BattleState): void {
   runEvergreen(state);
   state.redrawsThisRound = 0;
   state.waitsThisRound = 0;
+  state.deferredTickAdvance = 0;
   state.challengeFocusTargetId = null;
   state.attackedThisRound = [];
   state.echoGainedThisRound = false;
@@ -244,3 +245,5 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
 }
 
 export { resolvePendingChoice, cancelPendingChoice } from "./battleChoices";
+export { resolveChoiceRecorded, cancelChoiceRecorded } from "./choiceResolve";
+export type { ChoiceRecorder } from "./choiceResolve";

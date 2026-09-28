@@ -165,6 +165,7 @@ export function createBattleState(
     lastDiscardBatchFast: 0,
     lastRecoverBatchFast: 0,
     pendingChoice: null,
+    deferredTickAdvance: 0,
     pendingDiscardPicks: [],
     pendingAutoPlays: [],
     waterfallPlay: false,

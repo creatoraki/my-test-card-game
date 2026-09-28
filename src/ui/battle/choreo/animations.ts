@@ -266,7 +266,9 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
 // 一条飘字。多段伤害每段一条, 靠 delayMs 依次弹出(见 hitFloats.ts)。
 export interface FloatText {
   text: string;
-  tone: "dmg" | "heal" | "miss";
+  // shield: 打在护盾上的伤害(蓝白); block: 触发格挡的伤害(蓝白放大, 尾缀 BLOCK)
+  tone: "dmg" | "heal" | "miss" | "shield" | "block";
+  suffix?: string; // 同一行的装饰尾缀(如 "(BLOCK!)"), 渲染为较小字号
   delayMs: number; // 相对本次命中的额外延迟, 叠加在 --vfx-float-delay 之上
   crit?: boolean; // 暴击段: 文本尾部加 "!", 渲染时放大并改色
   dx?: number; // X 轴偏移(px), 多段时左右交替; 单段缺省 0 保持居中
@@ -277,6 +279,7 @@ export interface HitFx {
   anim: CardAnim;
   floats: FloatText[]; // 飘字(伤害/治疗量/未命中), 空数组 = 不飘字
   seq: number; // 递增序号, 用于强制重放动画
+  guard?: boolean; // 护航代挡: 不演 anim 的攻击特效, 改演护盾抵挡(命中时刻仍按 anim 的 impactMs 对齐)
 }
 
 // 卡牌 → 动画类型。优先按定义表实时解析(见 DEF_ANIM: 实例上的副本可能来自旧存档),

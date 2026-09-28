@@ -96,7 +96,7 @@ function resolveDowned(state: BattleState, dmg: DamageCtx, target: Combatant, sh
   noteAttacked(state, dmg);
   cleanup(target);
   if (dmg.fatal) markDead(state, target);
-  recordHitPart(target.id, 0);
+  recordHitPart(target.id, 0, false, dmg.crit, { shield: dmg.blocked, blocked: dmg.blockRolled });
   return "hit";
 }
 
@@ -106,7 +106,7 @@ function applyHpLoss(state: BattleState, dmg: DamageCtx, target: Combatant, opts
   target.hp = target.team === "player" ? Math.max(0, target.hp - dmg.amount) : target.hp - dmg.amount;
   dmg.hpLost = dmg.amount;
   opts.onDealt?.(dmg.hpLost);
-  recordHitPart(target.id, dmg.hpLost, false, dmg.crit);
+  recordHitPart(target.id, dmg.hpLost, false, dmg.crit, { shield: dmg.blocked, blocked: dmg.blockRolled });
 
   const marks =
     (dmg.crit ? " 暴击!" : "") +

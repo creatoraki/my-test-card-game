@@ -21,7 +21,7 @@
 import type { DeathPhase } from "@/ui/battle/choreo/deathChoreo";
 
 /** 单位外壳的受击反应。null = 当前没有反应。 */
-export type UnitReact = "hit" | "bless" | null;
+export type UnitReact = "hit" | "bless" | "guard" | null; // guard = 护航代挡(举盾顶住)
 
 /** 敌方蓄力预告的类型。 */
 export type TelegraphKind = "attack" | "buff";

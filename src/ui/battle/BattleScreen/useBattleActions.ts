@@ -2,12 +2,12 @@ import { useCallback, type Dispatch, type SetStateAction } from "react";
 import type { BattleState } from "@/engine";
 import { avidyaPickCount, effectiveTargeting, playBlockReason } from "@/engine";
 import { cardAnim } from "@/ui/battle/choreo/animations";
-import { useBattleStore } from "@/store/battle/battleStore";
+import { useBattleStore, type ChoicePlan, type EndPlan } from "@/store/battle/battleStore";
 import { playSfx } from "@/ui/audio";
 import { resetHandHover } from "@/ui/battle/state/handFocusStore";
 import { showBattleToast } from "@/ui/battle/state/battleToastStore";
 import type { Pile } from "@/ui/battle/rails/PileRail";
-import { stepFromFx, fxTargets } from "./choreoSteps";
+import { choiceSteps, stepFromFx, fxTargets } from "./choreoSteps";
 import type { ChoreoStep } from "@/ui/battle/camera";
 import type { BattleCameraApi } from "./useBattleCamera";
 import type { BattleChoreoApi } from "./useBattleChoreo";
@@ -73,6 +73,22 @@ export function useBattleActions({
   const end = useBattleStore((state) => state.end);
   const wait = useBattleStore((state) => state.wait);
   const commit = useBattleStore((state) => state.commit);
+
+  // 待选结算统一走分镜: 选牌后续效果的出牌动作 + 补推进时刻的敌人行动。
+  // ⚠ 播放中一律不接受选择 —— 否则分镜收尾提交的终态会把刚完成的选择覆盖回去(纳刀要选两次)。
+  const pickChoice = useCallback((uid: string): ChoicePlan | null => {
+    if (!battle || playback.animatingRef.current) return null;
+    const plan = pickPendingChoice(uid);
+    if (plan) choreo.startBatch(choiceSteps(battle, plan), plan.final);
+    return plan;
+  }, [battle, choreo, pickPendingChoice, playback.animatingRef]);
+
+  const cancelChoice = useCallback((): EndPlan | null => {
+    if (!battle || playback.animatingRef.current) return null;
+    const plan = cancelPendingChoice();
+    if (plan) choreo.startBatch(plan.steps.map((step) => stepFromFx(battle, step)), plan.final);
+    return plan;
+  }, [battle, cancelPendingChoice, choreo, playback.animatingRef]);
 
   const triggerPlay = useCallback((uid: string, primaryId?: string, discardPicks?: string[]) => {
     if (!battle || playback.animatingRef.current) return;
@@ -144,12 +160,7 @@ export function useBattleActions({
       return;
     }
     if (battle.pendingChoice?.kind === "pickHandCard") {
-      const next = pickPendingChoice(uid);
-      if (next) {
-        commit(next);
-        setHandAction(null);
-        resetHandHover();
-      }
+      if (pickChoice(uid)) resetHandHover();
       return;
     }
     if (!handAction) return;
@@ -172,7 +183,7 @@ export function useBattleActions({
     }
     setHandAction(null);
     resetHandHover();
-  }, [avidyaPick, battle, choreo, commit, discardCard, hand, handAction, pickAvidyaCard, pickPendingChoice, setHandAction, redrawCard]);
+  }, [avidyaPick, battle, choreo, commit, discardCard, hand, handAction, pickAvidyaCard, pickChoice, setHandAction, redrawCard]);
 
   const onCardClick = useCallback((uid: string) => {
     if (!battle || battle.phase !== "player" || playback.animating) return;
@@ -181,12 +192,7 @@ export function useBattleActions({
       return;
     }
     if (battle.pendingChoice?.kind === "pickHandCard") {
-      const next = pickPendingChoice(uid);
-      if (next) {
-        commit(next);
-        setHandAction(null);
-        resetHandHover();
-      }
+      if (pickChoice(uid)) resetHandHover();
       return;
     }
     if (handAction) return;
@@ -205,7 +211,7 @@ export function useBattleActions({
     } else {
       triggerPlay(uid);
     }
-  }, [avidyaPick, battle, commit, handAction, pickAvidyaCard, pickPendingChoice, playback.animating, selectedUid, setHandAction, setSelectedUid, triggerPlay]);
+  }, [avidyaPick, battle, handAction, pickAvidyaCard, pickChoice, playback.animating, selectedUid, setSelectedUid, triggerPlay]);
 
   const onCombatantClick = useCallback((id: string) => {
     if (!battle || !selectedUid || playback.animating) return;
@@ -222,48 +228,36 @@ export function useBattleActions({
 
   const pickFromDiscard = useCallback((uid: string) => {
     if (!battle || battle.pendingChoice?.kind !== "recoverFromDiscard") return;
-    const next = pickPendingChoice(uid);
-    if (!next) return;
-    commit(next);
-    if (!next.pendingChoice) setOpenPile(null);
-  }, [battle, commit, pickPendingChoice, setOpenPile]);
+    const plan = pickChoice(uid);
+    if (plan && !plan.final.pendingChoice) setOpenPile(null);
+  }, [battle, pickChoice, setOpenPile]);
 
   const pickFromDraw = useCallback((uid: string) => {
     if (!battle || battle.pendingChoice?.kind !== "pickFromDraw") return;
-    const next = pickPendingChoice(uid);
-    if (!next) return;
-    commit(next);
-    setOpenPile(null);
-  }, [battle, commit, pickPendingChoice, setOpenPile]);
+    if (pickChoice(uid)) setOpenPile(null);
+  }, [battle, pickChoice, setOpenPile]);
 
   const pickHandCard = useCallback((uid: string) => {
     if (!battle || battle.pendingChoice?.kind !== "pickHandCard") return;
-    const next = pickPendingChoice(uid);
-    if (!next) return;
-    commit(next);
-    setHandAction(null);
-    resetHandHover();
-  }, [battle, commit, pickPendingChoice, setHandAction]);
+    if (pickChoice(uid)) resetHandHover();
+  }, [battle, pickChoice]);
 
   const pickSquadBuff = useCallback((id: string) => {
     if (!battle || battle.pendingChoice?.kind !== "pickSquadBuff") return;
-    const next = pickPendingChoice(id);
-    if (next) commit(next);
-  }, [battle, commit, pickPendingChoice]);
+    pickChoice(id);
+  }, [battle, pickChoice]);
 
   const cancelSquadBuff = useCallback(() => {
     if (!battle || battle.pendingChoice?.kind !== "pickSquadBuff") return;
-    const next = cancelPendingChoice();
-    if (next) commit(next);
-  }, [battle, cancelPendingChoice, commit]);
+    cancelChoice();
+  }, [battle, cancelChoice]);
 
   const closePile = useCallback(() => {
     if (battle?.pendingChoice?.kind === "recoverFromDiscard" || battle?.pendingChoice?.kind === "pickFromDraw") {
-      const next = cancelPendingChoice();
-      if (next) commit(next);
+      if (!cancelChoice()) return;
     }
     setOpenPile(null);
-  }, [battle, cancelPendingChoice, commit, setOpenPile]);
+  }, [battle, cancelChoice, setOpenPile]);
 
   return {
     triggerEndTurn,

@@ -229,7 +229,9 @@ export function BattleScreen() {
     : null;
   const placements = getEncounter(battle.encounterId).enemies.map(slotPlacement);
   const playerActing = !!choreo.attackerId && battle.playerIds.includes(choreo.attackerId);
-  const handDisplayAction = avidyaPick || battle.pendingChoice?.kind === "pickHandCard" ? "choose" : handAction;
+  // 分镜播放期间不亮「选择」: 必须等出牌动画与收尾提交完成后再选。
+  const choosingHand = battle.pendingChoice?.kind === "pickHandCard" && !playback.animating;
+  const handDisplayAction = avidyaPick || choosingHand ? "choose" : handAction;
 
   return (
     <div className={s["battle-viewport"]} ref={viewportRef} style={viewportStyle}>

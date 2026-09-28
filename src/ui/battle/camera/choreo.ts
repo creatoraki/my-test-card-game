@@ -6,7 +6,7 @@ export interface ChoreoStep {
   actorId: string;
   anim: CardAnim;
   snapshot: BattleState;
-  hits: { id: string; hpDelta: number; missed?: boolean }[];
+  hits: { id: string; hpDelta: number; missed?: boolean; guard?: boolean }[];
   card?: Card;
   discardUid?: string;
   kind?: "tempo" | "reveal" | "flee" | "relic"; // 遗物只演图标触发与目标反馈
@@ -40,7 +40,9 @@ export function choreograph(steps: ChoreoStep[], initial: BattleState | undefine
     if (step.kind === "reveal") {
       return { step, preset: SHOTS.none, targetIds: [], focusIds: [], keepCamera: true };
     }
-    const targetIds = step.hits.length ? step.hits.map((hit) => hit.id) : [step.actorId];
+    // 护航代挡的单位只演护盾抵挡, 不算本次攻击的受击目标(不影响单体 / 群体镜头判定)。
+    const struck = step.hits.filter((hit) => !hit.guard);
+    const targetIds = struck.length ? struck.map((hit) => hit.id) : [step.actorId];
     const stageFocusIds = step.hits
       .map((hit) => hit.id)
       .filter((id) => initial?.enemyIds.includes(id));
