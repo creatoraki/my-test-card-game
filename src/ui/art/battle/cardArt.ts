@@ -71,6 +71,18 @@ import botanistBloodVineArt from "@/assets/skills/botanist/汲血蔓.webp";
 import botanistGuidingCrownArt from "@/assets/skills/botanist/引路棘冠.webp";
 import botanistNewLeafArt from "@/assets/skills/botanist/新叶萌发.webp";
 import botanistChaoticSpikeArt from "@/assets/skills/botanist/乱刺散射.webp";
+import botanistMillennialTreeArt from "@/assets/skills/botanist/千年古树.webp";
+import botanistTwinFlowerSproutArt from "@/assets/skills/botanist/双生花·子株.webp";
+import botanistGraftingArt from "@/assets/skills/botanist/嫁接.webp";
+import botanistPollinationArt from "@/assets/skills/botanist/授粉.webp";
+import botanistResinArmorArt from "@/assets/skills/botanist/树脂护甲.webp";
+import botanistVenomDartArt from "@/assets/skills/botanist/毒刺箭.webp";
+import botanistUpasTreeArt from "@/assets/skills/botanist/箭毒木.webp";
+import botanistRootSnareArt from "@/assets/skills/botanist/缠根绊索.webp";
+import botanistRottenFruitArt from "@/assets/skills/botanist/腐烂的果实.webp";
+import botanistBloomingSeasonArt from "@/assets/skills/botanist/花期.webp";
+import botanistMyceliumWebArt from "@/assets/skills/botanist/菌丝网络.webp";
+import botanistCaltropArrowArt from "@/assets/skills/botanist/蒺藜箭.webp";
 import alchemistUniversalComponentArt from "@/assets/skills/alchemist/万能配件.webp";
 import alchemistCatalyticDetonationArt from "@/assets/skills/alchemist/催化引爆.webp";
 import alchemistResonanceTuningArt from "@/assets/skills/alchemist/共振调谐.webp";
@@ -195,6 +207,18 @@ export const CARD_ART: Record<string, string> = {
   "guiding-crown": botanistGuidingCrownArt,
   "new-leaf": botanistNewLeafArt,
   "chaotic-spike": botanistChaoticSpikeArt,
+  "millennial-tree": botanistMillennialTreeArt,
+  "twin-flower-sprout": botanistTwinFlowerSproutArt,
+  "grafting": botanistGraftingArt,
+  "pollination": botanistPollinationArt,
+  "resin-armor": botanistResinArmorArt,
+  "venom-dart": botanistVenomDartArt,
+  "upas-tree": botanistUpasTreeArt,
+  "root-snare": botanistRootSnareArt,
+  "rotten-fruit": botanistRottenFruitArt,
+  "blooming-season": botanistBloomingSeasonArt,
+  "mycelium-web": botanistMyceliumWebArt,
+  "caltrop-arrow": botanistCaltropArrowArt,
   "ignition-reagent": alchemistPointGoldShotArt,
   "bone-acid-rain": alchemistBoneAcidRainArt,
   "catalytic-detonation": alchemistCatalyticDetonationArt,
