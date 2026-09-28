@@ -1,4 +1,4 @@
-// 房间内的横向场景使用设计画布坐标; 宽度由近景素材按 NEAR_MAP_ART_SCALE 倍显示宽度决定, 镜头跟随玩家卷动。
+// 房间内的横向场景使用设计画布坐标; 宽度由近景素材按 nearMapArtScale 倍显示宽度决定, 镜头跟随玩家卷动。
 // 场景状态随远征会话保留, 战后返回原处; 房间之间的连通关系见 ../dungeon/types.ts。
 import type { NearMapVariant, PortalDir } from "../dungeon/types";
 import { NEAR_MAP_GEOMETRY } from "../dungeon/nearMapGeometry";
@@ -110,7 +110,7 @@ export const CORRIDOR = {
   baseSlots: [800, 1120, 1440, 1760, 2080, 2400, 2720, 3040] as readonly number[],
 } as const;
 
-/** 当前近景素材按 NEAR_MAP_ART_SCALE 倍显示宽度，也就是对应房间的宽度。 */
+/** 当前近景素材按 nearMapArtScale 倍显示宽度，也就是对应房间的宽度。 */
 export function corridorWidthFor(variant: NearMapVariant): number {
   return NEAR_MAP_GEOMETRY[variant].width;
 }

@@ -67,7 +67,7 @@ export const CorridorScene = memo(function CorridorScene({ corridor, blocked, en
     } as CSSProperties}
   >
     <CorridorFar ref={farStripRef} mapId={mapId} />
-    <CorridorAbyss />
+    <CorridorAbyss variant={nearMapVariant} />
     <div className={s.haze} aria-hidden />
     <div className={s.stage}>
       <div ref={worldRef} className={s.world} style={{ width: corridor.width }}>

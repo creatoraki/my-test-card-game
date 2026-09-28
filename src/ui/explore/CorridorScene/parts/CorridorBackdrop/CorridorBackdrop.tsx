@@ -17,11 +17,11 @@ export const CorridorFar = forwardRef<HTMLDivElement, { mapId?: string }>(functi
 });
 
 /** 深渊：盖住平台下缘以下的远景，让近景读起来像架在半空的平台。 */
-export const CorridorAbyss = memo(function CorridorAbyss() {
-  return <div className={s.abyss} aria-hidden style={{ top: abyssTop }} />;
+export const CorridorAbyss = memo(function CorridorAbyss({ variant }: { variant: NearMapVariant }) {
+  return <div className={s.abyss} aria-hidden style={{ top: abyssTop(variant) }} />;
 });
 
-/** 近景：按 NEAR_MAP_ART_SCALE 倍尺寸绘制整张素材，并与对应宽度的房间实体同步。 */
+/** 近景：按 nearMapArtScale 倍尺寸绘制整张素材，并与对应宽度的房间实体同步。 */
 export const CorridorNear = memo(function CorridorNear({ width, variant }: { width: number; variant: NearMapVariant }) {
   return <div className={s.near} aria-hidden style={{
     width,

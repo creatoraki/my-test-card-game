@@ -290,8 +290,9 @@ span.combatant-portrait {
   justify-content: flex-start;
   pointer-events: auto;
 }
+/* 信息栏宽 256px, 间距 3px: 5×48 + 4×3 = 252, 一行正好放 5 个。 */
 .combatant-statuses {
-  --pip-box: 56px;
+  --pip-box: 48px;
 }
 /* 血条下方的读数行: 意图(仅洞察时) + 沙漏倒计时。 */
 .combatant-readout {
