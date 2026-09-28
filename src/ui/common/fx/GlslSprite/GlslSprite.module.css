@@ -1,0 +1,9 @@
+.canvas { display: block; pointer-events: auto; }
+/* 无 WebGL 时的拱形占位：保证门仍然可见、可点。 */
+.fallback {
+  display: block;
+  background: radial-gradient(ellipse 26% 38% at 50% 58%, #8ff3e6cc 0%, #2fb7b066 55%, transparent 100%);
+  opacity: .75;
+  transition: opacity 400ms;
+}
+.fallbackLit { opacity: 1; }

@@ -3,11 +3,8 @@ import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
 import type { NearMapVariant } from "@/explore/dungeon/types";
 import { roomMoveCostFor } from "@/explore/resources/energyCost";
 import { useExploreStore } from "@/store/explore/exploreStore";
-import {
-  CORRIDOR_PROP_Y_OFFSETS,
-  CORRIDOR_ROOM_PORTAL_DISPLAY_HEIGHT,
-  CORRIDOR_ROOM_PORTAL_Y_OFFSET,
-} from "@/ui/art/corridor/corridorArt";
+import { CORRIDOR_PROP_Y_OFFSETS } from "@/ui/art/corridor/corridorArt";
+import { portalThemeFor, ROOM_PORTAL_GEOMETRY } from "@/ui/art/portal";
 import { CorridorAbyss, CorridorFar, CorridorNear } from "./parts/CorridorBackdrop";
 import { CorridorSprite } from "./parts/CorridorSprite/CorridorSprite";
 import { CorridorPlayer } from "./parts/CorridorPlayer";
@@ -55,6 +52,7 @@ export const CorridorScene = memo(function CorridorScene({ corridor, blocked, en
   const entityFloorY = CORRIDOR.floorY + CORRIDOR_LAYOUT.entityGroundOffset;
   const activeThreat = corridor.threats.find((threat) => threat.id === corridor.encounterId);
   const playerWalking = movement.walking && !blocked;
+  const portalTheme = portalThemeFor(mapId);
 
   useLayoutEffect(() => {
     onFrame(movement.x);
@@ -74,13 +72,13 @@ export const CorridorScene = memo(function CorridorScene({ corridor, blocked, en
     <div className={s.stage}>
       <div ref={worldRef} className={s.world} style={{ width: corridor.width }}>
         <CorridorNear width={corridor.width} variant={nearMapVariant} />
-        {corridor.portals.map((portal) => {
+        {corridor.portals.map((portal, index) => {
           const standing = movement.standingPortal?.dir === portal.dir;
-          return <div key={portal.dir} className={`${s.object} ${s.portal}`} style={{ left: portal.x, top: entityFloorY + CORRIDOR_ROOM_PORTAL_Y_OFFSET }}>
+          return <div key={portal.dir} className={`${s.object} ${s.portal}`} style={{ left: portal.x, top: entityFloorY + ROOM_PORTAL_GEOMETRY.groundInset }}>
             <button className={s.objectButton} type="button" disabled={blocked}
               onClick={() => movement.travel(portal.dir)}
               aria-label={standing ? "传送门，确认前往" : "传送门，走上去可点亮它通往的房间"}>
-              <RoomPortal height={CORRIDOR_ROOM_PORTAL_DISPLAY_HEIGHT} standing={standing} />
+              <RoomPortal theme={portalTheme} standing={standing} seed={0.17 + index * 0.41} />
             </button>
             {standing && <span className={s.portalPrompt}>空格传送 · 粒子 −{roomMoveCostFor(Boolean(rooms?.[portal.to]?.visited))}</span>}
           </div>;
