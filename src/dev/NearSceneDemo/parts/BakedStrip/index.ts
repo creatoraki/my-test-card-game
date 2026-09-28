@@ -1,0 +1,1 @@
+export { BakedStrip } from "./BakedStrip";
