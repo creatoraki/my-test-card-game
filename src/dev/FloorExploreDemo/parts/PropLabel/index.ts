@@ -1,1 +1,0 @@
-export { PropLabel } from "./PropLabel";

@@ -1,0 +1,1 @@
+export { RoomMinimap } from "./RoomMinimap";
