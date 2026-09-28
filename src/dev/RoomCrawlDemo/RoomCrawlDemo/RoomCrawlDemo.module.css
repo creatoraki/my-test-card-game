@@ -1,5 +1,0 @@
-.viewport { background: #020304; }
-.screen { background: #020304; color: #e5dbc8; font-size: 18px; isolation: isolate; overflow: hidden; }
-
-/* 右上角能量读数卡的定位(与正式探索界面一致)。 */
-.readout { position: absolute; top: 0; right: 0; z-index: 30; }

@@ -1,1 +1,0 @@
-export { PlatformerDemo } from "./PlatformerDemo";

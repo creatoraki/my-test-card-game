@@ -3,4 +3,8 @@
   height: 100vh;
   overflow: hidden;
   background: #000;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 18px;
 }

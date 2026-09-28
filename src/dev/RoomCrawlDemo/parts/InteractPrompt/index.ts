@@ -1,1 +1,0 @@
-export { InteractPrompt } from "./InteractPrompt";
