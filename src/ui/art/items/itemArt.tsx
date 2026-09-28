@@ -49,6 +49,8 @@ import medicalKitArt from "@/assets/道具/消耗品/医疗包.webp";
 import holyWaterArt from "@/assets/道具/消耗品/圣水.webp";
 import fruitJuiceArt from "@/assets/道具/消耗品/果汁.webp";
 import sugarCubeArt from "@/assets/道具/消耗品/糖块.webp";
+import energyCanisterArt from "@/assets/道具/消耗品/净化粒子罐.webp";
+import moduleCrateArt from "@/assets/道具/消耗品/1阶模组箱.webp";
 import colaArt from "@/assets/道具/临期食品/可乐.webp";
 import pizzaArt from "@/assets/道具/临期食品/披萨.webp";
 import hamburgerArt from "@/assets/道具/临期食品/汉堡.webp";
@@ -112,6 +114,15 @@ import gauzeRollArt from "@/assets/遗物/纱布卷.webp";
 import tallyCounterArt from "@/assets/遗物/计数器.webp";
 import overloadFuseArt from "@/assets/遗物/过载保险丝.webp";
 import dustMaskArt from "@/assets/遗物/防尘口罩.webp";
+import brokenCompassArt from "@/assets/遗物/断针罗盘.webp";
+import staticParasiteArt from "@/assets/遗物/静电寄生体.webp";
+import hollowCoreArt from "@/assets/遗物/空腔核心.webp";
+import heavyShadowArt from "@/assets/遗物/沉影锚.webp";
+import bleedingSigilArt from "@/assets/遗物/渗血刻印.webp";
+import picnicSodaArt from "@/assets/遗物/快乐汽水.webp";
+import picnicAfterglowArt from "@/assets/遗物/聚会余温.webp";
+import picnicCalorieArt from "@/assets/遗物/热量储备.webp";
+import picnicClothArt from "@/assets/遗物/团圆餐布.webp";
 
 const VB = "0 0 48 48";
 const base = {
@@ -256,6 +267,8 @@ const CONSUMABLE_ART: Record<string, string> = {
   "medical-kit": medicalKitArt,
   "holy-water": holyWaterArt,
   "fruit-juice": fruitJuiceArt,
+  "energy-canister": energyCanisterArt,
+  "module-crate-t1": moduleCrateArt,
   milk: milkArt,
   bread: breadArt,
   cola: colaArt,
@@ -348,11 +361,10 @@ const RELIC_ART: Record<string, string> = {
   "relic-compressed-biscuit": compressedBiscuitArt,
   "relic-energy-crystal": energyCrystalArt,
   "relic-warm-match": warmMatchArt,
-  // 野餐一次性遗物暂无专属素材，复用已有遗物图标。
-  "relic-picnic-soda": energyCrystalArt,
-  "relic-picnic-afterglow": warmMatchArt,
-  "relic-picnic-calorie": compressedBiscuitArt,
-  "relic-picnic-cloth": foldingCrateArt,
+  "relic-picnic-soda": picnicSodaArt,
+  "relic-picnic-afterglow": picnicAfterglowArt,
+  "relic-picnic-calorie": picnicCalorieArt,
+  "relic-picnic-cloth": picnicClothArt,
   "relic-expiry-labeler": expiryLabelerArt,
   "relic-insurance-contract": insuranceContractArt,
   "relic-recycle-list": recycleListArt,
@@ -378,6 +390,11 @@ const RELIC_ART: Record<string, string> = {
   "relic-tally-counter": tallyCounterArt,
   "relic-overload-fuse": overloadFuseArt,
   "relic-dust-mask": dustMaskArt,
+  "relic-broken-compass": brokenCompassArt,
+  "relic-static-parasite": staticParasiteArt,
+  "relic-hollow-core": hollowCoreArt,
+  "relic-heavy-shadow": heavyShadowArt,
+  "relic-bleeding-sigil": bleedingSigilArt,
 };
 
 export const ITEM_ART_SOURCES: readonly string[] = [...new Set([
