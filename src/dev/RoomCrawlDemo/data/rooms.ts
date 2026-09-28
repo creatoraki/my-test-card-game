@@ -6,7 +6,7 @@ import { PUMP_ROOM } from "./pumpRoom";
 import { SERVER_ROOM } from "./serverRoom";
 
 /**
- * 楼层拓扑(小地图格位):
+ * 楼层拓扑:
  *           [④ 数据机房]
  *                │
  * [① 货运入口]─[② 泵站管廊]─[③ 霓虹旧商场]
@@ -24,9 +24,3 @@ export function getRoom(id: string): RoomDef {
   if (!room) throw new Error(`未知房间: ${id}`);
   return room;
 }
-
-/** 小地图的格子尺寸(列 × 行)。 */
-export const GRID_SIZE = {
-  cols: Math.max(...ROOMS.map((r) => r.grid.col)) + 1,
-  rows: Math.max(...ROOMS.map((r) => r.grid.row)) + 1,
-};

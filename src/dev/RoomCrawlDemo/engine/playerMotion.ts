@@ -1,11 +1,9 @@
 import { SIDE_MARGIN, WALK_Z_MAX, WALK_Z_MIN } from "../data/layout";
 import type { Blocker } from "../types";
 
-/** 横向 / 纵深的走、跑速度(px/s)。纵深带被压扁显示, 速度也相应放慢。 */
+/** 横向 / 纵深的行走速度(px/s)。纵深带被压扁显示, 速度也相应放慢。 */
 const WALK_X = 330;
 const WALK_Z = 210;
-const RUN_X = 600;
-const RUN_Z = 320;
 /** 起步 / 停步的响应速度(越大越跟手)。 */
 const ACCEL = 19;
 const DECEL = 24;
@@ -29,7 +27,6 @@ export interface PlayerState {
   vz: number;
   vh: number;
   facing: 1 | -1;
-  running: boolean;
   jump: JumpPhase;
   /** 当前跳跃阶段已持续的时间。 */
   phaseT: number;
@@ -40,12 +37,11 @@ export interface PlayerState {
 export interface MoveInput {
   right: number;
   down: number;
-  run: boolean;
   jump: boolean;
 }
 
 export function createPlayer(x: number, z: number, facing: 1 | -1): PlayerState {
-  return { x, z, h: 0, vx: 0, vz: 0, vh: 0, facing, running: false, jump: "ground", phaseT: 0, knock: 0 };
+  return { x, z, h: 0, vx: 0, vz: 0, vh: 0, facing, jump: "ground", phaseT: 0, knock: 0 };
 }
 
 function approach(v: number, target: number, rate: number, dt: number): number {
@@ -76,13 +72,11 @@ export function stepPlayer(p: PlayerState, input: MoveInput, dt: number, width: 
     p.vz = approach(p.vz, 0, 5, dt);
   } else {
     const len = Math.hypot(input.right, input.down) || 1;
-    const run = input.run && (input.right !== 0 || input.down !== 0);
-    const tx = (input.right / len) * (run ? RUN_X : WALK_X);
-    const tz = (input.down / len) * (run ? RUN_Z : WALK_Z);
+    const tx = (input.right / len) * WALK_X;
+    const tz = (input.down / len) * WALK_Z;
     const airControl = p.jump === "air" ? 0.45 : 1;
     p.vx = approach(p.vx, tx, (tx === 0 ? DECEL : ACCEL) * airControl, dt);
     p.vz = approach(p.vz, tz, (tz === 0 ? DECEL : ACCEL) * airControl, dt);
-    p.running = run;
     if (input.right !== 0 && p.jump !== "air") p.facing = input.right > 0 ? 1 : -1;
   }
 
@@ -130,9 +124,9 @@ export function knockBack(p: PlayerState, dir: number): void {
   p.facing = dir > 0 ? -1 : 1;
 }
 
-/** 当前水平速度占跑步速度的比例(0~1)。 */
+/** 当前水平速度占行走速度的比例(0~1)。 */
 export function speedRatio(p: PlayerState): number {
-  return Math.min(1, Math.hypot(p.vx, p.vz * (WALK_X / WALK_Z)) / RUN_X);
+  return Math.min(1, Math.hypot(p.vx, p.vz * (WALK_X / WALK_Z)) / WALK_X);
 }
 
-export const MOTION = { WALK_X, RUN_X, WALK_Z, JUMP_V, GRAVITY };
+export const MOTION = { WALK_X, WALK_Z, JUMP_V, GRAVITY };

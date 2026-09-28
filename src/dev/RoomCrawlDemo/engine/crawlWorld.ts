@@ -1,6 +1,6 @@
 import { decorBlocker, propBlocker } from "../data/footprints";
 import { getRoom, START_ROOM_ID } from "../data";
-import type { Blocker, DoorSide, RoomDef, WorldSnapshot } from "../types";
+import type { Blocker, DoorSide, RoomDef } from "../types";
 import { arrivalPoint } from "./doorTrigger";
 import { createGuard, resetGuard, type GuardState } from "./guardBrain";
 import { createPlayer, type PlayerState } from "./playerMotion";
@@ -23,7 +23,6 @@ export class CrawlWorld {
   /** 本房间的进入点(后撤时退回这里)。 */
   entry: { x: number; z: number; facing: 1 | -1 };
   private progress = new Map<string, RoomProgress>();
-  private visited: string[] = [];
 
   constructor() {
     this.room = getRoom(START_ROOM_ID);
@@ -48,7 +47,6 @@ export class CrawlWorld {
   /** 进入房间: fromSide 为离开上一个房间时穿过的门。 */
   enter(roomId: string, fromSide: DoorSide | null): void {
     this.room = getRoom(roomId);
-    if (!this.visited.includes(roomId)) this.visited.push(roomId);
     const banished = this.progressOf(roomId).banished;
     // 刚进门给一点喘息时间, 免得一落地就被发现
     this.guards = this.room.guards.filter((g) => !banished.has(g.id)).map((def) => {
@@ -91,14 +89,5 @@ export class CrawlWorld {
   /** 清理已溶解完的守卫。 */
   sweepGuards(): void {
     this.guards = this.guards.filter((g) => !(g.mode === "banished" && g.dissolve >= 1));
-  }
-
-  snapshot(): WorldSnapshot {
-    const cleared = this.visited.filter((id) => {
-      const room = getRoom(id);
-      const banished = this.progressOf(id).banished;
-      return room.guards.every((g) => banished.has(g.id));
-    });
-    return { roomId: this.room.id, visited: [...this.visited], cleared };
   }
 }

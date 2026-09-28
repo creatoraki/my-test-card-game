@@ -32,7 +32,7 @@ export class ScrollCamera {
   }
 
   update(dt: number, playerX: number, facing: number, speedRatio: number): void {
-    this.lead = damp(this.lead, facing * LOOK_AHEAD * (0.35 + speedRatio * 0.65), 3.5, dt);
+    this.lead = damp(this.lead, facing * LOOK_AHEAD * (0.35 + speedRatio * 0.36), 3.5, dt);
     this.x = damp(this.x, this.clampX(playerX - DESIGN_W / 2 + this.lead), 8, dt);
     this.shakeT += dt;
     this.shakeAmp = damp(this.shakeAmp, 0, 6, dt);

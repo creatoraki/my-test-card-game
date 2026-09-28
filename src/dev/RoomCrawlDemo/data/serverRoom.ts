@@ -4,11 +4,9 @@ import type { RoomDef } from "../types";
 export const SERVER_ROOM: RoomDef = {
   id: "server",
   name: "数据机房",
-  subtitle: "机柜还在低声运算, 没人知道它们在算什么",
   zone: "server",
   width: 4224,
   seed: 58.4,
-  grid: { col: 1, row: 0 },
   doors: [{ side: "down", to: "pump", x: 2112 }],
   props: [
     { id: "server-safe", kind: "safe", x: 1380, z: 112, loot: "加密存储芯片" },

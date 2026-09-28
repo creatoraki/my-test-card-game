@@ -27,12 +27,10 @@ export interface RoomUniforms {
 export interface RoomLayers {
   group: THREE.Group;
   uniforms: RoomUniforms;
-  /** 后墙、地面的烘焙工作(烘完回填实时材质的贴图)。 */
+  /** 后墙、地面的烘焙工作(烘完回填实时材质的贴图; 贴图归烘焙缓存所有)。 */
   bakeJobs: BakeJob[];
   /** 跟随相机的全屏层(背景 / 空气 / 前景)每帧对齐到相机。 */
   follow(camX: number): void;
-  /** 释放墙面 / 地面的烘焙贴图(几何体与材质随场景树回收)。 */
-  dispose(): void;
 }
 
 /** 实时材质读取烘焙结果所需的 uniforms; 烘焙前先挂占位贴图。 */
@@ -72,7 +70,6 @@ export function buildRoomLayers(room: RoomDef, zone: ZoneShaders, rig: RigUnifor
   const group = new THREE.Group();
   const screenQuad = () => makeQuad(DESIGN_W + PAD * 2, DESIGN_H + PAD * 2, -PAD, -PAD);
   const spanW = room.width + PAD * 2;
-  const bakedSurfaces: BakedSurface[] = [];
 
   const wallH = DESIGN_H + PAD - WALL_BASE_WY;
   const wallRect = { x: -PAD, y: WALL_BASE_WY, w: spanW, h: wallH };
@@ -94,26 +91,24 @@ export function buildRoomLayers(room: RoomDef, zone: ZoneShaders, rig: RigUnifor
   const bakeMesh = (material: THREE.ShaderMaterial, rect: typeof wallRect) => placeMesh(makeQuad(rect.w, rect.h, 0, 0), material, rect.x, rect.y, 0);
   const bakeJobs: BakeJob[] = [
     {
+      key: "wall",
       mesh: bakeMesh(wallBakeMaterial(zone, rig, uniforms), wallRect),
       rect: wallRect,
       count: 4,
       density: 1,
       apply: (baked) => {
-        bakedSurfaces.push(baked);
         applyGbuf(wallGbuf, baked);
         farWall.tWallG0.value = baked.textures[0];
         farWall.uWallRect.value = baked.rect;
       },
     },
     {
+      key: "floor",
       mesh: bakeMesh(floorBakeMaterial(zone, rig, uniforms), floorRect),
       rect: floorRect,
       count: 4,
       density: 1,
-      apply: (baked) => {
-        bakedSurfaces.push(baked);
-        applyGbuf(floorGbuf, baked);
-      },
+      apply: (baked) => applyGbuf(floorGbuf, baked),
     },
   ];
 
@@ -125,10 +120,6 @@ export function buildRoomLayers(room: RoomDef, zone: ZoneShaders, rig: RigUnifor
       far.position.x = camX;
       atmos.position.x = camX;
       fore.position.x = camX;
-    },
-    dispose: () => {
-      for (const baked of bakedSurfaces) baked.dispose();
-      bakedSurfaces.length = 0;
     },
   };
 }

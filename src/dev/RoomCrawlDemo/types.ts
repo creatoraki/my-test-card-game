@@ -88,14 +88,10 @@ export interface Blocker {
 export interface RoomDef {
   id: string;
   name: string;
-  /** 进房铭牌下方的一句描述。 */
-  subtitle: string;
   zone: ZoneId;
   width: number;
   /** 后墙装饰随机种子。 */
   seed: number;
-  /** 小地图格位。 */
-  grid: { col: number; row: number };
   doors: DoorDef[];
   props: PropDef[];
   decor: DecorDef[];
@@ -119,14 +115,6 @@ export interface LootNotice {
   y: number;
 }
 
-/** 小地图与铭牌需要的世界快照。 */
-export interface WorldSnapshot {
-  roomId: string;
-  visited: string[];
-  /** 已无守卫(或本来就没有守卫)的已访问房间。 */
-  cleared: string[];
-}
-
 export type EncounterChoice = "banish" | "retreat";
 
 /** 房间加载(着色器编译 + 烘焙)中的黑幕提示。 */
@@ -139,14 +127,11 @@ export interface LoadingState {
 
 /** 运行时 → React 的全部回调。坐标均为设计画布 px。 */
 export interface CrawlCallbacks {
-  onRoomChange(snapshot: WorldSnapshot): void;
   /** 房间加载进度; null 表示加载结束。 */
   onLoading(state: LoadingState | null): void;
   onPrompt(info: PromptInfo | null): void;
   onPromptMove(x: number, y: number): void;
   onLoot(notice: LootNotice): void;
-  /** 简短的状态提示, 例如「门被黑影封锁」。 */
-  onNotice(text: string): void;
   onEncounter(guardId: string): void;
   onDebug(on: boolean): void;
 }

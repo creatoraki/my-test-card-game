@@ -99,9 +99,12 @@ export const EYE = {
 };
 
 /**
- * 步态校准: 胯部偏移由逐帧与基准帧做区域配准求得(源图 px, x 向右, y 向下)。
- * 源帧里站立脚每帧向后滑约 10px, 12 帧一个循环 ≈ 120px。
+ * 走完一个步态循环(两步)的世界距离: 走速 330px/s ÷ 1.1 循环/s ≈ 每秒 2.2 步。
+ * 源帧里站立脚每帧只向后滑约 10px(一循环 ≈ 126px), 为了步频自然按走速拉长循环, 允许轻微滑步。
  */
+const WALK_CYCLE = 300;
+
+/** 步态校准: 胯部偏移由逐帧与基准帧做区域配准求得(源图 px, x 向右, y 向下)。 */
 export const GAIT: GaitTable = {
   frames: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
   idleFrame: BASE_FRAME,
@@ -110,5 +113,5 @@ export const GAIT: GaitTable = {
   hipOffset: [
     [0, 0], [2, 5], [1, 5], [0, 2], [0, 0], [0, 1], [0, 3], [1, 4], [4, 1], [4, 1], [4, 3], [2, 4], [2, 5],
   ],
-  cycleLength: 120 * HERO_SCALE,
+  cycleLength: WALK_CYCLE,
 };

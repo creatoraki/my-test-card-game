@@ -4,11 +4,9 @@ import type { RoomDef } from "../types";
 export const ARCADE_ROOM: RoomDef = {
   id: "arcade",
   name: "霓虹旧商场",
-  subtitle: "招牌还亮着, 只是再也没有人来",
   zone: "arcade",
   width: 5376,
   seed: 43.1,
-  grid: { col: 2, row: 1 },
   doors: [
     { side: "left", to: "pump" },
     { side: "down", to: "core", x: 4040 },

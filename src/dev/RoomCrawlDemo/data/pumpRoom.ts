@@ -4,11 +4,9 @@ import type { RoomDef } from "../types";
 export const PUMP_ROOM: RoomDef = {
   id: "pump",
   name: "泵站管廊",
-  subtitle: "管道还在呼吸, 地下的水声从未停过",
   zone: "pump",
   width: 4992,
   seed: 27.9,
-  grid: { col: 1, row: 1 },
   doors: [
     { side: "left", to: "dock" },
     { side: "right", to: "arcade" },

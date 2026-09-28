@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { BLANK_TEXTURE, bakeMaterial, type BakeJob } from "../bake/surfaceBaker";
-import type { Disposer } from "../core/disposer";
 import { makeQuad, placeMesh, quadMaterial } from "../core/quad";
 import { MOTIFS_GLSL } from "../glsl/motifs";
 import { FRAG_PRELUDE, QUAD_VERT } from "../glsl/prelude";
@@ -59,6 +58,8 @@ void main() {
 `;
 
 export interface BakedDecorSpec {
+  /** 烘焙缓存键(房间内唯一)。 */
+  key: string;
   /** 定义 propShade / propSdf 的 GLSL(依赖 PROP_COMMON)。 */
   glsl: string;
   kind: number;
@@ -93,9 +94,9 @@ export interface BakedDecor {
 
 /**
  * 建装饰物的实时网格与烘焙工作; 烘焙前实时材质挂占位贴图。
- * 烘焙完成时 apply 回填贴图, 并把烘焙结果登记到 disposer 随房间一起释放。
+ * 烘焙完成(或缓存命中)时 apply 回填贴图; 贴图归烘焙缓存所有, 不随房间释放。
  */
-export function buildBakedDecor(spec: BakedDecorSpec, rig: LightRig, disposer: Disposer): BakedDecor {
+export function buildBakedDecor(spec: BakedDecorSpec, rig: LightRig): BakedDecor {
   const [w, h, x0, y0] = spec.bounds;
   const bakeMat = bakeMaterial(
     QUAD_VERT,
@@ -115,13 +116,13 @@ export function buildBakedDecor(spec: BakedDecorSpec, rig: LightRig, disposer: D
   return {
     mesh,
     job: {
+      key: spec.key,
       mesh: placeMesh(makeQuad(w, h, x0, y0), bakeMat, 0, 0, 0),
       rect: { x: x0, y: y0, w, h },
       count: 3,
       // 按显示缩放烘焙, 纹素与屏幕像素一一对应, 抗锯齿宽度与实时渲染一致
       density: spec.scale,
       apply: (baked) => {
-        disposer.track(baked);
         const [t0, t1, t2] = baked.textures;
         live.uniforms.tD0.value = t0;
         live.uniforms.tD1.value = t1;

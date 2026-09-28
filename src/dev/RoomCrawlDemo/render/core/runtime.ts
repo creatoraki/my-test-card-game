@@ -5,6 +5,7 @@ import { CrawlDirector, type FrameEvents } from "../../engine/crawlDirector";
 import { createKeyInput, type KeyInput } from "../../engine/keyInput";
 import type { CrawlCallbacks, EncounterChoice } from "../../types";
 import { GAIT } from "../actors/heroCalibration";
+import { BakeCache } from "../bake/bakeCache";
 import { SurfaceBaker } from "../bake/surfaceBaker";
 import { HeroActor } from "../actors/heroActor";
 import { LootGlints } from "../fx/lootGlint";
@@ -14,6 +15,7 @@ import { createPostPipeline, type PostPipeline } from "../postfx/composer";
 import { getZone } from "../zones";
 import { ProgramKeeper } from "./programKeeper";
 import { createRenderer } from "./renderer";
+import { neighborsOf, prebakeNeighbors } from "./prebakeNeighbors";
 import { loadRoom, type RoomLoadContext } from "./roomLoader";
 import type { RoomScene } from "./roomScene";
 import { createStageCamera, placeCamera, toScreen } from "./stageProjection";
@@ -24,8 +26,9 @@ const MAX_PIXEL_RATIO = 1;
 
 /**
  * 2.5D 房间探索运行时: 持有渲染器、场景、后处理与逻辑调度, 驱动每帧循环,
- * 通过回调把房间切换、加载进度、调查提示、获得物、遭遇等事件交给 React。
- * 房间异步加载(并行编译 + 分帧烘焙), 加载期间停在黑幕, 不阻塞主线程。
+ * 通过回调把加载进度、调查提示、获得物、遭遇等事件交给 React。
+ * 房间异步加载(并行编译 + 分帧烘焙), 加载期间停在黑幕, 不阻塞主线程;
+ * 烘焙结果进缓存, 游玩中后台预烘焙相邻房间, 过门时只剩极短的加载。
  */
 export class CrawlRuntime {
   private renderer: THREE.WebGLRenderer;
@@ -33,6 +36,7 @@ export class CrawlRuntime {
   private camera = createStageCamera();
   private post: PostPipeline;
   private baker: SurfaceBaker;
+  private cache = new BakeCache();
   private keeper: ProgramKeeper;
   private lights = new LightRig();
   private input: KeyInput;
@@ -50,6 +54,8 @@ export class CrawlRuntime {
   private prevPhase = "";
   /** 加载代次: 每次开始加载 +1, 旧的加载据此判定过期。 */
   private loadGen = 0;
+  /** 其余房间的后台预编译; 完成后才开始预烘焙(预烘焙依赖常驻程序)。 */
+  private warmed: Promise<void> | null = null;
   private booted = false;
   private disposed = false;
 
@@ -66,7 +72,7 @@ export class CrawlRuntime {
   }
 
   private get loadContext(): RoomLoadContext {
-    return { keeper: this.keeper, baker: this.baker, lights: this.lights, burst: this.burst, pixelScale: this.pixelScale };
+    return { keeper: this.keeper, baker: this.baker, cache: this.cache, lights: this.lights, burst: this.burst, pixelScale: this.pixelScale };
   }
 
   start(): void {
@@ -85,21 +91,24 @@ export class CrawlRuntime {
     this.raf = requestAnimationFrame(loop);
   }
 
-  /** 启动: 先编译常驻对象(主角、粒子、获得光效), 再加载首个房间, 就绪后后台预编译其余房间。 */
+  /**
+   * 启动: 常驻对象(主角、粒子、获得光效)的编译与首个房间的加载并行进行,
+   * 就绪后后台预编译其余房间, 再开始预烘焙相邻房间。
+   */
   private async boot(): Promise<void> {
-    this.cb.onLoading({ name: this.director.world.room.name, progress: 0 });
     const glint = this.glints.warmMesh();
-    await this.keeper.compile([this.hero.group, this.burst.points, glint]);
-    glint.geometry.dispose();
-    this.keeper.retire(glint.material as THREE.Material);
+    const resident = this.keeper.compile([this.hero.group, this.burst.points, glint]).then(() => {
+      glint.geometry.dispose();
+      this.keeper.retire(glint.material as THREE.Material);
+    });
+    await this.enterRoom(resident);
     if (this.disposed) return;
-    await this.enterRoom();
-    if (this.disposed) return;
-    void warmOtherRooms(this.keeper, this.director.world.room.id, () => this.disposed);
+    this.warmed = warmOtherRooms(this.keeper, this.director.world.room.id, () => this.disposed);
+    this.prebake();
   }
 
-  /** 加载导演当前所在的房间, 完成后上场并放行虹膜。 */
-  private async enterRoom(): Promise<void> {
+  /** 加载导演当前所在的房间, 完成后上场并放行虹膜。ready 为上场前还需等待的其他准备。 */
+  private async enterRoom(ready?: Promise<void>): Promise<void> {
     const gen = ++this.loadGen;
     const w = this.director.world;
     const name = w.room.name;
@@ -114,8 +123,14 @@ export class CrawlRuntime {
         if (!isStale()) this.cb.onLoading({ name, progress });
       },
     });
-    if (!room || isStale()) return;
+    if (ready) await ready;
+    if (!room || isStale()) {
+      room?.dispose();
+      return;
+    }
     const zone = getZone(room.room.zone);
+    const roomId = room.room.id;
+    this.cache.touch(roomId, new Set([roomId, ...neighborsOf(roomId)]));
     this.room = room;
     this.scene.add(room.group);
     this.post.setStyle(zone.grade);
@@ -124,8 +139,20 @@ export class CrawlRuntime {
     this.post.setIris(0, DESIGN_W / 2, DESIGN_H / 2, this.accent);
     this.post.render(this.time);
     this.cb.onLoading(null);
-    this.cb.onRoomChange(w.snapshot());
     this.director.releaseLoad();
+    if (this.warmed) this.prebake();
+  }
+
+  /** 预编译完成后, 在游玩阶段后台预烘焙当前房间的相邻房间; 下一次开始加载时中止。 */
+  private prebake(): void {
+    const gen = this.loadGen;
+    const roomId = this.director.world.room.id;
+    const isStale = () => this.disposed || gen !== this.loadGen;
+    const canRun = () => this.director.phase === "play";
+    void this.warmed?.then(() => {
+      if (isStale()) return;
+      return prebakeNeighbors({ keeper: this.keeper, baker: this.baker, cache: this.cache }, roomId, isStale, canRun);
+    });
   }
 
   /** scale = 画布实际显示宽度 / 设计宽度 × 设备像素比。 */
@@ -145,9 +172,8 @@ export class CrawlRuntime {
 
   resolveEncounter(guardId: string, choice: EncounterChoice): void {
     const g = this.director.world.guards.find((item) => item.id === guardId);
-    const notice = this.director.resolveEncounter(guardId, choice);
+    this.director.resolveEncounter(guardId, choice);
     if (g && choice === "banish") this.burst.spawn("shade", g.x, worldY(g.z, 130), 40, worldY(g.z));
-    if (notice) this.cb.onNotice(notice);
   }
 
   private frame(dt: number): void {
@@ -223,7 +249,6 @@ export class CrawlRuntime {
       this.cb.onLoot({ key: ++this.lootKey, text: `获得：${prop.loot}`, x: s.x, y: s.y });
     }
     if (ev.searchDone) room.props.get(ev.searchDone.id)?.markSearched(false);
-    if (ev.notice) this.cb.onNotice(ev.notice);
     if (ev.debugToggled) {
       this.hero.setDebug(d.debug);
       this.cb.onDebug(d.debug);
@@ -247,6 +272,7 @@ export class CrawlRuntime {
     this.input.dispose();
     this.room?.dispose();
     this.room = null;
+    this.cache.dispose();
     this.hero.dispose();
     this.burst.dispose();
     this.glints.clear();

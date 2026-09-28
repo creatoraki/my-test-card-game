@@ -29,7 +29,7 @@ export function quadMaterial(opts: QuadMaterialOptions): THREE.ShaderMaterial {
     vertexShader: opts.vertexShader,
     fragmentShader: opts.fragmentShader,
     uniforms: { ...(opts.rig ?? {}), ...opts.uniforms },
-    defines: opts.defines,
+    defines: opts.defines ?? {},
     transparent: true,
     depthTest: false,
     depthWrite: false,

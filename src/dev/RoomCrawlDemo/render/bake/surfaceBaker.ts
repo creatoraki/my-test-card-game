@@ -19,8 +19,11 @@ export interface BakedSurface {
 /**
  * 一项待烘焙的工作: 已摆好世界位置的面片 + 烘焙区域。
  * 烘完后 apply 把结果回填给实时材质; 烘焙材质与几何体由调用方随后回收。
+ * 烘焙结果的所有权归烘焙缓存(BakeCache), apply 只引用不释放。
  */
 export interface BakeJob {
+  /** 房间内稳定的工作名(缓存键), 如 wall / floor / decor:0。 */
+  key: string;
   mesh: THREE.Mesh;
   rect: BakeRect;
   count: number;
@@ -35,8 +38,6 @@ BLANK_TEXTURE.needsUpdate = true;
 
 /** 固定抗锯齿宽度在 1 纹素 = 1 设计 px 时的取值(与 fwidth 版本的 0.75 倍一致)。 */
 const AA_BASE = 0.75;
-/** 分块烘焙的块宽(纹素): 每块渲染后让出一帧, 避免单次超长的 GPU 占用。 */
-const TILE_W = 1024;
 
 /** 烘焙专用材质: GLSL3(片元自行声明多目标输出)、不混合、不透明, 抗锯齿用固定宽度(FIXED_AA)。 */
 export function bakeMaterial(vertexShader: string, fragmentShader: string, uniforms: Record<string, THREE.IUniform>, defines?: Record<string, string | number>): THREE.ShaderMaterial {
@@ -58,6 +59,35 @@ export function nextFrame(): Promise<void> {
   return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }
 
+/** 烘焙节奏: 块宽(纹素)与每帧可提交的纹素总量。 */
+export interface BakePace {
+  tileW: number;
+  texelsPerFrame: number;
+}
+
+/** 前台加载(黑幕下): 一帧内连续提交多块, 约等于墙面 4 块; 小装饰物可一帧烘完。 */
+export const FOREGROUND_PACE: BakePace = { tileW: 1024, texelsPerFrame: 2_000_000 };
+/** 后台预烘焙(游玩中): 窄块、每帧一块, 不抢实时画面的 GPU 时间。 */
+export const BACKGROUND_PACE: BakePace = { tileW: 128, texelsPerFrame: 1 };
+
+/**
+ * 跨烘焙工作共享的每帧预算: 每提交一块记一次用量, 用完就让出一帧。
+ * ready 为假时(例如后台预烘焙遇到非游玩阶段)一直等待, 直到恢复或过期。
+ */
+export class FrameBudget {
+  private used = 0;
+
+  constructor(readonly pace: BakePace, private ready: () => boolean = () => true) {}
+
+  async spend(texels: number, isStale: () => boolean): Promise<void> {
+    this.used += texels;
+    if (this.used < this.pace.texelsPerFrame) return;
+    this.used = 0;
+    await nextFrame();
+    while (!this.ready() && !isStale()) await nextFrame();
+  }
+}
+
 /**
  * 程序化表面烘焙器: 把「已摆好世界位置」的面片用正交相机正好框住, 渲染进多目标贴图(MRT)。
  * 烘焙材质须为 GLSL3 并自行声明 layout(location = n) 输出, 且不混合。
@@ -70,25 +100,27 @@ export class SurfaceBaker {
 
   constructor(private renderer: THREE.WebGLRenderer) {}
 
-  /** 按列分块烘焙, 每块之间让出一帧。isStale 返回 true 时中途放弃(结果已释放)。 */
-  async bakeAsync(job: BakeJob, isStale: () => boolean, onTile?: () => void): Promise<BakedSurface | null> {
+  /** 按列分块烘焙, 按预算让出帧。isStale 返回 true 时中途放弃(结果已释放)。 */
+  async bakeAsync(job: BakeJob, budget: FrameBudget, isStale: () => boolean, onTile?: () => void): Promise<BakedSurface | null> {
     const { target, d } = this.prepare(job);
-    const width = target.width;
+    const { width, height } = target;
+    const tileW = budget.pace.tileW;
     const baked: BakedSurface = {
       textures: target.textures,
       rect: new THREE.Vector4(job.rect.x, job.rect.y, job.rect.w, job.rect.h),
       dispose: () => target.dispose(),
     };
-    for (let x = 0; x < width; x += TILE_W) {
+    for (let x = 0; x < width; x += tileW) {
       if (isStale()) {
         baked.dispose();
         return null;
       }
-      target.scissor.set(x, 0, Math.min(TILE_W, width - x), target.height);
+      const w = Math.min(tileW, width - x);
+      target.scissor.set(x, 0, w, height);
       target.scissorTest = true;
       this.render(job, target, d, x === 0);
       onTile?.();
-      await nextFrame();
+      await budget.spend(w * height, isStale);
     }
     target.scissorTest = false;
     if (isStale()) {
@@ -98,9 +130,9 @@ export class SurfaceBaker {
     return baked;
   }
 
-  /** 该工作要分成几块(进度统计用)。 */
-  tilesOf(job: BakeJob): number {
-    return Math.max(1, Math.ceil((job.rect.w * this.densityOf(job)) / TILE_W));
+  /** 该工作按 tileW 要分成几块(进度统计用)。 */
+  tilesOf(job: BakeJob, tileW: number): number {
+    return Math.max(1, Math.ceil((job.rect.w * this.densityOf(job)) / tileW));
   }
 
   private densityOf(job: BakeJob): number {

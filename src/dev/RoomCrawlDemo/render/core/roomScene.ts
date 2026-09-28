@@ -2,7 +2,8 @@ import * as THREE from "three";
 import type { GuardState } from "../../engine/guardBrain";
 import type { RoomDef } from "../../types";
 import { GuardActor } from "../actors/guardActor";
-import type { BakeJob, SurfaceBaker } from "../bake/surfaceBaker";
+import type { BakeCache } from "../bake/bakeCache";
+import type { BakeJob, FrameBudget, SurfaceBaker } from "../bake/surfaceBaker";
 import { buildRoomFx, type RoomFx } from "../fx/roomFx";
 import type { BurstFx } from "../fx/sparks";
 import type { LightRig } from "../lighting/lightRig";
@@ -30,7 +31,7 @@ export interface RoomSceneOptions {
 /**
  * 一个房间的全部可见内容: 五层场景、交互物、装饰、吊灯、传送门、守卫、环境特效。
  * 构造时只建网格与材质(不碰 GPU); 后墙、地面与静态装饰的烘焙由 bake() 分帧执行。
- * 换房间时整体回收重建。
+ * 换房间时整体回收重建; 烘焙贴图归烘焙缓存, 不随房间释放。
  */
 export class RoomScene {
   readonly group = new THREE.Group();
@@ -55,14 +56,14 @@ export class RoomScene {
     this.lights = lights;
     this.disposer = new Disposer(opts.retire);
     lights.setRoom(room.lights, zone.ambient);
-    this.layers = this.disposer.track(buildRoomLayers(room, zone, lights.uniforms));
+    this.layers = buildRoomLayers(room, zone, lights.uniforms);
     this.bakeJobs.push(...this.layers.bakeJobs);
     this.statics.add(this.layers.group);
-    for (const def of room.decor) {
-      const decor = buildDecor(def, lights, this.disposer);
+    room.decor.forEach((def, i) => {
+      const decor = buildDecor(def, i, lights);
       this.statics.add(decor.mesh);
       this.bakeJobs.push(decor.job);
-    }
+    });
     room.lights.forEach((light, i) => {
       if (light.z > HANGING_Z) this.statics.add(buildHangingLamp(light, i, lights));
     });
@@ -82,23 +83,36 @@ export class RoomScene {
     this.group.add(this.statics);
   }
 
-  /** 需要预编译的对象: 场景树 + 烘焙面片。 */
+  /** 需要预编译的全部对象: 场景树 + 烘焙面片。 */
   compileTargets(): THREE.Object3D[] {
     return [this.group, ...this.bakeJobs.map((job) => job.mesh)];
   }
 
-  /** 烘焙的总块数(进度统计用)。 */
-  bakeTiles(baker: SurfaceBaker): number {
-    return this.bakeJobs.reduce((sum, job) => sum + baker.tilesOf(job), 0);
+  /** 缓存里还没有结果、需要真正烘焙的工作。 */
+  pendingJobs(cache: BakeCache): BakeJob[] {
+    return this.bakeJobs.filter((job) => !cache.get(this.room.id, job.key));
   }
 
-  /** 分帧执行全部烘焙; 房间被回收或 isStale 为真时中途放弃。返回是否全部完成。 */
-  async bake(baker: SurfaceBaker, isStale: () => boolean, onTile?: () => void): Promise<boolean> {
+  /** 按给定块宽, 需要真正烘焙的总块数(进度统计用)。 */
+  bakeTiles(baker: SurfaceBaker, cache: BakeCache, tileW: number): number {
+    return this.pendingJobs(cache).reduce((sum, job) => sum + baker.tilesOf(job, tileW), 0);
+  }
+
+  /**
+   * 按预算分帧执行全部烘焙: 缓存命中的直接回填, 其余烘完交给缓存再回填。
+   * 房间被回收或 isStale 为真时中途放弃。返回是否全部完成。
+   */
+  async bake(baker: SurfaceBaker, cache: BakeCache, budget: FrameBudget, isStale: () => boolean, onTile?: () => void): Promise<boolean> {
     const stale = () => this.disposed || isStale();
+    const roomId = this.room.id;
     while (this.bakeJobs.length > 0) {
       const job = this.bakeJobs[0];
-      const baked = await baker.bakeAsync(job, stale, onTile);
-      if (!baked) return false;
+      let baked = cache.get(roomId, job.key);
+      if (!baked) {
+        const fresh = await baker.bakeAsync(job, budget, stale, onTile);
+        if (!fresh) return false;
+        baked = cache.adopt(roomId, job.key, fresh);
+      }
       job.apply(baked);
       this.bakeJobs.shift();
       this.disposer.disposeMesh(job.mesh);

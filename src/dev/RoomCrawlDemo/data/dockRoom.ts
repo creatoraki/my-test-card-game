@@ -4,11 +4,9 @@ import type { RoomDef } from "../types";
 export const DOCK_ROOM: RoomDef = {
   id: "dock",
   name: "货运入口",
-  subtitle: "卷帘门半开着, 夜风从破天窗灌进来",
   zone: "dock",
   width: 4224,
   seed: 11.3,
-  grid: { col: 0, row: 1 },
   doors: [{ side: "right", to: "pump" }],
   props: [
     { id: "dock-safe", kind: "safe", x: 1560, z: 176, loot: "应急口粮 ×2" },

@@ -45,15 +45,6 @@ export function findDoorHit(room: RoomDef, x: number, z: number, right: number, 
   return null;
 }
 
-/** 玩家是否正站在某扇门前(用于锁门提示)。 */
-export function nearDoor(room: RoomDef, x: number, z: number): DoorDef | null {
-  for (const door of room.doors) {
-    const a = doorAnchor(room, door);
-    if (Math.abs(a.x - x) < 90 && Math.abs(a.z - z) < 70) return door;
-  }
-  return null;
-}
-
 /** 从 fromSide 那扇门进入新房间时的落脚点与朝向。 */
 export function arrivalPoint(room: RoomDef, fromSide: DoorSide | null): { x: number; z: number; facing: 1 | -1 } {
   if (!fromSide) return { ...room.spawn, facing: 1 };

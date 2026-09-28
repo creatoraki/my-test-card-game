@@ -2,7 +2,6 @@
 export interface KeyInput {
   /** right: 右正左负; down: 向前(靠近镜头)为正, 向后墙为负。 */
   axis(): { right: number; down: number };
-  running(): boolean;
   /** 本帧之前是否按下过该动作键; 读取后清除。 */
   consume(action: KeyAction): boolean;
   /** 丢弃所有未消费的按下与按住状态(打开弹窗、切换房间时调用)。 */
@@ -16,8 +15,7 @@ const UP = new Set(["KeyW", "ArrowUp"]);
 const DOWN = new Set(["KeyS", "ArrowDown"]);
 const LEFT = new Set(["KeyA", "ArrowLeft"]);
 const RIGHT = new Set(["KeyD", "ArrowRight"]);
-const RUN = new Set(["ShiftLeft", "ShiftRight"]);
-const HOLD = new Set([...UP, ...DOWN, ...LEFT, ...RIGHT, ...RUN]);
+const HOLD = new Set([...UP, ...DOWN, ...LEFT, ...RIGHT]);
 const ACTIONS: Record<string, KeyAction> = { Space: "jump", KeyE: "interact", F2: "debug" };
 
 function isTyping(target: EventTarget | null): boolean {
@@ -51,7 +49,6 @@ export function createKeyInput(): KeyInput {
       right: (has(RIGHT) ? 1 : 0) - (has(LEFT) ? 1 : 0),
       down: (has(DOWN) ? 1 : 0) - (has(UP) ? 1 : 0),
     }),
-    running: () => has(RUN),
     consume: (action) => {
       const hit = pressed.has(action);
       pressed.delete(action);

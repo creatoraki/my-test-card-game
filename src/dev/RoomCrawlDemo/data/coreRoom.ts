@@ -4,11 +4,9 @@ import type { RoomDef } from "../types";
 export const CORE_ROOM: RoomDef = {
   id: "core",
   name: "冷却核心",
-  subtitle: "风扇还在转, 黑色的东西顺着墙往上爬",
   zone: "core",
   width: 4608,
   seed: 71.7,
-  grid: { col: 2, row: 2 },
   doors: [{ side: "up", to: "arcade", x: 2304 }],
   props: [
     { id: "core-remains", kind: "remains", x: 1240, z: 150, loot: "黑色结晶碎片" },

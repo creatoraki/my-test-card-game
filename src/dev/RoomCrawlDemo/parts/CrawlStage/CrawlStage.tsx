@@ -28,12 +28,10 @@ export const CrawlStage = forwardRef<CrawlStageHandle, CrawlStageProps>(function
     const canvas = canvasRef.current;
     if (!canvas) return;
     const runtime = new CrawlRuntime(canvas, {
-      onRoomChange: (snap) => cbRef.current.onRoomChange(snap),
       onLoading: (state) => cbRef.current.onLoading(state),
       onPrompt: (info) => cbRef.current.onPrompt(info),
       onPromptMove: (x, y) => cbRef.current.onPromptMove(x, y),
       onLoot: (notice) => cbRef.current.onLoot(notice),
-      onNotice: (text) => cbRef.current.onNotice(text),
       onEncounter: (id) => cbRef.current.onEncounter(id),
       onDebug: (on) => cbRef.current.onDebug(on),
     });

@@ -6,7 +6,6 @@ import { makeQuad, placeMesh, quadMaterial } from "../core/quad";
 import { FRAG_PRELUDE, QUAD_VERT } from "../glsl/prelude";
 import { MOTIFS_GLSL } from "../glsl/motifs";
 import type { LightRig } from "../lighting/lightRig";
-import type { Disposer } from "../core/disposer";
 import { buildBakedDecor, type BakedDecor } from "./decorBaked";
 import { PROP_COMMON, PROP_MAIN } from "./propHighlight";
 
@@ -203,10 +202,14 @@ function decorMaterial(kind: number, rig: LightRig, seed: number, flip: boolean,
   });
 }
 
-/** 静态装饰物: 形体与风化材质烘焙成贴图(烘焙工作随结果返回, 由房间统一分帧执行), 每帧只打光。 */
-export function buildDecor(def: DecorDef, rig: LightRig, disposer: Disposer): BakedDecor {
+/**
+ * 静态装饰物: 形体与风化材质烘焙成贴图(烘焙工作随结果返回, 由房间统一分帧执行), 每帧只打光。
+ * index 为装饰物在房间里的序号, 作为烘焙缓存键。
+ */
+export function buildDecor(def: DecorDef, index: number, rig: LightRig): BakedDecor {
   const kind = KIND_ID[def.kind];
   return buildBakedDecor({
+    key: `decor:${index}`,
     glsl: DECOR_GLSL,
     kind,
     bounds: BOUNDS[kind],
@@ -217,7 +220,7 @@ export function buildDecor(def: DecorDef, rig: LightRig, disposer: Disposer): Ba
     z: def.z,
     scale: def.scale ?? 1,
     order: orderForZ(def.z, 1),
-  }, rig, disposer);
+  }, rig);
 }
 
 /** 悬挂在房间中部的灯(z > 40)配一盏吊灯外形。 */

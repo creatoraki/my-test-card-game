@@ -10,8 +10,6 @@ import { EncounterCard } from "../parts/EncounterCard";
 import { InteractPrompt } from "../parts/InteractPrompt";
 import { LoadingVeil } from "../parts/LoadingVeil";
 import { LootToast } from "../parts/LootToast";
-import { RoomBanner } from "../parts/RoomBanner";
-import { RoomMinimap } from "../parts/RoomMinimap";
 import type { EncounterChoice } from "../types";
 import { useCrawlHud } from "./useCrawlHud";
 import { useDemoSession } from "./useDemoSession";
@@ -19,7 +17,7 @@ import s from "./RoomCrawlDemo.module.css";
 
 /**
  * 《废弃楼层》2.5D 房间探索演示(类 DNF 横版): shader 绘制的舞台铺底,
- * 上面叠真实探索 HUD(演示会话驱动)、小地图、房间铭牌、调查提示、获得飘字与遭遇卡。
+ * 上面叠真实探索 HUD(演示会话驱动)、调查提示、获得飘字与遭遇卡。
  * 本组件只负责编排, 场景与逻辑都在 render/ 与 engine/。
  */
 export function RoomCrawlDemo() {
@@ -39,8 +37,6 @@ export function RoomCrawlDemo() {
     <LoadingVeil state={hud.loading} />
     <InteractPrompt ref={hud.promptRef} info={hud.encounter ? null : hud.prompt} />
     <LootToast items={hud.loots} onDone={hud.dropLoot} />
-    {hud.world && <RoomBanner roomId={hud.world.roomId} notice={hud.notice} />}
-    {hud.world && <RoomMinimap snapshot={hud.world} />}
     {hud.debug && <CalibLegend />}
     {session && <>
       <div className={s.readout}><EnergyReadout energy={session.energy} /></div>

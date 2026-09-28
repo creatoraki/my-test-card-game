@@ -19,10 +19,35 @@ import swordsmanRiftLightArt from "@/assets/skills/swordsman/天隙流光.webp";
 import swordsmanSpringSproutArt from "@/assets/skills/swordsman/春芽.webp";
 import swordsmanFallingSakuraArt from "@/assets/skills/swordsman/落樱.webp";
 import swordsmanWolfSparrowArt from "@/assets/skills/swordsman/狼雀.webp";
+import prophetAndromedaArt from "@/assets/skills/prophet/仙女座.webp";
+import prophetSpectralDecompositionArt from "@/assets/skills/prophet/光谱分解.webp";
+import prophetSpectralShardArt from "@/assets/skills/prophet/光谱碎片.webp";
+import prophetIllOmenArt from "@/assets/skills/prophet/凶兆.webp";
 import prophetStarfallArt from "@/assets/skills/prophet/星瀑.webp";
 import prophetGravityLensArt from "@/assets/skills/prophet/引力透镜.webp";
 import prophetTwinStarsArt from "@/assets/skills/prophet/双子星.webp";
+import prophetGoodOmenArt from "@/assets/skills/prophet/吉兆.webp";
+import prophetFallingStarSequenceArt from "@/assets/skills/prophet/坠星序列.webp";
+import prophetDominoArt from "@/assets/skills/prophet/多米诺.webp";
+import prophetApocalypseArt from "@/assets/skills/prophet/天启.webp";
+import prophetCelestialVerdictArt from "@/assets/skills/prophet/天穹断罪.webp";
+import prophetZenithStarArt from "@/assets/skills/prophet/天顶星.webp";
+import prophetSolarWindArt from "@/assets/skills/prophet/太阳风.webp";
+import prophetEmergencyCareArt from "@/assets/skills/prophet/紧急医疗.webp";
+import prophetGravityTowArt from "@/assets/skills/prophet/引力牵引.webp";
+import prophetStarCurtainArt from "@/assets/skills/prophet/星幕.webp";
+import prophetGalaxyCascadeArt from "@/assets/skills/prophet/星河倒泻.webp";
+import prophetAuroraArt from "@/assets/skills/prophet/极光.webp";
+import prophetDriftArt from "@/assets/skills/prophet/漂流.webp";
+import prophetBrandArt from "@/assets/skills/prophet/烙印.webp";
 import prophetRingShotArt from "@/assets/skills/prophet/环射.webp";
+import prophetMoonLandingArt from "@/assets/skills/prophet/登月.webp";
+import prophetStarShatterArt from "@/assets/skills/prophet/碎星.webp";
+import prophetCountercurrentArt from "@/assets/skills/prophet/逆流.webp";
+import prophetMilkyWayArt from "@/assets/skills/prophet/银河.webp";
+import prophetOmenArt from "@/assets/skills/prophet/预兆.webp";
+import prophetForesightEyeArt from "@/assets/skills/prophet/预知魔眼.webp";
+import prophetBlackHoleArt from "@/assets/skills/prophet/黑洞.webp";
 import prophetAsteroidBeltArt from "@/assets/skills/prophet/小行星带.webp";
 import prophetAstrologyArt from "@/assets/skills/prophet/占星术.webp";
 import prophetCompanionStarArt from "@/assets/skills/prophet/伴星.webp";
@@ -100,6 +125,25 @@ export const CARD_ART: Record<string, string> = {
   "spring-sprout": swordsmanSpringSproutArt,
   "falling-sakura": swordsmanFallingSakuraArt,
   "wolf-sparrow": swordsmanWolfSparrowArt,
+  "star-shatter": prophetStarShatterArt,
+  "countercurrent": prophetCountercurrentArt,
+  "moon-landing": prophetMoonLandingArt,
+  "celestial-verdict": prophetCelestialVerdictArt,
+  "star-curtain": prophetStarCurtainArt,
+  "brand": prophetBrandArt,
+  "falling-star-sequence": prophetFallingStarSequenceArt,
+  "galaxy-cascade": prophetGalaxyCascadeArt,
+  "good-omen": prophetGoodOmenArt,
+  "omen": prophetOmenArt,
+  "ill-omen": prophetIllOmenArt,
+  "apocalypse": prophetApocalypseArt,
+  "zenith-star": prophetZenithStarArt,
+  "emergency-care": prophetEmergencyCareArt,
+  "solar-wind": prophetSolarWindArt,
+  "andromeda": prophetAndromedaArt,
+  "drift": prophetDriftArt,
+  "aurora": prophetAuroraArt,
+  "gravity-tow": prophetGravityTowArt,
   "starfall": prophetStarfallArt,
   "gravity-lens": prophetGravityLensArt,
   "twin-stars": prophetTwinStarsArt,
@@ -107,6 +151,12 @@ export const CARD_ART: Record<string, string> = {
   "asteroid-belt": prophetAsteroidBeltArt,
   "astrology": prophetAstrologyArt,
   "companion-star": prophetCompanionStarArt,
+  "foresight-eye": prophetForesightEyeArt,
+  "black-hole": prophetBlackHoleArt,
+  "spectral-decomposition": prophetSpectralDecompositionArt,
+  "milky-way": prophetMilkyWayArt,
+  "spectral-shard": prophetSpectralShardArt,
+  "domino": prophetDominoArt,
   "continuous-shot": botanistContinuousShotArt,
   "recycle-shot": botanistRecycleShotArt,
   "twin-flower": botanistTwinFlowerArt,

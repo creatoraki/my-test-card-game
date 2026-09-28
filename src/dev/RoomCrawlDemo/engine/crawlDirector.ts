@@ -1,6 +1,6 @@
 import type { DoorDef, EncounterChoice, PropDef } from "../types";
 import { CrawlWorld } from "./crawlWorld";
-import { findDoorHit, nearDoor } from "./doorTrigger";
+import { findDoorHit } from "./doorTrigger";
 import { stepGuard } from "./guardBrain";
 import { HeroAnimator, type GaitTable } from "./heroAnimator";
 import { pickFocus, searchProgress, stepSearch, type SearchRun } from "./interaction";
@@ -23,14 +23,13 @@ export interface FrameEvents {
   loot: PropDef | null;
   searchDone: PropDef | null;
   encounter: string | null;
-  notice: string | null;
   debugToggled: boolean;
   landed: boolean;
   banished: string | null;
 }
 
 function emptyEvents(): FrameEvents {
-  return { roomChanged: false, focusChanged: false, loot: null, searchDone: null, encounter: null, notice: null, debugToggled: false, landed: false, banished: null };
+  return { roomChanged: false, focusChanged: false, loot: null, searchDone: null, encounter: null, debugToggled: false, landed: false, banished: null };
 }
 
 /**
@@ -53,7 +52,6 @@ export class CrawlDirector {
   private pendingDoor: DoorDef | null = null;
   private encounterGuard: string | null = null;
   private phaseT = 0;
-  private noticeCooldown = 0;
 
   constructor(private input: KeyInput, gait: GaitTable) {
     const p = this.world.player;
@@ -69,14 +67,13 @@ export class CrawlDirector {
   step(dt: number): FrameEvents {
     const ev = emptyEvents();
     this.phaseT += dt;
-    this.noticeCooldown = Math.max(0, this.noticeCooldown - dt);
     if (this.input.consume("debug")) {
       this.debug = !this.debug;
       ev.debugToggled = true;
     }
     const frozen = this.blocked || this.phase === "encounter" || this.phase === "loading";
     if (!frozen) this.stepPlay(dt, ev);
-    this.stepPhase(dt, ev);
+    this.stepPhase(ev);
     this.impact = damp(this.impact, this.phase === "encounter" ? 1 : 0, this.phase === "encounter" ? 9 : 4, dt);
     const p = this.world.player;
     this.camera.update(dt, p.x, p.facing, speedRatio(p));
@@ -92,10 +89,10 @@ export class CrawlDirector {
     const interact = this.input.consume("interact");
     const px = p.x;
     const pz = p.z;
-    const res = stepPlayer(p, { right: axis.right, down: axis.down, run: this.input.running(), jump }, dt, w.room.width, w.blockers);
+    const res = stepPlayer(p, { right: axis.right, down: axis.down, jump }, dt, w.room.width, w.blockers);
     ev.landed = res.landed;
     const travel = Math.hypot(p.x - px, p.z - pz);
-    this.animator.update({ dt, travel, vx: p.vx, vh: p.vh, speed: speedRatio(p), running: p.running, facing: p.facing, jump: p.jump, phaseT: p.phaseT, knocked: p.knock > 0 });
+    this.animator.update({ dt, travel, vx: p.vx, vh: p.vh, speed: speedRatio(p), facing: p.facing, jump: p.jump, phaseT: p.phaseT, knocked: p.knock > 0 });
 
     for (const g of w.guards) {
       if (this.phase !== "play") break;
@@ -134,26 +131,21 @@ export class CrawlDirector {
       ev.focusChanged = true;
     }
 
-    if (this.phase === "play") this.checkDoors(axis.right, axis.down, ev);
+    if (this.phase === "play") this.checkDoors(axis.right, axis.down);
   }
 
-  private checkDoors(right: number, down: number, ev: FrameEvents): void {
+  /** 穿过未上锁的门: 收拢虹膜准备换房间。 */
+  private checkDoors(right: number, down: number): void {
     const w = this.world;
     const p = w.player;
     const hit = findDoorHit(w.room, p.x, p.z, right, down);
-    if (hit && !w.locked) {
-      this.pendingDoor = hit;
-      this.phase = "irisOut";
-      this.phaseT = 0;
-      return;
-    }
-    if (w.locked && this.noticeCooldown <= 0 && (hit || nearDoor(w.room, p.x, p.z))) {
-      ev.notice = "黑影仍在游荡, 出口被封锁了";
-      this.noticeCooldown = 3;
-    }
+    if (!hit || w.locked) return;
+    this.pendingDoor = hit;
+    this.phase = "irisOut";
+    this.phaseT = 0;
   }
 
-  private stepPhase(dt: number, ev: FrameEvents): void {
+  private stepPhase(ev: FrameEvents): void {
     switch (this.phase) {
       case "irisOut":
       case "retreatOut":
@@ -214,8 +206,8 @@ export class CrawlDirector {
   }
 
   /** 遭遇提示卡的选择。 */
-  resolveEncounter(guardId: string, choice: EncounterChoice): string | null {
-    if (this.phase !== "encounter") return null;
+  resolveEncounter(guardId: string, choice: EncounterChoice): void {
+    if (this.phase !== "encounter") return;
     const w = this.world;
     const g = w.guards.find((item) => item.id === guardId);
     this.input.reset();
@@ -223,7 +215,7 @@ export class CrawlDirector {
       w.banish(guardId);
       this.phase = "play";
       this.phaseT = 0;
-      return w.locked ? "黑影被驱散了" : "最后的黑影消散, 出口已解锁";
+      return;
     }
     if (g) {
       g.mode = "patrol";
@@ -231,6 +223,5 @@ export class CrawlDirector {
     }
     this.phase = "retreatOut";
     this.phaseT = 0;
-    return "你撤回了入口";
   }
 }

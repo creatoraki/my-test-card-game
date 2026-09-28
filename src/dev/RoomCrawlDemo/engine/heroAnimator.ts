@@ -23,8 +23,8 @@ export interface AnimInput {
   travel: number;
   vx: number;
   vh: number;
+  /** 速度占行走速度的比例(0~1)。 */
   speed: number;
-  running: boolean;
   facing: 1 | -1;
   jump: JumpPhase;
   phaseT: number;
@@ -60,6 +60,8 @@ export interface HeroPose {
 }
 
 const TURN_TIME = 0.1;
+/** 满速行走时前倾 / 发丝拖拽取最大幅度的比例。 */
+const WALK_REACH = 0.55;
 
 export class HeroAnimator {
   private phase = 0;
@@ -106,8 +108,7 @@ export class HeroAnimator {
     const t = this.time;
     const airborne = input.jump === "air";
     this.speedS = damp(this.speedS, airborne ? this.speedS : input.speed, 10, dt);
-    const moving = clamp(this.speedS * 3.2, 0, 1);
-    const runW = clamp((this.speedS - 0.55) * 3, 0, 1);
+    const moving = clamp(this.speedS * 1.76, 0, 1);
 
     // 转身: 先压扁到很窄, 再翻面展开
     if (input.facing !== this.visualFacing && this.turnT >= 1) this.turnT = 0;
@@ -125,21 +126,22 @@ export class HeroAnimator {
     // 步态每个循环两步: 起伏与摆臂都是双频
     const stepWave = Math.sin(cyc * 2);
     const breathW = Math.sin(t * 2.1);
-    p.breath = breathW * (1 - moving * 0.6) * 0.018 + (runW * 0.012 * Math.sin(t * 7.5));
-    p.bob = -Math.abs(stepWave) * runW * 3.2 + (1 - moving) * breathW * 0.6;
+    p.breath = breathW * (1 - moving * 0.6) * 0.018;
+    p.bob = (1 - moving) * breathW * 0.6;
 
     const accel = (input.vx - this.prevVx) / Math.max(dt, 1e-4);
     this.prevVx = input.vx;
     const dirVx = input.vx * this.visualFacing;
-    const leanTarget = clamp(dirVx / MOTION.RUN_X, -0.4, 1) * (0.07 + runW * 0.07) - clamp(accel * this.visualFacing / 9000, -0.05, 0.05);
+    const reach = (dirVx / MOTION.WALK_X) * WALK_REACH;
+    const leanTarget = clamp(reach, -0.4, 1) * 0.07 - clamp(accel * this.visualFacing / 9000, -0.05, 0.05);
     this.leanS = damp(this.leanS, airborne ? leanTarget * 0.4 : leanTarget, 9, dt);
     p.lean = -this.leanS;
     p.spine = -Math.sin(cyc * 2 + 0.6) * 0.012 * moving;
 
-    // 手臂反向摆动: 近侧手与远侧手相位相反, 跑步幅度加大
-    const swing = (0.16 + runW * 0.26) * moving;
-    p.nearArm = Math.sin(cyc) * swing - runW * 0.12;
-    p.farArm = -Math.sin(cyc) * swing * 0.8 - runW * 0.1;
+    // 手臂反向摆动: 近侧手与远侧手相位相反
+    const swing = 0.16 * moving;
+    p.nearArm = Math.sin(cyc) * swing;
+    p.farArm = -Math.sin(cyc) * swing * 0.8;
     if (airborne) {
       const up = clamp(input.vh / 600, -1, 1);
       p.nearArm = -0.35 * up - 0.1;
@@ -151,7 +153,7 @@ export class HeroAnimator {
     p.head = this.headS.step(idleTilt * (1 - moving) + this.leanS * 0.45 + Math.sin(cyc * 2) * 0.01 * moving, dt);
 
     // 二次运动: 头发、飘带朝运动反方向拖拽, 下落时向外上甩(背后的部件顺时针为外甩, 身前的逆时针为外甩)
-    const drag = clamp(dirVx / MOTION.RUN_X, -1, 1);
+    const drag = clamp(reach, -1, 1);
     const vert = clamp(input.vh / 700, -1, 1);
     p.hairBack = this.hairBack.step(-drag * 0.2 + vert * 0.12 + Math.sin(t * 1.3) * 0.015 + stepWave * 0.02 * moving, dt);
     p.hairFront = this.hairFront.step(-drag * 0.14 - vert * 0.1 + Math.sin(t * 1.7 + 0.5) * 0.02, dt);
