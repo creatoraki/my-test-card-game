@@ -6,9 +6,10 @@
 // 一次切换 = 旧界面出场(exit) → 黑场停顿(hold) → 新界面入场(enter), 串行执行。
 // 出场与入场各自独立可配, 见 TransitionSpec。
 //
-// ★ 例外: 标了 curtain: "battle-ripple" 的探索→战斗路线额外借用原生 View Transitions API
-//   抓一张旧场景快照来做裂纹涟漪, 那一段的画面在 ScreenTransition.module.css 的
-//   ::view-transition-*(root) 规则里(收窄到 data-vt-route="explore>battle")。
+// ★ 例外: 标了 curtain: "battle-burn" 的探索→战斗路线额外借用原生 View Transitions API
+//   抓一张旧场景快照来做「裂纹 → 烫穿燃烧」, 那一段的画面在 ScreenTransition.module.css 的
+//   ::view-transition-*(root / battle-burn) 规则里(收窄到 data-vt-route="explore>battle"),
+//   火线与焦痕由 app/BattleBurnFront 逐帧绘制。
 // ============================================================================
 
 import type { Screen } from "@/store/run/runStore";
@@ -30,18 +31,19 @@ export interface TransitionSpec {
   curtain?: string; // 可选全屏幕布层特效名 → .screen-curtain.curtain-<name>
 }
 
-// 探索 → 战斗专用演出严格分三段：场景玻璃受击 → 裂纹停留 → 黑色涟漪吞没旧场景。
-// 旧路线图由 View Transition 快照承担玻璃主体，BattleTransitionCurtain 负责表面裂痕与冲击反馈。
+// 探索 → 战斗专用演出严格分三段：场景玻璃受击 → 裂纹停留 → 同一点烫红烧穿、像纸张燃烧一样扩散吞没旧场景。
+// 旧路线图由 View Transition 快照承担玻璃主体，BattleTransitionCurtain 负责表面裂痕与冲击反馈，
+// BattleBurnFront 负责烧穿段的火线、焦痕与孔洞裁切。
 export const BATTLE_CRACK_DRAW_MS = 1000;
 export const BATTLE_CRACK_HOLD_MS = 500;
 export const BATTLE_SHATTER_SFX_MS = 2900;
-export const BATTLE_RIPPLE_START_MS = BATTLE_CRACK_DRAW_MS + BATTLE_CRACK_HOLD_MS;
-export const BATTLE_RIPPLE_MS = BATTLE_SHATTER_SFX_MS - BATTLE_RIPPLE_START_MS;
-export const BATTLE_RIPPLE_EXIT_MS = BATTLE_SHATTER_SFX_MS;
+export const BATTLE_BURN_START_MS = BATTLE_CRACK_DRAW_MS + BATTLE_CRACK_HOLD_MS;
+export const BATTLE_BURN_MS = BATTLE_SHATTER_SFX_MS - BATTLE_BURN_START_MS;
+export const BATTLE_BURN_EXIT_MS = BATTLE_SHATTER_SFX_MS;
 
 // ── 色调迁移(两段接力) ──
 // 探索的冷灰终端色 → 战斗的血红高对比。这条色调曲线跨过了 View Transition 的生命周期,
-// 于是被迫切成两段, 而**两段的接缝值必须逐项对齐**, 否则 t=BATTLE_RIPPLE_EXIT_MS 会硬闪一下:
+// 于是被迫切成两段, 而**两段的接缝值必须逐项对齐**, 否则 t=BATTLE_BURN_EXIT_MS 会硬闪一下:
 //   ① 快照段(VT 存续期间): 画面此刻是两张**冻结的位图**(old/new 快照), 改页面元素的 CSS
 //      变量对它们完全无效 —— 快照是像素, 不再参与样式计算。唯一还能动的是伪元素自身的
 //      filter, 规则见 ScreenTransition.module.css 的 vt-grade-old / vt-grade-new。
@@ -69,7 +71,7 @@ export const FX = {
   // 只出时长、不出画面的档位(CSS 里 .screen-fx-stay 是个刻意的空规则): 探索→战斗那条路线
   // 要让包裹层原样停在屏幕上, 由 BattleTransitionCurtain 在它**之上**演裂纹, 包裹层一淡出
   // 裂纹底下的探索画面就跟着没了。
-  battleRippleOut: { name: "stay", ms: BATTLE_RIPPLE_EXIT_MS },
+  battleBurnOut: { name: "stay", ms: BATTLE_BURN_EXIT_MS },
 } as const satisfies Record<string, ScreenFx>;
 
 // 全局默认: 淡出 → 短暂黑场 → 淡入。
@@ -93,13 +95,13 @@ export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionS
   "sortie>elevator": DEFAULT_TRANSITION,
   "elevator>explore": { ...DEFAULT_TRANSITION, hold: 500 },
 
-  // 探索牌桌 → 战斗: 路线图保持清晰成为玻璃，点击处炸出中性白/黑的冲击断裂网格（碎片留在原位），随后黑色涟漪从同一点替换为战斗。
+  // 探索牌桌 → 战斗: 路线图保持清晰成为玻璃，点击处炸出中性白/黑的冲击断裂网格（碎片留在原位），随后同一点被烫穿、火线向外烧出战斗场景。
   // 包裹层必须 stay: 它是 BattleScreen 的祖先，不能挂 transform；旧场景快照只做极轻微外扩。
   "explore>battle": {
-    exit: FX.battleRippleOut,
+    exit: FX.battleBurnOut,
     enter: FX.none,
     hold: 0,
-    curtain: "battle-ripple",
+    curtain: "battle-burn",
   },
   // 据点 ⇄ 编队: 过场由据点侧的像素转场承担(见 ui/town/TownScreen) —— 这里必须是零时长。
   // 再叠一层淡出淡入, 像素铺满后整页会先闪一下再重挂载, 编队页的卡阵与立绘要等这一下过去才出现。
@@ -114,7 +116,7 @@ export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionS
   //   角色详情已改成编队页内部的一种态, 不再是 screen ⇒ 那两条路线连同
   //   app/viewTransition.global.css 一并删除。重组编排现在住在
   //   ui/character/FormationScreen/parts/formationMorph/。
-  //   ⚠ viewTransition 这个字段本身留着: explore>battle 的裂纹涟漪仍然要用(见下面的 curtain)。
+  //   ⚠ viewTransition 这个字段本身留着: explore>battle 的裂纹烧穿仍然要用(见下面的 curtain)。
 };
 
 const NO_TRANSITION: TransitionSpec = { exit: FX.none, enter: FX.none, hold: 0 };

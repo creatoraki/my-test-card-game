@@ -1,11 +1,11 @@
-// 落地余韵: 探索 → 战斗那条路线在「涟漪揭幕 → 战场落地」之间的最后一层演出。
+// 落地余韵: 探索 → 战斗那条路线在「烧穿揭幕 → 战场落地」之间的最后一层演出。
 //
 // 本层由两片**平级**的固定层组成, 它们跨越 View Transition 的边界, 分工完全不同:
 //
 //   ① .battle-entry-veil (血色暗角) —— 在 swap 的那一次 flushSync 里就挂载,
-//      于是它被烘进 VT 的**新快照**, 随涟漪一起被揭开。VT 结束、快照消失的那一帧,
+//      于是它被烘进 VT 的**新快照**, 随烧穿一起被揭开。VT 结束、快照消失的那一帧,
 //      真实 DOM 里的它仍是 opacity:1 —— 与快照里的像素一模一样 ⇒ 零跳变, 然后才开始淡出。
-//      ★ 这正是这条路线曾经「涟漪播完画面突然暗一下」的解法: 暗角不能在接缝处凭空出现。
+//      ★ 这正是这条路线曾经「烧穿播完画面突然暗一下」的解法: 暗角不能在接缝处凭空出现。
 //
 //   ② .battle-entry-grade (色调收敛) —— 色调迁移的第 ② 段。VT 存续期间画面是冻结的位图,
 //      色调只能挂在 ::view-transition-new(root) 的 filter 上(vt-grade-new); 伪元素在
@@ -28,9 +28,9 @@ import { BATTLE_GRADE_SETTLE_MS } from "@/ui/app/shared/transitions";
 import s from "./BattleEntryGrading.module.css";
 
 interface Props {
-  /** 当初点击进战斗的位置。血色暗角以它为圆心, 与裂纹、涟漪共用同一个源点。 */
+  /** 当初点击进战斗的位置。血色暗角以它为圆心, 与裂纹、烧穿共用同一个源点。 */
   origin: TransitionOrigin | null;
-  /** false = 涟漪期间的静止态(等着被烘进快照); true = VT 已结束, 开始收尾。 */
+  /** false = 烧穿期间的静止态(等着被烘进快照); true = VT 已结束, 开始收尾。 */
   settling: boolean;
 }
 

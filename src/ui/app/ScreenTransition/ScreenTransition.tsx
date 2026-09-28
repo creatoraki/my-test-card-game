@@ -14,17 +14,19 @@ import type { Screen } from "@/store/run/runStore";
 import { cx } from "@/ui/common/shared/cx";
 import { playSfx } from "@/ui/audio";
 import { BattleEntryGrading } from "@/ui/app/BattleEntryGrading";
+import { BattleBurnFront, type BurnMode } from "@/ui/app/BattleBurnFront";
 import { BattleTransitionCurtain } from "@/ui/app/BattleTransitionCurtain";
 import { takeTransitionOrigin, type TransitionOrigin } from "@/ui/app/shared/transitionOrigin";
 import {
   BATTLE_GRADE_SETTLE_MS,
-  BATTLE_RIPPLE_MS,
-  BATTLE_RIPPLE_START_MS,
+  BATTLE_BURN_MS,
+  BATTLE_BURN_START_MS,
   prefersReducedMotion,
   resolveTransition,
   type TransitionSpec,
 } from "@/ui/app/shared/transitions";
 import s from "./ScreenTransition.module.css";
+import { createVtClipDriver, type VtClipDriver } from "./vtClipDriver";
 
 interface Props {
   screen: Screen; // 目标界面(来自 runStore)
@@ -49,11 +51,15 @@ export function ScreenTransition({ screen, render }: Props) {
   const [runId, setRunId] = useState(0); // 递增批次号, 兼作 key 强制重放入场动画
   const [origin, setOrigin] = useState<TransitionOrigin | null>(null); // 一次过场固定一个圆心，exit/enter 必须共用
   // 裂纹幕布的挂载开关。★ 它不能再搭 phase 的车: 幕布必须在 swap 的那一次 flushSync 里就
-  // 卸载, 否则整张裂纹 canvas 会被烘进 View Transition 的**新快照** —— 涟漪揭开的战场会
+  // 卸载, 否则整张裂纹 canvas 会被烘进 View Transition 的**新快照** —— 烧穿的孔里露出的战场会
   // 一直带着裂纹, 直到 VT 结束才整层消失, 那就是一次硬跳变。
-  const [rippleCurtain, setRippleCurtain] = useState(false);
+  // (旧快照在 swap 之前抓取, 裂纹已在其中 ⇒ 裂纹留在旧画面上, 随纸面一起被烧掉。)
+  const [crackCurtain, setCrackCurtain] = useState(false);
+  // 烧穿段的火线画布。swap 时挂载(只存在于新状态 ⇒ 以自己的 VT 伪元素实时出现在快照之上),
+  // 快照消失的那一帧卸载。null = 不挂; opaque = 浏览器不支持 VT 的降级画法。
+  const [burnMode, setBurnMode] = useState<BurnMode | null>(null);
   // 落地余韵(血色暗角 + 色调迁移第 ② 段)。它跨越 VT 的整个生命周期: swap 时挂载(于是被烘进
-  // 新快照、随涟漪一起被揭开), VT 结束后继续以真实 DOM 存在 —— 所以既不能搭 phase 的车,
+  // 新快照、随孔洞一起被揭开), VT 结束后继续以真实 DOM 存在 —— 所以既不能搭 phase 的车,
   // 也不能等到 finished 才挂, 只能自己占一个状态。
   const [afterglow, setAfterglow] = useState(false);
   const [afterglowRun, setAfterglowRun] = useState(0); // 兼作 key: 连续进战斗时强制重放, 不复用上一层的动画进度
@@ -81,7 +87,8 @@ export function ScreenTransition({ screen, render }: Props) {
         seqRef.current++;
         setPhase("idle");
         setSpec(null);
-        setRippleCurtain(false);
+        setCrackCurtain(false);
+        setBurnMode(null);
         setAfterglow(false);
         setSettling(false);
       }
@@ -92,8 +99,8 @@ export function ScreenTransition({ screen, render }: Props) {
 
     // ⚠ 这里曾经有一条「共享元素」分支(编队 ↔ 角色详情走原生 View Transition)。
     //   角色详情已改成编队页内部的一种态, 不再切 screen ⇒ 那条路线连同
-    //   app/viewTransition.global.css 一起删掉了。本组件现在只剩三段式与裂纹涟漪两条路。
-    //   (裂纹涟漪也用 startViewTransition, 但它在下面的 swap 里、由 curtain 决定。)
+    //   app/viewTransition.global.css 一起删掉了。本组件现在只剩三段式与裂纹烧穿两条路。
+    //   (裂纹烧穿也用 startViewTransition, 但它在下面的 swap 里、由 curtain 决定。)
 
     // 零时长(总开关关闭 / 系统要求减少动效): 直接切, 不设定时器、不加动画类。
     if (next.exit.ms === 0 && next.enter.ms === 0) {
@@ -102,7 +109,8 @@ export function ScreenTransition({ screen, render }: Props) {
       setShown(screen);
       setPhase("idle");
       setSpec(null);
-      setRippleCurtain(false);
+      setCrackCurtain(false);
+      setBurnMode(null);
       setAfterglow(false);
       setSettling(false);
       return;
@@ -113,46 +121,58 @@ export function ScreenTransition({ screen, render }: Props) {
     // 不在这里显式收掉就会永久残留一层暗角。
     setAfterglow(false);
     setSettling(false);
+    setBurnMode(null);
     const seq = ++seqRef.current;
     // 原点只在本轮开始时消费一次，不能在 exit → enter 的 phase 切换时再读，否则会丢失点击位置。
-    setOrigin(next.curtain === "battle-ripple" ? takeTransitionOrigin() : null);
-    setRippleCurtain(next.curtain === "battle-ripple");
+    setOrigin(next.curtain === "battle-burn" ? takeTransitionOrigin() : null);
+    setCrackCurtain(next.curtain === "battle-burn");
     setSpec(next);
     setPhase("exit");
 
     const swap = window.setTimeout(() => {
       if (seq !== seqRef.current) return;
-      if (next.curtain === "battle-ripple") {
-        // 涟漪音效原先住在幕布的 CrackCanvas 里(一个 BATTLE_RIPPLE_START_MS 的定时器),
+      if (next.curtain === "battle-burn") {
+        // 这一声(沿用原涟漪音效)原先住在幕布的 CrackCanvas 里(一个 BATTLE_BURN_START_MS 的定时器),
         // 但幕布现在正好在这一刻卸载 ⇒ 它的 cleanup 会和那个定时器抢跑。时刻完全等价,
         // 挪到这里也更贴合本组件既定的分工: 编排在 ScreenTransition, 画面在组件。
         playSfx("ripple");
         const x = originRef.current?.x ?? window.innerWidth / 2;
         const y = originRef.current?.y ?? window.innerHeight / 2;
-        const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
 
-        // keepCurtain: 只有降级路径(浏览器不支持 startViewTransition)才要留着幕布 ——
-        // 那条路上 .battle-transition-black / ring / particles 才是真正在演涟漪的三层。
-        // 走 VT 时它们一帧都不会被看见(VT 存续期间真实 DOM 不绘制), 留着只会把裂纹烘进新快照。
-        const update = (keepCurtain: boolean) => {
+        const viewDocument = document as ViewTransitionDocument;
+        const canTransition = !prefersReducedMotion() && Boolean(viewDocument.startViewTransition);
+        // 裁切驱动必须先于 update 就位: 火线画布挂载的那一帧就会开始推送孔洞形状。
+        clipDriverRef.current = canTransition ? createVtClipDriver() : null;
+
+        // 裂纹幕布无论哪条路径都在这一刻卸载; 火线画布在同一次提交里挂上。
+        // 走 VT 时, 旧快照已在此之前抓好(裂纹就在里面), 幕布留着只会被烘进新快照。
+        const update = (mode: BurnMode) => {
           // View Transition 的 update 回调中必须同步提交新 DOM，浏览器才能抓到战斗场景的新快照。
           flushSync(() => {
             setShown(screen);
-            // ★ 暗角必须在这一刻进入 DOM: 它要被烘进新快照、随涟漪一起被揭开;
+            // ★ 必须同一次提交里离开 exit: shown 一变, 顶部 effect 就会命中「screen === shown」分支,
+            //   phase 若还停在 exit 会被当成「快速来回点」整批撤销 —— 火线画布当场卸载、
+            //   批次号作废, 孔洞裁切永远闭合, 表现为旧画面只暗了一下就硬切到战斗。
+            //   enter 相位的 fx 是 FX.none, 包裹层不会因此挂上任何动画。
+            setPhase("enter");
+            // ★ 暗角必须在这一刻进入 DOM: 它要被烘进新快照、随孔洞一起被揭开;
             //   VT 结束时真实 DOM 里的它仍是同一个 opacity:1 的元素 ⇒ 接缝零跳变。
             setAfterglow(true);
             setAfterglowRun((n) => n + 1);
             setSettling(false);
-            if (!keepCurtain) setRippleCurtain(false);
+            setCrackCurtain(false);
+            setBurnMode(mode);
           });
         };
 
-        // 涟漪收尾: 快照消失 ⇒ 余韵开始收敛。两条路径(VT / 降级)共用同一段。
-        const settleRipple = () => {
+        // 烧穿收尾: 快照消失 ⇒ 火线画布(此时已是空画布)卸载, 余韵开始收敛。两条路径(VT / 降级)共用同一段。
+        const settleBurn = () => {
           if (seq !== seqRef.current) return;
           setPhase("idle");
           setSpec(null);
-          setRippleCurtain(false);
+          setCrackCurtain(false);
+          setBurnMode(null);
+          clipDriverRef.current = null;
           // ★ 接力点: 翻 settling 的这一帧就是快照消失的那一帧 —— 暗角从此开始淡出,
           //   backdrop-filter 从 vt-grade-new 的末态接着往中性收。
           setSettling(true);
@@ -164,41 +184,28 @@ export function ScreenTransition({ screen, render }: Props) {
           timersRef.current.push(fade);
         };
 
-        const viewDocument = document as ViewTransitionDocument;
-        const transition = !prefersReducedMotion()
-          ? viewDocument.startViewTransition?.(() => update(false))
-          : undefined;
+        const transition = canTransition ? viewDocument.startViewTransition?.(() => update("vt")) : undefined;
 
         if (!transition) {
-          update(true);
-          const settle = window.setTimeout(settleRipple, BATTLE_RIPPLE_MS);
+          update("opaque");
+          const settle = window.setTimeout(settleBurn, BATTLE_BURN_MS);
           timersRef.current.push(settle);
           return;
         }
 
-        // 与上面的共享元素分支同一条机制: ScreenTransition.module.css 里那几条 root 规则已经收窄到
-        // 本路线, 不挂这个标记裂纹涟漪就没有画面了。
+        // ScreenTransition.module.css 里那几条 root / battle-burn 规则已经收窄到本路线,
+        // 不挂这个标记烧穿段就没有画面了。
         const root = document.documentElement;
+        const driver = clipDriverRef.current;
         root.dataset[VT_ROUTE_ATTR] = "explore>battle";
         root.style.setProperty("--vt-impact-x", `${x}px`);
         root.style.setProperty("--vt-impact-y", `${y}px`);
-        root.style.setProperty("--vt-glass-break-ms", `${BATTLE_RIPPLE_MS}ms`);
+        root.style.setProperty("--vt-glass-break-ms", `${BATTLE_BURN_MS}ms`);
         transition.ready
           .then(() => {
-            document.documentElement.animate(
-              {
-                clipPath: [
-                  `circle(0px at ${x}px ${y}px)`,
-                  `circle(${radius}px at ${x}px ${y}px)`,
-                ],
-              },
-              {
-                duration: BATTLE_RIPPLE_MS,
-                easing: "linear",
-                fill: "both",
-                pseudoElement: "::view-transition-new(root)",
-              },
-            );
+            // 孔洞裁切: 伪元素此刻才存在。形状由火线画布逐帧推送(见 BattleBurnFront 的 onClip),
+            // 这条动画的时长与 vt-grade-* 一致, 共同决定 VT 何时结束。
+            driver?.attach("::view-transition-new(root)", BATTLE_BURN_MS, `circle(0px at ${x}px ${y}px)`);
           })
           .catch(() => undefined);
         transition.finished.finally(() => {
@@ -208,7 +215,7 @@ export function ScreenTransition({ screen, render }: Props) {
           root.style.removeProperty("--vt-glass-break-ms");
           // ⚠ 必须 flushSync: finished 是 VT 结束后的一个微任务, 若把这次提交交给 React 的
           //   并发调度, 它可能落到下一帧 —— 那一帧里快照已经没了、余韵还没生效, 画面会闪一下。
-          flushSync(settleRipple);
+          flushSync(settleBurn);
         });
         return;
       }
@@ -222,13 +229,14 @@ export function ScreenTransition({ screen, render }: Props) {
         setSpec(null);
       }, next.enter.ms);
       timersRef.current.push(settle);
-    }, next.curtain === "battle-ripple" ? BATTLE_RIPPLE_START_MS : next.exit.ms + next.hold);
+    }, next.curtain === "battle-burn" ? BATTLE_BURN_START_MS : next.exit.ms + next.hold);
     timersRef.current.push(swap);
   }, [screen, shown]);
 
   const fx = phase === "exit" ? spec?.exit : phase === "enter" ? spec?.enter : null;
   const originRef = useRef<TransitionOrigin | null>(null);
   originRef.current = origin;
+  const clipDriverRef = useRef<VtClipDriver | null>(null);
 
   return (
     <>
@@ -242,10 +250,10 @@ export function ScreenTransition({ screen, render }: Props) {
       >
         {render(shown)}
       </div>
-      {spec?.curtain === "battle-ripple" ? (
-        // 裂纹幕布的存续由 rippleCurtain 单独控制(见状态声明处的说明), 不再跟 phase 走 ——
+      {spec?.curtain === "battle-burn" ? (
+        // 裂纹幕布的存续由 crackCurtain 单独控制(见状态声明处的说明), 不再跟 phase 走 ——
         // 这里的 phase !== "idle" 只是给 TS 收窄类型, 实际这两个条件永远同真同假。
-        rippleCurtain && phase !== "idle" ? (
+        crackCurtain && phase !== "idle" ? (
           <BattleTransitionCurtain key={phase} phase={phase} origin={origin} />
         ) : null
       ) : spec?.curtain && phase !== "idle" ? (
@@ -259,7 +267,16 @@ export function ScreenTransition({ screen, render }: Props) {
         />
       ) : null}
       {afterglow ? (
-        <BattleEntryGrading key={afterglowRun} origin={origin} settling={settling} />
+        <BattleEntryGrading key={`grade-${afterglowRun}`} origin={origin} settling={settling} />
+      ) : null}
+      {burnMode ? (
+        <BattleBurnFront
+          // 与 BattleEntryGrading 同处一个 Fragment、共用同一个批次号 ⇒ key 必须加前缀区分。
+          key={`burn-${afterglowRun}`}
+          origin={origin}
+          mode={burnMode}
+          onClip={(clip) => clipDriverRef.current?.push(clip)}
+        />
       ) : null}
     </>
   );

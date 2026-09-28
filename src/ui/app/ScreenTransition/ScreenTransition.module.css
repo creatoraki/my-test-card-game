@@ -76,9 +76,9 @@
   animation-name: none;
 }
 
-/* 探索→战斗用 View Transitions API：旧快照作为清晰的镜面场景保留，新快照在
-  ScreenTransition 的同步 update 中生成，再由 JS 对 ::view-transition-new(root) 做从点击点
-  向外的黑色涟漪裁切。默认 CSS 动画必须关闭，避免浏览器内建淡入与自定义替换叠加。
+/* 探索→战斗用 View Transitions API：旧快照作为清晰的镜面场景保留（裂纹已在其中），新快照在
+  ScreenTransition 的同步 update 中生成，再由 JS 逐帧对 ::view-transition-new(root) 做
+  「烧穿的孔洞」裁切(形状来自 BattleBurnFront 的火线)。默认 CSS 动画必须关闭，避免浏览器内建淡入与自定义替换叠加。
    ⚠⚠ 仍然靠 [data-vt-route] 收窄到**这一条路线**: 这些是文档根上的伪元素, 不属于任何一页,
      无差别写法会掐掉将来任何一条 VT 路线的 root 默认淡化(表现为背景在过场瞬间硬切)。
      曾经的编队 ↔ 角色详情就是被它坑过的那一条 —— 那条路线已改成同页元素重组不再走 VT,
@@ -95,7 +95,18 @@
 
 :root[data-vt-route="explore>battle"]::view-transition-new(root) {
   z-index: 2;
+  /* 孔洞在 WAAPI 接管之前是闭合的: ready 之前的那一两帧不能露出整张战场。 */
+  clip-path: circle(0px at var(--vt-impact-x) var(--vt-impact-y));
   animation: vt-grade-new var(--vt-glass-break-ms) linear both;
+}
+
+/* 火线画布(BattleBurnFront, view-transition-name: battle-burn)只存在于新状态,
+   浏览器默认会给它一段淡入 —— 关掉: 它从第一帧起就是逐帧绘制的实时画面。
+   它排在 root 组之后 ⇒ 压在新旧两张快照之上, 焦痕能画在旧场景上。 */
+:root[data-vt-route="explore>battle"]::view-transition-group(battle-burn),
+:root[data-vt-route="explore>battle"]::view-transition-new(battle-burn) {
+  animation: none;
+  mix-blend-mode: normal;
 }
 
 /* ── 色调迁移 ①: 快照段 ──
@@ -106,7 +117,7 @@
      saturate → contrast → brightness → drop-shadow ×2, 不要图省事删掉「看起来没变」的项。
    末帧的三个数值是与 BattleEntryGrading 的接缝, 改动见 transitions.ts 的对照说明。 */
 @keyframes vt-grade-new {
-  /* 战斗场景刚从涟漪口子里被揭开: 过曝、高饱和, 边缘带一圈血光。 */
+  /* 战斗场景刚从烧穿的孔里被揭开: 过曝、高饱和。 */
   from {
     filter: saturate(1.62) contrast(1.3) brightness(1.2) drop-shadow(0 0 0 rgb(255 48 48 / 1))
       drop-shadow(0 0 7px rgb(255 48 48 / 0.95));
@@ -123,7 +134,7 @@
 }
 
 /* 旧世界在被吞没的同时褪色: 饱和度抽干、压暗、对比略提 —— 读作「颜色正在离开这个场景」,
-   而不只是「有块黑圆盖上来」。与 vt-glass-impact 并列成两条 animation:
+   而不只是「有个洞烧过来」。与 vt-glass-impact 并列成两条 animation:
    前者只动 transform、后者只动 filter, 互不覆盖。 */
 @keyframes vt-grade-old {
   from {
@@ -135,7 +146,7 @@
 }
 
 /* 探索场景的整张旧快照就是玻璃主体。保持它清晰可读，只做极轻的受击外扩；
-   裂纹和黑色涟漪会在这张场景快照上完成碎裂与替换。 */
+   裂纹和烧穿会在这张场景快照上完成碎裂与替换。 */
 :root[data-vt-route="explore>battle"]::view-transition-old(root) {
   transform-origin: var(--vt-impact-x) var(--vt-impact-y);
   animation:

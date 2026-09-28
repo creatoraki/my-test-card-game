@@ -1,11 +1,6 @@
-import { useLayoutEffect, useRef, type CSSProperties } from "react";
+import { useLayoutEffect, useRef } from "react";
 import type { TransitionOrigin } from "@/ui/app/shared/transitionOrigin";
-import {
-  BATTLE_CRACK_DRAW_MS,
-  BATTLE_CRACK_HOLD_MS,
-  BATTLE_RIPPLE_EXIT_MS,
-  BATTLE_RIPPLE_MS,
-} from "@/ui/app/shared/transitions";
+import { BATTLE_CRACK_DRAW_MS } from "@/ui/app/shared/transitions";
 import { playSfx } from "@/ui/audio";
 import s from "./BattleTransitionCurtain.module.css";
 
@@ -31,7 +26,7 @@ interface Point {
 // 因此线条一律发丝级、平头、无辉光、中性白/黑; 彩色辉光只会读成电弧或魔法阵。
 //
 // 时序: 真实断裂是毫秒级瞬发, 这里放慢到 PROPAGATE_MS 让人眼能读出"从冲击点炸开",
-// 之后碎片棱边渐渐吃光(GLINT_MS), 网络成型后保持静止, 等黑色涟漪盖掉。
+// 之后碎片棱边渐渐吃光(GLINT_MS), 网络成型后保持静止, 等同一点烫红烧穿(见 BattleBurnFront)。
 // ============================================================================
 
 const MAX_PIXEL_RATIO = 2; // 发丝级裂纹需要比 1.5 更高的采样率, 否则会糊成灰线
@@ -253,7 +248,7 @@ function CrackCanvas({ phase, origin }: { phase: Props["phase"]; origin: Transit
   useLayoutEffect(() => {
     if (phase !== "exit") return;
     playSfx("shatter");
-    // ⓘ 涟漪音效原先也在这里(一个 BATTLE_RIPPLE_START_MS 的定时器)。本幕布现在正好在
+    // ⓘ 烧穿段的音效原先也在这里(一个 BATTLE_BURN_START_MS 的定时器)。本幕布现在正好在
     //   那一刻被卸载(它不能被烘进 View Transition 的新快照), cleanup 会和定时器抢跑,
     //   于是那一声挪到了 ScreenTransition 的 swap 回调里 —— 时刻完全等价。
     const canvas = canvasRef.current;
@@ -381,28 +376,7 @@ function CrackCanvas({ phase, origin }: { phase: Props["phase"]; origin: Transit
   return <canvas ref={canvasRef} className={s["battle-transition-cracks"]} aria-hidden />;
 }
 
-export function battleTransitionVars(origin: TransitionOrigin | null): CSSProperties {
-  const x = origin?.x ?? window.innerWidth / 2;
-  const y = origin?.y ?? window.innerHeight / 2;
-  // 圆只比「点到最远角」所需直径略大，scale: 0 → 1 才会在整个 1.5 秒内保持可见扩张。
-  // 若用数百 vmax 的超大圆，极小的 scale 已能盖满屏幕，视觉上会像一瞬间吞没。
-  const coverRadius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
-  const style = {
-    "--fx-ox": `${x}px`,
-    "--fx-oy": `${y}px`,
-    "--btc-cover-size": `${Math.ceil(coverRadius * 2 + 24)}px`,
-    "--btc-crack-ms": `${BATTLE_CRACK_DRAW_MS}ms`,
-    "--btc-hold-ms": `${BATTLE_CRACK_HOLD_MS}ms`,
-    "--btc-ripple-ms": `${BATTLE_RIPPLE_MS}ms`,
-    "--btc-exit-ms": `${BATTLE_RIPPLE_EXIT_MS}ms`,
-  } as CSSProperties;
-
-  return style;
-}
-
 export function BattleTransitionCurtain({ phase, origin }: Props) {
-  const style = battleTransitionVars(origin);
-
   return (
     <div
       className={s["battle-transition-curtain"]}
@@ -410,20 +384,9 @@ export function BattleTransitionCurtain({ phase, origin }: Props) {
       //   Modules 之后 s["is-exit"] 会静默变成 undefined, 与其留个假类名, 不如落成
       //   data 属性: 调试时照样一眼可见, 也不会让人以为它有样式。
       data-phase={phase}
-      style={style}
       aria-hidden
     >
       <CrackCanvas phase={phase} origin={origin} />
-      <span className={s["battle-transition-black"]} />
-      <span className={s["battle-transition-ring"]} />
-      <span className={s["battle-transition-particles"]}>
-        {Array.from({ length: 16 }, (_, index) => (
-          <i
-            key={index}
-            style={{ "--particle-angle": `${(index * 360) / 16}deg` } as CSSProperties}
-          />
-        ))}
-      </span>
     </div>
   );
 }

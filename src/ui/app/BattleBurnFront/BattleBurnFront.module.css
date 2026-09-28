@@ -1,0 +1,13 @@
+/* 烧穿段的火线 / 焦痕画布。
+   ★ view-transition-name 是它存在的关键: 在 VT 期间真实 DOM 不绘制, 只有带名字的元素
+     才能以自己的一组伪元素(实时画面)出现在快照之上。组的默认淡入在
+     ScreenTransition.module.css 里按路线关掉。 */
+.battle-burn-front {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  view-transition-name: battle-burn;
+}
