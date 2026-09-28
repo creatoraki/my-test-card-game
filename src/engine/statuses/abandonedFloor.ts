@@ -45,7 +45,7 @@ export const ABANDONED_FLOOR_STATUS_DEFS: Record<string, StatusDef> = {
     stackMode: "max",
     refreshMode: "max",
     resistMode: "duration",
-    desc: "持有期间，灼烧每拍造成的伤害翻倍。",
+    desc: "持有期间，灼烧每拍造成的伤害翻倍；不影响焚尽。",
   },
   scorched: {
     id: "scorched",

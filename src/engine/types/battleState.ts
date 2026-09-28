@@ -87,6 +87,7 @@ export interface BattleState {
   squadBuffs: { id: string }[];
   squadBuffRewardPools: SquadBuffRewardPools;
   lastSquadBuffConsumed: number;
+  lastStrippedResonance: number;
   lastConsumedStatusStacks: number;
   lastRemovedStatusCount: number;
   lastRemovedStatuses: StatusInstance[];

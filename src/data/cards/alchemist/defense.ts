@@ -62,9 +62,9 @@ export const ALCHEMIST_DEFENSE_CARDS: CardDef[] = [
     effects: [
       { type: "GAIN_SHIELD", multiplier: 0.4, target: "allAllies" },
       { type: "APPLY_STATUS", status: "retortWall", stacks: 1, statusDataFrom: { key: "poisonStacks", stat: "attack", multiplier: 0.05 }, target: "allAllies" },
-      { type: "GAIN_SQUAD_BUFF", squadBuff: "assembleD", target: "self" },
+      { type: "GAIN_SQUAD_BUFF", squadBuff: "assembleB", target: "self" },
     ],
-    text: "全队获得 {0} 点护盾；护盾存在期间队伍每受到 1 次攻击，使攻击者获得 {1} 层中毒，持续 2 回合；组装 D。",
+    text: "全队获得 {0} 点护盾；护盾存在期间队伍每受到 1 次攻击，使攻击者获得 {1} 层中毒，持续 2 回合；组装 B。",
   },
   {
     id: "buffer-solution",
@@ -73,13 +73,14 @@ export const ALCHEMIST_DEFENSE_CARDS: CardDef[] = [
     cost: 3,
     cardType: "normal",
     targeting: "none",
-    rarity: "rare",
+    rarity: "uncommon",
     anim: "shield",
     resonance: true,
+    lingering: true,
     effects: [
       { type: "GAIN_SHIELD", multiplier: 0.5, bonusMultiplierFrom: "activeCardResonance", bonusMultiplierPer: 0.1, target: "allAllies" },
       { type: "GAIN_SHIELD", multiplier: 0, bonusMultiplierFrom: "burningFoeCount", bonusMultiplierPer: 0.1, target: "allAllies" },
     ],
-    text: "全队获得 {0} 点护盾；场上每有 1 名灼烧中的敌人，护盾倍率 +10%；共鸣：护盾倍率 +10%。",
+    text: "全队获得 {0} 点护盾；场上每有 1 名灼烧中的敌人，护盾倍率 +10%；共鸣：护盾倍率 +10%。余韵。",
   },
 ];

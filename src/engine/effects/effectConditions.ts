@@ -1,6 +1,7 @@
 import type { BattleState, Card, EffectDescriptor } from "../types";
 import { counterOf } from "../combat/counters";
 import { playableHandUids } from "../cards/passiveCards";
+import { isReacting } from "../combat/reaction";
 
 export function conditionMet(
   state: BattleState,
@@ -46,6 +47,12 @@ export function conditionMet(
   if (effect.condition === "primaryBelowHpLimit") {
     const primary = primaryId ? state.combatants[primaryId] : undefined;
     return Boolean(primary?.alive && primary.hp < primary.hpLimit);
+  }
+  if (effect.condition === "primaryReacting")
+    return isReacting(primaryId ? state.combatants[primaryId] : undefined);
+  if (effect.condition === "hasSquadBuff" || effect.condition === "lacksSquadBuff") {
+    const owned = Boolean(effect.squadBuff) && state.squadBuffs.some((entry) => entry.id === effect.squadBuff);
+    return effect.condition === "hasSquadBuff" ? owned : !owned;
   }
   if (effect.condition === "primaryActsWithin") {
     const primary = primaryId ? state.combatants[primaryId] : undefined;

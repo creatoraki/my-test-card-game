@@ -195,6 +195,7 @@ export function createBattleState(
       passive: [...(setup.squadBuffRewardPools?.passive ?? [])],
     },
     lastSquadBuffConsumed: 0,
+    lastStrippedResonance: 0,
     lastConsumedStatusStacks: 0,
     lastRemovedStatusCount: 0,
     lastRemovedStatuses: [],

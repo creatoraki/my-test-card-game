@@ -1,8 +1,9 @@
 import { STATUS_DEFS } from "../core/hookRegistry";
 import { RULES } from "../core/battleRules";
-import type { BattleState } from "../types";
+import type { BattleState, StatusSegment } from "../types";
 import { allIds, cleanup, ctxFor, markDead } from "../core/ops";
 import { effectiveStacks, tickStatus } from "../statuses/stacking";
+import { notifyDotExpired } from "../statuses/dotEvents";
 
 function runTempo(state: BattleState, ownerId: string): void {
   const cmb = state.combatants[ownerId];
@@ -22,10 +23,16 @@ function runTempo(state: BattleState, ownerId: string): void {
     if (stacks > 0) def.hooks?.onTempo?.(ctxFor(state, ownerId, inst, stacks));
   }
 
+  const expiredDots: { statusId: string; segments: StatusSegment[] }[] = [];
   for (const inst of [...cmb.statuses]) {
     const def = STATUS_DEFS[inst.id];
-    if (def) tickStatus(inst, def, tempo);
+    if (!def) continue;
+    const expired = tickStatus(inst, def, tempo);
+    if (expired.length > 0) expiredDots.push({ statusId: inst.id, segments: expired });
   }
+  // 先让本拍衰减全部完成, 再派发到期事件: 转化出的新分段从下一拍开始计时。
+  if (cmb.alive)
+    for (const { statusId, segments } of expiredDots) notifyDotExpired(state, ownerId, statusId, segments);
   for (const inst of [...cmb.statuses]) {
     if (!cmb.statuses.includes(inst)) continue;
     const def = STATUS_DEFS[inst.id];

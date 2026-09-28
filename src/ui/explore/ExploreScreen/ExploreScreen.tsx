@@ -45,7 +45,7 @@ export function ExploreScreen() {
   const encountering = phase === "encounter" && travelTransition.phase === "idle";
 
   return <StageCanvas className={s.screen} viewportClassName={s.viewport} data-explore-stage>
-    <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={sceneBlocked} encountering={encountering} nearMapVariant={currentRoom?.nearMapVariant ?? "standard"} onPortalTravel={travelTransition.start} />
+    <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={sceneBlocked} encountering={encountering} nearMapVariant={currentRoom?.nearMapVariant ?? "neonCity1"} onPortalTravel={travelTransition.start} />
     <div className={s.readout}><EnergyReadout energy={session.energy} /></div>
     <ExploreInventory session={session} inventory={inventory} />
     <ExploreDock session={session} inventory={inventory} locked={locked} pending={pending} />

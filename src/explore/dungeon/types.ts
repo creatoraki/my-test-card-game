@@ -14,9 +14,9 @@ import type { BattleTier } from "../types";
 export type PortalDir = "up" | "down" | "left" | "right";
 export type RoomKind = "start" | "normal" | "battle" | "trap" | "boss";
 export type NearMapVariant =
-  | "standard"
-  | "alternate"
-  | "third"
+  | "neonCity1"
+  | "neonCity2"
+  | "neonCity3"
   | "ecoArk1"
   | "ecoArk2"
   | "ecoArk3"

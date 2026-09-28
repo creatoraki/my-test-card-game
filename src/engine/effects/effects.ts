@@ -7,9 +7,7 @@ import type { BattleState, Card, Combatant, EffectDescriptor, StatBlock } from "
 import { ops } from "../core/ops";
 import { addMod, attackDamage, healValue, offenseStatOf, statOf } from "../combat/stats";
 import { drawCards } from "../deck/deck";
-import { foesOf } from "../combat/targeting";
 import { resolveTargets } from "./effectTargets";
-import { rngPick } from "../core/rng";
 import { counterOf } from "../combat/counters";
 import { getStatusDef } from "../statuses";
 import { runStatusTickNow } from "../combat/statusLifecycle";
@@ -21,28 +19,17 @@ import { applyStripStatusEffect } from "./effectsStrip";
 import { applyRevealEffect } from "./effectsReveal";
 import { applyStatusMoveEffect } from "./effectsStatusMove";
 import { applyProphetEffect } from "./effectsProphet";
+import { applyAssembleEffect } from "./effectsAssemble";
+import { applyDotEffect } from "./effectsDot";
 import { filterFullDrawTargets, fullDrawGateMatches } from "../deck/fullDraw";
 import { conditionMet } from "./effectConditions";
-import { reduceStatusStacks } from "../statuses/stacking";
 export { conditionMet } from "./effectConditions";
 export { resolveTargets } from "./effectTargets";
-import {
-  ASSEMBLE_IDS,
-  gainSquadBuff,
-  consumeAllSquadBuffs,
-  missingAssembleIds,
-  removeRandomSquadBuff,
-  squadBuffIds,
-  type AssembleId,
-} from "../combat/squadBuff";
 
 export interface EffectResolution {
   missed: string[];
   hit: string[];
 }
-
-// 本批效果是否施加过灼烧; resolveEffects 负责保存/恢复, 供「burnApplied」被动事件使用。
-let burnAppliedInBatch = false;
 
 function mergeResolution(target: EffectResolution, source: EffectResolution): void {
   target.missed.push(...source.missed);
@@ -195,6 +182,7 @@ function applyEffect(
     case "COPY_CARD_TO_HAND":
     case "CHOOSE_HAND_CARD":
     case "EXHAUST_HAND_CARDS":
+    case "STRIP_RESONANCE":
       return applyHandEffect(state, effect, sourceId, targetIds, resolveEffects);
     case "EXTEND_STATUS":
     case "TRANSFER_STATUS":
@@ -253,7 +241,6 @@ function applyEffect(
         } else if (stacks > 0) {
           const before = state.combatants[id]?.statuses.find((status) => status.id === effect.status)?.stacks ?? 0;
           ops.applyStatus(state, id, effect.status, stacks, duration, generatedData, sourceId);
-          if (effect.status === "burn") burnAppliedInBatch = true;
           const after = state.combatants[id]?.statuses.find((status) => status.id === effect.status)?.stacks ?? 0;
           if (effect.tickNow && after > before)
             runStatusTickNow(state, id, effect.status, after - before);
@@ -326,72 +313,17 @@ function applyEffect(
     }
     case "STRIP_STATUS":
       return applyStripStatusEffect(state, effect, sourceId, targetIds, { resolveEffects });
-    case "GAIN_SQUAD_BUFF": {
-      if (effect.squadBuffPick === "choose") {
-        if (!state.pendingChoice)
-          state.pendingChoice = { kind: "pickSquadBuff", options: [...ASSEMBLE_IDS] };
-        break;
-      }
-      const missing = effect.squadBuffPick === "randomMissing" ? missingAssembleIds(state) : [];
-      if (effect.squadBuffPick === "randomMissing" && missing.length === 0) break;
-      const id = effect.squadBuffPick === "randomMissing" ? rngPick(state, missing) : effect.squadBuff;
-      if (id) gainSquadBuff(state, id as AssembleId);
-      break;
-    }
+    case "GAIN_SQUAD_BUFF":
     case "REMOVE_SQUAD_BUFF":
-      if (effect.squadBuffPick === "all") consumeAllSquadBuffs(state);
-      else if (effect.squadBuffPick === "random") removeRandomSquadBuff(state);
-      else if (effect.squadBuffPick === "choose") {
-        const owned = squadBuffIds(state);
-        if (owned.length > 0 && !state.pendingChoice)
-          state.pendingChoice = { kind: "pickSquadBuff", options: [...owned], mode: "remove" };
-      }
+    case "RELEASE_SQUAD_BUFF":
+      applyAssembleEffect(state, effect, sourceId, resolveEffects);
       break;
-    case "CONSUME_STATUS": {
-      state.lastConsumedStatusStacks = 0;
-      if (!effect.status) break;
-      for (const id of targetIds) {
-        const target = state.combatants[id];
-        const status = target?.statuses.find((entry) => entry.id === effect.status);
-        if (!target || !status) continue;
-        let limit = status.stacks;
-        if (effect.consumePct != null) limit = Math.min(limit, Math.floor(status.stacks * effect.consumePct));
-        if (effect.maxStacks != null) limit = Math.min(limit, Math.floor(effect.maxStacks));
-        const consumed = reduceStatusStacks(status, limit);
-        if (consumed <= 0) continue;
-        state.lastConsumedStatusStacks += consumed;
-        if (status.stacks <= 0) target.statuses = target.statuses.filter((entry) => entry !== status);
-        ops.log(state, `${target.emoji} ${target.name} 的${getStatusDef(effect.status)?.name ?? effect.status}被消耗 ${consumed} 层`);
-      }
+    case "CONSUME_STATUS":
+    case "SPREAD_STATUS":
+    case "TICK_STATUS":
+    case "INCINERATE":
+      applyDotEffect(state, effect, sourceId, targetIds);
       break;
-    }
-    case "SPREAD_STATUS": {
-      if (!effect.status) break;
-      const spreadTargets = foesOf(state, src).filter((target) =>
-        !effect.targetHasStatus || target.statuses.some((status) => status.id === effect.targetHasStatus && status.stacks > 0),
-      );
-      for (const sourceTargetId of targetIds) {
-        const sourceTarget = state.combatants[sourceTargetId];
-        const sourceStatus = sourceTarget?.statuses.find((entry) => entry.id === effect.status);
-        if (!sourceStatus) continue;
-        const stacks = Math.floor(sourceStatus.stacks * (effect.spreadPct ?? 0.5));
-        if (stacks <= 0) continue;
-        for (const target of spreadTargets) {
-          if (target.id !== sourceTargetId)
-            ops.applyStatus(state, target.id, effect.status, stacks, effect.duration ?? sourceStatus.duration, undefined, sourceId);
-          if (effect.status === "burn") burnAppliedInBatch = true;
-        }
-      }
-      break;
-    }
-    // 毒发 N: 按当前全部层数立即结算 N 次, 不扣层数也不扣持续。
-    case "TICK_STATUS": {
-      if (!effect.status) break;
-      const times = Math.max(1, Math.floor(effect.amount ?? 1));
-      for (const id of targetIds)
-        for (let i = 0; i < times; i++) runStatusTickNow(state, id, effect.status);
-      break;
-    }
   }
   return resolution;
 }
@@ -399,7 +331,7 @@ function applyEffect(
 // 子模块(effectsHand / effectsReveal)需要回调结算器时由这里注入, 它们只认这个签名。
 export type ResolveEffectsFn = typeof resolveEffects;
 
-// 依次结算一张卡 / 一个招式的所有效果。
+// 依次结算一张卡 / 一个招式的所有效果。repeatFrom: 按计数重复结算 N 次, 每次重新解析目标。
 export function resolveEffects(
   state: BattleState,
   effects: EffectDescriptor[],
@@ -408,18 +340,12 @@ export function resolveEffects(
   contextCard?: Card,
 ): EffectResolution {
   const resolution: EffectResolution = { missed: [], hit: [] };
-  const outerBurnFlag = burnAppliedInBatch;
-  burnAppliedInBatch = false;
-  try {
-    for (const effect of effects) {
+  for (const effect of effects) {
+    const times = effect.repeatFrom ? Math.max(0, Math.floor(counterOf(state, effect.repeatFrom))) : 1;
+    for (let i = 0; i < times; i++) {
       const targets = filterFullDrawTargets(state, effect, resolveTargets(state, effect, sourceId, primaryId));
       mergeResolution(resolution, applyEffect(state, effect, sourceId, targets, primaryId, contextCard));
     }
-  } finally {
-    const applied = burnAppliedInBatch;
-    burnAppliedInBatch = outerBurnFlag;
-    if (applied && state.combatants[sourceId]?.team === "player")
-      ops.firePassive(state, { type: "burnApplied" });
   }
   return resolution;
 }

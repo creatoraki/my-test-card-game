@@ -71,6 +71,9 @@ export interface CardDef {
   // 按卡牌实例的累计层数(Card.discardStacks)调整费用, 达到 atLeast 时叠加 delta。
   stackCostRule?: { atLeast: number; delta: number };
   resonance?: boolean; // 共鸣卡: 打出时强化符合条件的手牌
+  lingering?: boolean; // 余韵: 打出后把本卡的共鸣强化次数传给手牌中费用最低的另一张共鸣牌
+  resonanceAmplifier?: number; // 在手中时: 共鸣牌打出, 被强化的每张牌额外获得的强化次数(共振晶簇)
+  excludeSelfTarget?: boolean; // targeting="ally" 时不能选择卡牌所属者自身
   passive?: PassiveDef; // 被动卡: 持在手中时按事件自动结算
   onDiscard?: DiscardTrigger;
   keywords?: CardKeywordRef[];
@@ -97,8 +100,7 @@ export type PassiveTriggerId =
   | "assembleSuccess"
   | "allyAttacked"
   | "cardPlayed"
-  | "roundStart"
-  | "burnApplied";
+  | "roundStart";
 
 export interface PassiveDef {
   on: PassiveTriggerId | PassiveTriggerId[];
@@ -188,5 +190,7 @@ export type PendingChoice =
   | {
       kind: "pickSquadBuff";
       options: string[];
-      mode?: "gain" | "remove";
+      // gain 获得 / remove 移除 / release 移除并释放 / keep 组装成功后保留(贤者之石) / purify 提纯选择缺失字母
+      mode?: "gain" | "remove" | "release" | "keep" | "purify";
+      sourceId?: string; // release: 释放效果的施放者
     };

@@ -105,6 +105,7 @@ export type { CardBoonId } from "./cards/cardBoon";
 export {
   ASSEMBLE_IDS,
   SQUAD_BUFF_DEFS,
+  assembleRewardCategoryName,
   checkAssembly,
   consumeAllSquadBuffs,
   gainSquadBuff,

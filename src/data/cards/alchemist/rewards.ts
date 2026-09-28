@@ -20,10 +20,10 @@ export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
     targeting: "foe",
     anim: "fire",
     effects: [
-      { type: "APPLY_STATUS", status: "burn", stacksFromStat: { stat: "attack", multiplier: 0.75 }, duration: 2, target: "primary" },
-      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.2 }, duration: 2, target: "primary" },
+      { type: "APPLY_STATUS", status: "burn", stacksFromStat: { stat: "attack", multiplier: 0.5 }, duration: 2, target: "primary" },
+      { type: "INCINERATE", target: "primary" },
     ],
-    text: "对目标施加 {0} 层灼烧与 {1} 层中毒，均持续 2 回合。打出后消耗。",
+    text: "对目标施加 {0} 层灼烧（持续 2 回合），然后焚尽目标。打出后消耗。",
   },
   {
     ...rewardBase,
@@ -102,14 +102,12 @@ export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
   },
   {
     ...passiveRewardBase,
-    id: "residual-heat-crystal",
-    name: "余温结晶",
-    anim: "fire",
+    id: "resonance-crystal",
+    name: "共振晶簇",
+    anim: "buff",
     effects: [],
-    passive: {
-      on: "burnApplied",
-      effects: [{ type: "GAIN_SHIELD", multiplier: 0.05, target: "allAllies" }],
-    },
-    text: "被动：在手中时，你每打出一张施加灼烧的卡，全队获得 5% 治愈力的护盾。回合结束时移入消耗区。",
+    // 不监听事件: 由 cards/resonance.ts 在共鸣牌打出时读取手牌中的 resonanceAmplifier。
+    resonanceAmplifier: 1,
+    text: "被动：在手中时，你打出共鸣牌时，被它强化的每张牌额外获得 1 次强化。回合结束时移入消耗区。",
   },
 ];

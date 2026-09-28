@@ -84,26 +84,31 @@ export function effectiveStacks(inst: StatusInstance, def: StatusDef, tempo: num
   return inst.appliedAt === tempo ? 0 : inst.stacks;
 }
 
-export function tickStatus(inst: StatusInstance, def: StatusDef, tempo?: number): void {
+// 推进一拍。返回本拍自然到期的分段(仅分段状态; 衔尾蛇据此转化 DOT)。
+export function tickStatus(inst: StatusInstance, def: StatusDef, tempo?: number): StatusSegment[] {
   if (def.stackMode === "segments") {
     if (!inst.segments) {
       if (def.decay === "one") inst.stacks -= 1;
       if (def.decay === "half") inst.stacks = Math.floor(inst.stacks / 2);
       if (inst.duration != null) inst.duration -= 1;
-      return;
+      return inst.duration != null && inst.duration <= 0 && inst.stacks > 0
+        ? [{ stacks: inst.stacks, duration: 0, appliedAt: inst.appliedAt ?? 0 }]
+        : [];
     }
     for (const segment of inst.segments) {
       if (segment.duration != null) segment.duration -= 1;
     }
+    const expired = inst.segments.filter((segment) => segment.duration != null && segment.duration <= 0);
     inst.segments = inst.segments.filter((segment) => segment.duration == null || segment.duration > 0);
     syncSegments(inst);
-    return;
+    return expired;
   }
 
-  if (tempo != null && inst.appliedAt === tempo && !def.durationStartsImmediately) return;
+  if (tempo != null && inst.appliedAt === tempo && !def.durationStartsImmediately) return [];
   if (def.decay === "one") inst.stacks -= 1;
   if (def.decay === "half") inst.stacks = Math.floor(inst.stacks / 2);
   if (inst.duration != null) inst.duration -= 1;
+  return [];
 }
 
 export function capStatusStacks(inst: StatusInstance, def: StatusDef, cap = def.maxStacks): void {

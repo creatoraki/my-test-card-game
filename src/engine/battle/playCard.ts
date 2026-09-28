@@ -17,7 +17,8 @@ import { noteChallengePlay } from "../challenges";
 import { flushAutoPlays, moveToDiscard, takeDiscardSnapshot, withDiscardRecorder } from "../deck/discard";
 import { KEYWORD_DEFS } from "../cards/keywords";
 import { CARD_MARK_DEFS, isPersistentMark } from "../cards/cardMarks";
-import { firePassive, isPassive, playableHandUids } from "../combat/passive";
+import { firePassive, isPassive } from "../combat/passive";
+import { applyResonanceOnPlay } from "../cards/resonance";
 import { fireRelic } from "../relics/relics";
 import { validFoeTargetIds } from "../combat/targeting";
 import { cultivateReady, effectiveTargeting, resetCultivate } from "../deck/cultivate";
@@ -56,7 +57,7 @@ function isValidPrimary(state: BattleState, card: Card, primaryId?: string): boo
     const owner = state.combatants[card.ownerCharId];
     return owner?.team !== "player" || validFoeTargetIds(state, "player").includes(primaryId);
   }
-  if (targeting === "ally") return t.team === "player";
+  if (targeting === "ally") return t.team === "player" && !(card.excludeSelfTarget && primaryId === card.ownerCharId);
   return true;
 }
 
@@ -212,13 +213,7 @@ export function playCard(
             mergeCardResolution(resolveEffects(state, ref.onceEffects, card.ownerCharId, primaryId));
           def.onTriggered?.(state, card, ctx, times);
         }
-        if (card.resonance) {
-          for (const handUid of playableHandUids(state)) {
-            const handCard = state.cards[handUid];
-            if (handCard?.resonance && handCard.cost < faceCost)
-              handCard.resonanceStacks = (handCard.resonanceStacks ?? 0) + 1;
-          }
-        }
+        applyResonanceOnPlay(state, card, faceCost);
         for (const markId of cardMarksAtPlay) {
           const mark = CARD_MARK_DEFS[markId];
           const sourceId = markSourceId(state, card, markId);

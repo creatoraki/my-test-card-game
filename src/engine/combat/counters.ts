@@ -61,6 +61,12 @@ export function counterOf(state: BattleState, source: CounterSource, card?: Card
       const enemy = state.combatants[id];
       return enemy?.alive && enemy.statuses.some((status) => status.id === "burn" && status.stacks > 0);
     }).length;
+  if (source === "primaryBurnStacks" || source === "primaryPoisonStacks") {
+    const target = state.activeCardPrimaryId ? state.combatants[state.activeCardPrimaryId] : undefined;
+    const statusId = source === "primaryBurnStacks" ? "burn" : "poison";
+    return target?.statuses.find((status) => status.id === statusId)?.stacks ?? 0;
+  }
+  if (source === "lastStrippedResonance") return state.lastStrippedResonance;
   if (source === "fastPlaysThisRound")
     return state.playedThisRound.filter((played) => played.cardType === "fast").length;
   return state.playedThisRound.length;

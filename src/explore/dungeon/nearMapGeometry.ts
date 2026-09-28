@@ -7,9 +7,9 @@ export const NEAR_MAP_ART_SCALE = 1.7 * NEAR_MAP_ZOOM;
 
 /** 近景素材原始尺寸。 */
 const NEAR_MAP_SOURCE_GEOMETRY = {
-  standard: { width: 2048, height: 771 },
-  alternate: { width: 2172, height: 724 },
-  third: { width: 2048, height: 768 },
+  neonCity1: { width: 2172, height: 724 },
+  neonCity2: { width: 2172, height: 724 },
+  neonCity3: { width: 2172, height: 724 },
   ecoArk1: { width: 2172, height: 724 },
   ecoArk2: { width: 2172, height: 724 },
   ecoArk3: { width: 1916, height: 821 },
@@ -18,17 +18,17 @@ const NEAR_MAP_SOURCE_GEOMETRY = {
 
 /** 近景素材按 NEAR_MAP_ART_SCALE 倍显示；走廊宽度与图片显示宽度保持一致。 */
 export const NEAR_MAP_GEOMETRY = {
-  standard: {
-    width: Math.round(NEAR_MAP_SOURCE_GEOMETRY.standard.width * NEAR_MAP_ART_SCALE),
-    height: Math.round(NEAR_MAP_SOURCE_GEOMETRY.standard.height * NEAR_MAP_ART_SCALE),
+  neonCity1: {
+    width: Math.round(NEAR_MAP_SOURCE_GEOMETRY.neonCity1.width * NEAR_MAP_ART_SCALE),
+    height: Math.round(NEAR_MAP_SOURCE_GEOMETRY.neonCity1.height * NEAR_MAP_ART_SCALE),
   },
-  alternate: {
-    width: Math.round(NEAR_MAP_SOURCE_GEOMETRY.alternate.width * NEAR_MAP_ART_SCALE),
-    height: Math.round(NEAR_MAP_SOURCE_GEOMETRY.alternate.height * NEAR_MAP_ART_SCALE),
+  neonCity2: {
+    width: Math.round(NEAR_MAP_SOURCE_GEOMETRY.neonCity2.width * NEAR_MAP_ART_SCALE),
+    height: Math.round(NEAR_MAP_SOURCE_GEOMETRY.neonCity2.height * NEAR_MAP_ART_SCALE),
   },
-  third: {
-    width: Math.round(NEAR_MAP_SOURCE_GEOMETRY.third.width * NEAR_MAP_ART_SCALE),
-    height: Math.round(NEAR_MAP_SOURCE_GEOMETRY.third.height * NEAR_MAP_ART_SCALE),
+  neonCity3: {
+    width: Math.round(NEAR_MAP_SOURCE_GEOMETRY.neonCity3.width * NEAR_MAP_ART_SCALE),
+    height: Math.round(NEAR_MAP_SOURCE_GEOMETRY.neonCity3.height * NEAR_MAP_ART_SCALE),
   },
   ecoArk1: {
     width: Math.round(NEAR_MAP_SOURCE_GEOMETRY.ecoArk1.width * NEAR_MAP_ART_SCALE),

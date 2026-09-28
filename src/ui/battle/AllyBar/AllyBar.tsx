@@ -28,6 +28,7 @@ interface Props {
   // 「选中」的那张手牌(可为 null)。悬停的那张不走 props, 由本组件自己订阅 —— 见下方组件注释。
   focusFallbackCard: Card | null;
   targetable: boolean; // 当前是否处于「选择一名友军」的状态
+  excludeTargetId?: string | null; // 不可被选为目标的我方单位(淬火涂层等不能选自己的牌)
   onSelect: (id: string) => void;
   deathPhaseOf: (id: string) => DeathPhase;
   deathRate?: number;
@@ -55,6 +56,7 @@ export function AllyBar({
   attackerId,
   focusFallbackCard,
   targetable,
+  excludeTargetId,
   onSelect,
   deathPhaseOf,
   deathRate = 1,
@@ -76,7 +78,7 @@ export function AllyBar({
             hit={hits[cmb.id] ?? null}
             attacking={cmb.id === attackerId}
             focused={cmb.id === focusCharId}
-            targetable={targetable && cmb.alive}
+            targetable={targetable && cmb.alive && cmb.id !== excludeTargetId}
             deathPhase={deathPhaseOf(cmb.id)}
             // ⚠ 直接透传而不是 `() => onSelect(cmb.id)` —— 内联箭头每次渲染都是新引用,
             //   会让下面的 React.memo 永远命中不了。id 改由 AllySlot 自己带上。

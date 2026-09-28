@@ -92,6 +92,24 @@ import alchemistBountyHunterArt from "@/assets/skills/alchemist/赏金猎人.web
 import alchemistOverCatalysisArt from "@/assets/skills/alchemist/过量催化.webp";
 import alchemistReverseDisassemblyArt from "@/assets/skills/alchemist/逆向拆解.webp";
 import alchemistChainBurstArt from "@/assets/skills/alchemist/链式爆破.webp";
+import alchemistEmberAnnihilationArt from "@/assets/skills/alchemist/烬灭.webp";
+import alchemistThermalRecoveryArt from "@/assets/skills/alchemist/热能回收.webp";
+import alchemistPhlogistonBlastArt from "@/assets/skills/alchemist/燃素爆燃.webp";
+import alchemistAquaRegiaEtchArt from "@/assets/skills/alchemist/王水蚀刻.webp";
+import alchemistBufferSolutionArt from "@/assets/skills/alchemist/缓冲溶液.webp";
+import alchemistOuroborosArt from "@/assets/skills/alchemist/衔尾蛇.webp";
+import alchemistHarmonicDraughtArt from "@/assets/skills/alchemist/谐波药剂.webp";
+import alchemistPhilosophersStoneArt from "@/assets/skills/alchemist/贤者之石.webp";
+import alchemistEmberWallArt from "@/assets/skills/alchemist/余烬护壁.webp";
+import alchemistResonanceCrystalArt from "@/assets/skills/alchemist/共振晶簇.webp";
+import alchemistResonanceCollapseArt from "@/assets/skills/alchemist/共鸣崩解.webp";
+import alchemistResonanceForkArt from "@/assets/skills/alchemist/共鸣音叉.webp";
+import alchemistRosinAccelerantArt from "@/assets/skills/alchemist/助燃松脂.webp";
+import alchemistBiphasicDraughtArt from "@/assets/skills/alchemist/双相药剂.webp";
+import alchemistPurificationArt from "@/assets/skills/alchemist/提纯.webp";
+import alchemistEternalFurnaceCoreArt from "@/assets/skills/alchemist/永燃炉芯.webp";
+import alchemistMercuryVaporArt from "@/assets/skills/alchemist/汞蒸气.webp";
+import alchemistQuenchCoatingArt from "@/assets/skills/alchemist/淬火涂层.webp";
 import actuaryInitialPremiumArt from "@/assets/skills/actuary/首期保费.webp";
 
 export const CARD_ART: Record<string, string> = {
@@ -198,6 +216,24 @@ export const CARD_ART: Record<string, string> = {
   "resonance-catalyst": alchemistRefluxPotionArt,
   "inspiration-potion": alchemistInspirationPotionArt,
   "bounty-hunter": alchemistBountyHunterArt,
+  "ember-annihilation": alchemistEmberAnnihilationArt,
+  "thermal-recovery": alchemistThermalRecoveryArt,
+  "phlogiston-blast": alchemistPhlogistonBlastArt,
+  "aqua-regia-etch": alchemistAquaRegiaEtchArt,
+  "buffer-solution": alchemistBufferSolutionArt,
+  "ouroboros": alchemistOuroborosArt,
+  "harmonic-draught": alchemistHarmonicDraughtArt,
+  "philosophers-stone": alchemistPhilosophersStoneArt,
+  "ember-wall": alchemistEmberWallArt,
+  "resonance-crystal": alchemistResonanceCrystalArt,
+  "resonance-collapse": alchemistResonanceCollapseArt,
+  "resonance-fork": alchemistResonanceForkArt,
+  "rosin-accelerant": alchemistRosinAccelerantArt,
+  "biphasic-draught": alchemistBiphasicDraughtArt,
+  "purification": alchemistPurificationArt,
+  "eternal-furnace-core": alchemistEternalFurnaceCoreArt,
+  "mercury-vapor": alchemistMercuryVaporArt,
+  "quench-coating": alchemistQuenchCoatingArt,
   "initial-premium": actuaryInitialPremiumArt,
 };
 

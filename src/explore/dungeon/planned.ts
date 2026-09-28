@@ -5,7 +5,9 @@ import { assignNearMapVariants } from "./nearMapAssignment";
 import type { DungeonRoomPlan, DungeonState, RoomNode } from "./types";
 
 function assignTutorialNearMaps(s: ExploreState, rooms: Record<string, RoomNode>, order: string[]): void {
-  assignNearMapVariants(s, rooms, order, ["standard", "alternate", "third"]);
+  assignNearMapVariants(s, rooms, order, [
+    "neonCity1", "neonCity2", "neonCity3",
+  ]);
 }
 
 function middleSlotIndex(index: number, count: number): number {

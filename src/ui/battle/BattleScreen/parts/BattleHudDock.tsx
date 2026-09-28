@@ -91,6 +91,7 @@ export function BattleHudDock({
           attackerId={attackerId}
           focusFallbackCard={selectedCard}
           targetable={isPlayerTurn && !!needsAlly}
+          excludeTargetId={selectedCard?.excludeSelfTarget ? selectedCard.ownerCharId : null}
           onSelect={onCombatantClick}
           deathPhaseOf={deathPhaseOf}
           deathRate={deathRate}

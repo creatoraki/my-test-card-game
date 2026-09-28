@@ -33,6 +33,9 @@ export type EffectType =
   | "CULTIVATE_TICK"
   | "GAIN_SQUAD_BUFF"
   | "REMOVE_SQUAD_BUFF"
+  | "RELEASE_SQUAD_BUFF" // 释放组装 BUFF(按字母结算即时效果, 见 effectsAssemble)
+  | "INCINERATE" // 焚尽: 移除全部灼烧, 立即结算其剩余总伤害
+  | "STRIP_RESONANCE" // 移除手牌上的全部共鸣强化, 次数写入 lastStrippedResonance
   | "CONSUME_STATUS"
   | "SPREAD_STATUS"
   | "TICK_STATUS"
@@ -146,6 +149,9 @@ export interface EffectDescriptor {
     | "targetLacksStatus"
     | "targetHasStatus"
     | "primaryBelowHpLimit"
+    | "primaryReacting" // 主目标同时带有灼烧与中毒(反应态)
+    | "hasSquadBuff" // 持有 squadBuff 指定的组装 BUFF
+    | "lacksSquadBuff" // 未持有 squadBuff 指定的组装 BUFF
     | "primaryActsWithin"; // 满足条件时才结算。primaryActsWithin: 主目标敌人的招式将在 conditionValue 时刻内发动
   conditionValue?: number; // handHasCostAtLeast: 手牌中最低牌面费用; fastCardsInHandAtLeast: 手牌中速攻牌数量
   conditionValueMax?: number; // counterAtLeast: 可选闭区间上限
@@ -165,7 +171,9 @@ export interface EffectDescriptor {
   convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型
   convertPick?: "handRandomNormal" | "handAllFast"; // CONVERT_CARD_TYPE: 手牌普通牌随机 / 全部速攻牌
   squadBuff?: "assembleA" | "assembleB" | "assembleC" | "assembleD";
-  squadBuffPick?: "choose" | "randomMissing" | "random" | "all";
+  squadBuffPick?: "choose" | "randomMissing" | "random" | "all" | "purify";
+  keepSquadBuff?: boolean; // RELEASE_SQUAD_BUFF: 只释放、不移除
+  repeatFrom?: CounterSource; // 按计数把本条效果重复结算 N 次, 每次重新解析目标
   resonatePick?: "handAll" | "lowerCost";
   fromModule?: string; // 由卡牌模组追加的效果标记(模组 itemId); 纯标记, 引擎结算不读取
   prophecy?: ProphecyId; // START_PROPHECY: 预言 id

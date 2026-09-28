@@ -214,7 +214,10 @@ export function useBattleActions({
     if (!selectedCard || !target?.alive) return;
     const targeting = effectiveTargeting(selectedCard);
     if (targeting === "foe" && target.team === "enemy") triggerPlay(selectedUid, id);
-    else if (targeting === "ally" && target.team === "player") triggerPlay(selectedUid, id);
+    else if (targeting === "ally" && target.team === "player") {
+      if (selectedCard.excludeSelfTarget && id === selectedCard.ownerCharId) return;
+      triggerPlay(selectedUid, id);
+    }
   }, [battle, playback.animating, selectedUid, triggerPlay]);
 
   const pickFromDiscard = useCallback((uid: string) => {

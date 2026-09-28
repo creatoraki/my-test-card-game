@@ -9,18 +9,18 @@ export const CORRIDOR_SCENE_SCALE = 1;
 export const CORRIDOR_VIEWPORT_WORLD_WIDTH = CORRIDOR.viewportWidth / CORRIDOR_SCENE_SCALE;
 
 const NEAR_FLOOR_Y_AT_1080: Record<NearMapVariant, number> = {
-  standard: 742, // 原 1080px 高布局的平台顶面位置
-  alternate: 621, // 原 1080px 高布局的平台顶面位置
-  third: 956, // 测试3平台顶面约在原图 y=680，按近景缩放比例换算
+  neonCity1: 632 / 724 * 1080, // 近景1平台顶面
+  neonCity2: 611 / 724 * 1080, // 近景2平台顶面
+  neonCity3: 608 / 724 * 1080, // 近景3平台顶面
   ecoArk1: 458 / 724 * 1080,
   ecoArk2: 458 / 724 * 1080,
   ecoArk3: 516 / 821 * 1080,
   ecoArk4: 603 / 821 * 1080,
 };
 const NEAR_MAP_OFFSET_Y: Record<NearMapVariant, number> = {
-  standard: 0,
-  alternate: -16,
-  third: 0,
+  neonCity1: 0,
+  neonCity2: 0,
+  neonCity3: 0,
   ecoArk1: 0,
   ecoArk2: 0,
   ecoArk3: 0,

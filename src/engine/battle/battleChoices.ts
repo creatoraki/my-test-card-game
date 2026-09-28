@@ -1,6 +1,14 @@
 import type { BattleState } from "../types";
 import { advanceCultivate, cultivateCanAdvance, resetCultivate } from "../deck/cultivate";
-import { gainSquadBuff, removeSquadBuff, SQUAD_BUFF_DEFS, type AssembleId } from "../combat/squadBuff";
+import {
+  gainSquadBuff,
+  removeSquadBuff,
+  resolvePurify,
+  restoreSquadBuff,
+  SQUAD_BUFF_DEFS,
+  type AssembleId,
+} from "../combat/squadBuff";
+import { releaseSquadBuff } from "../effects/effectsAssemble";
 import { cardCost } from "../cards/cost";
 import { resolveEffects } from "../effects/effects";
 import { firePassive } from "../combat/passive";
@@ -15,16 +23,30 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
   if (!choice) return false;
   if (choice.kind === "pickSquadBuff") {
     if (!choice.options.includes(uid)) return false;
-    if (choice.mode === "remove") {
-      if (!removeSquadBuff(state, uid as AssembleId)) return false;
+    const id = uid as AssembleId;
+    const name = SQUAD_BUFF_DEFS[id]?.name ?? uid;
+    // ⚠ 一律先清掉本次选择再结算: 结算中可能触发组装成功, 贤者之石会设置新的「保留」选择。
+    if (choice.mode === "remove" || choice.mode === "release") {
+      if (!removeSquadBuff(state, id)) return false;
       state.pendingChoice = null;
-      log(state, `移除 ${SQUAD_BUFF_DEFS[uid as AssembleId]?.name ?? uid}`);
+      log(state, `移除 ${name}`);
+      if (choice.mode === "release" && choice.sourceId)
+        releaseSquadBuff(state, id, 1, choice.sourceId, resolveEffects);
+      return true;
+    }
+    if (choice.mode === "keep") {
+      state.pendingChoice = null;
+      return restoreSquadBuff(state, id);
+    }
+    if (choice.mode === "purify") {
+      state.pendingChoice = null;
+      resolvePurify(state, id, choice.options);
       return true;
     }
     if (state.squadBuffs.some((entry) => entry.id === uid)) return false;
-    if (!gainSquadBuff(state, uid as AssembleId)) return false;
     state.pendingChoice = null;
-    log(state, `获得 ${SQUAD_BUFF_DEFS[uid as AssembleId]?.name ?? uid}`);
+    gainSquadBuff(state, id);
+    log(state, `获得 ${name}`);
     return true;
   }
   if (choice.kind === "pickFromDraw") {
@@ -132,6 +154,9 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
 export function cancelPendingChoice(state: BattleState): boolean {
   if (!state.pendingChoice) return false;
   if (state.pendingChoice.kind === "pickHandCard") return false;
+  // 组装成功后的保留 / 提纯的分类选择属于已发生的结算, 不能放弃。
+  if (state.pendingChoice.kind === "pickSquadBuff" &&
+    (state.pendingChoice.mode === "keep" || state.pendingChoice.mode === "purify")) return false;
   state.pendingChoice = null;
   log(state, "放弃当前选择");
   return true;

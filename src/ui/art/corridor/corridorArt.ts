@@ -14,9 +14,9 @@ import corridorShrineArt from "@/assets/explore-corridor/废弃楼层/可交互�
 import corridorDispatchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/传送带.webp";
 import corridorCrystalVeinArt from "@/assets/explore-corridor/废弃楼层/可交互物体/矿脉.webp";
 import corridorFarArt from "@/assets/explore-corridor/废弃楼层/无限远景.webp";
-import corridorNearStandardArt from "@/assets/explore-corridor/废弃楼层/近景/测试.webp";
-import corridorNearAlternateArt from "@/assets/explore-corridor/废弃楼层/近景/测试2.webp";
-import corridorNearThirdArt from "@/assets/explore-corridor/废弃楼层/近景/测试3.webp";
+import neonCityNear1Art from "@/assets/explore-corridor/废弃楼层/近景/近景1.webp";
+import neonCityNear2Art from "@/assets/explore-corridor/废弃楼层/近景/近景2.webp";
+import neonCityNear3Art from "@/assets/explore-corridor/废弃楼层/近景/近景3.webp";
 import type { NearMapVariant } from "@/explore/dungeon/types";
 import type { CurioKind } from "@/explore/corridor/types";
 import { ECO_ARK_SCENERY, ECO_ARK_SCENERY_SOURCES } from "../ecoArk/ecoArkScenery";
@@ -58,9 +58,9 @@ export const CORRIDOR_ROOM_PORTAL_ANCHOR_SHIFT = 79;
 export const CORRIDOR_BOSS_GATE_ART = bossGateArt;
 export const CORRIDOR_NEAR_ART: Record<NearMapVariant, string> = {
   ...ECO_ARK_NEAR_ART,
-  standard: corridorNearStandardArt,
-  alternate: corridorNearAlternateArt,
-  third: corridorNearThirdArt,
+  neonCity1: neonCityNear1Art,
+  neonCity2: neonCityNear2Art,
+  neonCity3: neonCityNear3Art,
 };
 
 export function getCorridorFarArt(mapId: string | undefined): string {

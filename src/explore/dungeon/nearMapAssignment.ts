@@ -2,7 +2,7 @@ import { rngPick, shuffle } from "@/engine/core/rng";
 import type { ExploreState } from "../types";
 import type { NearMapVariant, RoomNode } from "./types";
 
-/** 把一组近景随机分配到房间；首轮覆盖全部变体，额外房间从同一组中继续随机抽取。 */
+/** 把一组近景随机分配到房间；房间足够时首轮覆盖全部变体，不足时随机选取，额外房间继续随机抽取。 */
 export function assignNearMapVariants(
   state: ExploreState,
   rooms: Record<string, RoomNode>,

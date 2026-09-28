@@ -50,6 +50,9 @@ export const STATUS_ACCENT: Record<string, string> = {
   zanshin: "#ff7a7a",
   zanshinFocus: "#ff9a9a",
   yachiyo: "#ffb0d0",
+  quench: "#ff9a4a",
+  philosophersStone: "#ff6fa8",
+  ouroboros: "#7de0a0",
   // 减益
   poison: "#7dff4a",
   burn: "#ff7a3c",
@@ -63,7 +66,8 @@ export const STATUS_ACCENT: Record<string, string> = {
   weak: "#b0a4c8",
   attackDown: "#b0a4c8",
   vulnerable: "#ff5d6c",
-  armorBreak: "#ff5d6c",  pierce: "#ff8a4a",
+  armorBreak: "#ff5d6c",
+  etch: "#c8ff5a",  pierce: "#ff8a4a",
 };
 
 const KIND_ACCENT: Record<StatusKind, string> = {

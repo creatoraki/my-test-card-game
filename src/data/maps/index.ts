@@ -86,6 +86,7 @@ export const MAPS: MapDef[] = [
     emoji: "🌆",
     maxEquipRarity: "common",
     roomCount: 12,
+    nearMapVariants: ["neonCity1", "neonCity2", "neonCity3"],
     curioLevelRange: [1, 3],
     battleEncounters: {
       t1: ["n-t1-scout", "n-t1-sweep", "n-t1-drift"],

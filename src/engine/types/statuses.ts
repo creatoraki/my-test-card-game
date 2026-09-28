@@ -88,6 +88,7 @@ export interface StatusHooks {
   onCultivateStage?: (c: StatusCtx, card: Card, stage: CultivateStage) => void;
   onExpire?: (c: StatusCtx) => void; // 状态在本次节拍后过期时触发一次
   onFoePoisonTick?: (c: StatusCtx, victimId: string) => void; // 我方持有者: 任意单位的中毒结算一次后(含毒发)
+  onFoeDotExpired?: (c: StatusCtx, victimId: string, statusId: string, stacks: number) => void; // 我方持有者: 敌人的灼烧/中毒某一段自然到期
   onBeforeAct?: (c: StatusCtx) => void; // 敌方持有者: 发动招式前(眩晕判定之后、选招之前)
   onOverflow?: (c: StatusCtx, overflow: number) => void; // 施加层数超出上限时, 溢出部分的层数
 }

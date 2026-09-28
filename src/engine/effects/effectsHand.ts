@@ -293,6 +293,19 @@ function applyResonate(state: BattleState, effect: EffectDescriptor): void {
   }
 }
 
+// 共鸣崩解: 移除手牌中所有牌的共鸣强化, 总次数供后续效果按 lastStrippedResonance 读取。
+function applyStripResonance(state: BattleState): void {
+  let stripped = 0;
+  for (const uid of state.hand) {
+    const card = state.cards[uid];
+    if (!card?.resonanceStacks) continue;
+    stripped += card.resonanceStacks;
+    card.resonanceStacks = 0;
+  }
+  state.lastStrippedResonance = stripped;
+  if (stripped > 0) ops.log(state, `移除了 ${stripped} 次共鸣强化`);
+}
+
 // ⚠ resolve 由 effects.ts 注入(就是 resolveEffects 本身): 本文件若直接 import 它, 会与 effects.ts 形成运行时环。
 export function applyHandEffect(
   state: BattleState,
@@ -325,6 +338,9 @@ export function applyHandEffect(
       break;
     case "RESONATE":
       applyResonate(state, effect);
+      break;
+    case "STRIP_RESONANCE":
+      applyStripResonance(state);
       break;
     case "TRANSFORM_CARD":
       applyTransform(state, effect);

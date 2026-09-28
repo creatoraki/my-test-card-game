@@ -51,6 +51,9 @@ export type CounterSource =
   | "discardPileTens"
   | "aliveFoeCount"
   | "burningFoeCount"
+  | "primaryBurnStacks" // 主目标当前灼烧总层数
+  | "primaryPoisonStacks" // 主目标当前中毒总层数
+  | "lastStrippedResonance" // 最近一次 STRIP_RESONANCE 移除的共鸣强化次数
   | "primaryPierce" // 主目标当前穿孔层数
   | "primaryPierceTriples" // 主目标穿孔层数 ÷ 3(向下取整)
   | "primaryPoisonTurns"; // 主目标各段中毒中最长的剩余拍数; 存在无期限分段时为 Infinity
