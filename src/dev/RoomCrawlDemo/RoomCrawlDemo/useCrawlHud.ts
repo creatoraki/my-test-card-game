@@ -3,6 +3,7 @@ import type { CrawlCallbacks, LoadingState, LootNotice, PromptInfo } from "../ty
 
 /**
  * HUD 状态与运行时回调: 房间加载进度、调查提示、获得飘字、遭遇卡、校准叠层开关。
+ * 切换地图(运行时重建)时用 reset() 清空上一张地图遗留的状态。
  * 提示条的位置每帧变化, 直接写 DOM transform, 不触发 React 渲染。
  */
 export function useCrawlHud() {
@@ -27,5 +28,13 @@ export function useCrawlHud() {
 
   const dropLoot = useCallback((key: number) => setLoots((list) => list.filter((item) => item.key !== key)), []);
 
-  return { loading, prompt, loots, encounter, setEncounter, debug, promptRef, callbacks, dropLoot };
+  const reset = useCallback(() => {
+    setLoading(null);
+    setPrompt(null);
+    setLoots([]);
+    setEncounter(null);
+    setDebug(false);
+  }, []);
+
+  return { loading, prompt, loots, encounter, setEncounter, debug, promptRef, callbacks, dropLoot, reset };
 }

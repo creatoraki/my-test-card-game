@@ -5,6 +5,9 @@ export const PROP_NAMES: Record<PropKind, string> = {
   safe: "物资保险箱",
   vending: "故障售货机",
   remains: "探险者遗骸",
+  seedVault: "种子保险柜",
+  terminal: "补给终端",
+  incubator: "培育舱",
 };
 
 /** 可调查物的地面占地半径(x, z)。 */
@@ -12,6 +15,9 @@ const PROP_FOOT: Record<PropKind, [number, number]> = {
   safe: [62, 30],
   vending: [66, 34],
   remains: [58, 26],
+  seedVault: [60, 28],
+  terminal: [40, 22],
+  incubator: [52, 26],
 };
 
 /** 装饰物占地; 0 表示可以踩过去(碎屑、路锥)。 */
@@ -22,6 +28,11 @@ const DECOR_FOOT: Record<DecorKind, [number, number]> = {
   debris: [0, 0],
   cone: [0, 0],
   spool: [52, 22],
+  planter: [104, 26],
+  fern: [0, 0],
+  bench: [84, 22],
+  palmPot: [34, 18],
+  mossRock: [62, 24],
 };
 
 export function propBlocker(prop: PropDef): Blocker {

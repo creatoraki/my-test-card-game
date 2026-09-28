@@ -7,6 +7,9 @@ import { makeQuad, placeMesh, quadMaterial } from "../core/quad";
 import { FRAG_PRELUDE, QUAD_VERT } from "../glsl/prelude";
 import type { DynamicLight, LightRig } from "../lighting/lightRig";
 import { createContactShadow, type ContactShadow } from "../actors/contactShadow";
+import { INCUBATOR_SPEC } from "../arkProps/incubatorProp";
+import { SEED_VAULT_SPEC } from "../arkProps/seedVaultProp";
+import { TERMINAL_SPEC } from "../arkProps/terminalProp";
 import type { BurstFx } from "../fx/sparks";
 import { MOTIFS_GLSL } from "../glsl/motifs";
 import { PROP_COMMON, PROP_MAIN } from "./propHighlight";
@@ -34,6 +37,9 @@ const SPECS: Record<PropKind, PropSpec> = {
   safe: SAFE_SPEC,
   vending: VENDING_SPEC,
   remains: REMAINS_SPEC,
+  seedVault: SEED_VAULT_SPEC,
+  terminal: TERMINAL_SPEC,
+  incubator: INCUBATOR_SPEC,
 };
 
 /** 一个交互物的渲染体。 */

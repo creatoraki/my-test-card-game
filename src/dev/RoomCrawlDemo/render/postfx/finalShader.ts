@@ -15,6 +15,7 @@ export const FinalShader = {
     uTint: { value: new THREE.Color(1, 1, 1) },
     uShadowTint: { value: new THREE.Color(0.012, 0.03, 0.04) },
     uVignette: { value: 0.58 },
+    uSaturation: { value: 0.9 },
     uGrain: { value: 0.04 },
     uAberration: { value: 0.0014 },
     uImpact: { value: 0 },
@@ -38,6 +39,7 @@ export const FinalShader = {
     uniform vec3 uTint;
     uniform vec3 uShadowTint;
     uniform float uVignette;
+    uniform float uSaturation;
     uniform float uGrain;
     uniform float uAberration;
     uniform float uImpact;
@@ -113,7 +115,7 @@ export const FinalShader = {
 
       float l = dot(col, vec3(0.299, 0.587, 0.114));
       col *= uTint;
-      col = mix(vec3(l), col, 0.9);
+      col = mix(vec3(l), col, uSaturation);
       col += uShadowTint * (1.0 - smoothstep(0.0, 0.42, l));
       col = (col - 0.5) * 1.07 + 0.5;
 

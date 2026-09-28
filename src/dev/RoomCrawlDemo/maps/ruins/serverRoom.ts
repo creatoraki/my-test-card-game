@@ -1,4 +1,4 @@
-import type { RoomDef } from "../types";
+import type { RoomDef } from "../../types";
 
 /** ④ 数据机房: 冷蓝、机柜指示灯、玻璃墙后的全息数据瀑布。 */
 export const SERVER_ROOM: RoomDef = {

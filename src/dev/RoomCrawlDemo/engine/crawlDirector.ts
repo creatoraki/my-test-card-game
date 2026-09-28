@@ -37,7 +37,7 @@ function emptyEvents(): FrameEvents {
  * 渲染层只读取这里的状态并按 FrameEvents 做表现。
  */
 export class CrawlDirector {
-  readonly world = new CrawlWorld();
+  readonly world: CrawlWorld;
   readonly animator: HeroAnimator;
   readonly camera: ScrollCamera;
   phase: Phase = "loading";
@@ -53,7 +53,8 @@ export class CrawlDirector {
   private encounterGuard: string | null = null;
   private phaseT = 0;
 
-  constructor(private input: KeyInput, gait: GaitTable) {
+  constructor(private input: KeyInput, gait: GaitTable, startRoomId: string) {
+    this.world = new CrawlWorld(startRoomId);
     const p = this.world.player;
     this.animator = new HeroAnimator(gait, p.facing);
     this.camera = new ScrollCamera(this.world.room.width);

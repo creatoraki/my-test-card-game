@@ -1,4 +1,4 @@
-import type { RoomDef } from "../types";
+import type { RoomDef } from "../../types";
 
 /** ① 货运入口: 琥珀钠灯、卷帘门、破损天窗。起点房间, 没有守卫。 */
 export const DOCK_ROOM: RoomDef = {

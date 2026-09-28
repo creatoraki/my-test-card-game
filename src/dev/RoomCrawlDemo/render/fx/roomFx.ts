@@ -13,7 +13,7 @@ export interface RoomFx {
 }
 
 /**
- * 按区域与房间的特效挂点组装环境特效: 浮尘(全房间)、孢子 / 余烬(区域)、滴水,
+ * 按区域与房间的特效挂点组装环境特效: 浮尘(全房间)、孢子 / 余烬 / 花粉(区域)、滴水,
  * 以及坏灯周期性迸出的电火花。
  */
 export function buildRoomFx(room: RoomDef, zone: ZoneShaders, rig: RigUniforms, burst: BurstFx, pixelScale: THREE.IUniform<number>): RoomFx {
@@ -55,6 +55,21 @@ export function buildRoomFx(room: RoomDef, zone: ZoneShaders, rig: RigUniforms, 
         }, rig, pixelScale).points);
         break;
       }
+      case "pollen":
+        // 花粉: 暖金绿的细小光点, 缓慢上浮并左右飘荡
+        group.add(createAmbientPoints({
+          count: 150,
+          color: new THREE.Color(0.9, 1.0, 0.45),
+          size: 5,
+          alpha: 0.75,
+          rise: 12,
+          drift: 14,
+          h0: 0,
+          h1: 440,
+          range: [fx.x - (fx.width ?? room.width) / 2, fx.x + (fx.width ?? room.width) / 2],
+          flicker: false,
+        }, rig, pixelScale).points);
+        break;
       case "sparks":
         sparkTimers.push({ x: fx.x, y: worldY(fx.z ?? 0, fx.h ?? 300), floor: worldY(140), next: 1 + Math.random() * 3 });
         break;

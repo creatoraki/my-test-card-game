@@ -1,0 +1,40 @@
+/* 左上角地图切换: 两段式按钮, 当前地图高亮。在加载黑幕之上, 加载中也能切换。 */
+.root {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 30;
+  display: flex;
+  padding: 4px;
+  gap: 4px;
+  background: linear-gradient(180deg, rgba(14, 18, 22, 0.9), rgba(10, 13, 16, 0.8));
+  border: 1px solid rgba(240, 214, 150, 0.32);
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.option {
+  min-width: 132px;
+  padding: 8px 18px;
+  font: inherit;
+  font-size: 18px;
+  letter-spacing: 0.16em;
+  color: #b8ad96;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.option:hover {
+  color: #f2ead6;
+  background: rgba(240, 214, 150, 0.08);
+}
+
+.option[data-active="true"] {
+  color: #10161a;
+  background: linear-gradient(180deg, #f0d696, #d6b67c);
+  border-color: rgba(255, 240, 200, 0.6);
+  cursor: default;
+}

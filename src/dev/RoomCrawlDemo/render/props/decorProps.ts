@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { worldY } from "../../data/layout";
 import type { DecorDef, DecorKind, LightDef } from "../../types";
+import { ARK_DECOR_BOUNDS, ARK_DECOR_GLSL, ARK_DECOR_KIND } from "../arkProps/arkDecor";
 import { orderForZ } from "../core/depthSort";
 import { makeQuad, placeMesh, quadMaterial } from "../core/quad";
 import { FRAG_PRELUDE, QUAD_VERT } from "../glsl/prelude";
@@ -9,7 +10,7 @@ import type { LightRig } from "../lighting/lightRig";
 import { buildBakedDecor, type BakedDecor } from "./decorBaked";
 import { PROP_COMMON, PROP_MAIN } from "./propHighlight";
 
-const KIND_ID: Record<DecorKind, number> = { crates: 0, barrel: 1, pallet: 2, debris: 3, cone: 4, spool: 5 };
+const KIND_ID: Partial<Record<DecorKind, number>> = { crates: 0, barrel: 1, pallet: 2, debris: 3, cone: 4, spool: 5 };
 const LAMP_KIND = 6;
 
 /** 装饰物(不可调查): 与交互物共用着色主体, 按 KIND 编译不同形体。静态摆件进房时烘焙, 吊灯实时绘制。 */
@@ -202,17 +203,25 @@ function decorMaterial(kind: number, rig: LightRig, seed: number, flip: boolean,
   });
 }
 
+/** 装饰物所属的着色器族: 废弃楼层或生态方舟, 各自一套 GLSL / KIND / 面片范围。 */
+function decorFamily(kind: DecorKind): { glsl: string; id: number; bounds: readonly [number, number, number, number] } {
+  const ark = ARK_DECOR_KIND[kind];
+  if (ark !== undefined) return { glsl: ARK_DECOR_GLSL, id: ark, bounds: ARK_DECOR_BOUNDS[ark] };
+  const id = KIND_ID[kind] ?? 0;
+  return { glsl: DECOR_GLSL, id, bounds: BOUNDS[id] };
+}
+
 /**
  * 静态装饰物: 形体与风化材质烘焙成贴图(烘焙工作随结果返回, 由房间统一分帧执行), 每帧只打光。
  * index 为装饰物在房间里的序号, 作为烘焙缓存键。
  */
 export function buildDecor(def: DecorDef, index: number, rig: LightRig): BakedDecor {
-  const kind = KIND_ID[def.kind];
+  const family = decorFamily(def.kind);
   return buildBakedDecor({
     key: `decor:${index}`,
-    glsl: DECOR_GLSL,
-    kind,
-    bounds: BOUNDS[kind],
+    glsl: family.glsl,
+    kind: family.id,
+    bounds: family.bounds,
     seed: def.seed ?? 1,
     flip: Boolean(def.flip),
     x: def.x,

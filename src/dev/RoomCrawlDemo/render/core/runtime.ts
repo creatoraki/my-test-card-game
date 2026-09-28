@@ -3,7 +3,7 @@ import { PROP_NAMES } from "../../data";
 import { DESIGN_H, DESIGN_W, worldY } from "../../data/layout";
 import { CrawlDirector, type FrameEvents } from "../../engine/crawlDirector";
 import { createKeyInput, type KeyInput } from "../../engine/keyInput";
-import type { CrawlCallbacks, EncounterChoice } from "../../types";
+import type { CrawlCallbacks, EncounterChoice, MapDef } from "../../types";
 import { GAIT } from "../actors/heroCalibration";
 import { BakeCache } from "../bake/bakeCache";
 import { SurfaceBaker } from "../bake/surfaceBaker";
@@ -59,14 +59,14 @@ export class CrawlRuntime {
   private booted = false;
   private disposed = false;
 
-  constructor(canvas: HTMLCanvasElement, private cb: CrawlCallbacks) {
+  constructor(canvas: HTMLCanvasElement, private cb: CrawlCallbacks, private map: MapDef) {
     this.renderer = createRenderer(canvas);
     this.baker = new SurfaceBaker(this.renderer);
     this.post = createPostPipeline(this.renderer, this.scene, this.camera);
     this.keeper = new ProgramKeeper(this.renderer, this.camera, this.scene, this.post.target);
     this.glints = new LootGlints(this.keeper.retire);
     this.input = createKeyInput();
-    this.director = new CrawlDirector(this.input, GAIT);
+    this.director = new CrawlDirector(this.input, GAIT, map.start);
     this.hero = new HeroActor(this.lights);
     this.scene.add(this.hero.group, this.burst.points, this.glints.group);
   }
@@ -103,7 +103,7 @@ export class CrawlRuntime {
     });
     await this.enterRoom(resident);
     if (this.disposed) return;
-    this.warmed = warmOtherRooms(this.keeper, this.director.world.room.id, () => this.disposed);
+    this.warmed = warmOtherRooms(this.keeper, this.map.rooms, this.director.world.room.id, () => this.disposed);
     this.prebake();
   }
 
@@ -277,6 +277,8 @@ export class CrawlRuntime {
     this.burst.dispose();
     this.glints.clear();
     this.post.dispose();
+    // 不要 forceContextLoss: StrictMode 下同一块画布会被立即复用, 丢失的上下文会让新渲染器初始化失败。
+    // 切换地图换 key 时画布本身会被替换, 旧上下文由浏览器回收。
     this.renderer.dispose();
   }
 }

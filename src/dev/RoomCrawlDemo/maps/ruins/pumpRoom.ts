@@ -1,4 +1,4 @@
-import type { RoomDef } from "../types";
+import type { RoomDef } from "../../types";
 
 /** ② 泵站管廊: 青绿水光、巨型管道与阀门、滴水的管廊。楼层的交通枢纽。 */
 export const PUMP_ROOM: RoomDef = {

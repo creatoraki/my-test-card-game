@@ -1,4 +1,4 @@
-import type { RoomDef } from "../types";
+import type { RoomDef } from "../../types";
 
 /** ③ 霓虹旧商场: 品红与青色霓虹、坏掉的扶梯、垂挂横幅、满地碎玻璃。 */
 export const ARCADE_ROOM: RoomDef = {

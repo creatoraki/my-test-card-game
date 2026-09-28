@@ -10,6 +10,12 @@ export interface GradeStyle {
   tint: number;
   shadowTint: number;
   bloom: number;
+  /** 饱和度(1 = 原样), 缺省 0.9。 */
+  saturation?: number;
+  /** 暗角强度, 缺省 0.58。 */
+  vignette?: number;
+  /** 曝光, 缺省 1.05。 */
+  exposure?: number;
 }
 
 export interface PostPipeline {
@@ -55,6 +61,9 @@ export function createPostPipeline(renderer: THREE.WebGLRenderer, scene: THREE.S
       u.uTint.value.setHex(style.tint, THREE.LinearSRGBColorSpace);
       u.uShadowTint.value.setHex(style.shadowTint, THREE.LinearSRGBColorSpace);
       bloom.strength = style.bloom;
+      u.uSaturation.value = style.saturation ?? 0.9;
+      u.uVignette.value = style.vignette ?? 0.58;
+      u.uExposure.value = style.exposure ?? 1.05;
     },
     setIris: (open, cx, cy, color) => {
       u.uIris.value = open;

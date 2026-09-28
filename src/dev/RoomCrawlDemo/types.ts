@@ -1,14 +1,19 @@
+/** 可切换的地图: 废弃楼层 / 生态方舟。 */
+export type MapId = "ruins" | "ark";
+
 /** 房间所属子区域: 决定后墙、地面、背景层、前景层与空气层的 shader 组合。 */
-export type ZoneId = "dock" | "pump" | "arcade" | "server" | "core";
+export type ZoneId = "dock" | "pump" | "arcade" | "server" | "core" | "arkDeck" | "arkGarden" | "arkGrove";
 
 /** 门所在的边: 左右门在地面两端, 上门嵌在后墙, 下门在前沿。 */
 export type DoorSide = "left" | "right" | "up" | "down";
 
-/** 三种可调查物。 */
-export type PropKind = "safe" | "vending" | "remains";
+/** 可调查物: 废弃楼层三种(保险箱 / 售货机 / 遗骸)+ 生态方舟三种(种子保险柜 / 补给终端 / 培育舱)。 */
+export type PropKind = "safe" | "vending" | "remains" | "seedVault" | "terminal" | "incubator";
 
-/** 纯装饰摆件(有占地、参与纵深排序, 不可调查)。 */
-export type DecorKind = "crates" | "barrel" | "pallet" | "debris" | "cone" | "spool";
+/** 纯装饰摆件(有占地、参与纵深排序, 不可调查)。前六种属废弃楼层, 后五种属生态方舟。 */
+export type DecorKind =
+  | "crates" | "barrel" | "pallet" | "debris" | "cone" | "spool"
+  | "planter" | "fern" | "bench" | "palmPot" | "mossRock";
 
 /** 灯的闪烁方式: 稳定 / 电流嗡鸣 / 接触不良 / 呼吸 / 旋转警报。 */
 export type FlickerMode = "steady" | "buzz" | "broken" | "pulse" | "alarm";
@@ -63,8 +68,8 @@ export interface LightDef {
   flicker?: FlickerMode;
 }
 
-/** 场景特效挂点: 滴水 / 电火花 / 腐化孢子 / 余烬。 */
-export type FxKind = "drip" | "sparks" | "spores" | "embers";
+/** 场景特效挂点: 滴水 / 电火花 / 腐化孢子 / 余烬 / 花粉。 */
+export type FxKind = "drip" | "sparks" | "spores" | "embers" | "pollen";
 
 export interface FxDef {
   kind: FxKind;
@@ -99,6 +104,15 @@ export interface RoomDef {
   lights: LightDef[];
   fx: FxDef[];
   spawn: FloorPoint;
+}
+
+/** 一套地图: 房间表与起点房间。 */
+export interface MapDef {
+  id: MapId;
+  name: string;
+  rooms: readonly RoomDef[];
+  /** 起点房间 id。 */
+  start: string;
 }
 
 /** 调查提示: 交给 DOM 层显示「E 调查 · 名称」。 */

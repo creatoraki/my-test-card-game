@@ -1,5 +1,6 @@
 import type { ZoneId } from "../../types";
 import { ARCADE_ZONE } from "./arcade";
+import { ARK_DECK_ZONE, ARK_GARDEN_ZONE, ARK_GROVE_ZONE } from "./ark";
 import { CORE_ZONE } from "./core";
 import { DOCK_ZONE } from "./dock";
 import { PUMP_ZONE } from "./pump";
@@ -12,6 +13,9 @@ const ZONES: Record<ZoneId, ZoneShaders> = {
   arcade: ARCADE_ZONE,
   server: SERVER_ZONE,
   core: CORE_ZONE,
+  arkDeck: ARK_DECK_ZONE,
+  arkGarden: ARK_GARDEN_ZONE,
+  arkGrove: ARK_GROVE_ZONE,
 };
 
 export function getZone(id: ZoneId): ZoneShaders {

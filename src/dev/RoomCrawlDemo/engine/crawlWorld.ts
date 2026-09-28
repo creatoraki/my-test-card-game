@@ -1,5 +1,5 @@
 import { decorBlocker, propBlocker } from "../data/footprints";
-import { getRoom, START_ROOM_ID } from "../data";
+import { getRoom } from "../data";
 import type { Blocker, DoorSide, RoomDef } from "../types";
 import { arrivalPoint } from "./doorTrigger";
 import { createGuard, resetGuard, type GuardState } from "./guardBrain";
@@ -12,7 +12,7 @@ interface RoomProgress {
 }
 
 /**
- * 整个楼层的纯逻辑状态: 当前房间、玩家、守卫、各房间已搜过的物品与已驱散的守卫。
+ * 一套地图的纯逻辑状态: 当前房间、玩家、守卫、各房间已搜过的物品与已驱散的守卫。
  * 不依赖 three, 渲染层每帧读取它。
  */
 export class CrawlWorld {
@@ -24,11 +24,11 @@ export class CrawlWorld {
   entry: { x: number; z: number; facing: 1 | -1 };
   private progress = new Map<string, RoomProgress>();
 
-  constructor() {
-    this.room = getRoom(START_ROOM_ID);
+  constructor(startRoomId: string) {
+    this.room = getRoom(startRoomId);
     this.entry = arrivalPoint(this.room, null);
     this.player = createPlayer(this.entry.x, this.entry.z, this.entry.facing);
-    this.enter(START_ROOM_ID, null);
+    this.enter(startRoomId, null);
   }
 
   private progressOf(roomId: string): RoomProgress {

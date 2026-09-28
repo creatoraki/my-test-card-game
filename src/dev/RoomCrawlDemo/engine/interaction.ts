@@ -9,6 +9,9 @@ export const SEARCH_TIMING: Record<PropKind, { duration: number; lootAt: number 
   safe: { duration: 2.4, lootAt: 1.35 },
   vending: { duration: 2.2, lootAt: 1.25 },
   remains: { duration: 2.8, lootAt: 1.9 },
+  seedVault: { duration: 2.4, lootAt: 1.6 },
+  terminal: { duration: 2.2, lootAt: 1.3 },
+  incubator: { duration: 2.6, lootAt: 1.9 },
 };
 
 export interface SearchRun {

@@ -1,4 +1,4 @@
-import type { RoomDef } from "../types";
+import type { RoomDef } from "../../types";
 
 /** ⑤ 冷却核心: 红黑、旋转警报灯、巨型风扇、墙面蔓延的黑色腐化触须。两名守卫。 */
 export const CORE_ROOM: RoomDef = {

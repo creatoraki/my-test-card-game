@@ -88,7 +88,7 @@ export async function loadRoom(ctx: RoomLoadContext, req: RoomLoadRequest): Prom
   req.onProgress(1);
   if (import.meta.env.DEV) {
     const end = performance.now();
-    console.info(`[废弃楼层] 进入「${req.room.name}」: 共 ${Math.round(end - t0)}ms, 编译 ${Math.round(compileEnd - t0)}ms, 烘焙 ${tiles} 块, 缓存命中 ${jobCount - pending.length}/${jobCount}`);
+    console.info(`[房间演示] 进入「${req.room.name}」: 共 ${Math.round(end - t0)}ms, 编译 ${Math.round(compileEnd - t0)}ms, 烘焙 ${tiles} 块, 缓存命中 ${jobCount - pending.length}/${jobCount}`);
   }
   return room;
 }
