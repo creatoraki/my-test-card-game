@@ -102,13 +102,12 @@
 .enemy-button,
 .locked-enemy {
   display: flex;
+  width: 100%;
   min-width: 0;
-  height: 165px;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  padding: 8px;
+  gap: 8px;
+  padding: 8px 8px 10px;
   color: var(--sx-ink);
   background: linear-gradient(145deg, #12201fe8, #081312d9);
   border: 1px solid var(--sx-line);
@@ -142,33 +141,20 @@
   white-space: nowrap;
 }
 
-.enemy-figure {
-  display: grid;
+/* 立绘与未收录占位共用同一方形取景框, 列宽变化时一起等比伸缩。 */
+.enemy-portrait {
   width: 100%;
-  height: 125px;
-  place-items: end center;
-  overflow: hidden;
+  aspect-ratio: 1;
+  flex: none;
 }
 
-.enemy-figure > div {
-  max-width: 100%;
-}
-
-.enemy-emoji {
-  display: grid;
-  height: 125px;
-  place-items: center;
-  font-size: 42px;
-  filter: grayscale(0.2);
+/* 未收录占位保留自己的斜纹底, 只给已收录立绘垫一层地面光。 */
+.enemy-button .enemy-portrait {
+  background: radial-gradient(ellipse at 50% 78%, #6ed6b81a, transparent 70%), #06100f66;
 }
 
 .locked-enemy {
   color: var(--sx-muted);
-}
-
-.locked-enemy > div {
-  width: 100%;
-  height: 125px;
 }
 
 .enemy-detail {
@@ -180,27 +166,11 @@
 }
 
 .detail-portrait {
-  display: grid;
+  --portrait-fill: 0.82;
   flex: none;
-  height: 180px;
-  place-items: end center;
-  overflow: hidden;
-  background: radial-gradient(ellipse at center bottom, #6ed6b81a, transparent 70%), #06100f66;
-  border: 1px solid var(--sx-line);
-}
-
-.detail-portrait .enemy-figure {
-  width: 200px;
-  height: 178px;
-}
-
-.detail-portrait .enemy-figure > div {
-  transform: scale(1.55);
-  transform-origin: bottom center;
-}
-
-.detail-emoji {
-  font-size: 72px;
+  aspect-ratio: 1;
+  background: radial-gradient(ellipse at 50% 72%, color-mix(in srgb, var(--sx-key) 16%, transparent), var(--sx-bg-lo) 74%);
+  box-shadow: var(--sx-lit);
 }
 
 .detail-head h4 {

@@ -26,13 +26,6 @@ export const CARD_CATALOG: CardDef[] = [...CARD_DEFS]
     return rarity || leftCard.cost - rightCard.cost || leftCard.name.localeCompare(rightCard.name, "zh-CN");
   });
 
-export const CARD_RARITY_LABEL: Record<string, string> = {
-  basic: "基础",
-  common: "普通",
-  uncommon: "罕见",
-  rare: "稀有",
-};
-
 export interface CardGroup {
   id: string;
   name: string;

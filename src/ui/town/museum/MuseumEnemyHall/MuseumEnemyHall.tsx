@@ -1,14 +1,13 @@
 import { ShopDetailAside } from "@/ui/town/shop/ShopDetailAside";
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import type { EnemyDef } from "@/data";
-import { enemyArt } from "@/ui/art/battle/enemyArt";
-import { EnemySprite } from "@/ui/common/unit/EnemySprite";
 import { InteractiveHint } from "@/ui/common/tooltip/InteractiveHint";
 import { useTownStore } from "@/store/town/townStore";
 import { cx } from "@/ui/common/shared/cx";
 import { ENEMY_GROUPS, ENEMIES } from "../shared/codexCatalog";
 import { moveKindLabel, moveSummary } from "./enemyMoveText";
 import { MuseumLockedTile } from "../MuseumLockedTile";
+import { EnemyPortrait } from "./EnemyPortrait";
 import s from "./MuseumEnemyHall.module.css";
 
 export function MuseumEnemyHall() {
@@ -38,7 +37,7 @@ export function MuseumEnemyHall() {
                         aria-label={`查看${enemy.name}详情`}
                         onClick={() => setSelectedId(enemy.id)}
                       >
-                        <EnemyThumb enemy={enemy} />
+                        <EnemyPortrait enemy={enemy} className={s["enemy-portrait"]} />
                         <span>{enemy.name}</span>
                       </button>
                       <InteractiveHint className={s["enemy-hint"]} />
@@ -51,7 +50,7 @@ export function MuseumEnemyHall() {
                         aria-label={`未收录敌人：${enemy.name}`}
                         onClick={() => setSelectedId(enemy.id)}
                       >
-                        <MuseumLockedTile />
+                        <MuseumLockedTile className={s["enemy-portrait"]} />
                         <span>{enemy.name}</span>
                       </button>
                       <InteractiveHint className={s["enemy-hint"]} />
@@ -70,34 +69,11 @@ export function MuseumEnemyHall() {
   );
 }
 
-function EnemyThumb({ enemy }: { enemy: EnemyDef }) {
-  const art = enemyArt(enemy.id);
-  if (!art) return <span className={s["enemy-emoji"]}>{enemy.emoji}</span>;
-  const view = art.view ?? { x: 0, y: 0, w: art.sheet.w / art.frames, h: art.sheet.h };
-  const width = 110;
-  const scale = width / view.w;
-  return (
-    <span
-      className={s["enemy-figure"]}
-      style={{ "--fig-w": `${width}px`, "--fig-h": `${view.h * scale}px`, "--sprite-k": scale } as CSSProperties}
-    >
-      <EnemySprite
-        id={enemy.id}
-        sprite={art}
-        alt={enemy.name}
-      />
-    </span>
-  );
-}
-
 function EnemyDetail({ enemy }: { enemy: EnemyDef }) {
-  const art = enemyArt(enemy.id);
   const group = ENEMY_GROUPS.find((entry) => entry.enemies.some((item) => item.id === enemy.id));
   return (
     <div className={s["enemy-detail"]}>
-      <div className={s["detail-portrait"]}>
-        {art ? <EnemyThumb enemy={enemy} /> : <span className={s["detail-emoji"]}>{enemy.emoji}</span>}
-      </div>
+      <EnemyPortrait enemy={enemy} className={s["detail-portrait"]} />
       <div className={s["detail-head"]}>
         <span className={s["kicker"]}>{group?.name ?? "敌人档案"}</span>
         <h4>{enemy.name}</h4>

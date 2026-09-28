@@ -1,0 +1,26 @@
+/* 取景框尺寸由调用方决定(宽度 + aspect-ratio 或显式高度)，立绘在框内按主体等比铺满。 */
+.portrait {
+  --portrait-fill: 0.86;
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  container-type: size;
+}
+
+.figure {
+  position: absolute;
+  display: block;
+  width: var(--fig-w);
+  height: var(--fig-h);
+  pointer-events: none;
+}
+
+.emoji {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 42cqmin;
+  line-height: 1;
+}

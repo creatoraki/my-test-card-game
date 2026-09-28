@@ -1,0 +1,79 @@
+.tabs {
+  display: flex;
+  gap: 8px;
+  padding: 14px 8px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 18px 8px 20px;
+  color: var(--sx-muted);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  background: #ffffff08;
+  border: 1px solid var(--sx-line);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  cursor: var(--cursor-pointer);
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+/* 左侧角色色条：未选中时是暗示，选中后点亮。 */
+.tab::before {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 8px;
+  width: 3px;
+  background: var(--owner-color, var(--sx-key));
+  opacity: 0.45;
+  content: "";
+  transition: opacity 160ms ease, box-shadow 160ms ease;
+}
+
+.tab:hover {
+  color: var(--sx-ink);
+  border-color: color-mix(in srgb, var(--owner-color, var(--sx-key)) 50%, var(--sx-line));
+}
+
+.tab:focus-visible {
+  outline: 1px solid var(--sx-key);
+  outline-offset: 2px;
+}
+
+.tab.is-on {
+  color: var(--sx-ink);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--owner-color, var(--sx-key)) 26%, transparent), color-mix(in srgb, var(--owner-color, var(--sx-key)) 8%, transparent));
+  border-color: var(--owner-color, var(--sx-key));
+}
+
+.tab.is-on::before {
+  opacity: 1;
+  box-shadow: 0 0 8px var(--owner-color, var(--sx-key));
+}
+
+.name {
+  white-space: nowrap;
+}
+
+.count {
+  color: var(--sx-muted);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.tab.is-on .count {
+  color: color-mix(in srgb, var(--owner-color, var(--sx-key)) 60%, #ffffff);
+}

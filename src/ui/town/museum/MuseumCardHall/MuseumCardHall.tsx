@@ -1,22 +1,37 @@
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ShopDetailAside } from "@/ui/town/shop/ShopDetailAside";
-import { useState, type CSSProperties } from "react";
-import { getCharacter } from "@/data";
-import { HandCard } from "@/ui/common/card/HandCard";
-import { CardKeywordNotes } from "@/ui/common/card/CardKeywordNotes";
+import { ShopCardDetail } from "@/ui/town/shop/ShopCardDetail";
 import { CardBack } from "@/ui/common/card/CardBack";
 import { InteractiveHint } from "@/ui/common/tooltip/InteractiveHint";
 import { DeckCard } from "@/ui/common/card/DeckCard";
+import { useBoxSize } from "@/ui/common/frame/HudFrame/useBoxSize";
 import { useTownStore } from "@/store/town/townStore";
-import { CARD_GROUPS, CARD_CATALOG, CARD_RARITY_LABEL, cardFor } from "../shared/codexCatalog";
+import { CARD_GROUPS, CARD_CATALOG, cardFor } from "../shared/codexCatalog";
+import { CardOwnerTabs } from "./CardOwnerTabs";
 import s from "./MuseumCardHall.module.css";
 
-const DETAIL_CARD_STYLE = { "--hand-card-w": "248px", "--hc-text-h": "96px", "--hand-card-h": "344px" } as CSSProperties;
+/** 每行固定列数：卡牌按网格实际宽度等比缩放，正好铺满一行。 */
+const COLUMNS = 5;
+const COLUMN_GAP = 18;
+/** 与 tokens.css 的 --card-w 保持一致。 */
+const BASE_CARD_W = 220;
 
 export function MuseumCardHall() {
   const recorded = useTownStore((state) => state.codex.cards);
+  const [ownerId, setOwnerId] = useState(CARD_GROUPS[0]?.id ?? "");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selectedDef = selectedId ? CARD_CATALOG.find((card) => card.id === selectedId) : undefined;
-  const selected = selectedDef && recorded.includes(selectedDef.id) ? cardFor(selectedDef.id) : null;
+  const { ref: gridRef, size } = useBoxSize<HTMLDivElement>();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const group = CARD_GROUPS.find((entry) => entry.id === ownerId) ?? CARD_GROUPS[0];
+  const selected = selectedId && recorded.includes(selectedId) ? cardFor(selectedId) : null;
+  const scale = size.width > 0
+    ? Math.floor(((size.width - COLUMN_GAP * (COLUMNS - 1)) / COLUMNS / BASE_CARD_W) * 1000) / 1000
+    : 1;
+
+  // 切换角色页签后回到列表顶部。
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [ownerId]);
 
   return (
     <div className={s["hall"]}>
@@ -25,60 +40,42 @@ export function MuseumCardHall() {
           <div><span className={s["kicker"]}>构筑档案</span><h3>卡牌名录</h3></div>
           <span className={s["count"]}>{recorded.length} / {CARD_CATALOG.length}</span>
         </div>
-        <div className={s["card-groups"]}>
-          {CARD_GROUPS.map((group) => (
-            <section key={group.id} className={s["card-group"]}>
-              <h4 style={{ "--owner-color": group.color } as CSSProperties}><span>{group.name}</span><small>{group.cards.filter((card) => recorded.includes(card.id)).length}/{group.cards.length}</small></h4>
-              <div className={s["card-grid"]}>
-                {group.cards.map((def, index) => {
-                  const isRecorded = recorded.includes(def.id);
-                  return isRecorded ? (
-                    <div key={def.id} className={s["card-anchor"]} data-interactive-hint="">
-                      <DeckCard
-                        card={cardFor(def.id)}
-                        index={index}
-                        selected={selectedId === def.id}
-                        aria-label={`查看${def.name}详情`}
-                        onClick={() => setSelectedId(def.id)}
-                      />
-                      <InteractiveHint className={s["card-hint"]} />
-                    </div>
-                  ) : (
-                    <div key={def.id} className={s["card-anchor"]} data-interactive-hint="">
-                      <button
-                        type="button"
-                        className={s["locked-card"]}
-                        aria-label={`未收录卡牌：${def.name}`}
-                        onClick={() => setSelectedId(def.id)}
-                      >
-                        <CardBack />
-                      </button>
-                      <InteractiveHint className={s["card-hint"]} />
-                    </div>
-                  );
-                })}
+        <CardOwnerTabs groups={CARD_GROUPS} recorded={recorded} value={group?.id ?? ""} onChange={setOwnerId} />
+        <div ref={scrollRef} className={s["scroll"]}>
+          <div
+            ref={gridRef}
+            className={s["card-grid"]}
+            style={{ "--deck-card-scale": scale, "--museum-columns": COLUMNS, "--museum-column-gap": `${COLUMN_GAP}px` } as CSSProperties}
+          >
+            {group?.cards.map((def, index) => (
+              <div key={def.id} className={s["card-anchor"]} data-interactive-hint="">
+                {recorded.includes(def.id) ? (
+                  <DeckCard
+                    card={cardFor(def.id)}
+                    index={index}
+                    selected={selectedId === def.id}
+                    focusStyle="zoom"
+                    aria-label={`查看${def.name}详情`}
+                    onClick={() => setSelectedId(def.id)}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className={s["locked-card"]}
+                    aria-label={`未收录卡牌：${def.name}`}
+                    onClick={() => setSelectedId(def.id)}
+                  >
+                    <CardBack />
+                  </button>
+                )}
+                <InteractiveHint className={s["card-hint"]} />
               </div>
-            </section>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
-      <ShopDetailAside>
-        {selected ? (
-          <div className={s["card-detail"]}>
-            <div className={s["detail-card"]} data-deck-card style={DETAIL_CARD_STYLE}>
-              <HandCard card={selected} variant="pile" playable selected={false} />
-            </div>
-            <div className={s["detail-copy"]}>
-              <span className={s["kicker"]}>已收录卡牌</span>
-              <h4>{selected.name}</h4>
-              <p>{getCharacter(selected.ownerCharId).name} · {selected.cost} 点法力 · {CARD_RARITY_LABEL[selected.rarity ?? "common"] ?? "普通"}</p>
-              <p className={s["card-text"]}>{selected.text}</p>
-              <CardKeywordNotes text={selected.text} className={s["keyword-notes"]} />
-            </div>
-          </div>
-        ) : (
-          <p className={s["empty"]}>选择已收录卡牌查看详情</p>
-        )}
+      <ShopDetailAside heading="卡牌详情" empty="选择已收录卡牌查看详情">
+        {selected && <ShopCardDetail card={selected} animKey={selectedId ?? selected.id} />}
       </ShopDetailAside>
     </div>
   );

@@ -8,11 +8,10 @@
 }
 
 .catalog {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  min-width: 0;
   min-height: 0;
-  padding: 0;
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--sx-key) 52%, transparent) var(--sx-bg-lo);
 }
 
 .section-head {
@@ -56,48 +55,32 @@
   font-variant-numeric: tabular-nums;
 }
 
-.card-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  margin-top: 18px;
-  padding: 0 8px 8px;
-}
-
-.card-group h4 {
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-  margin: 0 0 10px;
-  padding-bottom: 6px;
-  color: var(--owner-color, var(--sx-ink));
-  border-bottom: 1px solid var(--sx-line);
-  font-size: 22px;
-  letter-spacing: 0.12em;
-}
-
-.card-group h4 small {
-  color: var(--sx-muted);
-  font-size: 18px;
-  font-weight: 400;
-  letter-spacing: 0;
+/* 左右留白给悬停放大(1.05)与四角提示框, 网格本身不带内边距, 宽度即可用行宽。 */
+.scroll {
+  min-height: 0;
+  padding: 14px 16px 18px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--sx-key) 52%, transparent) var(--sx-bg-lo);
 }
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, var(--card-w));
-  justify-content: start;
-  gap: 18px 16px;
+  grid-template-columns: repeat(var(--museum-columns, 5), minmax(0, 1fr));
+  gap: 22px var(--museum-column-gap, 18px);
   align-items: start;
 }
 
 .card-anchor {
   position: relative;
+  width: calc(var(--card-w) * var(--deck-card-scale, 1));
+  height: calc(var(--card-h) * var(--deck-card-scale, 1));
   --deck-card-hover-transform: scale(1.05);
 }
 
 .card-hint {
-  --ihint-offset: 6px;
+  --ihint-offset: calc(6px * var(--deck-card-scale, 1));
 }
 
 .card-anchor:has(> button[aria-pressed="true"]) > .card-hint {
@@ -107,8 +90,8 @@
 .locked-card {
   position: relative;
   display: block;
-  width: var(--card-w);
-  height: var(--card-h);
+  width: 100%;
+  height: 100%;
   min-width: 0;
   padding: 0;
   background: transparent;
@@ -137,61 +120,4 @@
 .locked-card:hover > span {
   border-color: var(--sx-key);
   box-shadow: 0 0 18px -8px var(--sx-key);
-}
-
-.card-detail {
-  display: flex;
-  min-height: 0;
-  flex-direction: column;
-  align-items: center;
-  gap: 22px;
-  overflow: auto;
-}
-
-.detail-card {
-  width: 248px;
-  height: 344px;
-  flex: none;
-}
-
-.detail-card > div[data-deck-card] {
-  display: block;
-  width: 248px;
-  height: 344px;
-}
-
-.detail-copy {
-  width: 100%;
-}
-
-.detail-copy h4 {
-  margin: 5px 0 4px;
-  color: var(--sx-ink);
-  font-size: 28px;
-}
-
-.detail-copy p {
-  margin: 5px 0;
-  color: var(--sx-muted);
-  font-size: 20px;
-  line-height: 1.6;
-}
-
-.detail-copy .card-text {
-  color: var(--sx-ink);
-  font-size: 20px;
-}
-
-.keyword-notes {
-  font-size: 18px;
-  line-height: 1.55;
-}
-
-.empty {
-  display: grid;
-  height: 100%;
-  margin: 0;
-  place-items: center;
-  color: var(--sx-muted);
-  font-size: 20px;
 }
