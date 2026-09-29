@@ -1,125 +1,116 @@
-# 状态（buff / debuff）美术素材完备性
+# 状态与卡牌增益美术素材完备性
 
-> 统计时间：2026-09-18
-> 状态来源：`src/engine/statuses/index.ts` 汇总的 `STATUS_DEFS`
-> 美术登记：`src/ui/art/battle/statusArt.ts` 中的 `STATUS_ART`（新增美术只需在此登记，`StatusPips` 与 `HitFxLayer` 自动生效）
-> 非状态 BUFF 登记：`src/ui/art/battle/buffArt.ts`（培育标记、组装部件与药剂徽记）
-> 素材目录：`src/assets/buffs/`
-> 未登记美术的状态会回退显示 `emoji`。
+> 统计时间：2026-09-29  
+> 战斗状态来源：`src/engine/statuses/index.ts` 汇总的 `STATUS_DEFS`，包括由预言定义动态生成的状态。  
+> 状态美术登记：`src/ui/art/battle/statusArt.ts` 中的 `STATUS_ART`；未登记状态在战斗状态栏回退显示定义里的 emoji。  
+> 非状态增益登记：`src/ui/art/battle/buffArt.ts`（培育、组装部件、魔药）；护盾素材也由 `statusArt.ts` 导出。  
+> 卡牌标记来源：`src/engine/cards/cardMarks.ts`；手牌标记由 `src/ui/common/card/HandCard/parts/CardMarks.tsx` 显示。
 
-## 总览
+## 统计
 
-| 项目 | 数量 |
-| --- | --- |
-| 状态总数 | 50（增益 36 / 减益 14） |
-| 已登记美术 | 25 |
-| 有素材但未登记 | 2（不周山、坚固；当前没有对应状态） |
-| 完全缺素材 | 25 |
-| 额外：护盾（非状态） | 已登记（`SHIELD_ART`） |
+| 范围 | 总数 | 已有专属图像素材 | 缺少专属图像素材 |
+| --- | ---: | ---: | ---: |
+| 战斗增益状态 | 50 | 20 | **30** |
+| 战斗减益状态 | 17 | 11 | **6** |
+| 战斗状态合计 | **67** | **31** | **36** |
+| 卡牌标记 / 卡牌附加效果 | 11 | 0 | **11** |
 
-图例：✅ 已登记　⚠️ 素材已存在但未登记　❌ 缺素材
+卡牌标记使用 emoji 字符绘制，不视为项目专属图像素材。若把战斗增益状态和卡牌标记合并看，当前有 **41 个增益或卡牌标记 ID 没有专属图像素材**；减益另有 6 个。
 
-## 明细
+素材目录 `src/assets/buffs/` 当前有 39 个文件：38 个由状态或非状态增益登记/预加载，另有 1 张未使用的备用护盾图。当前没有与有效状态对应、但遗漏在 `STATUS_ART` 外的素材。护盾不是 `STATUS_DEFS` 状态，不计入 67 个状态。
 
-### 持续伤害 / 持续效果（`dot.ts`）
+## 缺少素材的战斗增益状态（30）
 
-| id | 名称 | 类型 | 回退 emoji | 美术 | 素材文件 |
-| --- | --- | --- | --- | --- | --- |
-| poison | 中毒 | 减益 | ☠️ | ✅ | dot/中毒.png |
-| burn | 灼烧 | 减益 | 🔥 | ✅ | dot/灼烧.png |
-| regen | 再生 | 增益 | 💚 | ✅ | dot/再生.png |
-| thorns | 荆棘 | 增益 | 🌵 | ✅ | 荆棘.png |
-| vitality | 生机 | 增益 | 🌱 | ✅ | 生机.png |
-| cactusCounterattack | 仙人掌 | 增益 | 🌵 | ✅ | 仙人掌.png |
+| 定义来源 | id | 名称 | emoji 回退 |
+| --- | --- | --- | --- |
+| `swordsman.ts` | `mirrorMoon` | 镜月 | 🌙 |
+| `swordsman.ts` | `ironCloak` | 铁衣 | 🛡️ |
+| `swordsman.ts` | `windCut` | 风切 | 🌪️ |
+| `swordsman.ts` | `zanshin` | 残心 | 🫀 |
+| `swordsman.ts` | `zanshinFocus` | 残心·凝神 | 🎯 |
+| `swordsman.ts` | `yachiyo` | 八千代 | 🌸 |
+| `botanist.ts` | `thornCrown` | 棘冠 | 👑 |
+| `botanist.ts` | `halfDraw` | 半熟保鲜 | 🥭 |
+| `botanist.ts` | `agaveBloom` | 龙舌花信 | 🌺 |
+| `botanist.ts` | `debuffImmune` | 免疫 | 🛡️ |
+| `botanist.ts` | `rootNetwork` | 根系网络 | 🌿 |
+| `botanist.ts` | `pollen` | 花粉 | 🌼 |
+| `botanist.ts` | `bloom` | 盛放 | 🌸 |
+| `botanist.ts` | `myceliumWeb` | 菌丝网络 | 🍄 |
+| `prophet.ts` | `zenithStar` | 天顶星 | 🌠 |
+| `prophet.ts` | `gravityLens` | 引力透镜 | 🔭 |
+| `prophet.ts` | `drift` | 漂流 | 🛟 |
+| `prophet.ts` | `milkyWay` | 银河 | 🌌 |
+| `prophet.ts` | `cascade` | 倒泻 | 🌊 |
+| `prophecy.ts` | `prophecyGoodOmen` | 预言·吉兆 | 🍀 |
+| `prophecy.ts` | `prophecyOmen` | 预言·预兆 | 🔮 |
+| `prophecy.ts` | `prophecyIllOmen` | 预言·凶兆 | 🦉 |
+| `prophecy.ts` | `prophecyApocalypse` | 预言·天启 | 📯 |
+| `abandonedFloor.ts` | `salvageArmor` | 回收装甲 | 🛠️ |
+| `abandonedFloor.ts` | `escort` | 护航 | 🛡️ |
+| `abandonedFloor.ts` | `conductiveFilm` | 导电薄膜 | 🔌 |
+| `alchemist.ts` | `emberWall` | 余烬护壁 | 🔥 |
+| `alchemist.ts` | `quench` | 淬火 | 🗡️ |
+| `alchemist.ts` | `philosophersStone` | 贤者之石 | 💎 |
+| `alchemist.ts` | `ouroboros` | 衔尾蛇 | 🐍 |
 
-### 通用增益（`buffs.ts`）
+## 缺少素材的战斗减益状态（6）
 
-| id | 名称 | 类型 | 回退 emoji | 美术 | 素材文件 |
-| --- | --- | --- | --- | --- | --- |
-| starlight | 星辉 | 增益 | ✨ | ✅ | 星辉.png |
-| ironwall | 铁壁 | 增益 | 🛡️ | ✅ | 铁壁.png |
-| strength | 力量 | 增益 | 💪 | ✅ | 力量.png |
-| overload | 过载 | 增益 | ☢️ | ✅ | buffs/过载.png |
-| rashomon | 罗生门 | 增益 | ⛩️ | ✅ | buffs/罗生门.png |
-| sharp | 锋利 | 增益 | 🗡️ | ✅ | 锋利.png |
-| chargedShell | 充能外壳 | 增益 | 🔋 | ✅ | buffs/充能外壳.png |
-| retortWall | 反应釜壁 | 增益 | ⚗️ | ✅ | 反应釜壁.png |
-| bountyHunter | 赏金猎人 | 增益 | 🎯 | ✅ | 赏金猎人.png |
-| insight | 洞察 | 增益 | 👁️ | ✅ | 洞察.png |
-| tequila | 龙舌兰 | 增益 | 🌵 | ✅ | buffs/龙舌兰.png |
-| taunt | 嘲讽 | 增益 | 💢 | ✅ | 嘲讽.png |
+| 定义来源 | id | 名称 | emoji 回退 |
+| --- | --- | --- | --- |
+| `control.ts` | `stun` | 眩晕 | 💫 |
+| `botanistFoe.ts` | `insectTrap` | 捕虫夹 | 🪤 |
+| `botanistFoe.ts` | `slow` | 迟滞 | 🐌 |
+| `prophecy.ts` | `illOmen` | 凶兆 | 🦉 |
+| `abandonedFloor.ts` | `static` | 静电 | ⚡ |
+| `alchemist.ts` | `etch` | 蚀刻 | 🧪 |
 
-### 通用减益（`debuffs.ts`）
+其余 20 个增益状态和 11 个减益状态均已登记图像素材。注意 `prophecyIllOmen`（预言家身上的增益“预言·凶兆”）与 `illOmen`（敌人身上的减益“凶兆”）是两个不同状态，目前两者都没有专属素材。
 
-| id | 名称 | 类型 | 回退 emoji | 美术 | 素材文件 |
-| --- | --- | --- | --- | --- | --- |
-| weak | 虚弱 | 减益 | 💧 | ❌ | — |
-| vulnerable | 易伤 | 减益 | 🎯 | ❌ | — || armorBreak | 破甲 | 减益 | 🩹 | ❌ | — |
-| attackDown | 萎靡 | 减益 | 📉 | ❌ | — |
-| pierce | 穿孔 | 减益 | 🕳️ | ✅ | debuffs/穿孔.png |
-| jam | 电磁干扰 | 减益 | 📶 | ❌ | — |
+## 卡牌自身的增益与标记
 
-### 控制（`control.ts`）
+### 卡牌标记（11 项均无独立图像素材）
 
-| id | 名称 | 类型 | 回退 emoji | 美术 | 素材文件 |
-| --- | --- | --- | --- | --- | --- |
-| stun | 眩晕 | 减益 | 💫 | ❌ | — |
+`CARD_MARK_DEFS` 定义的标记在手牌和牌堆卡面上显示 emoji；代码没有为这些标记登记单独的图片素材。
 
-### 精算师（`actuary.ts`）
+| id | 名称 | 当前显示 |
+| --- | --- | --- |
+| `starPact` | 星契 | 🌟 |
+| `mindsEye` | 心眼 | 👁️ |
+| `heavy` | 沉重 | 🪨 |
+| `scorching` | 灼热 | 🔥 |
+| `countercurrent` | 逆流 | 🌀 |
+| `domino` | 多米诺 | 🁢 |
+| `cometTail` | 彗尾 | ☄️ |
+| `streamer` | 流光 | 💫 |
+| `swordMound` | 剑冢 | 🪦 |
+| `divineSight` | 神眼 | 👁️ |
+| `noto` | 纳刀 | ⚔️ |
 
-| id | 名称 | 类型 | 回退 emoji | 美术 | 素材文件 |
-| --- | --- | --- | --- | --- | --- |
-| insurance | 保险 | 增益 | 🧾 | ✅ | 保险.png |
-| echo | 回响 | 增益 | 🔁 | ✅ | 回响.png |
-| feignInjury | 假装受伤 | 增益 | 🎭 | ✅ | 假装受伤.png |
-| deductible | 免赔 | 增益 | 📉 | ✅ | 免赔.png |
+卡牌标记可能改变卡牌费用、打出效果或所属者，不全是正向效果；这里按“卡牌自身的增益/附加标记”一并统计。若标记效果给角色施加了战斗状态，该状态图标仍按前面的 `STATUS_DEFS` / `STATUS_ART` 口径统计，不重复计数。例如“灼热”施加的灼烧状态已有素材，但“灼热”标记自身没有独立图片。
 
-### 剑客（`swordsman.ts`）
+### 卡牌上的进度与激活提示
 
-| id | 名称 | 类型 | 回退 emoji | 美术 | 素材文件 |
-| --- | --- | --- | --- | --- | --- |
-| mirrorMoon | 镜月 | 增益 | 🌙 | ❌ | — |
-| ironCloak | 铁衣 | 增益 | 🛡️ | ❌ | — |
-| windCut | 风切 | 增益 | 🌪️ | ❌ | — |
-| zanshin | 残心 | 增益 | 🫀 | ❌ | — |
-| zanshinFocus | 残心·凝神 | 增益 | 🎯 | ❌ | — |
-| yachiyo | 八千代 | 增益 | 🌸 | ❌ | — |
+| 效果 | 当前表现 | 专属素材情况 |
+| --- | --- | --- |
+| 培育 / 嫁接 | 生长阶段使用 `培育.webp`；成熟徽记使用组件绘制的图形；嫁接沿用培育提示 | 已有培育素材；嫁接没有独立素材 |
+| 共鸣强化 | 卡面直接显示“共鸣 +次数” | 没有独立图标素材 |
+| 卡牌激活收益 | `cardBoon.ts` 计算培育就绪、降费、应星支付、共鸣、自身层数、瀑布、计数器和条件等激活原因；卡牌统一显示激活辉光 | 共用卡牌激活效果，没有按原因区分的图标素材；不属于额外战斗状态 ID |
 
-### 植物学家（`botanist.ts`）
+卡牌效果对角色施加的 BUFF 并非卡牌标记：它们已经包含在 67 个战斗状态的统计中。卡牌侧目前确实存在 11 个无独立素材的标记，以及 1 种使用通用激活辉光的提示机制。
 
-| id | 名称 | 类型 | 回退 emoji | 美术 | 素材文件 |
-| --- | --- | --- | --- | --- | --- |
-| thornCrown | 棘冠 | 增益 | 👑 | ❌ | — |
-| halfDraw | 半熟保鲜 | 增益 | 🥭 | ❌ | — |
-| agaveBloom | 龙舌花信 | 增益 | 🌺 | ❌ | — |
-| debuffImmune | 免疫 | 增益 | 🛡️ | ❌ | — |
-| rootNetwork | 根系网络 | 增益 | 🌿 | ❌ | — |
+## 已有素材但不属于缺失状态
 
-### 预言家（`prophet.ts`）
+| 项目 | 素材 / 登记 | 说明 |
+| --- | --- | --- |
+| 护盾 | `src/assets/buffs/护盾.webp`，由 `SHIELD_ART` 导出 | 护盾不是状态定义，不计入状态总数；`src/assets/buffs/备选/护盾.webp` 是未使用的备用图。 |
+| 培育 | `src/assets/buffs/buffs/培育.webp`，由 `BUFF_ART.cultivate` 登记 | 卡牌培育标记使用。 |
+| 组装 A-D | `src/assets/buffs/buffs/组装A.webp` 至 `组装D.webp`，由 `BUFF_ART` 登记 | 用于组装部件展示。 |
+| 魔药 | `src/assets/buffs/buffs/魔药.webp`，由 `BUFF_ART.potion` 登记并预加载 | 非状态素材；不计入状态图标统计。 |
 
-| id | 名称 | 类型 | 回退 emoji | 美术 | 素材文件 |
-| --- | --- | --- | --- | --- | --- |
-| zenithStar | 天顶星 | 增益 | 🌠 | ❌ | — |
-| gravityLens | 引力透镜 | 增益 | 🔭 | ❌ | — |
-| drift | 漂流 | 增益 | 🛟 | ❌ | — |
+## 统计口径与维护入口
 
-### 废弃楼层敌人（`abandonedFloor.ts`）
-
-| id | 名称 | 类型 | 回退 emoji | 美术 | 素材文件 |
-| --- | --- | --- | --- | --- | --- |
-| static | 静电 | 减益 | ⚡ | ❌ | — |
-| flammable | 易燃 | 减益 | 🧨 | ✅ | debuffs/易燃.png |
-| scorched | 焦灼 | 减益 | 🌡️ | ✅ | debuffs/焦灼.png |
-| salvageArmor | 回收装甲 | 增益 | 🛠️ | ❌ | — |
-| escort | 护航 | 增益 | 🛡️ | ❌ | — |
-| conductiveFilm | 导电薄膜 | 增益 | 🔌 | ❌ | — |
-
-## 本次整理记录
-
-1. `切图素材` 中的 12 张图已按语义移动到 `buffs/`、`debuffs/`、`dot/` 三个目录，并更新了 `statusArt.ts` 的实际引用路径。
-2. 新增登记 `regen`、`thorns`、`insight`、`pierce`；其中 `regen`、`pierce` 使用本次切图素材，另外两个使用已有素材。
-3. 非状态素材由 `src/ui/art/battle/buffArt.ts` 统一登记：`培育` 接入手牌培育标记，`组装 A-D` 接入战斗组装部件条与选择面板，`魔药` 先作为药剂徽记素材预加载；当前没有对应的状态或部件 ID，因此不计入上方 50 个状态。
-4. **目录中没有对应状态的素材（2 个）**：`不周山.png`、`坚固.png`。代码里找不到这两个名称，可能对应还没实现的状态，也可能是改名前的旧素材。
-5. **完全缺素材（25 个）**：通用减益 6 个、控制 1 个、剑客 6 个、植物学家 5 个、预言家 3 个、废弃楼层 4 个。
-6. **重复的回退 emoji**：🎯（赏金猎人 / 易伤 / 残心·凝神）、🛡️（铁壁 / 铁衣 / 护航 / 免疫）、🌵（荆棘 / 仙人掌 / 龙舌兰）、📉（萎靡 / 免赔）。这些状态缺素材时，只看图标无法区分，建议优先补图。
-7. `src/assets/buffs/dot/` 与 `src/assets/buffs/debuffs/` 已分别承载持续效果和减益素材，新增的正向非状态图标统一放在 `src/assets/buffs/buffs/`。
+1. 状态清单取自 `STATUS_DEFS`，包括由 `PROPHECY_LIST` 生成的 4 个预言状态；凶兆标记状态 `illOmen` 另计 1 个减益。
+2. 状态只有同时存在于 `STATUS_ART` 并引用素材文件，才算“已有专属图像素材”。emoji 是无素材时的回退显示，不计为图像素材。
+3. 新增状态图标在 `src/ui/art/battle/statusArt.ts` 登记，素材放在 `src/assets/buffs/` 对应目录；`StatusPips` 与 `HitFxLayer` 会读取同一登记表。
+4. 非状态素材在 `src/ui/art/battle/buffArt.ts` 登记；卡牌标记目前由 `CARD_MARK_DEFS` 提供 emoji，尚无独立卡牌标记图集。
