@@ -6,7 +6,7 @@ export const ARK_ELITES: EnemyDef[] = [
     id: "ark-canopy-stag", name: "冠层巡猎鹿", emoji: "🦌", maxHp: 110, exp: 36,
     stats: { attack: 94, defense: 4, initiative: 20, critDamage: 150 },
     moves: [
-      { id: "ark-stag-charge", name: "枝角冲锋", emoji: "🦌", delay: 4, kind: "attack", targeting: "foe", weight: 3, anim: "slash",
+      { id: "ark-stag-charge", name: "枝角冲锋", emoji: "🦌", delay: 4, kind: "attack", targeting: "foe", weight: 3, anim: "smash",
         effects: [{ type: "DAMAGE", multiplier: 1.25, target: "primary" }] },
       { id: "ark-stag-fan", name: "冠叶扫荡", emoji: "🌿", delay: 6, kind: "attack", targeting: "allFoes", weight: 1, anim: "slash",
         effects: [{ type: "DAMAGE", multiplier: 0.5, target: "allFoes" }] },

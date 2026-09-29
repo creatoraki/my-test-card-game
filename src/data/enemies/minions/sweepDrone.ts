@@ -17,7 +17,7 @@ export const SWEEP_DRONE: EnemyDef = {
       kind: "attack",
       targeting: "foe",
       weight: 2,
-      anim: "slash",
+      anim: "smash",
       effects: [{ type: "DAMAGE", multiplier: 0.8, target: "primary" }],
     },
     {

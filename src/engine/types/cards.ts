@@ -24,6 +24,7 @@ export type CardRarity = "basic" | Rarity;
 // 纯 UI 表现字段, 引擎逻辑不读取。UI 侧有兜底推断(见 ui/animations.ts)。
 export type CardAnim =
   | "slash"
+  | "smash"
   | "shot"
   | "fire"
   | "ice"

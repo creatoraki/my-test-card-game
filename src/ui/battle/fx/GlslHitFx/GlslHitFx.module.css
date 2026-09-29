@@ -1,0 +1,16 @@
+/* GLSL 命中特效: 画布中心对齐 .vfx 锚点(HitFxLayer 的 0×0 定位点)。 */
+.glsl-hit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+/* GlslSprite 的画布默认可点(传送门需要), 命中特效必须穿透。 */
+.glsl-hit canvas {
+  pointer-events: none;
+}
+/* 弹道类按「自下而上」绘制; 目标是我方(底部 HUD)时翻转成自上而下。 */
+:global([data-unit][data-side="player"]) .glsl-hit[data-flip] {
+  scale: 1 -1;
+}

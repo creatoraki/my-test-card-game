@@ -8,22 +8,26 @@ import s from "./GlslSprite.module.css";
  * active 变化只改宿主里的目标值，由宿主平滑过渡，不触发额外重渲染。
  * uniforms 需保持引用稳定(模块常量或 useMemo)。
  */
-export function GlslSprite({ program, width, height, uniforms, active = false, seed = 0, className }: {
+export function GlslSprite({ program, width, height, uniforms, active = false, seed = 0, rate = 1, className }: {
   program: GlslProgramDef;
   width: number;
   height: number;
   uniforms: GlslUniforms;
   active?: boolean;
   seed?: number;
+  /** uPhase 的推进倍数(战斗倍速/慢放)；变化时不重新注册。 */
+  rate?: number;
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const targetRef = useRef<GlslTarget | null>(null);
   const activeRef = useRef(active);
   const uniformsRef = useRef(uniforms);
+  const rateRef = useRef(rate);
   const [supported] = useState(() => glslHost.available());
   activeRef.current = active;
   uniformsRef.current = uniforms;
+  rateRef.current = rate;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -35,6 +39,7 @@ export function GlslSprite({ program, width, height, uniforms, active = false, s
       height,
       uniforms: uniformsRef.current,
       seed,
+      rate: rateRef.current,
       active: activeRef.current,
     });
     targetRef.current = target;
@@ -47,6 +52,10 @@ export function GlslSprite({ program, width, height, uniforms, active = false, s
   useEffect(() => {
     if (targetRef.current) targetRef.current.uniforms = uniforms;
   }, [uniforms]);
+
+  useEffect(() => {
+    if (targetRef.current) targetRef.current.rate = rate;
+  }, [rate]);
 
   useEffect(() => {
     if (targetRef.current) glslHost.setActive(targetRef.current, active);

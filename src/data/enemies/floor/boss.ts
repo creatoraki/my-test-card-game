@@ -81,7 +81,7 @@ export const BOSS_ENEMIES: EnemyDef[] = [
         kind: "attack",
         targeting: "foe",
         targetPick: "highestShield",
-        anim: "slash",
+        anim: "smash",
         effects: [{ type: "DAMAGE", multiplier: 1.8, target: "primary" }],
       },
       {
@@ -104,7 +104,7 @@ export const BOSS_ENEMIES: EnemyDef[] = [
         delay: 4,
         kind: "attack",
         targeting: "foe",
-        anim: "slash",
+        anim: "smash",
         effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
       },
     ],

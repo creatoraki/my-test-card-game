@@ -19,6 +19,8 @@ export interface GlslTarget {
   uniforms: GlslUniforms;
   /** 动画相位偏移，让同屏多个目标不同步。 */
   seed: number;
+  /** 播放速率：uPhase 的推进倍数(战斗倍速/慢放)，缺省 1。 */
+  rate: number;
   /** 激活目标值(0/1)与平滑后的当前值。 */
   activeGoal: number;
   active: number;
@@ -34,5 +36,6 @@ export interface GlslTargetInit {
   height: number;
   uniforms: GlslUniforms;
   seed: number;
+  rate?: number;
   active: boolean;
 }

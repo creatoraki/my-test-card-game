@@ -14,6 +14,7 @@ import { KeenEdgeFx } from "@/ui/battle/fx/KeenEdgeFx";
 import { LunarRingFx } from "@/ui/battle/fx/LunarRingFx";
 import { SakuraFlurryFx } from "@/ui/battle/fx/SakuraFlurryFx";
 import { TwinArrowFx } from "@/ui/battle/fx/TwinArrowFx";
+import { GLSL_HIT_FX } from "@/ui/battle/fx/GlslHitFx";
 import { ShieldIcon } from "@/ui/common/bar/StatusPips/icons";
 import s from "./HitFxLayer.module.css";
 
@@ -21,7 +22,10 @@ import s from "./HitFxLayer.module.css";
 // 特效着色、命中时序、飘字完全一致 —— 只有承载它们的外壳不同(场上立绘 vs 玻璃头像卡)。
 
 // 签名允许返回 null: reduced-motion 下 proc 特效整层不挂载(如 TriSlashFx 的外壳直返 null)。
-const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset }) => JSX.Element | null>> = {
+// color = ANIM[*].color, 只有着色器类(GLSL_HIT_FX)需要, 其余组件忽略。
+const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset; color: string }) => JSX.Element | null>> = {
+  // 基础档位(斩击/重击/射击/火焰/雷电/毒素): GLSL 着色器特效, 取代原 emoji。
+  ...GLSL_HIT_FX,
   "iai-slash": IaiSlashFx,
   "blade-slash": BladeSlashFx,
   "tri-slash": TriSlashFx,
@@ -100,7 +104,7 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
           aria-hidden
         >
           {Proc && proc ? (
-            <Proc preset={proc} />
+            <Proc preset={proc} color={preset.color} />
           ) : Icon ? (
             <span className={s["vfx-icon"]}>
               <Icon />

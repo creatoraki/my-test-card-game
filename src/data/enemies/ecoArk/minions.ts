@@ -6,7 +6,7 @@ export const ARK_MINIONS: EnemyDef[] = [
     id: "ark-moss-crab", name: "苔甲搬运蟹", emoji: "🦀", maxHp: 80, exp: 14,
     stats: { attack: 66, defense: 2, initiative: 18, critDamage: 150 },
     moves: [
-      { id: "ark-crab-clamp", name: "液压钳击", emoji: "🦀", delay: 3, kind: "attack", targeting: "foe", weight: 3, anim: "slash",
+      { id: "ark-crab-clamp", name: "液压钳击", emoji: "🦀", delay: 3, kind: "attack", targeting: "foe", weight: 3, anim: "smash",
         effects: [{ type: "DAMAGE", multiplier: 0.8, target: "primary" }] },
       { id: "ark-crab-shell", name: "苔甲覆盖", emoji: "🛡️", delay: 4, kind: "block", targeting: "ally", targetPick: "escortAlly", weight: 1, anim: "shield",
         effects: [{ type: "GAIN_SHIELD", amount: 14, target: "primary" }] },

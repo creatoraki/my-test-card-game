@@ -42,7 +42,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         kind: "attack",
         targeting: "foe",
         weight: 2,
-        anim: "slash",
+        anim: "smash",
         effects: [{ type: "DAMAGE", multiplier: 1.25, target: "primary" }],
       },
       {
@@ -101,7 +101,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         kind: "attack",
         targeting: "foe",
         weight: 2,
-        anim: "slash",
+        anim: "smash",
         effects: [{ type: "DAMAGE", multiplier: 1.3, target: "primary" }],
       },
       {

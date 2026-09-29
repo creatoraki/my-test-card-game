@@ -45,6 +45,7 @@ class GlslHost {
       height: init.height,
       uniforms: init.uniforms,
       seed: init.seed,
+      rate: init.rate ?? 1,
       activeGoal: on,
       active: on,
       phase: 0,
@@ -147,7 +148,7 @@ class GlslHost {
     for (const target of this.targets) {
       target.active += (target.activeGoal - target.active) * ease;
       // 相位按速度积分：变速只改变推进快慢，画面不会跳变。
-      target.phase = (target.phase + dt * (1 + ACTIVE_SPEEDUP * target.active)) % TIME_WRAP;
+      target.phase = (target.phase + dt * target.rate * (1 + ACTIVE_SPEEDUP * target.active)) % TIME_WRAP;
       if (target.visible) this.draw(target, time);
     }
     this.frame = requestAnimationFrame(this.tick);
@@ -190,3 +191,8 @@ class GlslHost {
 }
 
 export const glslHost = new GlslHost();
+
+/** 当前环境能否使用共享 WebGL 宿主；不可用时由调用方自行降级。 */
+export function glslAvailable(): boolean {
+  return glslHost.available();
+}

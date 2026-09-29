@@ -1,5 +1,4 @@
-import type { GlslProgramDef } from "@/ui/common/fx/GlslSprite";
-import { GLSL_COMMON } from "./glslCommon";
+import { GLSL_COMMON, type GlslProgramDef } from "@/ui/common/fx/GlslSprite";
 import { GLSL_PORTAL_RIM, GLSL_PORTAL_UNIFORMS } from "./portalRim.glsl";
 import { GLSL_PORTAL_VORTEX } from "./portalVortex.glsl";
 

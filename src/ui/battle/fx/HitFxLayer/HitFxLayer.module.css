@@ -158,22 +158,6 @@
   100% { transform: scale(4.6); opacity: 0; }
 }
 
-/* 各技能差异化手感 */
-.vfx-slash .vfx-emoji {
-  animation: vfxSlash 0.42s ease-out forwards;
-}
-@keyframes vfxSlash {
-  0% { transform: translate(-50%, -50%) scale(0.4) rotate(-50deg); opacity: 0; }
-  30% { transform: translate(-50%, -50%) scale(1.5) rotate(8deg); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1.8) rotate(22deg); opacity: 0; }
-}
-.vfx-lightning .vfx-emoji {
-  animation: vfxPop 0.32s steps(3) forwards;
-}
-.vfx-fire .vfx-emoji {
-  animation: vfxPop 0.6s ease-out forwards;
-}
-
 /* 受击抖动/闪白推迟到特效真正命中那一刻。
    hit-react 挂了 hitShake + hitFlash 两条动画, animation-delay 须写两个值一一对应。
    基态即常态, 故延迟期无副作用; emoji 系特效 --vfx-impact 缺省 0, 行为不变。 */
@@ -231,6 +215,15 @@
 }
 /* 二连箭自带两次 Canvas 冲击环, 默认环会在 430ms 爆点前提前出现。 */
 .vfx-twin-arrow.vfx-attack::after {
+  content: none;
+}
+/* 基础档位 GLSL 命中特效(fx/GlslHitFx)各自画冲击环, 且爆点延后 120~200ms; 默认环挂载即扩散会提前穿帮。 */
+.vfx-slash.vfx-attack::after,
+.vfx-smash.vfx-attack::after,
+.vfx-shot.vfx-attack::after,
+.vfx-fire.vfx-attack::after,
+.vfx-lightning.vfx-attack::after,
+.vfx-poison.vfx-attack::after {
   content: none;
 }
 /* —— 伤害/治疗飘字 —— */

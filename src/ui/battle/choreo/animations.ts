@@ -113,12 +113,19 @@ export const DISCARD = {
 
 export const ANIM: Record<CardAnim, AnimPreset> = {
   // —— 攻击系 ——
-  slash: { kind: "attack", emoji: "💥", color: "#ff6b6b", windup: 190, hold: 660, shake: 1 },
-  shot: { kind: "attack", emoji: "🎯", color: "#ffd43b", windup: 150, hold: 640, shake: 1 },
-  fire: { kind: "attack", emoji: "🔥", color: "#ff922b", windup: 210, hold: 720, shake: 1 },
+  // 基础档位 GLSL 命中特效(fx/GlslHitFx): 敌人普攻与大部分元素卡的底特效。
+  // impactMs = 爆点(掉血/飘字/受击锚点), 与着色器里的 hitTime() 零点同源;
+  // 总长在 GlslHitFx/glslHitPrograms.ts 的 totalMs, hold 须盖住 max(totalMs, impactMs + floatMs),
+  // 并多留 ~200ms 给多段伤害的飘字错拍(见 hitFloats 的 floatStagger)。
+  // 刻意不配 screenFx、不占专属运镜档: 高频特效抢镜比不够华丽更伤。
+  slash: { kind: "attack", proc: { impactMs: 160, floatMs: 420, damageAtImpact: true }, color: "#ff6b6b", windup: 190, hold: 780, shake: 1 },
+  // 重击: 钝器/撞击类招式(压板重砸、液压钳击、枝角冲锋…), 与刃类的 slash 区分。
+  smash: { kind: "attack", proc: { impactMs: 140, floatMs: 420, damageAtImpact: true }, color: "#ffb45c", windup: 190, hold: 760, shake: 1 },
+  shot: { kind: "attack", proc: { impactMs: 200, floatMs: 420, damageAtImpact: true }, color: "#ffd43b", windup: 150, hold: 820, shake: 1 },
+  fire: { kind: "attack", proc: { impactMs: 180, floatMs: 420, damageAtImpact: true }, color: "#ff922b", windup: 210, hold: 820, shake: 1 },
   ice: { kind: "attack", emoji: "❄️", color: "#66d9e8", windup: 210, hold: 720, shake: 1 },
-  lightning: { kind: "attack", emoji: "⚡", color: "#a5d8ff", windup: 130, hold: 600, shake: 1 },
-  poison: { kind: "attack", emoji: "☠️", color: "#94d82d", windup: 190, hold: 720, shake: 1 },
+  lightning: { kind: "attack", proc: { impactMs: 120, floatMs: 420, damageAtImpact: true }, color: "#a5d8ff", windup: 130, hold: 740, shake: 1 },
+  poison: { kind: "attack", proc: { impactMs: 200, floatMs: 420, damageAtImpact: true }, color: "#94d82d", windup: 190, hold: 860, shake: 1 },
   // 居合拔刀斩(程序化 CSS): 全屏压暗 → 光点由暗渐亮蓄力 → 500ms 斩痕从左下向右上
   // 贯出 + 青白反白闪 + 顿帧震屏, 整段压在命中特效 hold 内。视觉在 IaiSlashFx.tsx
   // 与 ui/IaiSlashFx.css 的 iai 系关键帧(百分比按 1000ms 总时长换算, 50% = impactMs 500)。
