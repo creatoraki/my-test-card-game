@@ -1,7 +1,14 @@
 import { createBoolPref, createVolumePref } from "../shared/audioPref";
-import { playLayer } from "./sfxSynth";
+import { layerEndMs, layerVoiceCost, playLayer } from "./sfxSynth";
 import { SFX_RECIPES } from "./sfxRecipes";
-import { playSample, preloadSfxSamples, sampleDurationMs, SFX_SAMPLES } from "./sfxSamples";
+import {
+  playSample,
+  preloadSampleSources,
+  preloadSfxSamples,
+  sampleDurationMs,
+  SFX_SAMPLES,
+  type SfxSample,
+} from "./sfxSamples";
 import type { PlaySfxOptions, SfxId, SfxRecipe } from "./sfxTypes";
 
 const MASTER_GAIN = 0.38;
@@ -88,21 +95,44 @@ function ensureAudioBus(): { context: AudioContext; destination: GainNode } | nu
   return { context: audioContext, destination: masterGain };
 }
 
-function recipeDurationMs(recipe: SfxRecipe): number {
-  return Math.max(
-    ...recipe.layers.map((layer) => {
-      const delay = layer.delayMs ?? 0;
-      return delay + layer.durationMs + (layer.kind === "burst" ? layer.spreadMs : 0) + 80;
-    }),
-    100,
-  );
+// 复音记账: 占用 cost 个复音, durationMs 后归还。
+function holdVoices(cost: number, durationMs: number): void {
+  activeVoices += cost;
+  window.setTimeout(() => {
+    activeVoices = Math.max(0, activeVoices - cost);
+  }, durationMs);
 }
 
-function recipeVoiceCost(recipe: SfxRecipe): number {
-  return recipe.layers.reduce(
-    (total, layer) => total + (layer.kind === "burst" ? layer.countMax : 1),
-    0,
-  );
+function scaleOf(options: PlaySfxOptions) {
+  const damagePitch = options.damage === undefined ? 1 : 1 + clamp(options.damage, 0, 50) * 0.008;
+  return {
+    pitchScale: clamp((options.pitch ?? 1) * damagePitch, 0.5, 2.2),
+    gainScale: clamp(options.volume ?? 1, 0, 1),
+    timeScale: 1 / clamp(options.rate ?? 1, 0.25, 4),
+  };
+}
+
+function startSample(sample: SfxSample, options: PlaySfxOptions): boolean {
+  if (activeVoices + 1 > MAX_ACTIVE_VOICES) return false;
+  const bus = ensureAudioBus();
+  if (!bus) return false;
+  holdVoices(1, sampleDurationMs(sample));
+  playSample(bus.context, bus.destination, sample, scaleOf(options));
+  return true;
+}
+
+// 配方按层逐个归还复音: 长时间轴配方(整段出招)的早段层播完就释放, 不会把爆点音挤掉。
+function startRecipe(recipe: SfxRecipe, options: PlaySfxOptions): boolean {
+  const total = recipe.layers.reduce((sum, layer) => sum + layerVoiceCost(layer), 0);
+  if (activeVoices + total > MAX_ACTIVE_VOICES) return false;
+  const bus = ensureAudioBus();
+  if (!bus) return false;
+  const scale = scaleOf(options);
+  for (const layer of recipe.layers) {
+    holdVoices(layerVoiceCost(layer), layerEndMs(layer, scale.timeScale));
+    playLayer(bus.context, bus.destination, layer, scale);
+  }
+  return true;
 }
 
 export function playSfx(id: SfxId, options: PlaySfxOptions = {}): void {
@@ -114,28 +144,25 @@ export function playSfx(id: SfxId, options: PlaySfxOptions = {}): void {
   const throttleMs = sample?.throttleMs ?? recipe?.throttleMs ?? 30;
   if (now - (lastPlayedAt.get(id) ?? -Infinity) < throttleMs) return;
 
-  const voiceCost = sample ? 1 : recipeVoiceCost(recipe!);
-  if (activeVoices + voiceCost > MAX_ACTIVE_VOICES) return;
+  const started = sample ? startSample(sample, options) : startRecipe(recipe!, options);
+  if (started) lastPlayedAt.set(id, now);
+}
+
+// 直接播放一份不在 SFX_IDS 注册表里的配方/采样(调试页试听、候选音效对比)。不做节流。
+export function playSfxRecipe(recipe: SfxRecipe, options: PlaySfxOptions = {}): void {
+  if (!enabledPref.get()) return;
+  startRecipe(recipe, options);
+}
+
+export function playSfxSample(sample: SfxSample, options: PlaySfxOptions = {}): void {
+  if (!enabledPref.get()) return;
+  startSample(sample, options);
+}
+
+// 未注册采样需要提前解码, 否则首次播放会因缓冲未就绪而静音。
+export function preloadSfxSample(sample: SfxSample): void {
   const bus = ensureAudioBus();
-  if (!bus) return;
-
-  lastPlayedAt.set(id, now);
-  activeVoices += voiceCost;
-  window.setTimeout(() => {
-    activeVoices = Math.max(0, activeVoices - voiceCost);
-  }, sample ? sampleDurationMs(sample) : recipeDurationMs(recipe!));
-
-  const damagePitch = options.damage === undefined ? 1 : 1 + clamp(options.damage, 0, 50) * 0.008;
-  const pitchScale = clamp((options.pitch ?? 1) * damagePitch, 0.5, 2.2);
-  const gainScale = clamp(options.volume ?? 1, 0, 1);
-  if (sample) {
-    playSample(bus.context, bus.destination, sample, { pitchScale, gainScale });
-    return;
-  }
-
-  for (const layer of recipe!.layers) {
-    playLayer(bus.context, bus.destination, layer, { pitchScale, gainScale });
-  }
+  if (bus) preloadSampleSources(bus.context, sample.srcs);
 }
 
 // 总线已建好时把新增益推给它; 还没建(用户尚未触发过任何音效)则等 ensureAudioBus 自己读 targetGain。

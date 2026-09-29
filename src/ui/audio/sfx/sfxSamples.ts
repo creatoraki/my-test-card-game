@@ -86,6 +86,10 @@ export function preloadSfxSamples(context: AudioContext): void {
   for (const src of sources) startDecode(context, src);
 }
 
+export function preloadSampleSources(context: AudioContext, srcs: readonly string[]): void {
+  for (const src of srcs) startDecode(context, src);
+}
+
 export function playSample(
   context: AudioContext,
   destination: AudioNode,

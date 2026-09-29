@@ -1,0 +1,85 @@
+/* 攻击音效试听页。坐标系 = StageCanvas 的 1920×1080 设计画布。 */
+.root { position: absolute; inset: 0; overflow: hidden; background: #070b10; color: #e6eef2; font-size: 18px; }
+.scene { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.55; pointer-events: none; }
+.shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, #05080cf2 0%, #05080cc4 34%, #05080c40 60%, #05080c66 100%); }
+
+/* 木桩: 按战斗单位外壳的几何变量给出, 命中特效与飘字才会落在身体中段。 */
+.unit {
+  position: absolute;
+  left: 1240px;
+  top: 300px;
+  width: 360px;
+  height: 440px;
+  --fig-h: 440px;
+  --foot-inset: 0px;
+  --body-h: 320px;
+  --body-cx: 0px;
+}
+.dummy {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 320px;
+  height: 320px;
+  margin-left: -160px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.panel {
+  position: absolute;
+  left: 72px;
+  top: 110px;
+  width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 28px 30px;
+  background: #0b141ae8;
+  border: 1px solid #5fd4ff40;
+  box-shadow: 0 0 28px #5fd4ff14;
+}
+.title { margin: 0; font-size: 30px; font-weight: 600; letter-spacing: 3px; color: #dff6ff; }
+
+.group { display: flex; flex-direction: column; gap: 12px; }
+.groupHead { display: flex; flex-direction: column; gap: 4px; }
+.groupName { font-size: 24px; color: #8fe3ff; letter-spacing: 2px; }
+.groupNote { font-size: 18px; color: #93a6ae; line-height: 1.45; }
+
+.demos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.demo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px 16px;
+  text-align: left;
+  color: #cfdde3;
+  background: #10202a;
+  border: 1px solid #6fbfd84d;
+  cursor: pointer;
+  transition: background 160ms, border-color 160ms, transform 160ms;
+}
+.demo:hover { background: #163040; border-color: #8fe3ffaa; }
+.demo:active { transform: scale(0.97); }
+.demo.playing { background: #1b3d52; border-color: #8fe3ff; box-shadow: 0 0 16px #8fe3ff40; }
+.demoName { font-size: 22px; color: #f0fbff; }
+.demoNote { font-size: 18px; color: #8ea3ac; line-height: 1.35; }
+
+.options { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.optionLabel { font-size: 18px; color: #93a6ae; margin-left: 8px; }
+.optionLabel:first-child { margin-left: 0; }
+.chip {
+  font-size: 18px;
+  padding: 6px 16px;
+  color: #9fb8c2;
+  background: #102028;
+  border: 1px solid #6fbfd855;
+  cursor: pointer;
+  transition: color 160ms, background 160ms, border-color 160ms;
+}
+.chip:hover { color: #e6f7ff; border-color: #8fe3ffaa; }
+.chip.on { color: #081218; background: #8fe3ff; border-color: #8fe3ff; }
+
+.hint { margin: 0; font-size: 18px; line-height: 1.5; color: #7f949c; }
