@@ -10,7 +10,8 @@ import { CorridorSprite } from "./parts/CorridorSprite/CorridorSprite";
 import { CorridorPlayer } from "./parts/CorridorPlayer";
 import { RoomPortal } from "./parts/RoomPortal/RoomPortal";
 import { BossGate } from "./parts/BossGate/BossGate";
-import { ShadowEncounter } from "./parts/ShadowEncounter/ShadowEncounter";
+import { EncounterDim, ShadowEncounter } from "./parts/ShadowEncounter/ShadowEncounter";
+import { EncounterAlert } from "./parts/EncounterAlert";
 import { useCorridorMovement } from "./useCorridorMovement";
 import { useExplorerChatter } from "./useExplorerChatter";
 import { PlayerSpeech } from "./parts/PlayerSpeech";
@@ -27,6 +28,7 @@ export const CorridorScene = memo(function CorridorScene({ corridor, blocked, en
   nearMapVariant: NearMapVariant;
   onPortalTravel: (travel: () => boolean) => void;
 }) {
+  const sceneRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const farStripRef = useRef<HTMLDivElement>(null);
   const playerAnchorRef = useRef<HTMLDivElement>(null);
@@ -51,6 +53,7 @@ export const CorridorScene = memo(function CorridorScene({ corridor, blocked, en
   const camera = cameraX(movement.x, corridor.width);
   const entityFloorY = CORRIDOR.floorY + CORRIDOR_LAYOUT.entityGroundOffset;
   const activeThreat = corridor.threats.find((threat) => threat.id === corridor.encounterId);
+  const showEncounter = encountering && Boolean(activeThreat);
   const playerWalking = movement.walking && !blocked;
   const portalTheme = portalThemeFor(mapId);
 
@@ -59,6 +62,7 @@ export const CorridorScene = memo(function CorridorScene({ corridor, blocked, en
   }, [movement.x, onFrame]);
 
   return <div
+    ref={sceneRef}
     className={s.scene}
     aria-label={corridor.bossGate ? "首领所在房间" : "房间场景"}
     style={{
@@ -99,15 +103,26 @@ export const CorridorScene = memo(function CorridorScene({ corridor, blocked, en
             {selected && <span className={s.targetMarker} aria-hidden>◆</span>}
           </div>;
         })}
+        {showEncounter && activeThreat && <>
+          <EncounterDim key={`dim-${activeThreat.id}`} />
+          <ShadowEncounter
+            key={activeThreat.id}
+            x={activeThreat.x}
+            top={entityFloorY}
+            lean={movement.x < activeThreat.x ? -1 : 1}
+            camera={camera}
+            sceneScale={CORRIDOR_SCENE_SCALE}
+            sceneRef={sceneRef}
+          />
+        </>}
         <div ref={playerAnchorRef} className={s.playerAnchor} style={{ top: entityFloorY }}>
           <div className={s.player}>
             <CorridorPlayer walking={playerWalking} facing={movement.facing} />
           </div>
-          <PlayerSpeech line={explorerChatter.line} />
+          {showEncounter ? <EncounterAlert key={activeThreat?.id} /> : <PlayerSpeech line={explorerChatter.line} />}
         </div>
       </div>
     </div>
-    {encountering && activeThreat && <ShadowEncounter key={activeThreat.id} x={(activeThreat.x - camera) * CORRIDOR_SCENE_SCALE} />}
     <div className={s.vignette} aria-hidden />
   </div>;
 });

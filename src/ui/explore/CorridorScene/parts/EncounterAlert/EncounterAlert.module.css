@@ -1,0 +1,65 @@
+/* 与 PlayerSpeech 同一套挂法：挂点宽度为 0，槽位显式给宽后居中；按 --corridor-ui-scale 抵消世界缩放。 */
+.slot {
+  position: absolute;
+  bottom: 256px;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  width: 120px;
+  pointer-events: none;
+  transform: translateX(-50%) scale(var(--corridor-ui-scale));
+  transform-origin: 50% 100%;
+}
+
+.mark {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 0 3px #1a0000) drop-shadow(0 0 12px #ff2a1acc);
+  /* ⚠ 三段都改 transform：抖动不能带 fill(否则等待期的首帧会盖掉弹入)，淡出只 forwards。 */
+  animation:
+    alertPop 380ms cubic-bezier(.2, 1.6, .4, 1) both,
+    alertShake 420ms 380ms ease-in-out,
+    alertOut 220ms var(--alert-out) ease-in forwards;
+}
+
+.bar,
+.dot {
+  display: block;
+  background: linear-gradient(180deg, #ff6a4d 0%, #f01e14 55%, #b30d0b 100%);
+  box-shadow: 0 0 0 3px #2a0303;
+}
+
+/* 上宽下窄的竖条：底部圆角收小，读成楔形 */
+.bar {
+  width: 19px;
+  height: 52px;
+  border-radius: 9px 9px 5px 5px / 9px 9px 16px 16px;
+}
+
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+@keyframes alertPop {
+  0% { opacity: 0; transform: translateY(18px) scale(.2); }
+  60% { opacity: 1; transform: translateY(-6px) scale(1.18); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes alertShake {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-9deg); }
+  45% { transform: rotate(7deg); }
+  70% { transform: rotate(-4deg); }
+}
+
+@keyframes alertOut {
+  to { opacity: 0; transform: translateY(-10px) scale(.9); }
+}

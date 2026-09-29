@@ -142,6 +142,30 @@ export function designRectOf(el: HTMLElement): DesignRect | null {
   };
 }
 
+/**
+ * 画布设计 px → 窗口坐标(供 position: fixed 的全屏特效定圆心, 如进战斗的玻璃碎裂)。
+ * ★ 只量画布的父级 viewport: 它不在 zoom 子树里, getBoundingClientRect() 在各浏览器上都可靠;
+ *   画布在 viewport 的内容区里等比居中 —— zoom 分支(padding 落位)与 transform 兜底分支(居中平移)同样成立。
+ *   不要改成量画布内元素的 gBCR: zoom≠1(小窗口)时各版本语义不一, 圆心会跑偏。
+ */
+export function designPointToClient(el: Element, x: number, y: number): { x: number; y: number } {
+  const canvas = el.closest<HTMLElement>("[data-stage-canvas]");
+  const viewport = canvas?.parentElement;
+  if (!viewport) return { x, y };
+  const rect = viewport.getBoundingClientRect();
+  const style = getComputedStyle(viewport);
+  const padLeft = parseFloat(style.paddingLeft) || 0;
+  const padRight = parseFloat(style.paddingRight) || 0;
+  const padTop = parseFloat(style.paddingTop) || 0;
+  const padBottom = parseFloat(style.paddingBottom) || 0;
+  const innerW = Math.max(0, rect.width - padLeft - padRight);
+  const innerH = Math.max(0, rect.height - padTop - padBottom);
+  const k = Math.min(innerW / STAGE.width, innerH / STAGE.height) || 1;
+  const left = rect.left + padLeft + (innerW - STAGE.width * k) / 2;
+  const top = rect.top + padTop + (innerH - STAGE.height * k) / 2;
+  return { x: left + x * k, y: top + y * k };
+}
+
 // 画布当前生效的 CSS zoom(见 app/styles/stageCanvas.module.css 的 .canvas)。
 // ⚠ 仅在确实需要「CSS zoom 值本身」时用。要做坐标换算请用上面的 designScaleOf() ——
 //   它不依赖 currentCSSZoom 的语义, 两条渲染分支上都正确。

@@ -20,9 +20,26 @@ export function ambushChance(spent: number): number {
   return chanceMin + (chanceMax - chanceMin) * progress;
 }
 
-export function encounterSpot(corridor: { width: number }, x: number, facing: -1 | 1): number {
-  const spot = x + facing * CORRIDOR.encounterOffset;
-  return Math.max(CORRIDOR.walkMin, Math.min(corridorWalkMax(corridor.width), spot));
+export interface EncounterSpot {
+  /** 黑影的落点。 */
+  x: number;
+  /** 玩家应面对的方向(始终朝向黑影)。 */
+  facing: -1 | 1;
+}
+
+/**
+ * 黑影在玩家面前 encounterOffset 处现身；面前放不下(贴墙)就改在身后, 玩家转身面对它。
+ * 玩家自身位置不变, 镜头因此不动。两侧都放不下时退回夹紧后的前方位置。
+ */
+export function encounterSpot(corridor: { width: number }, x: number, facing: -1 | 1): EncounterSpot {
+  const min = CORRIDOR.walkMin;
+  const max = corridorWalkMax(corridor.width);
+  const inside = (spot: number) => spot >= min && spot <= max;
+  const ahead = x + facing * CORRIDOR.encounterOffset;
+  if (inside(ahead)) return { x: ahead, facing };
+  const behind = x - facing * CORRIDOR.encounterOffset;
+  if (inside(behind)) return { x: behind, facing: facing < 0 ? 1 : -1 };
+  return { x: Math.max(min, Math.min(max, ahead)), facing };
 }
 
 function pickAmbushTier(s: ExploreState): BattleTier {
@@ -55,12 +72,13 @@ export function spawnCorridorAmbush(s: ExploreState, x: number, facing: -1 | 1):
 /** 在玩家面前生成一场临时遭遇战(暗雷、警报守卫共用), 并立即进入遭遇演出。 */
 export function spawnCorridorEncounter(s: ExploreState, event: NodeEvent, x: number, facing: -1 | 1): boolean {
   if (!s.corridor) return false;
-  const playerX = encounterSpot(s.corridor, x, facing);
+  const spot = encounterSpot(s.corridor, x, facing);
   const nodeIndex = s.sceneEvents.length;
   const id = `ambush-${s.corridor.threats.filter((threat) => threat.kind === "ambush").length}`;
-  s.corridor.playerX = playerX;
-  s.corridor.facing = facing;
+  // 玩家原地定格, 只转身面向黑影。
+  s.corridor.playerX = x;
+  s.corridor.facing = spot.facing;
   s.sceneEvents.push(event);
-  s.corridor.threats.push({ id, kind: "ambush", x: playerX, defeated: false, nodeIndex });
+  s.corridor.threats.push({ id, kind: "ambush", x: spot.x, defeated: false, nodeIndex });
   return beginCorridorEncounter(s, id);
 }

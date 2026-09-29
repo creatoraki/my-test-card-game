@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { bossGateNear, clampCorridorX, nearbyObjects, portalAt } from "@/explore/corridor/corridorSession";
-import { encounterSpot } from "@/explore/corridor/ambush";
 import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
 import type { PortalDir } from "@/explore/dungeon/types";
 import {
   inspectCorridorObject, markStandingPortal,
   openBossGateAt, saveCorridorPosition, travelThroughPortal,
 } from "@/store/explore/exploreCorridor";
+import { useExploreStore } from "@/store/explore/exploreStore";
 import {
   deriveCorridorMovementView,
   hasCorridorMovementViewChanged,
@@ -158,12 +158,9 @@ export function useCorridorMovement(
               Math.abs(x - previousX),
             );
             if (trigger === "ambush") {
-              position.current = {
-                ...position.current,
-                x: encounterSpot(current.corridor, x, facing),
-                facing,
-                walking: false,
-              };
+              // 原地定格(镜头不动), 只按会话里的新朝向转身面对黑影(贴墙时黑影在身后)。
+              const encounterFacing = useExploreStore.getState().session?.corridor?.facing ?? facing;
+              position.current = { x, facing: encounterFacing, walking: false };
               stop();
             } else {
               commitView();

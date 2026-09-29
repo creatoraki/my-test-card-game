@@ -62,8 +62,9 @@ export function enterRoom(s: ExploreState, roomId: string, fromDir: PortalDir | 
   const threat = s.corridor?.threats.find((candidate) => candidate.kind === "guard" && !candidate.defeated);
   if (threat && s.corridor) {
     const facing: -1 | 1 = s.corridor.playerX <= s.corridor.width / 2 ? 1 : -1;
-    threat.x = encounterSpot(s.corridor, s.corridor.playerX, facing);
-    s.corridor.facing = facing;
+    const spot = encounterSpot(s.corridor, s.corridor.playerX, facing);
+    threat.x = spot.x;
+    s.corridor.facing = spot.facing;
     beginCorridorEncounter(s, threat.id);
   } else {
     // 陷阱房与战斗房同一模式: 进房立即触发, 必须先指定执行者做出应对。

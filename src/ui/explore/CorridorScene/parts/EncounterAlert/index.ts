@@ -1,0 +1,1 @@
+export { EncounterAlert } from "./EncounterAlert";
