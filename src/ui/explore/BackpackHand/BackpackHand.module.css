@@ -1,26 +1,94 @@
-/* 手牌背包 —— 单排物品卡, 左对齐从左往右排, 右边的卡压左边的卡。
-   间距纯 CSS 算, 不量 DOM:
-     步长 = min(卡宽 + 12px, (容器宽 − 卡宽) / (n − 1))
-   物品少时卡与卡之间留 12px 缝; 物品多到放不下时步长收窄, 最后一张恰好贴右边。
-   ⚠ 100% 在 .card 的 left 里取值, 相对的是 .hand(绝对定位的包含块)的宽度。
-   --n 由 BackpackHand.tsx 注入, --i 由 HandCard.tsx 注入。 */
+/* 手牌背包面板 —— 与立绘卡同高(316), 顶部标题行 + 下方牌区。
+   牌区间距纯 CSS 算, 不量 DOM:
+     步长 = min(卡宽 × 0.5, (牌区宽 − 卡宽) / (n − 1))
+   空间再宽也固定压住一半; 放不下时步长继续收窄, 最后一张恰好贴牌区右边。
+   ⚠ 100% 在 .card 的 left 里取值, 相对的是 .tray(绝对定位的包含块)的宽度。
+   --n 由 BackpackHand.tsx 注入, --i 由 HandCard.tsx 注入。
+   面板不裁切(overflow 可见): 悬浮上抬的卡可以探出标题行。 */
 .hand {
-  --card-w: 180px;
-  --lift: 28px; /* 与 BackpackHand.tsx 的 HOVER_LIFT 一致 */
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  height: 316px;
+  flex-direction: column;
+  background: linear-gradient(180deg, #101b20e0, #0a1215eb);
+  border: 1px solid #a8926040;
+  box-shadow: inset 0 1px 0 #ffffff0f, 0 10px 24px #00000080;
+}
+
+/* 四角金色 L 角标: 每角两段 2px 线, 全用背景渐变画, 不占额外节点。 */
+.corners {
+  --c: #d3b67c;
+  --l: 18px;
+
+  position: absolute;
+  inset: -1px;
+  background:
+    linear-gradient(var(--c), var(--c)) 0 0 / var(--l) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) 0 0 / 2px var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 0 / var(--l) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 0 / 2px var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) 0 100% / var(--l) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) 0 100% / 2px var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 100% / var(--l) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 100% / 2px var(--l) no-repeat;
+  pointer-events: none;
+}
+
+/* ── 标题行 ── */
+.head {
+  display: flex;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid #a8926033;
+}
+
+.title {
+  margin: 0;
+  color: #e5dbc8;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.count {
+  color: #b6c7c9;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+
+.count strong {
+  color: #f2ead8;
+  font-weight: 700;
+}
+
+.count[data-full] strong {
+  color: #e39a7c;
+}
+
+/* ── 牌区 ── */
+.tray {
+  --card-w: 160px;
+  --card-h: 236px;
+  --lift: 24px; /* 与 BackpackHand.tsx 的 HOVER_LIFT 一致 */
   --step: min(
-    var(--card-w) + 12px,
+    var(--card-w) * 0.5,
     (100% - var(--card-w)) / max(var(--n, 1) - 1, 1)
   );
 
   position: relative;
-  width: 100%;
-  height: 316px;
+  flex: 1;
+  min-height: 0;
+  margin: 0 16px 14px;
 }
 
 .empty {
   position: absolute;
-  left: 24px;
-  bottom: 24px;
+  left: 8px;
+  bottom: 12px;
   margin: 0;
   color: #b6c7c999;
   font-size: 20px;
@@ -33,13 +101,11 @@
   bottom: 0;
   z-index: var(--i);
   width: var(--card-w);
-  /* 叠在上层的卡往左投影, 让压叠关系读得出来。 */
-  filter: drop-shadow(-8px 0 10px #000000a6);
+  height: var(--card-h);
   transform-origin: 50% 100%;
   transition:
     left 260ms cubic-bezier(0.22, 0.61, 0.36, 1),
-    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1),
-    filter 180ms ease;
+    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1);
   animation: handDeal 280ms cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
 }
 
@@ -48,14 +114,7 @@
 .card:focus-within,
 .card[data-active="true"] {
   z-index: 100;
-  transform: translateY(calc(-1 * var(--lift))) scale(1.06);
-  filter: drop-shadow(0 14px 18px #000000cc);
-}
-
-/* ItemTile 自带的 hover 位移交给外层统一处理, 免得两段上抬叠加。 */
-.tile.tile,
-.tile.tile:hover {
-  transform: none;
+  transform: translateY(calc(-1 * var(--lift))) scale(1.05);
 }
 
 .hint {

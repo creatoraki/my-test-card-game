@@ -1,12 +1,12 @@
-// 手牌背包里的一张物品卡 —— ItemTile 竖版卡 + 「可点击」提示 + 交互中的操作卡。
+// 手牌背包里的一张物品卡 —— HandItemCard 卡面 + 「可点击」提示 + 交互中的操作卡。
 // 横向位置与层级全由 CSS 读 --i 算(见 BackpackHand.module.css), 这里只注入序号。
 
 import { useRef, type CSSProperties, type FocusEvent } from "react";
 import type { ItemStack } from "@/items/types";
-import ItemTile from "@/ui/common/item/ItemTile";
 import type { SlotAction } from "@/ui/common/item/ItemActionMask";
 import { ItemActionCard } from "@/ui/common/item/ItemActionCard";
 import { InteractiveHint } from "@/ui/common/tooltip/InteractiveHint";
+import { HandItemCard } from "./HandItemCard";
 import s from "./BackpackHand.module.css";
 
 interface Props {
@@ -55,7 +55,7 @@ export function HandCard({
         onLeave();
       }}
     >
-      <ItemTile stack={stack} selected={Boolean(actions)} onClick={onClick} className={s.tile} />
+      <HandItemCard stack={stack} selected={Boolean(actions)} onClick={onClick} />
       {hint && !actions && <InteractiveHint className={s.hint} />}
       {actions && (
         <ItemActionCard

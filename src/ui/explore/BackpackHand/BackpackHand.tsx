@@ -1,8 +1,10 @@
-// 探索底栏的随身背包 —— 单排物品卡「手牌」: 左对齐从左往右排, 右边的卡压住左边的卡,
-// 物品越多卡间距越小(纯 CSS 按 --n 计算, 见 BackpackHand.module.css)。
+// 探索底栏的随身背包 —— 与立绘等高的面板: 顶部标题行(随身背包 · 已占/容量) + 单排物品卡「手牌」。
+// 左对齐从左往右排, 右边的卡压住左边的卡, 默认压住一半, 物品多时继续压缩(纯 CSS 按 --n 计算, 见 BackpackHand.module.css)。
 // 悬浮: 卡片上抬置顶 + 上方浮出物品详情; 点击: 上方浮出操作卡(与原格子背包同一套 SlotAction)。
 
 import { memo, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { RULES } from "@/engine";
+import { backpackSlots } from "@/explore/session";
 import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/explore/exploreStore";
 import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
@@ -15,9 +17,10 @@ import { useBackpackSlotActions } from "./useBackpackSlotActions";
 import s from "./BackpackHand.module.css";
 
 /** 悬浮上抬量(设计 px), 与 BackpackHand.module.css 的 --lift 保持一致; 详情浮层锚在上抬后的卡顶。 */
-const HOVER_LIFT = 28;
+const HOVER_LIFT = 24;
 
 const THEME = inventoryThemeVars(EXPLORE_BACKPACK_COLORS);
+const CAPACITY = RULES.burden.backpackSlots;
 
 interface Hovered {
   uid: string;
@@ -31,6 +34,7 @@ export default memo(function BackpackHand({
   onUseItem?: (stack: ItemStack) => void;
 }) {
   const backpack = useExploreStore((state) => state.session?.backpack);
+  const occupied = useExploreStore((state) => (state.session ? backpackSlots(state.session) : 0));
   const { editable, slotActions, overlay } = useBackpackSlotActions(onUseItem);
   const ordered = useMemo(() => (backpack ? sortBySection(backpack) : []), [backpack]);
   const uids = useMemo(() => ordered.map((stack) => stack.uid), [ordered]);
@@ -58,35 +62,39 @@ export default memo(function BackpackHand({
 
   return (
     <>
-      <section
-        id="explore-backpack-bar"
-        className={s.hand}
-        style={{ "--n": ordered.length } as CSSProperties}
-        aria-label="随身背包"
-      >
-        {ordered.length === 0 && <p className={s.empty}>背包空空如也</p>}
-        {ordered.map((stack, index) => (
-          <HandCard
-            key={stack.uid}
-            stack={stack}
-            index={index}
-            hint={editable}
-            actions={actionMode.activeUid === stack.uid ? activeActions : null}
-            onClick={() => handleClick(stack)}
-            onDismiss={actionMode.close}
-            onEnter={(element) => {
-              if (actionMode.activeUid === stack.uid) actionMode.keepOpen();
-              const point = tooltipPointFromElement(element, "top");
-              setHovered({ uid: stack.uid, point: { ...point, y: point.y - HOVER_LIFT } });
-            }}
-            onLeave={() => {
-              setHovered((current) => (current?.uid === stack.uid ? null : current));
-              actionMode.closeSoon(stack.uid);
-            }}
-            onCardEnter={actionMode.keepOpen}
-            onCardLeave={() => actionMode.closeSoon(stack.uid)}
-          />
-        ))}
+      <section id="explore-backpack-bar" className={s.hand} aria-labelledby="explore-backpack-title">
+        <span className={s.corners} aria-hidden="true" />
+        <header className={s.head}>
+          <h2 id="explore-backpack-title" className={s.title}>随身背包</h2>
+          <span className={s.count} data-full={occupied >= CAPACITY || undefined}>
+            <strong>{occupied}</strong> / {CAPACITY}
+          </span>
+        </header>
+        <div className={s.tray} style={{ "--n": ordered.length } as CSSProperties}>
+          {ordered.length === 0 && <p className={s.empty}>背包空空如也</p>}
+          {ordered.map((stack, index) => (
+            <HandCard
+              key={stack.uid}
+              stack={stack}
+              index={index}
+              hint={editable}
+              actions={actionMode.activeUid === stack.uid ? activeActions : null}
+              onClick={() => handleClick(stack)}
+              onDismiss={actionMode.close}
+              onEnter={(element) => {
+                if (actionMode.activeUid === stack.uid) actionMode.keepOpen();
+                const point = tooltipPointFromElement(element, "top");
+                setHovered({ uid: stack.uid, point: { ...point, y: point.y - HOVER_LIFT } });
+              }}
+              onLeave={() => {
+                setHovered((current) => (current?.uid === stack.uid ? null : current));
+                actionMode.closeSoon(stack.uid);
+              }}
+              onCardEnter={actionMode.keepOpen}
+              onCardLeave={() => actionMode.closeSoon(stack.uid)}
+            />
+          ))}
+        </div>
       </section>
       {hoveredStack && hovered && <ItemTooltip stack={hoveredStack} point={hovered.point} themeStyle={THEME} />}
       {overlay}
