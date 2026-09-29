@@ -4,7 +4,7 @@ import { getItemDef } from "@/data";
 import { useExploreStore } from "@/store/explore/exploreStore";
 import { useRunStore } from "@/store/run/runStore";
 import { useTownStore } from "@/store/town/townStore";
-import type { ContextMenuItem } from "@/ui/common/item/ItemContextMenu";
+import type { SlotAction } from "@/ui/common/item/ItemActionMask";
 import { useChangePulse } from "@/ui/hooks/useChangePulse";
 import { playSfx } from "@/ui/audio";
 import { cx } from "@/ui/common/shared/cx";
@@ -36,7 +36,6 @@ export function VictoryPanel() {
   const abandonLoot = useExploreStore((state) => state.abandonLoot);
   const abandonBoons = useExploreStore((state) => state.abandonBoons);
   const discardItem = useExploreStore((state) => state.discardItem);
-  const reorderBackpack = useExploreStore((state) => state.reorderBackpack);
   const characters = useTownStore((state) => state.characters);
   const [confirmingAbandon, setConfirmingAbandon] = useState(false);
   const [continueNudge, setContinueNudge] = useState(false);
@@ -94,20 +93,17 @@ export function VictoryPanel() {
   if (!battleSettled || !session) return null;
 
   const expByCharacter = new Map(expReport.map((gain) => [gain.charId, gain]));
-  const handleReorder = (fromIndex: number, toIndex: number) => {
-    const stack = backpack[fromIndex];
-    if (stack) reorderBackpack(stack.uid, toIndex);
-  };
-  const contextMenuItems = (stack: (typeof backpack)[number]): ContextMenuItem[] => [
-    {
-      key: "discard",
-      label: "丢弃这一堆",
-      danger: true,
-      onSelect: () => {
-        if (window.confirm(`丢弃 ${getItemDef(stack.itemId).name}？`)) discardItem(stack.uid);
-      },
-    },
-  ];
+  // 回收背包的交互模式只有「丢弃」(原地二次确认); 锁死在背包上的物品点了不进交互模式。
+  const backpackActions = (stack: (typeof backpack)[number]): SlotAction[] =>
+    getItemDef(stack.itemId).undroppable
+      ? []
+      : [{
+          key: "discard",
+          label: "丢弃",
+          tone: "default",
+          confirmLabel: "确认丢弃",
+          onSelect: () => discardItem(stack.uid),
+        }];
   const handleContinue = () => {
     if (pendingRewardCount) {
       setContinueNudge(true);
@@ -195,8 +191,7 @@ export function VictoryPanel() {
                   rows={BACKPACK_ROWS}
                   columns={BACKPACK_COLUMNS}
                   pulseUids={new Set([...pulsedUids, ...pickedUids])}
-                  onReorder={handleReorder}
-                  contextMenuItems={contextMenuItems}
+                  slotActions={backpackActions}
                 />
               </section>
             </main>

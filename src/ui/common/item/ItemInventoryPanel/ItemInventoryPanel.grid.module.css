@@ -1,4 +1,4 @@
-/* 物品栏面板·托盘与底栏 —— 格子、拖拽落点、选中信息与操作按钮。
+/* 物品栏面板·托盘与底栏 —— 格子、分区标记间距、选中信息与操作按钮。
    面板外壳、描边与表头见 ItemInventoryPanel.module.css。
    ⚠ 紧凑态用 [data-compact="true"] 属性匹配(属性挂在面板根节点上), 不要写回 .inventory-panel:
      那个类在另一个模块文件里, 跨文件引用会因类名哈希而失配。 */
@@ -25,12 +25,14 @@
   display: grid;
   grid-template-columns: repeat(var(--inventory-columns), var(--inventory-cell, minmax(0, 1fr)));
   justify-content: center;
-  gap: 14px;
+  /* 分区竖分割线据此落在列间距正中(见 ItemSectionMark), 改 gap 时同步改它。 */
+  --item-section-gap: 14px;
+  gap: var(--item-section-gap);
   min-width: 0;
 }
 
 [data-compact="true"] .inventory-grid {
-  gap: 10px;
+  --item-section-gap: 10px;
 }
 
 .inventory-slot-anchor {
@@ -53,22 +55,9 @@
   transform: scale(1.04);
 }
 
-.inventory-slot-anchor[data-dragging="true"] {
-  opacity: 0.35;
-}
-
-.inventory-slot-anchor[data-drop="true"]::before {
-  position: absolute;
-  z-index: 3;
-  top: 4px;
-  bottom: 4px;
-  left: -6px;
-  width: 2px;
-  border-radius: 2px;
-  background: var(--inventory-accent);
-  box-shadow: 0 0 10px var(--inventory-accent);
-  content: "";
-  pointer-events: none;
+/* 交互模式中的格子不再放大, 遮罩与格子边缘对齐。 */
+.inventory-slot-anchor[data-active="true"] .inventory-slot.inventory-slot {
+  transform: none;
 }
 
 .inventory-slot-anchor[data-pulse="true"] .inventory-slot {
@@ -225,7 +214,7 @@
   }
 
   .inventory-grid {
-    gap: 8px;
+    --item-section-gap: 8px;
   }
 
   .inventory-actions {

@@ -3,7 +3,8 @@ import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
-import { useLootModuleActions } from "@/ui/common/item/ModuleInstall";
+import { ItemActionMask, useSlotActionMode } from "@/ui/common/item/ItemActionMask";
+import { useLootSlotActions } from "@/ui/common/item/ModuleInstall";
 import { inventoryThemeVars } from "@/ui/common/item/shared/inventoryTheme";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import s from "./DossierLoot.module.css";
@@ -16,7 +17,7 @@ function guideAnchor(stack: ItemStack, isModule: boolean): string | undefined {
 
 /**
  * 结算页的可拾取物品栏: 放在右侧插画区下部, 固定宽度、横向滚动(滚轮也横向滚), 从右侧滑入。
- * 点单件即拾取; 模组格改为「装载 / 拾取」两个悬浮按钮(见 ModuleInstall)。
+ * 点物品进入交互模式: 遮罩上竖排「拾取」(模组为「装载 / 拾取」), 移出格子退出(见 ItemActionMask)。
  * 物品格带 data-loot-uid, 供 useLootPick 取飞行起点。
  */
 export function DossierLoot({
@@ -30,7 +31,8 @@ export function DossierLoot({
 }) {
   const [hovered, setHovered] = useState<{ uid: string; point: TooltipPoint } | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
-  const moduleActions = useLootModuleActions({ onTake: onPick });
+  const lootActions = useLootSlotActions({ onTake: onPick });
+  const actionMode = useSlotActionMode(items.map((stack) => stack.uid));
   const hoveredStack = hovered ? items.find((stack) => stack.uid === hovered.uid) ?? null : null;
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export function DossierLoot({
         <span>可拾取物品</span>
         <b>{items.length}</b>
         <span>件</span>
-        <em data-alert={message ? true : undefined}>{message ?? "点击物品可单独拾取"}</em>
+        <em data-alert={message ? true : undefined}>{message ?? "点击物品选择拾取"}</em>
       </p>
       <div ref={trackRef} className={s.track} onWheel={onWheel}>
         {items.map((stack, index) => (
@@ -59,25 +61,28 @@ export function DossierLoot({
             className={s.item}
             style={{ "--i": index } as CSSProperties}
             data-loot-uid={stack.uid}
-            data-guide-anchor={guideAnchor(stack, moduleActions.isModule(stack))}
+            data-guide-anchor={guideAnchor(stack, lootActions.isModule(stack))}
             onPointerEnter={(event) => setHovered({ uid: stack.uid, point: tooltipPointFromElement(event.currentTarget) })}
-            onPointerLeave={() => setHovered((current) => (current?.uid === stack.uid ? null : current))}
+            onPointerLeave={() => {
+              setHovered((current) => (current?.uid === stack.uid ? null : current));
+              actionMode.closeIf(stack.uid);
+            }}
           >
             <ItemSlot
               stack={stack}
               showName={false}
-              onClick={() => {
-                if (!moduleActions.handleClick(stack)) onPick(stack);
-              }}
+              onClick={() => actionMode.open(stack.uid)}
             />
-            {moduleActions.renderActions(stack)}
+            {actionMode.activeUid === stack.uid && (
+              <ItemActionMask actions={lootActions.actionsFor(stack)} onDismiss={actionMode.close} />
+            )}
           </div>
         ))}
       </div>
       {hoveredStack && hovered && (
         <ItemTooltip stack={hoveredStack} point={hovered.point} themeStyle={inventoryThemeVars(EXPLORE_BACKPACK_COLORS)} />
       )}
-      {moduleActions.overlay}
+      {lootActions.overlay}
     </div>
   );
 }

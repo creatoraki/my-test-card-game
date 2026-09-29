@@ -136,20 +136,6 @@ export function putIntoBackpack(s: ExploreState, stacks: ItemStack[]): boolean {
   return true;
 }
 
-// 背包重排序 —— 背包是紧凑数组, 数组顺序 = 玩家看到的格位顺序。
-// 把 uid 那一堆抽出来, 插到目标格位上(后面的整体后移), 不是两两交换。
-export function reorderBackpack(s: ExploreState, uid: string, toIndex: number): boolean {
-  const from = s.backpack.findIndex((st) => st.uid === uid);
-  if (from < 0) return false;
-  const to = Math.max(0, Math.min(s.backpack.length - 1, toIndex));
-  if (from === to) return false;
-  const next = s.backpack.slice();
-  const [moved] = next.splice(from, 1);
-  next.splice(to, 0, moved);
-  s.backpack = next;
-  return true;
-}
-
 const RARITY_RANK: Record<ItemRarity, number> = {
   common: 0,
   fine: 1,

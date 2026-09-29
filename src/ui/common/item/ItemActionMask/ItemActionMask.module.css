@@ -1,0 +1,122 @@
+/* 交互模式遮罩: 铺满格子包裹层(调用方的包裹层须 position: relative), 按钮竖排居中。
+   格子最小约 84px(胜利弹窗), 「确认丢弃」四个 18px 字要放得下, 所以按钮左右内边距压到 4px。 */
+
+.mask {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px;
+  background: #000000c4;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px #ffffff1f;
+  cursor: var(--cursor-default);
+  animation: maskIn 140ms ease-out;
+}
+
+.btn {
+  min-width: 0;
+  padding: 1px 4px;
+  color: #ffffff;
+  font-family: var(--font-family);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0;
+  white-space: nowrap;
+  border: 1px solid;
+  border-radius: 4px;
+  cursor: var(--cursor-pointer);
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    transform 120ms ease;
+  animation: btnIn 180ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.btn:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.btn:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.tone-default {
+  background: #1b2a30ee;
+  border-color: #7f99a3;
+}
+
+.tone-default:hover:not(:disabled) {
+  background: #2a4049ee;
+  border-color: #c2dbe3;
+}
+
+.tone-primary {
+  background: #1c6f8cee;
+  border-color: #6fd2ff;
+}
+
+.tone-primary:hover:not(:disabled) {
+  background: #2b93b4ee;
+  border-color: #a9f4ff;
+}
+
+.tone-module {
+  background: #5a3a8cee;
+  border-color: #b48cff;
+}
+
+.tone-module:hover:not(:disabled) {
+  background: #7a52b8ee;
+  border-color: #d6bcff;
+}
+
+.tone-danger {
+  background: #7a1f2cee;
+  border-color: #ff7a8a;
+}
+
+.tone-danger:hover:not(:disabled) {
+  background: #a02b3cee;
+  border-color: #ffb3bd;
+}
+
+/* 确认态: 轻微脉动提醒「再点一次就真丢了」。 */
+.armed {
+  animation: armedPulse 900ms ease-in-out infinite;
+}
+
+.btn:disabled {
+  color: #7f939b;
+  background: #101a1eee;
+  border-color: #4a5b63;
+  cursor: not-allowed;
+}
+
+@keyframes maskIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes btnIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes armedPulse {
+  0%, 100% { box-shadow: 0 0 0 0 #ff7a8a00; }
+  50% { box-shadow: 0 0 10px 1px #ff7a8a99; }
+}

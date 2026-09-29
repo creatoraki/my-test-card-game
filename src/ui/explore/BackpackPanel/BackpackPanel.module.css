@@ -148,10 +148,6 @@
   color: #9ccbff;
 }
 
-.bp-tabs {
-  margin-bottom: 12px;
-}
-
 /* ── 主体(EventPanelBody 的滚动区) ── */
 .bp-body {
   display: grid;
@@ -160,10 +156,22 @@
   align-items: start;
 }
 
+/* 列间距加宽到 10px, 给分区竖分割线留缝; 上下留白免得首行的分割线/标签被滚动区裁掉。 */
 .bp-grid {
+  --item-section-gap: 10px;
   display: grid;
   grid-template-columns: repeat(var(--bp-cols, 8), 1fr);
-  gap: 6px;
+  gap: var(--item-section-gap);
+  padding: 12px 2px 6px;
+}
+
+.bp-cell {
+  position: relative;
+  min-width: 0;
+}
+
+.bp-cell > button {
+  width: 100%;
 }
 
 /* 详情栏与网格等高, 免得选中长描述的物品时整块面板抽一下。

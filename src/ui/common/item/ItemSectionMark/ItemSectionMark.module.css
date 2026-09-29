@@ -1,0 +1,56 @@
+/* 分区标记三件套。全部 pointer-events: none, 不抢格子的点击与悬停。
+   ⚠ 竖线画在格子外(列间距中线), 包裹层与其祖先不能带 clip-path / overflow: hidden 裁掉它。 */
+
+.strip,
+.divider,
+.tag {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* 底边色条: 每件物品都有, 分区跨行时靠它认归属。 */
+.strip {
+  right: 10%;
+  bottom: 3px;
+  left: 10%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--item-section-color);
+  box-shadow: 0 0 8px var(--item-section-color);
+  opacity: 0.85;
+}
+
+/* 格间竖分割线: 落在左侧列间距的正中。 */
+.divider {
+  top: -6px;
+  bottom: -6px;
+  left: calc(var(--item-section-gap, 10px) / -2 - 1px);
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--item-section-color) 18%,
+    var(--item-section-color) 82%,
+    transparent
+  );
+  box-shadow: 0 0 10px var(--item-section-color);
+}
+
+/* 分区标签: 骑在首格上边框上(上半截落在行间距/托盘内边距里),
+   不整块压进格内, 免得盖住格子左上角的羁绊角标。 */
+.tag {
+  top: -11px;
+  left: 4px;
+  padding: 0 6px;
+  color: #0b1216;
+  font-family: var(--font-family);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 22px;
+  white-space: nowrap;
+  background: var(--item-section-color);
+  border-radius: 4px;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--item-section-color) 60%, transparent);
+}

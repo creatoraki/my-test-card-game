@@ -18,6 +18,8 @@
 }
 
 .grid {
+  /* 分区竖分割线据此落在列间距正中(见 ItemSectionMark)。 */
+  --item-section-gap: var(--victory-cell-gap, 10px);
   --victory-empty-tint: var(--inventory-empty-slot);
   --victory-empty-line: color-mix(in srgb, var(--victory-accent-2, #ff77c8) 34%, transparent);
   --victory-empty-glow: #ff77c810;
@@ -34,22 +36,10 @@
   position: relative;
 }
 
-.anchor[data-dragging="true"] {
-  opacity: 0.35;
-}
-
-.anchor[data-drop="true"]::before {
-  position: absolute;
-  z-index: 3;
-  top: 4px;
-  bottom: 4px;
-  left: -6px;
-  width: 2px;
-  border-radius: 2px;
-  background: var(--inventory-accent);
-  box-shadow: 0 0 10px var(--inventory-accent);
-  content: "";
-  pointer-events: none;
+/* 有物格解除 victoryCell.cell 的斜切裁剪 —— 否则分区竖分割线画不到列间距里;
+   斜切由 ItemSlot 自身的 clip-path 提供(缺口放大到与 victoryCell 一致), 外观不变。 */
+.anchor[data-inventory-uid] {
+  clip-path: none;
 }
 
 .anchor[data-pulse="true"] .slot {
@@ -62,6 +52,7 @@
   height: 100%;
   min-width: 0;
   border-radius: 8px;
+  --item-slot-notch: 10px;
 }
 
 .slot {
@@ -87,6 +78,10 @@
 .slot:focus-visible {
   outline: 2px solid var(--inventory-frame-hot);
   outline-offset: 3px;
+}
+
+.anchor[data-active="true"] .slot {
+  transform: none;
 }
 
 @keyframes inventoryPulse {

@@ -1,4 +1,4 @@
-// ★ 探索页的背包面板 ★ —— 24 格网格 + 分类 tab + 实时负重读数(见 探索模式设计.md §6.4)。
+// ★ 探索页的背包面板 ★ —— 24 格网格(按分区自动排序 + 分区分割线) + 实时负重读数(见 探索模式设计.md §6.4)。
 //
 // 沿用探索页的浮层语言: **无全屏遮罩**, 落在画布正中的同一个 1336×904 外框里 ——
 // 与落点事件面板、事件奖励、物品拾取、交易终端同框同页眉(见 ui/common/widget/EventPanel)。
@@ -20,13 +20,13 @@ import {
   partyBurdenAdapt,
 } from "@/explore/session";
 import { EXPLORE_RULES } from "@/explore/core/exploreRules";
-import { canShipHome, layoutBackpack, stackSlots } from "@/items/inventory";
+import { canShipHome, stackSlots } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/explore/exploreStore";
 import ItemDetail from "@/ui/common/item/ItemDetail";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
-import ItemTabs from "@/ui/common/item/ItemTabs";
-import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/shared/itemFilters";
+import { ItemSectionMark } from "@/ui/common/item/ItemSectionMark";
+import { sectionMarks, sortBySection } from "@/ui/common/item/shared/itemSections";
 import {
   EventPanelBody,
   EventPanelButton,
@@ -54,17 +54,15 @@ export default function BackpackPanel({
   const abandonPending = useExploreStore((s) => s.abandonPending);
   const shipHome = useExploreStore((s) => s.shipHome);
 
-  const [tab, setTab] = useState<ItemTab>("all");
-  const [equipTab, setEquipTab] = useState<EquipTab>("all");
   const [selected, setSelected] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null); // 丢弃二次确认的 uid
   const [shipping, setShipping] = useState<string[]>([]); // 寄件模式的勾选
 
   const backpack = session?.backpack ?? [];
-  const cells = useMemo(
-    () => layoutBackpack(backpack, RULES.burden.backpackSlots),
-    [backpack],
-  );
+  // 与底部背包同一套分区排序(只排展示, 不动存储顺序)。
+  const ordered = useMemo(() => sortBySection(backpack), [backpack]);
+  const marks = useMemo(() => sectionMarks(ordered), [ordered]);
+  const emptyCount = Math.max(0, RULES.burden.backpackSlots - ordered.length);
 
   // 换选中项时清掉确认态 —— 否则「确认丢弃」会挂在另一件东西上, 那是最坏的一类误操作。
   useEffect(() => setConfirming(null), [selected]);
@@ -128,7 +126,7 @@ export default function BackpackPanel({
           }
         >
           <EventPanelStage>
-            {/* 两条模式横幅与分类 tab 钉在内容区上方 —— 与其它浮层一样, 只允许下面的主体滚动。 */}
+            {/* 两条模式横幅钉在内容区上方 —— 与其它浮层一样, 只允许下面的主体滚动。 */}
             {replaceMode && (
               <div className={s["bp-pending"]}>
                 <span className={s["bp-pending-label"]}>
@@ -175,31 +173,20 @@ export default function BackpackPanel({
               </div>
             )}
 
-            <div className={s["bp-tabs"]}>
-              <ItemTabs
-                stacks={backpack}
-                tab={tab}
-                equipTab={equipTab}
-                onTab={setTab}
-                onEquipTab={setEquipTab}
-              />
-            </div>
-
             <EventPanelBody className={s["bp-body"]}>
               <div className={s["bp-grid"]} style={{ "--bp-cols": COLS } as CSSProperties}>
-                {cells.map((cell, i) => {
-                  if (cell.kind === "empty") return <EmptySlot key={i} />;
-                  return (
+                {ordered.map((stack, i) => (
+                  <div className={s["bp-cell"]} key={stack.uid}>
                     <ItemSlot
-                      key={cell.stack.uid}
-                      stack={cell.stack}
-                      selected={chuteMode ? shipping.includes(cell.stack.uid) : selected === cell.stack.uid}
-                      disabled={chuteMode && !canShipHome(cell.stack, getItemDef(cell.stack.itemId))}
-                      dimmed={!matchTab(cell.stack, tab, equipTab)}
-                      onClick={() => onSlotClick(cell.stack)}
+                      stack={stack}
+                      selected={chuteMode ? shipping.includes(stack.uid) : selected === stack.uid}
+                      disabled={chuteMode && !canShipHome(stack, getItemDef(stack.itemId))}
+                      onClick={() => onSlotClick(stack)}
                     />
-                  );
-                })}
+                    <ItemSectionMark mark={marks[i]} rowStart={i % COLS === 0} />
+                  </div>
+                ))}
+                {Array.from({ length: emptyCount }, (_, i) => <EmptySlot key={`empty-${i}`} />)}
               </div>
 
               <div className={s["bp-detail"]}>

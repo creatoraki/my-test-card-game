@@ -2,24 +2,24 @@ import {
   useEffect,
   useMemo,
   useState,
-  type FocusEvent,
   type ReactNode,
 } from "react";
 import { getItemDef, sellPriceOf } from "@/data";
 import { occupiedSlots } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
-import ItemContextMenu, { type ContextMenuItem } from "@/ui/common/item/ItemContextMenu";
 import ItemTooltip, {
   tooltipPointFromElement,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
-import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
-import { InteractiveHint } from "@/ui/common/tooltip/InteractiveHint";
+import { EmptySlot } from "@/ui/common/item/ItemSlot";
+import { useSlotActionMode, type SlotAction } from "@/ui/common/item/ItemActionMask";
+import { sectionMarks, sortBySection } from "@/ui/common/item/shared/itemSections";
 import { cx } from "@/ui/common/shared/cx";
 import { inventoryThemeVars, type InventoryColorMap } from "@/ui/common/item/shared/inventoryTheme";
 import { techLevels, useTownStore } from "@/store/town/townStore";
 import s from "./ItemInventoryPanel.module.css";
 import g from "./ItemInventoryPanel.grid.module.css";
+import { InventorySlotCell } from "./InventorySlotCell";
 
 export type { InventoryColorMap } from "@/ui/common/item/shared/inventoryTheme";
 
@@ -43,10 +43,13 @@ export interface ItemInventoryPanelProps {
   defaultSelectedUid?: string | null;
   onSelect?: (stack: ItemStack | null) => void;
   renderSelectedInfo?: SelectedInfoRenderer;
-  /** 传了才启用左键拖动排序。fromIndex/toIndex 是 stacks 数组下标。 */
-  onReorder?: (fromIndex: number, toIndex: number) => void;
-  /** 传了才启用右键菜单。返回空数组 = 这一格不弹菜单。 */
-  contextMenuItems?: (stack: ItemStack) => ContextMenuItem[];
+  /** 开启后按分区自动排序(见 shared/itemSections), 并画分区分割线与标签。 */
+  sectioned?: boolean;
+  /**
+   * 传了就启用「交互模式」: 点击物品 → 格子盖遮罩并竖排这些按钮, 鼠标移出格子即退出。
+   * 返回空数组 = 这一格点了不进交互模式。启用后点击不再走选中逻辑。
+   */
+  slotActions?: (stack: ItemStack) => SlotAction[];
   footer?: ReactNode;
   panelId?: string;
   colorMap?: InventoryColorMap;
@@ -86,8 +89,8 @@ export default function ItemInventoryPanel({
   defaultSelectedUid = null,
   onSelect,
   renderSelectedInfo,
-  onReorder,
-  contextMenuItems,
+  sectioned = false,
+  slotActions,
   footer,
   panelId = "item-inventory-panel",
   colorMap,
@@ -103,13 +106,13 @@ export default function ItemInventoryPanel({
     defaultSelectedUid,
   );
   const [hoveredItem, setHoveredItem] = useState<HoveredItem | null>(null);
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [dropIndex, setDropIndex] = useState<number | null>(null);
-  const [menu, setMenu] = useState<{
-    x: number;
-    y: number;
-    items: ContextMenuItem[];
-  } | null>(null);
+  const ordered = useMemo(
+    () => (sectioned ? sortBySection(stacks) : stacks),
+    [sectioned, stacks],
+  );
+  const marks = useMemo(() => (sectioned ? sectionMarks(ordered) : null), [sectioned, ordered]);
+  const uids = useMemo(() => stacks.map((stack) => stack.uid), [stacks]);
+  const actionMode = useSlotActionMode(uids);
   const activeSelectedUid = isControlled ? selectedUid : internalSelectedUid;
   const selectedStack =
     stacks.find((stack) => stack.uid === activeSelectedUid) ?? null;
@@ -130,16 +133,12 @@ export default function ItemInventoryPanel({
     }
   }, [hoveredItem, stacks]);
 
-  useEffect(() => {
-    if (menu) setMenu(null);
-  }, [stacks]);
-
   const cells = useMemo(
     () => [
-      ...stacks,
-      ...Array.from({ length: Math.max(0, cellCount - stacks.length) }, () => null),
+      ...ordered,
+      ...Array.from({ length: Math.max(0, cellCount - ordered.length) }, () => null),
     ],
-    [cellCount, stacks],
+    [cellCount, ordered],
   );
   const derivedOccupied = useMemo(
     () => occupiedSlots(Array.from(stacks), getItemDef),
@@ -158,8 +157,18 @@ export default function ItemInventoryPanel({
     onSelect?.(nextStack);
   };
 
+  const activeStack = actionMode.activeUid
+    ? stacks.find((stack) => stack.uid === actionMode.activeUid) ?? null
+    : null;
+  const activeList = activeStack && slotActions ? slotActions(activeStack) : null;
+  const activeActions = activeList?.length ? activeList : null;
+
+  const handleClick = (stack: ItemStack) => {
+    if (!slotActions) return handleSelect(stack);
+    if (slotActions(stack).length) actionMode.open(stack.uid);
+  };
+
   const showTooltip = (stack: ItemStack, point: TooltipPoint) => {
-    if (dragIndex != null) return;
     setHoveredItem({ uid: stack.uid, point });
   };
 
@@ -230,87 +239,27 @@ export default function ItemInventoryPanel({
           <div className={g["inventory-grid"]} role="group" aria-label={gridLabel}>
             {cells.map((stack, index) =>
               stack ? (
-                <div
+                <InventorySlotCell
                   key={stack.uid}
-                  className={g["inventory-slot-anchor"]}
-                  draggable={onReorder ? true : undefined}
-                  data-dragging={dragIndex === index ? "true" : undefined}
-                  data-drop={dropIndex === index ? "true" : undefined}
-                  data-inventory-uid={stack.uid}
-                  data-pulse={pulseUids?.has(stack.uid) ? "true" : undefined}
-                  {...(slotHint ? { "data-interactive-hint": "" } : null)}
-                  onDragStart={(event) => {
-                    if (!onReorder) return;
-                    event.dataTransfer.effectAllowed = "move";
-                    event.dataTransfer.setData("text/plain", stack.uid);
-                    setDragIndex(index);
+                  stack={stack}
+                  selected={activeSelectedUid === stack.uid}
+                  pulse={Boolean(pulseUids?.has(stack.uid))}
+                  slotHint={slotHint}
+                  mark={marks?.[index]}
+                  rowStart={index % safeColumns === 0}
+                  actions={actionMode.activeUid === stack.uid ? activeActions : null}
+                  onClick={() => handleClick(stack)}
+                  onDismiss={actionMode.close}
+                  onEnter={(element) => showTooltip(stack, tooltipPointFromElement(element))}
+                  onLeave={() => {
                     hideTooltip(stack.uid);
+                    actionMode.closeIf(stack.uid);
                   }}
-                  onDragEnd={() => {
-                    setDragIndex(null);
-                    setDropIndex(null);
-                  }}
-                  onDragOver={(event) => {
-                    if (dragIndex == null || !onReorder) return;
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = "move";
-                    setDropIndex(index);
-                  }}
-                  onDragLeave={() => setDropIndex((current) => (current === index ? null : current))}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    if (dragIndex != null && dragIndex !== index) onReorder?.(dragIndex, index);
-                    setDragIndex(null);
-                    setDropIndex(null);
-                  }}
-                  onContextMenu={(event) => {
-                    const items = contextMenuItems?.(stack) ?? [];
-                    if (!items.length) return;
-                    event.preventDefault();
-                    event.stopPropagation();
-                    setMenu({ x: event.clientX, y: event.clientY, items });
-                  }}
-                  onPointerEnter={(event) =>
-                    showTooltip(stack, tooltipPointFromElement(event.currentTarget))
-                  }
-                  onPointerLeave={() => hideTooltip(stack.uid)}
-                  onFocus={(event: FocusEvent<HTMLDivElement>) =>
-                    showTooltip(stack, tooltipPointFromElement(event.currentTarget))
-                  }
-                  onBlur={() => hideTooltip(stack.uid)}
-                >
-                  <ItemSlot
-                    stack={stack}
-                    selected={activeSelectedUid === stack.uid}
-                    showName={false}
-                    onClick={() => handleSelect(stack)}
-                    className={cx(
-                      g["inventory-slot"],
-                      activeSelectedUid === stack.uid && g["inventory-slot-selected"],
-                    )}
-                  />
-                  {slotHint && <InteractiveHint className={g["inventory-slot-hint"]} />}
-                </div>
+                />
               ) : (
                 <div
                   key={`empty-${index}`}
                   className={cx(g["inventory-slot-anchor"], g["inventory-empty-anchor"])}
-                  data-drop={dropIndex === index ? "true" : undefined}
-                  onDragOver={(event) => {
-                    if (dragIndex == null || !onReorder) return;
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = "move";
-                    setDropIndex(index);
-                  }}
-                  onDragLeave={() => setDropIndex((current) => (current === index ? null : current))}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    if (dragIndex != null && onReorder && stacks.length > 0) {
-                      onReorder(dragIndex, stacks.length - 1);
-                    }
-                    setDragIndex(null);
-                    setDropIndex(null);
-                  }}
                 >
                   <EmptySlot className={g["inventory-empty"]} />
                 </div>
@@ -331,7 +280,6 @@ export default function ItemInventoryPanel({
       {hoveredStack && hoveredItem && (
         <ItemTooltip stack={hoveredStack} point={hoveredItem.point} themeStyle={style} />
       )}
-      {menu && <ItemContextMenu {...menu} themeStyle={style} onClose={() => setMenu(null)} />}
     </section>
   );
 }

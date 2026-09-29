@@ -23,7 +23,6 @@ import {
   finishBattle,
   grantExpTo,
   recordExpGain,
-  reorderBackpack as reorderBackpackFn,
   retreat,
   retreatFromBattle,
   type BattleSurvivor,
@@ -90,7 +89,6 @@ interface ExploreStore {
 
   // ---- 背包(阶段白名单的真相点在 explore/session, 这里只是转发) ----
   discardItem: (uid: string) => void;
-  reorderBackpack: (uid: string, toIndex: number) => void;
   // ---- 远征途中换装的三块搬运(编排在 runStore, 这里同样只是转发) ----
   takeBackpackItem: (uid: string) => ItemStack | null; // 取出一整堆交给调用方
   putBackpackItems: (stacks: ItemStack[]) => boolean; // 收进背包, 容量不够整体失败
@@ -207,10 +205,6 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
   // ---- 背包 ----
   discardItem: (uid) => {
     mutate(get, set, (d) => discardStack(d, uid));
-  },
-
-  reorderBackpack: (uid, toIndex) => {
-    mutate(get, set, (d) => reorderBackpackFn(d, uid, toIndex));
   },
 
   // takeBackpackItem 要把取出的那一堆交回给编排层, 故与 useItem 同样自己接返回值。
