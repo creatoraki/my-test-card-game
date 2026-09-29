@@ -1,0 +1,30 @@
+/* 卡牌详情: 320 宽, 上为放大卡面(220×308 × 1.4545 = 320×448), 下接 12px 间距与词条释义。
+   ★ 放大走 transform, 不参与布局 ⇒ 外层 .frame 按放大后的尺寸占实位, 词条块才能自然接在卡面下方。 */
+.detail {
+  display: flex;
+  width: 320px;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.frame {
+  width: 320px;
+  height: 448px;
+  flex: none;
+}
+
+.scale {
+  --hand-card-w: 220px;
+  --hand-card-h: 308px;
+  width: 220px;
+  height: 308px;
+  transform: scale(1.4545);
+  transform-origin: top left;
+  will-change: transform;
+}
+
+.keywords {
+  composes: notes-detail from "@/ui/common/card/CardKeywordNotes/CardKeywordNotes.module.css";
+  width: 320px;
+}

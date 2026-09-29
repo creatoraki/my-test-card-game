@@ -1,9 +1,7 @@
 import { memo, useDeferredValue } from "react";
 import { cardActivated, starlightPayment, type BattleState, type Card } from "@/engine";
 import { useHandHover, useHandHoverCost } from "@/ui/battle/state/handFocusStore";
-import { HandCard } from "@/ui/common/card/HandCard";
-import { CardKeywordNotes } from "@/ui/common/card/CardKeywordNotes";
-import { useCardText } from "@/ui/common/shared/cardTextFormat";
+import { CardDetail } from "@/ui/common/card/CardDetail";
 import s from "./CardInfoPanel.module.css";
 
 // 固定卡牌说明面板: 绝对定位在**画布右上角**, 位置恒定(取代旧的悬停跟随浮窗)。
@@ -14,7 +12,7 @@ import s from "./CardInfoPanel.module.css";
 //   会把整个战斗界面重渲染一遍(完整理由见 ui/handFocusStore.ts 开头)。现在悬停变化只重渲染
 //   本组件与 AllyBar 的一格。选中变化频率低, 继续走 props 即可。
 // 无卡时不渲染占位面板, 让战斗画面把注意力还给场景。
-// 内容直接复用 HandCard, 保证详情卡面的排版与手牌一致。
+// 内容复用 ui/common/card/CardDetail(放大卡面 + 词条), 与卡牌奖励三选一弹窗的详情同款。
 //
 // ★ 面板宽 320 = --hud-info-w, 高为 320 × 1.4(卡牌比例), 顶边锁定在 y=108, 底边落在 y=556。
 // ⚠ 两个分支的根节点都要自己 stopPropagation: 面板已搬出 .battle-hud(那层统一拦了冒泡), 现在
@@ -60,35 +58,13 @@ const CardInfoPanelContent = memo(function CardInfoPanelContent({
   starPay: number;
   activated: boolean;
 }) {
-  const text = useCardText(card);
-
   return (
     <div
       className={s["card-info-panel"]}
       aria-hidden
       onClick={(e) => e.stopPropagation()}
     >
-      <div className={s["cip-scale"]} data-card-detail>
-        <HandCard
-          card={card}
-          variant="pile"
-          playable
-          selected={false}
-          cost={cost ?? card.cost}
-          starPay={starPay}
-          activated={activated}
-        />
-      </div>
-      <CardKeywordNotes
-        text={text}
-        card={card}
-        className={s["cip-keywords"]}
-        additionalNotes={card.contaminated ? [{
-          id: "pollution",
-          name: "污染",
-          desc: "抽到这张牌时污染值 +2",
-        }] : undefined}
-      />
+      <CardDetail card={card} cost={cost} starPay={starPay} activated={activated} />
     </div>
   );
 });

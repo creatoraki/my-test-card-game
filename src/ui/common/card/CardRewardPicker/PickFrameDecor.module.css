@@ -1,0 +1,122 @@
+/* 外框装饰。坐标契约: 外框左上/右下斜切 --pick-chamfer(见 CardRewardPicker.module.css), 主色 --k。
+   底纹与扫描线裁在外框内(同一条 clip-path); 角标画在外框外侧 10px, 不裁。 */
+.decor {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+}
+
+.grid,
+.scan {
+  position: absolute;
+  inset: 1px;
+  clip-path: polygon(
+    var(--pick-chamfer) 0, 100% 0, 100% calc(100% - var(--pick-chamfer)),
+    calc(100% - var(--pick-chamfer)) 100%, 0 100%, 0 var(--pick-chamfer)
+  );
+}
+
+/* 极淡的战术网格, 只在上半部可见, 往下渐隐, 不和卡面抢对比度。 */
+.grid {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--k) 7%, transparent) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(0deg, color-mix(in srgb, var(--k) 7%, transparent) 1px, transparent 1px) 0 0 / 40px 40px;
+  mask-image: linear-gradient(180deg, #000 0%, transparent 46%);
+}
+
+/* 竖向扫描: 一道淡光带自上而下缓慢扫过, 只在入场后循环。 */
+.scan {
+  overflow: hidden;
+}
+.scan::before {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 120px;
+  content: "";
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--k) 9%, transparent) 70%, transparent);
+  animation: pickScan 5.6s linear 600ms infinite;
+  translate: 0 -120px;
+}
+
+/* 斜切角高光: 沿 45° 切口的一段亮线(长度 = 切角 × √2)。 */
+.chamferTl,
+.chamferBr {
+  position: absolute;
+  width: calc(var(--pick-chamfer) * 1.4142);
+  height: 2px;
+  background: var(--k);
+  box-shadow: 0 0 10px var(--k);
+  transform-origin: left center;
+}
+.chamferTl {
+  left: 0;
+  top: var(--pick-chamfer);
+  rotate: -45deg;
+}
+.chamferBr {
+  left: calc(100% - var(--pick-chamfer));
+  top: calc(100% - 1px);
+  rotate: -45deg;
+}
+
+/* 上沿左段亮边 + 下沿右段亮边, 与斜切角高光相接, 读作一条折线。 */
+.edgeTop,
+.edgeBottom {
+  position: absolute;
+  height: 2px;
+  box-shadow: 0 0 8px var(--k);
+}
+.edgeTop {
+  left: var(--pick-chamfer);
+  top: 0;
+  width: 180px;
+  background: linear-gradient(90deg, var(--k), color-mix(in srgb, var(--k) 10%, transparent));
+}
+.edgeBottom {
+  right: var(--pick-chamfer);
+  bottom: 0;
+  width: 180px;
+  background: linear-gradient(270deg, var(--k), color-mix(in srgb, var(--k) 10%, transparent));
+}
+
+/* 外侧角标: 画在未切角的两个直角外 10px 处。 */
+.tickTr,
+.tickBl {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: color-mix(in srgb, var(--k) 70%, transparent);
+  border-style: solid;
+  border-width: 0;
+}
+.tickTr {
+  top: -10px;
+  right: -10px;
+  border-top-width: 2px;
+  border-right-width: 2px;
+}
+.tickBl {
+  bottom: -10px;
+  left: -10px;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+}
+
+/* 左侧竖向刻度轨: 一列短横线, 装饰性。 */
+.rail {
+  position: absolute;
+  left: 12px;
+  top: 96px;
+  bottom: 96px;
+  width: 6px;
+  background: repeating-linear-gradient(180deg, color-mix(in srgb, var(--k) 38%, transparent) 0 2px, transparent 2px 14px);
+  opacity: 0.7;
+}
+
+@keyframes pickScan {
+  from { translate: 0 -120px; }
+  to { translate: 0 900px; }
+}

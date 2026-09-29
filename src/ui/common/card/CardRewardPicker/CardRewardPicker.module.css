@@ -1,0 +1,267 @@
+/* 卡牌奖励三选一弹窗(设计 px, 1920×1080 画布)。
+   ★ 外框固定 880 宽、居中; 卡牌详情挂在外框右外侧 36px(880/2 + 36 + 320 = 796 < 960, 不越出画布)。
+   ★ 外框描边: ::before 画边线色、::after 内缩 1px 画面板底, 两层同一条斜切 clip-path ——
+     clip-path 会裁掉 border / box-shadow, 只能这样出描边(同 ConfirmDialog)。
+   ★ 卡面统一 220 × (220 + 88), 与探索奖励面板、牌堆弹窗的原尺寸卡面一致。 */
+.layer {
+  position: absolute;
+  z-index: 300;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(ellipse at 50% 45%, #0a161bcc 0%, #02070aeb 70%);
+  backdrop-filter: blur(6px) saturate(0.85);
+  animation: pickLayerIn 220ms ease-out both;
+}
+
+.layer[data-closing] {
+  pointer-events: none;
+  animation: pickLayerOut 220ms ease-in both;
+}
+
+.frame {
+  --k: var(--accent);
+  --pick-chamfer: 28px;
+  position: relative;
+  display: flex;
+  width: 880px;
+  flex-direction: column;
+  padding: 36px 56px 32px;
+  color: var(--text);
+  /* ⚠ 投影用 box-shadow 而不是 filter: drop-shadow —— 滤镜会把卡面 L 型提示框的辉光重采样发糊
+     (见 InteractiveHint 文件头)。isolation 让两层斜切伪元素(z-index:-1)压在本框自己的层里。 */
+  isolation: isolate;
+  box-shadow: 0 28px 60px -12px #000c;
+  animation: pickFrameIn 420ms cubic-bezier(0.16, 1, 0.3, 1) 40ms both;
+}
+
+.frame::before,
+.frame::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  clip-path: polygon(
+    var(--pick-chamfer) 0, 100% 0, 100% calc(100% - var(--pick-chamfer)),
+    calc(100% - var(--pick-chamfer)) 100%, 0 100%, 0 var(--pick-chamfer)
+  );
+}
+
+.frame::before {
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--k) 70%, transparent),
+    #3b474b 38%,
+    #2a3337 70%,
+    color-mix(in srgb, var(--k) 55%, transparent)
+  );
+}
+
+.frame::after {
+  inset: 1px;
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--k) 10%, transparent), transparent 60%),
+    linear-gradient(165deg, #141d20f5, #0a0f11fa 58%, #070b0cfc);
+}
+
+.layer[data-closing] .frame {
+  animation: pickFrameOut 200ms ease-in both;
+}
+
+/* ── 页眉 ── */
+.head {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--k);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+}
+
+.kicker::before,
+.kicker::after {
+  width: 36px;
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg, transparent, var(--k));
+}
+
+.kicker::after {
+  background: linear-gradient(270deg, transparent, var(--k));
+}
+
+.title {
+  margin: 0;
+  color: #f4f8ef;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--k) 24%, transparent);
+}
+
+.caption {
+  margin: 0;
+  color: #9fb0b0;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+/* ── 候选网格 ── */
+.grid {
+  --hand-card-w: 220px;
+  --hc-text-h: 88px;
+  --hand-card-h: calc(var(--hand-card-w) + var(--hc-text-h));
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, var(--hand-card-w));
+  justify-content: center;
+  gap: 40px;
+}
+
+/* ── 底栏 ── */
+.foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #ffffff14;
+}
+
+.note {
+  min-width: 0;
+  overflow: hidden;
+  color: #9fb0b0;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noteName {
+  color: var(--k);
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  gap: 14px;
+}
+
+.button {
+  min-width: 148px;
+  height: 52px;
+  padding: 0 26px;
+  color: #c6d0cd;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  background: linear-gradient(180deg, #1a2326, #0e1416);
+  border: 1px solid #3e4a4d;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  cursor: var(--cursor-pointer);
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, filter 160ms ease;
+}
+
+.button:hover,
+.button:focus-visible {
+  outline: none;
+  color: #eef4f0;
+  border-color: #6b7a7d;
+  background: linear-gradient(180deg, #243034, #121a1c);
+}
+
+.button:active {
+  filter: brightness(0.9);
+}
+
+.primary {
+  color: #11160a;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 92%, #fff), var(--k));
+  border-color: var(--k);
+  box-shadow: inset 0 1px 0 #ffffff66;
+}
+
+.primary:hover,
+.primary:focus-visible {
+  color: #0b0f06;
+  border-color: var(--k);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 70%, #fff), color-mix(in srgb, var(--k) 92%, #fff));
+}
+
+.primary:disabled {
+  color: #6f7a74;
+  background: #151c1e;
+  border-color: #2e383b;
+  box-shadow: none;
+  cursor: var(--cursor-default, default);
+}
+
+/* ── 右外侧卡牌详情 ── */
+.detail {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: calc(100% + 36px);
+  pointer-events: none;
+  animation: pickDetailIn 200ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+@keyframes pickLayerIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pickLayerOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes pickFrameIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pickFrameOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+
+@keyframes pickDetailIn {
+  from {
+    opacity: 0;
+    translate: -8px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}

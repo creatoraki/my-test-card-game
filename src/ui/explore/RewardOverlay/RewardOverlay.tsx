@@ -4,7 +4,10 @@
 //   全部来自 ui/common/widget/EventPanel 的原语 —— 与落点事件面板同一套设计语言,
 //   这样「选完选项 → 弹出奖励」时页眉基线与按钮行不会跳。
 //   本文件只负责: 奖励种类 → 内容与文案。
-import { useEffect, useState } from "react";
+// ★ 角色卡牌奖励(forgeDraw)生成候选后, 三选一交给通用的 CardRewardPicker 独立弹窗,
+//   此时本面板整体隐藏, 避免弹窗背后再露出一块空面板。
+import { useEffect, useMemo, useState } from "react";
+import { makeCard } from "@/data";
 import type { ExploreState, PendingAction } from "@/explore/types";
 import { useTownStore } from "@/store/town/townStore";
 import { useExploreStore } from "@/store/explore/exploreStore";
@@ -12,6 +15,7 @@ import { useRunStore } from "@/store/run/runStore";
 import { cx } from "@/ui/common/shared/cx";
 import { useRevealPresence } from "@/ui/common/frame/ModalReveal";
 import { EventPanelFrame } from "@/ui/common/widget/EventPanel";
+import { CardRewardPicker, type CardPickOption } from "@/ui/common/card/CardRewardPicker";
 import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import { DOSSIER_ACCENT } from "@/ui/explore/EventDossier";
 import RelicOffers from "./RelicOffers";
@@ -55,6 +59,8 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   const removeCardFree = useTownStore((state) => state.removeCardFree);
   const reforgeEquipped = useTownStore((state) => state.reforgeEquipped);
   const [selectedChar, setSelectedChar] = useState<string | null>(null);
+  // 三选一已在弹窗里结算: 队列清空后的退场期间不再把本面板亮出来(否则会闪一下选角色页)。
+  const [drawSettled, setDrawSettled] = useState(false);
 
   const currentAction = session?.pendingActions[0];
   const presence = useRevealPresence<RewardView | null>(
@@ -68,6 +74,14 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   useEffect(() => {
     setSelectedChar(null);
   }, [action?.kind]);
+  useEffect(() => {
+    if (currentAction) setDrawSettled(false);
+  }, [currentAction]);
+  const pendingDraw = action?.kind === "forgeDraw" && selectedChar ? characters[selectedChar]?.pendingDraw ?? null : null;
+  const drawOptions = useMemo<CardPickOption[] | null>(
+    () => pendingDraw?.length ? pendingDraw.map((cardId, index) => ({ key: `${index}-${cardId}`, card: makeCard(cardId) })) : null,
+    [pendingDraw],
+  );
   if (!presence.mounted || !displayedSession || !action) return null;
 
   const selectableCharacters = displayedSession.party.filter((member) => member.alive);
@@ -79,213 +93,237 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
       ? Boolean(chosenCharacter)
       : false;
   const finish = () => resolvePendingAction();
+  const settleDraw = () => {
+    setDrawSettled(true);
+    finish();
+  };
+  const drawPicker = (
+    <CardRewardPicker
+      options={drawOptions}
+      kicker="成长协议 / 奖励"
+      title="角色卡牌奖励"
+      caption="三张候选卡牌已经生成，选择一张加入卡组。"
+      skipLabel="放弃选择"
+      onConfirm={(option) => {
+        if (!chosenCharId) return false;
+        pickDraw(chosenCharId, option.card.id);
+        settleDraw();
+      }}
+      onSkip={() => {
+        if (chosenCharId) cancelDraw(chosenCharId);
+        settleDraw();
+      }}
+    />
+  );
+  // 弹窗与面板并列常驻同一位置, 弹窗关闭时才能播完退场动画(不因分支切换被直接卸载)。
+  const hidePanel = Boolean(drawOptions) || drawSettled;
 
   return (
-    <div className={s["reward-layer"]} data-closing={presence.closing || undefined}>
-      <section
-        className={cx(s["reward-panel"], s["panel-reveal"])}
-        data-guide-anchor="reward-panel"
-        data-closing={presence.closing || undefined}
-        style={panelRevealVars()}
-        aria-label="事件奖励"
-      >
-        <span className={s["panel-bar"]} aria-hidden />
-        <span className={s["panel-scan"]} aria-hidden />
-        <EventPanelFrame
-          accent={REWARD_ACCENT}
-          kicker="成长协议 / 奖励"
-          title={titleOf(action.kind)}
-          status={<span className={s["reward-step"]}>待处理奖励</span>}
-          contentKey={`${action.kind}-${detailStage ? "detail" : "pick"}`}
-        >
-          {action.kind === "expOne" && (
-            <CharacterPicker
-              members={selectableCharacters}
-              selected={chosenCharId}
-              onSelect={setSelectedChar}
-              caption={`选择一名存活角色，获得 ${action.amount} 点经验。`}
-              onSkip={finish}
-              onConfirm={() => {
-                if (!chosenCharId) return;
-                grantExpTo(chosenCharId);
-                finish();
-              }}
-            />
-          )}
-
-          {action.kind === "forgeDraw" && (
-            <FreeDraw
-              members={selectableCharacters}
-              selected={chosenCharId}
-              character={chosenCharacter}
-              onSelect={setSelectedChar}
-              onStart={() => {
-                if (chosenCharId) startTaintedDraw(chosenCharId);
-              }}
-              onSkip={finish}
-              onAbandon={() => {
-                if (chosenCharId) cancelDraw(chosenCharId);
-                finish();
-              }}
-              onPick={(cardId) => {
-                if (!chosenCharId) return;
-                pickDraw(chosenCharId, cardId);
-                finish();
-              }}
-            />
-          )}
-
-          {action.kind === "replaceCard" && (
-            <ReplaceCardReward
-              members={selectableCharacters}
-              selected={chosenCharId}
-              onSelect={setSelectedChar}
-              onSkip={finish}
-              foodCost={action.foodCost ?? 0}
-              onReplace={replaceExploreCard}
-            />
-          )}
-
-          {action.kind === "forgeRemove" && (
-            <FreeRemove
-              members={selectableCharacters}
-              selected={chosenCharId}
-              character={chosenCharacter}
-              onSelect={setSelectedChar}
-              onSkip={finish}
-              onRemove={(uid) => {
-                if (!chosenCharId) return;
-                removeCardFree(chosenCharId, uid);
-                finish();
-              }}
-            />
-          )}
-
-          {action.kind === "equipOffer" && (
-            <EquipOffers
-              offers={action.offers}
-              onPick={(index) => {
-                acceptEquipOffer(index);
-                finish();
-              }}
-              onSkip={finish}
-            />
-          )}
-
-          {action.kind === "relicOffer" && (
-            <RelicOffers
-              offers={action.offers}
-              onPick={(index) => {
-                acceptRelicOffer(index);
-                finish();
-              }}
-            />
-          )}
-
-          {action.kind === "equipmentTune" && <EquipmentTuneReward session={displayedSession} action={action} onFinish={finish} />}
-
-          {action.kind === "reforge" && (
-            <ReforgePicker
-              backpack={displayedSession.backpack}
-              characters={party.map((id) => ({ charId: id, character: characters[id] })).filter(
-                (entry): entry is { charId: string; character: NonNullable<typeof entry.character> } =>
-                  Boolean(entry.character),
+    <>
+      {drawPicker}
+      {!hidePanel && (
+        <div className={s["reward-layer"]} data-closing={presence.closing || undefined}>
+          <section
+            className={cx(s["reward-panel"], s["panel-reveal"])}
+            data-guide-anchor="reward-panel"
+            data-closing={presence.closing || undefined}
+            style={panelRevealVars()}
+            aria-label="事件奖励"
+          >
+            <span className={s["panel-bar"]} aria-hidden />
+            <span className={s["panel-scan"]} aria-hidden />
+            <EventPanelFrame
+              accent={REWARD_ACCENT}
+              kicker="成长协议 / 奖励"
+              title={titleOf(action.kind)}
+              status={<span className={s["reward-step"]}>待处理奖励</span>}
+              contentKey={`${action.kind}-${detailStage ? "detail" : "pick"}`}
+            >
+              {action.kind === "expOne" && (
+                <CharacterPicker
+                  members={selectableCharacters}
+                  selected={chosenCharId}
+                  onSelect={setSelectedChar}
+                  caption={`选择一名存活角色，获得 ${action.amount} 点经验。`}
+                  onSkip={finish}
+                  onConfirm={() => {
+                    if (!chosenCharId) return;
+                    grantExpTo(chosenCharId);
+                    finish();
+                  }}
+                />
               )}
-              bias={action.bias}
-              onBackpack={(uid) => {
-                reforgeBackpackItem(uid);
-                finish();
-              }}
-              onEquipped={(charId, slot) => {
-                reforgeEquipped(charId, slot, action.bias);
-                finish();
-              }}
-              onSkip={finish}
-            />
-          )}
 
-          {action.kind === "healOne" && (
-            <CharacterPicker
-              members={selectableCharacters}
-              selected={chosenCharId}
-              onSelect={setSelectedChar}
-              caption={action.full ? "选择一名存活角色，将当前生命恢复至体力极限。" : `选择一名存活角色，回复 ${Math.round(action.percent * 100)}% 当前生命。`}
-              onSkip={finish}
-              onConfirm={() => {
-                if (chosenCharId) resolvePendingHeal(chosenCharId, false);
-              }}
-            />
-          )}
+              {action.kind === "forgeDraw" && (
+                <FreeDraw
+                  members={selectableCharacters}
+                  selected={chosenCharId}
+                  character={chosenCharacter}
+                  onSelect={setSelectedChar}
+                  onStart={() => {
+                    if (chosenCharId) startTaintedDraw(chosenCharId);
+                  }}
+                  onSkip={finish}
+                  onAbandon={() => {
+                    if (chosenCharId) cancelDraw(chosenCharId);
+                    finish();
+                  }}
+                />
+              )}
 
-          {action.kind === "healLimitOne" && (
-            <CharacterPicker
-              members={selectableCharacters}
-              selected={chosenCharId}
-              onSelect={setSelectedChar}
-              caption={action.full ? "选择一名存活角色，将体力极限恢复至基础最大生命。" : `选择一名存活角色，修复 ${Math.round(action.percent * 100)}% 体力极限。`}
-              onSkip={finish}
-              onConfirm={() => {
-                if (chosenCharId) resolvePendingHeal(chosenCharId, true);
-              }}
-            />
-          )}
+              {action.kind === "replaceCard" && (
+                <ReplaceCardReward
+                  members={selectableCharacters}
+                  selected={chosenCharId}
+                  onSelect={setSelectedChar}
+                  onSkip={finish}
+                  foodCost={action.foodCost ?? 0}
+                  onReplace={replaceExploreCard}
+                />
+              )}
 
-          {action.kind === "cureQuirk" && (
-            action.scope === "party" ? (
-              <PartyReward
-                caption={`全队存活角色各治疗 ${action.count} 个怪癖。`}
-                onSkip={finish}
-                onConfirm={() => resolvePendingQuirk()}
-              />
-            ) : (
-              <QuirkReward
-                members={selectableCharacters}
-                selected={chosenCharId}
-                character={chosenCharacter}
-                count={action.count}
-                onSelect={setSelectedChar}
-                onSkip={finish}
-                onConfirm={(quirkId) => resolvePendingQuirk(chosenCharId ?? undefined, quirkId)}
-              />
-            )
-          )}
+              {action.kind === "forgeRemove" && (
+                <FreeRemove
+                  members={selectableCharacters}
+                  selected={chosenCharId}
+                  character={chosenCharacter}
+                  onSelect={setSelectedChar}
+                  onSkip={finish}
+                  onRemove={(uid) => {
+                    if (!chosenCharId) return;
+                    removeCardFree(chosenCharId, uid);
+                    finish();
+                  }}
+                />
+              )}
 
-          {action.kind === "reducePollution" && (
-            action.scope === "party" ? (
-              <PartyReward
-                caption={`全队存活角色污染值降低 ${action.amount}。`}
-                onSkip={finish}
-                onConfirm={() => resolvePendingPollution()}
-              />
-            ) : (
-              <CharacterPicker
-                members={selectableCharacters}
-                selected={chosenCharId}
-                onSelect={setSelectedChar}
-                caption={`选择一名存活角色，污染值降低 ${action.amount}。`}
-                onSkip={finish}
-                onConfirm={() => {
-                  if (chosenCharId) resolvePendingPollution(chosenCharId);
-                }}
-              />
-            )
-          )}
+              {action.kind === "equipOffer" && (
+                <EquipOffers
+                  offers={action.offers}
+                  onPick={(index) => {
+                    acceptEquipOffer(index);
+                    finish();
+                  }}
+                  onSkip={finish}
+                />
+              )}
 
-          {action.kind === "purifyCards" && (
-            <PurifyReward
-              members={selectableCharacters}
-              selected={chosenCharId}
-              character={chosenCharacter}
-              scope={action.scope}
-              count={action.count}
-              onSelect={setSelectedChar}
-              onSkip={finish}
-              onConfirm={(uids) => resolvePendingPurification(chosenCharId ?? undefined, uids ?? [])}
-            />
-          )}
-        </EventPanelFrame>
-      </section>
-    </div>
+              {action.kind === "relicOffer" && (
+                <RelicOffers
+                  offers={action.offers}
+                  onPick={(index) => {
+                    acceptRelicOffer(index);
+                    finish();
+                  }}
+                />
+              )}
+
+              {action.kind === "equipmentTune" && <EquipmentTuneReward session={displayedSession} action={action} onFinish={finish} />}
+
+              {action.kind === "reforge" && (
+                <ReforgePicker
+                  backpack={displayedSession.backpack}
+                  characters={party.map((id) => ({ charId: id, character: characters[id] })).filter(
+                    (entry): entry is { charId: string; character: NonNullable<typeof entry.character> } =>
+                      Boolean(entry.character),
+                  )}
+                  bias={action.bias}
+                  onBackpack={(uid) => {
+                    reforgeBackpackItem(uid);
+                    finish();
+                  }}
+                  onEquipped={(charId, slot) => {
+                    reforgeEquipped(charId, slot, action.bias);
+                    finish();
+                  }}
+                  onSkip={finish}
+                />
+              )}
+
+              {action.kind === "healOne" && (
+                <CharacterPicker
+                  members={selectableCharacters}
+                  selected={chosenCharId}
+                  onSelect={setSelectedChar}
+                  caption={action.full ? "选择一名存活角色，将当前生命恢复至体力极限。" : `选择一名存活角色，回复 ${Math.round(action.percent * 100)}% 当前生命。`}
+                  onSkip={finish}
+                  onConfirm={() => {
+                    if (chosenCharId) resolvePendingHeal(chosenCharId, false);
+                  }}
+                />
+              )}
+
+              {action.kind === "healLimitOne" && (
+                <CharacterPicker
+                  members={selectableCharacters}
+                  selected={chosenCharId}
+                  onSelect={setSelectedChar}
+                  caption={action.full ? "选择一名存活角色，将体力极限恢复至基础最大生命。" : `选择一名存活角色，修复 ${Math.round(action.percent * 100)}% 体力极限。`}
+                  onSkip={finish}
+                  onConfirm={() => {
+                    if (chosenCharId) resolvePendingHeal(chosenCharId, true);
+                  }}
+                />
+              )}
+
+              {action.kind === "cureQuirk" && (
+                action.scope === "party" ? (
+                  <PartyReward
+                    caption={`全队存活角色各治疗 ${action.count} 个怪癖。`}
+                    onSkip={finish}
+                    onConfirm={() => resolvePendingQuirk()}
+                  />
+                ) : (
+                  <QuirkReward
+                    members={selectableCharacters}
+                    selected={chosenCharId}
+                    character={chosenCharacter}
+                    count={action.count}
+                    onSelect={setSelectedChar}
+                    onSkip={finish}
+                    onConfirm={(quirkId) => resolvePendingQuirk(chosenCharId ?? undefined, quirkId)}
+                  />
+                )
+              )}
+
+              {action.kind === "reducePollution" && (
+                action.scope === "party" ? (
+                  <PartyReward
+                    caption={`全队存活角色污染值降低 ${action.amount}。`}
+                    onSkip={finish}
+                    onConfirm={() => resolvePendingPollution()}
+                  />
+                ) : (
+                  <CharacterPicker
+                    members={selectableCharacters}
+                    selected={chosenCharId}
+                    onSelect={setSelectedChar}
+                    caption={`选择一名存活角色，污染值降低 ${action.amount}。`}
+                    onSkip={finish}
+                    onConfirm={() => {
+                      if (chosenCharId) resolvePendingPollution(chosenCharId);
+                    }}
+                  />
+                )
+              )}
+
+              {action.kind === "purifyCards" && (
+                <PurifyReward
+                  members={selectableCharacters}
+                  selected={chosenCharId}
+                  character={chosenCharacter}
+                  scope={action.scope}
+                  count={action.count}
+                  onSelect={setSelectedChar}
+                  onSkip={finish}
+                  onConfirm={(uids) => resolvePendingPurification(chosenCharId ?? undefined, uids ?? [])}
+                />
+              )}
+            </EventPanelFrame>
+          </section>
+        </div>
+      )}
+    </>
   );
 }
 

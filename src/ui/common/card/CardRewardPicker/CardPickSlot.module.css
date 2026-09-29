@@ -1,0 +1,98 @@
+/* 三选一候选格: 角色行(26) + 10 + 卡面(--hand-card-h) + 12 + 状态标签(26)。
+   卡面尺寸由父级网格下发(--hand-card-w / --hand-card-h), 本格只负责竖向排布与状态表现。 */
+.slot {
+  position: relative;
+  display: grid;
+  grid-template-rows: 26px auto 26px;
+  row-gap: 10px;
+  justify-items: center;
+  width: var(--hand-card-w);
+  outline: none;
+  cursor: var(--cursor-pointer);
+  animation: pickSlotIn 360ms cubic-bezier(0.16, 0.84, 0.3, 1) var(--pick-delay, 0ms) both;
+  transition: transform 200ms cubic-bezier(0.2, 0.72, 0.28, 1), filter 200ms ease;
+}
+
+.slot:hover,
+.slot:focus-visible {
+  transform: translateY(-4px);
+}
+
+.slot[data-selected] {
+  transform: translateY(-6px);
+}
+
+/* 已经选了别的: 其余候选退后一步, 悬停时恢复全亮以便比较。 */
+.slot[data-dimmed]:not(:hover):not(:focus-visible) {
+  filter: brightness(0.62) saturate(0.8);
+}
+
+.slot:active {
+  transform: translateY(-2px) scale(0.985);
+  transition-duration: 90ms;
+}
+
+.owner {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  color: #dbe5df;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 26px;
+}
+
+.ownerMark {
+  width: 4px;
+  height: 18px;
+  flex: none;
+  background: var(--owner-color);
+  box-shadow: 0 0 8px var(--owner-color);
+}
+
+.ownerName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 四角提示框的宿主: 尺寸与卡面一致, 框线外扩到卡边外侧(InteractiveHint 宿主三条要求见其 CSS 头部)。 */
+.cardBox {
+  position: relative;
+  width: var(--hand-card-w);
+  height: var(--hand-card-h);
+}
+
+.state {
+  color: var(--muted);
+  font-size: 18px;
+  letter-spacing: 0.16em;
+  line-height: 26px;
+  opacity: 0;
+  transition: opacity 160ms ease, color 160ms ease;
+}
+
+.slot:hover .state,
+.slot:focus-visible .state {
+  opacity: 1;
+}
+
+.slot[data-selected] .state {
+  color: var(--k, var(--accent));
+  font-weight: 700;
+  opacity: 1;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--k, var(--accent)) 55%, transparent);
+}
+
+@keyframes pickSlotIn {
+  from {
+    opacity: 0;
+    translate: 0 22px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}

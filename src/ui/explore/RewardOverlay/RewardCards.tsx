@@ -12,7 +12,6 @@ export function FreeDraw({
   onStart,
   onSkip,
   onAbandon,
-  onPick,
 }: {
   members: ExploreState["party"];
   selected: string | null;
@@ -20,9 +19,8 @@ export function FreeDraw({
   onSelect: (id: string) => void;
   onStart: () => void;
   onSkip: () => void;
-  /** 候选已生成后放弃三选一: 清掉候选, 不加入任何卡牌。 */
+  /** 候选为空时结束奖励: 清掉候选, 不加入任何卡牌。 */
   onAbandon: () => void;
-  onPick: (cardId: string) => void;
 }) {
   if (!character?.pendingDraw) {
     return (
@@ -49,33 +47,14 @@ export function FreeDraw({
       </EventPanelStage>
     );
   }
+  // 候选非空时三选一由 RewardOverlay 交给 CardRewardPicker 弹窗, 这里只剩「没有可生成候选」的兜底。
   return (
     <EventPanelStage>
-      <EventPanelBody
-        caption={character.pendingDraw.length ? "三张候选卡牌已经生成，选择一张加入卡组。" : "当前角色没有可生成的卡牌候选。"}
-      >
-        {character.pendingDraw.length ? (
-          <div className={s["card-list"]} data-pick-grid>
-            {character.pendingDraw.map((cardId, index) => (
-              <div className={s["card-choice"]} key={cardId} onClick={() => onPick(cardId)}>
-                <HandCard
-                  card={makeCard(cardId)}
-                  variant="pile"
-                  playable
-                  selected={false}
-                  dealDelay={Math.min(index, 14) * 22}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <EventPanelNotice>当前角色没有可生成的卡牌候选。</EventPanelNotice>
-        )}
+      <EventPanelBody caption="当前角色没有可生成的卡牌候选。">
+        <EventPanelNotice>当前角色没有可生成的卡牌候选。</EventPanelNotice>
       </EventPanelBody>
-      <EventPanelFoot note={character.pendingDraw.length ? "选择一张即可完成锻造，也可以放弃" : "本次免费锻造无法执行"}>
-        {character.pendingDraw.length
-          ? <EventPanelButton onClick={onAbandon}>放弃选择</EventPanelButton>
-          : <EventPanelButton onClick={onAbandon}>结束奖励</EventPanelButton>}
+      <EventPanelFoot note="本次免费锻造无法执行">
+        <EventPanelButton onClick={onAbandon}>结束奖励</EventPanelButton>
       </EventPanelFoot>
     </EventPanelStage>
   );
