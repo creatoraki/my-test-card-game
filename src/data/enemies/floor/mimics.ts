@@ -26,7 +26,7 @@ export const MIMIC_ENEMIES: EnemyDef[] = [
     maxHp: 100,
     exp: 26,
     fleeAfterRound: 2,
-    stats: { attack: 0, defense: 8, dodgeRate: 0, initiative: 16, critDamage: 150 },
+    stats: { attack: 0, defense: 8, dodgeRate: 0, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "mimic-gear-clamp",
@@ -78,7 +78,7 @@ export const MIMIC_ENEMIES: EnemyDef[] = [
     maxHp: 36,
     exp: 22,
     fleeAfterRound: 2,
-    stats: { attack: 0, defense: 0, dodgeRate: 35, initiative: 26, critDamage: 150 },
+    stats: { attack: 0, defense: 0, dodgeRate: 35, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "mimic-card-blink",

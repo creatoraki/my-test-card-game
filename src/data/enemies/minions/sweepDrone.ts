@@ -7,7 +7,7 @@ export const SWEEP_DRONE: EnemyDef = {
   emoji: "🛸",
   maxHp: 72,
   exp: 12,
-  stats: { attack: 60, defense: 2, dodgeRate: 0, initiative: 17, critDamage: 150 },
+  stats: { attack: 60, defense: 2, dodgeRate: 0, initiative: 20, critDamage: 150 },
   moves: [
     {
       id: "sweep-bump",

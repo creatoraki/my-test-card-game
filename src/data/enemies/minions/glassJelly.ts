@@ -7,7 +7,7 @@ export const GLASS_JELLY: EnemyDef = {
   emoji: "🎐",
   maxHp: 46,
   exp: 13,
-  stats: { attack: 50, defense: 0, dodgeRate: 15, initiative: 23, critDamage: 150 },
+  stats: { attack: 50, defense: 0, dodgeRate: 15, initiative: 20, critDamage: 150 },
   moves: [
     {
       id: "jelly-sting",
@@ -58,7 +58,7 @@ export const GLASS_JELLY: EnemyDef = {
       id: "jelly-pulse",
       name: "电荷脉冲",
       emoji: "⚡",
-      delay: 5,
+      delay: 4,
       kind: "attack",
       targeting: "allFoes",
       weight: 0.8,

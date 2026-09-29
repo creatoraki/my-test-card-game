@@ -7,7 +7,7 @@ export const RADIO_BOT: EnemyDef = {
   emoji: "📻",
   maxHp: 40,
   exp: 11,
-  stats: { attack: 45, defense: 0, dodgeRate: 0, initiative: 26, critDamage: 150 },
+  stats: { attack: 45, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
   moves: [
     {
       id: "radio-peck",

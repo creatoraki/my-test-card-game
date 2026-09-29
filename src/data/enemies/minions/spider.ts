@@ -7,7 +7,7 @@ export const MAINTENANCE_SPIDER: EnemyDef = {
   emoji: "🕷️",
   maxHp: 62,
   exp: 12,
-  stats: { attack: 60, defense: 0, dodgeRate: 0, initiative: 21, critDamage: 150 },
+  stats: { attack: 60, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
   moves: [
     {
       id: "spider-slag",
@@ -42,7 +42,7 @@ export const MAINTENANCE_SPIDER: EnemyDef = {
       id: "spider-fume",
       name: "助燃喷雾",
       emoji: "🌫️",
-      delay: 5,
+      delay: 4,
       kind: "debuff",
       targeting: "allFoes",
       weight: 1,

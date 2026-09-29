@@ -7,7 +7,7 @@ export const TRAFFIC_LIGHT_BOT: EnemyDef = {
   emoji: "🚦",
   maxHp: 70,
   exp: 14,
-  stats: { attack: 55, defense: 4, dodgeRate: 0, initiative: 19, critDamage: 150 },
+  stats: { attack: 55, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
   moves: [
     {
       id: "signal-green",
