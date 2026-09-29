@@ -1,5 +1,16 @@
 /* 设置面板内容区 —— 外壳(遮罩/切角面板/页眉)由 common/PanelShell 提供,
-   这里只排分组与音频行。主色一律吃外壳下发的 --event-accent; 操作按钮样式见 styles/settingsAction.module.css。 */
+   这里只排分组与音频行。主色一律吃外壳下发的 --event-accent; 操作按钮本体见 common/control/PlateButton。 */
+
+/* 挂在 PanelShell 遮罩上: 入场淡入, 面板收合时遮罩同步淡掉, 免得动画播完遮罩"啪"地消失。 */
+.veil {
+  transition: background-color 600ms ease-in;
+  animation: settings-veil-in 240ms ease-out backwards;
+}
+
+.veil:has(> [data-closing="true"]) {
+  background: transparent;
+  pointer-events: none;
+}
 
 .section {
   display: grid;
@@ -60,6 +71,18 @@
   flex: none;
   min-width: 116px;
   font-size: 18px;
+}
+
+/* 系统操作两列网格。按钮本体见 common/control/PlateButton。 */
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 89px;
+  gap: 14px 16px;
+}
+
+@keyframes settings-veil-in {
+  from { background-color: transparent; }
 }
 
 @keyframes settings-section-in {

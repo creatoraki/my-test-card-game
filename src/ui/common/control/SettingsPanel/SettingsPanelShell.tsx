@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useConfirmStore } from "@/ui/common/control/ConfirmDialog";
 import { PANEL_OUT_MS, PanelShell } from "@/ui/common/frame/PanelShell";
+import { cx } from "@/ui/common/shared/cx";
+import s from "./SettingsPanel.module.css";
 
 // 设置面板外壳直接走 common/PanelShell(遮罩 + 切角半透面板 + EventPanelFrame)。
 const SETTINGS_ACCENT = "#52cfff";
@@ -60,7 +62,7 @@ export function SettingsPanelShell({
       closing={!open}
       onClose={onClose}
       size={SETTINGS_SIZE}
-      className={scrimClassName}
+      className={cx(s.veil, scrimClassName)}
     >
       {children}
     </PanelShell>

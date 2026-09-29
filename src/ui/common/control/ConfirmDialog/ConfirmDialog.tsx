@@ -1,20 +1,22 @@
 import { createPortal } from "react-dom";
 import { useEffect, useRef, type CSSProperties } from "react";
 import { playSfx } from "@/ui/audio";
-import {
-  ModalReveal,
-  modalRevealCloseMs,
-  modalRevealVars,
-  useRevealPresence,
-} from "@/ui/common/frame/ModalReveal";
-import { ConfirmDecor } from "./ConfirmDecor";
+import { PlateButton } from "@/ui/common/control/PlateButton";
+import { PANEL_OUT_MS, PanelShell } from "@/ui/common/frame/PanelShell";
+import { useRevealPresence } from "@/ui/common/frame/ModalReveal";
+import { cx } from "@/ui/common/shared/cx";
 import { useConfirmStore, type ConfirmRequest } from "./confirmStore";
 import s from "./ConfirmDialog.module.css";
+
+// 外观与系统设置面板同一套: PanelShell 外壳(切角半透面板 + 页眉) + 事件档案同款切角板按钮。
+const ACCENT = "#52cfff";
+const DANGER_ACCENT = "#ff6a5e";
+const DIALOG_SIZE = { w: 700 };
 
 export function ConfirmDialog() {
   const request = useConfirmStore((state) => state.request);
   const closeConfirm = useConfirmStore((state) => state.closeConfirm);
-  const presence = useRevealPresence(Boolean(request), request, modalRevealCloseMs());
+  const presence = useRevealPresence(Boolean(request), request, PANEL_OUT_MS);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const settleTimerRef = useRef<number | null>(null);
   const settlingRequestRef = useRef<ConfirmRequest | null>(null);
@@ -72,76 +74,51 @@ export function ConfirmDialog() {
       settlingRequestRef.current = null;
       if (kind === "confirm") activeRequest.onConfirm();
       else activeRequest.onCancel?.();
-    }, modalRevealCloseMs());
+    }, PANEL_OUT_MS);
   }
 
   if (typeof document === "undefined" || !presence.mounted || !presence.data) return null;
 
   const activeRequest = presence.data;
-  const titleId = "confirm-dialog-title";
-  const textId = "confirm-dialog-text";
-  const layerStyle = {
-    ...modalRevealVars(),
-    "--mr-bar-color": activeRequest.danger ? "var(--bad)" : "var(--accent)",
-  } as CSSProperties;
+  const danger = Boolean(activeRequest.danger);
+  const dismissible = activeRequest.dismissible !== false;
+  const accent = danger ? DANGER_ACCENT : ACCENT;
 
   return createPortal(
-    <div
-      className={s.layer}
-      data-closing={presence.closing ? "true" : undefined}
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && activeRequest.dismissible !== false) {
-          settle("cancel");
-        }
+    <PanelShell
+      accent={accent}
+      themeStyle={{ "--asm-frame": accent } as CSSProperties}
+      title={activeRequest.title}
+      status={danger ? "危险操作" : "操作确认"}
+      closeLabel={activeRequest.cancelLabel ?? "取消"}
+      closing={presence.closing}
+      sfx={false}
+      size={DIALOG_SIZE}
+      className={cx(s.layer, !dismissible && s.locked)}
+      onClose={() => {
+        if (dismissible) settle("cancel");
       }}
-      style={layerStyle}
     >
-      <div
-        className={s.scrim}
-        aria-hidden="true"
-        onMouseDown={() => {
-          if (activeRequest.dismissible !== false) settle("cancel");
-        }}
-      />
-      <ModalReveal
-        closing={presence.closing}
-        className={`${s.panel} ${activeRequest.danger ? s.dangerPanel : ""}`}
-      >
-        <section
-          className={s.content}
-          data-danger={activeRequest.danger ? "true" : "false"}
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby={titleId}
-          aria-describedby={activeRequest.text ? textId : undefined}
-          onMouseDown={(event) => event.stopPropagation()}
-        >
-          <ConfirmDecor danger={Boolean(activeRequest.danger)} />
-          <span className={s.kicker}>操作确认</span>
-          <h2 id={titleId} className={s.title}>{activeRequest.title}</h2>
-          {activeRequest.text && <p id={textId} className={s.text}>{activeRequest.text}</p>}
-          {activeRequest.detail && <p className={s.detail}>{activeRequest.detail}</p>}
-          <div className={s.actions}>
-            <button
-              ref={cancelRef}
-              className={s.button}
-              type="button"
-              onClick={() => settle("cancel")}
-            >
-              {activeRequest.cancelLabel ?? "取消"}
-            </button>
-            <button
-              className={`${s.button} ${s.confirmButton}`}
-              data-danger={activeRequest.danger ? "true" : "false"}
-              type="button"
-              onClick={() => settle("confirm")}
-            >
-              {activeRequest.confirmLabel ?? "确认"}
-            </button>
-          </div>
-        </section>
-      </ModalReveal>
-    </div>,
+      <div className={s.body} role="alertdialog" aria-modal="true" aria-label={activeRequest.title}>
+        {activeRequest.text && <p className={s.text}>{activeRequest.text}</p>}
+        {activeRequest.detail && <p className={s.detail}>{activeRequest.detail}</p>}
+        <div className={s.actions}>
+          <PlateButton
+            ref={cancelRef}
+            label={activeRequest.cancelLabel ?? "取消"}
+            icon="back"
+            onClick={() => settle("cancel")}
+          />
+          <PlateButton
+            label={activeRequest.confirmLabel ?? "确认"}
+            icon={danger ? "warn" : "confirm"}
+            lit
+            danger={danger}
+            onClick={() => settle("confirm")}
+          />
+        </div>
+      </div>
+    </PanelShell>,
     document.querySelector<HTMLElement>("[data-stage-canvas]") ?? document.body,
   );
 }

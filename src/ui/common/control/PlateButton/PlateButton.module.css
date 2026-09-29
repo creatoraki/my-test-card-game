@@ -1,15 +1,8 @@
-/* 系统操作按钮, 照搬探索事件档案 DossierButton 的双线切角板:
-   默认 = 暗色板; 悬浮 / 键盘聚焦 = 主题色实心亮板(深色字)。danger 把主题色换成警示红。
-   主题色 --k 取外壳 PanelShell 下发的 --event-accent。 */
-.grid {
-  --k: var(--event-accent, #52cfff);
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: 89px;
-  gap: 14px 16px;
-}
-
+/* 双线切角板按钮, 照搬探索事件档案 DossierButton:
+   默认 = 暗色板; 悬浮 / 键盘聚焦 / data-lit = 主题色实心亮板(深色字)。data-tone="danger" 把主题色换成警示红。
+   主题色 --k 缺省取外壳 PanelShell / EventPanelFrame 下发的 --event-accent; 尺寸由调用方的容器决定。 */
 .button {
+  --k: var(--event-accent, #52cfff);
   --c: 11px;
   --line: #5a97aa;
   --fill-a: #0d2635;
@@ -21,6 +14,7 @@
   display: flex;
   align-items: center;
   min-width: 0;
+  min-height: 72px;
   padding: 0 32px 0 0;
   border: 0;
   background: none;
@@ -138,7 +132,8 @@
 }
 
 .button:not(:disabled):hover,
-.button:not(:disabled):focus-visible {
+.button:not(:disabled):focus-visible,
+.button[data-lit]:not(:disabled) {
   --line: color-mix(in srgb, var(--k) 80%, #ffffff);
   --ink: #04191e;
   --glyph: #04191e;
@@ -147,24 +142,38 @@
 }
 
 .button:not(:disabled):hover .plate::before,
-.button:not(:disabled):focus-visible .plate::before {
+.button:not(:disabled):focus-visible .plate::before,
+.button[data-lit]:not(:disabled) .plate::before {
   background: #032d35;
 }
 
 .button:not(:disabled):hover .plate::after,
-.button:not(:disabled):focus-visible .plate::after {
+.button:not(:disabled):focus-visible .plate::after,
+.button[data-lit]:not(:disabled) .plate::after {
   opacity: 1;
 }
 
 .button:not(:disabled):hover .text strong,
-.button:not(:disabled):focus-visible .text strong {
+.button:not(:disabled):focus-visible .text strong,
+.button[data-lit]:not(:disabled) .text strong {
   font-weight: 700;
 }
 
 .button:not(:disabled):hover .arrow,
-.button:not(:disabled):focus-visible .arrow {
+.button:not(:disabled):focus-visible .arrow,
+.button[data-lit]:not(:disabled) .arrow {
   color: #04191e;
+}
+
+.button:not(:disabled):hover .arrow,
+.button:not(:disabled):focus-visible .arrow {
   transform: translateX(4px);
+}
+
+/* 常亮按钮再悬浮: 光晕加强一档, 否则悬浮前后看不出区别。 */
+.button[data-lit]:not(:disabled):hover,
+.button[data-lit]:not(:disabled):focus-visible {
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--k) 75%, transparent)) brightness(1.08);
 }
 
 .button:not(:disabled):active {
@@ -187,11 +196,13 @@
 }
 
 .button[data-tone="danger"]:not(:disabled):hover,
-.button[data-tone="danger"]:not(:disabled):focus-visible {
+.button[data-tone="danger"]:not(:disabled):focus-visible,
+.button[data-tone="danger"][data-lit]:not(:disabled) {
   --sub: #4a0f0b;
 }
 
 .button[data-tone="danger"]:not(:disabled):hover .plate::before,
-.button[data-tone="danger"]:not(:disabled):focus-visible .plate::before {
+.button[data-tone="danger"]:not(:disabled):focus-visible .plate::before,
+.button[data-tone="danger"][data-lit]:not(:disabled) .plate::before {
   background: #3a0f0d;
 }

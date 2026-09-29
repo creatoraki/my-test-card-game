@@ -1,8 +1,8 @@
-/** 设置浮层用到的内联图标。颜色一律走 currentColor, 由按钮状态决定。 */
+/** 切角板按钮的内联图标。颜色一律走 currentColor, 由按钮状态决定。 */
 
-export type SettingsIconName = "reset" | "reward" | "restart" | "retreat";
+export type PlateIconName = "reset" | "reward" | "restart" | "retreat" | "back" | "confirm" | "warn";
 
-export function SettingsIcon({ name }: { name: SettingsIconName }) {
+export function PlateIcon({ name }: { name: PlateIconName }) {
   switch (name) {
     case "reset":
       return <svg viewBox="0 0 40 40" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.6">
@@ -20,8 +20,17 @@ export function SettingsIcon({ name }: { name: SettingsIconName }) {
         <path fill="currentColor" stroke="none" d="M35 4v12H23Z" />
       </svg>;
     case "retreat":
+    case "back":
       return <svg viewBox="0 0 40 40" aria-hidden>
         <path fill="currentColor" d="M37 5 20 20l17 15ZM20 5 3 20l17 15Z" />
+      </svg>;
+    case "confirm":
+      return <svg viewBox="0 0 40 40" aria-hidden fill="none" stroke="currentColor" strokeWidth="4">
+        <path d="m6 21 9 9L34 10" strokeLinecap="square" />
+      </svg>;
+    case "warn":
+      return <svg viewBox="0 0 40 40" aria-hidden>
+        <path fill="currentColor" d="M20 3 38 36H2Zm-2.4 11v11h4.8V14Zm0 14v4.4h4.8V28Z" fillRule="evenodd" />
       </svg>;
   }
 }
