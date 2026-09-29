@@ -83,3 +83,9 @@ export function setUniform(gl: WebGLRenderingContext, compiled: CompiledProgram,
 export function setUniforms(gl: WebGLRenderingContext, compiled: CompiledProgram, uniforms: GlslUniforms): void {
   for (const name in uniforms) setUniform(gl, compiled, name, uniforms[name]);
 }
+
+/** 采样器 uniform：绑定到第 unit 号纹理单元。 */
+export function setSampler(gl: WebGLRenderingContext, compiled: CompiledProgram, name: string, unit: number): void {
+  const loc = location(gl, compiled, name);
+  if (loc) gl.uniform1i(loc, unit);
+}

@@ -19,7 +19,7 @@ import type { TelegraphKind } from "@/ui/battle/choreo/unitShell";
 import { playSfx } from "@/ui/audio";
 import { showBattleToast } from "@/ui/battle/state/battleToastStore";
 import { CAMERA_SETTLE_MS, impactAxis, shouldHardCut } from "./battleCamera";
-import { DEATH } from "@/ui/battle/choreo/deathChoreo";
+import { DEATH, vanishOf } from "@/ui/battle/choreo/deathChoreo";
 import type { BattleCameraApi } from "./useBattleCamera";
 import type { HandRenderApi } from "./useHandRender";
 import type { PlaybackApi } from "./usePlayback";
@@ -72,6 +72,13 @@ export function useBattleChoreo({
     hitSeqRef.current = 0;
   }, [battleSeq]);
 
+  // 本帧倒下单位的完整死亡演出长度(掉血 + 消散); 没人倒下为 0。
+  function deathSpan(snapshot: BattleState, deathIds: string[]): number {
+    if (!deathIds.length) return 0;
+    const vanish = Math.max(...deathIds.map((id) => vanishOf(snapshot.combatants[id]?.team ?? "enemy")));
+    return DEATH.drain + vanish;
+  }
+
   function runSteps(steps: ChoreoStep[], final: BattleState, seq: number, enter: Camera | null, excludeUid?: string) {
     if (!battle) return;
     const plans = choreograph(steps, battle);
@@ -121,7 +128,8 @@ export function useBattleChoreo({
     let at = 0;
     let lastActor = "";
     let lastAnim: CardAnim | null = null;
-    plans.forEach(({ step, preset, targetIds, focusIds, keepCamera }, index) => {
+    plans.forEach(({ step, preset, targetIds, focusIds, keepCamera, deathIds }, index) => {
+      const dying = deathSpan(step.snapshot, deathIds);
       if (step.kind === "reveal") {
         const selfMark = Boolean(step.discardUid && marksAt[index]?.includes(step.discardUid));
         const stepMarks = (marksAt[index] ?? []).filter((uid) => !selfMark || uid !== step.discardUid);
@@ -142,7 +150,8 @@ export function useBattleChoreo({
             commit(step.snapshot);
           },
         });
-        at += discardLead + cutIn + 40;
+        // 翻牌结算打死单位: 提交快照后留足整段死亡演出, 再进下一帧。
+        at += discardLead + cutIn + 40 + (dying ? dying + 40 : 0);
         lastActor = "";
         lastAnim = null;
         return;
@@ -151,10 +160,11 @@ export function useBattleChoreo({
       const repeat = lastActor === step.actorId && lastAnim === step.anim ? 1 : 0;
       const fx = ANIM[step.anim];
       const impactMs = fx.proc?.impactMs ?? 0;
+      // 只要本帧有单位倒下就停到消散结束 —— 不只认击杀镜头(反伤/遗物致死同样要演完)。
       const deathHold = step.kind === "flee"
         ? DEATH.flee + 40
-        : preset.kind === "kill"
-          ? impactMs + DEATH.drain + DEATH.vanish + 40
+        : dying
+          ? impactMs + dying + 40
           : 0;
       const holdFloor = Math.max(
         fx.hold,

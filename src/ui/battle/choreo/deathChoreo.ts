@@ -8,10 +8,19 @@ export const DEATH = {
   // HpBar.module.css 的 .hp-ghost 是 0.3s 延迟 + 0.5s 收缩, 共 800ms; 这里多留 20ms。
   drain: 820,
   flee: 700,
-  vanish: 700,
+  // 敌人消散 = GLSL 余烬焚解(fx/EnemyDeathFx)的总长; 我方仍是 AllyBar 的 CSS 压暗消散。
+  vanish: 1300,
+  allyVanish: 700,
+  // 最后一个单位消散完后再停一拍才弹胜利面板, 余韵不被面板盖住。
+  victoryBeat: 500,
   reducedDrain: 160,
   reducedVanish: 0,
 } as const;
+
+/** 该阵营单位的消散时长(ms), 闸门与分镜的死亡停留共用这一个口径。 */
+export function vanishOf(team: "player" | "enemy"): number {
+  return team === "enemy" ? DEATH.vanish : DEATH.allyVanish;
+}
 
 interface DeathGateOptions {
   seq: number;
@@ -85,7 +94,6 @@ export function useDeathGate(
 
     const reduced = prefersReducedMotion();
     const drain = reduced ? DEATH.reducedDrain : DEATH.drain;
-    const vanish = reduced ? DEATH.reducedVanish : DEATH.vanish;
     // reduced-motion 下居合斩本身不播长动画, 不应保留等待 impactMs 的空档。
     const impactOffset = reduced ? 0 : impactOffsetRef.current;
     impactOffsetRef.current = 0;
@@ -119,19 +127,23 @@ export function useDeathGate(
 
       phasesRef.current.set(cmb.id, "drain");
       changed = true;
+      const vanish = reduced ? DEATH.reducedVanish : vanishOf(cmb.team);
+      // dead 定时器在 vanish 回调里才起: 两个墙钟定时器并排挂时, 主线程一卡(首次编译着色器、
+      // 胜利面板挂载)就可能同帧连发, vanish 一帧都画不出来。链式保证消散段完整跑满。
       const vanishTimer = window.setTimeout(() => {
         if (phasesRef.current.get(cmb.id) !== "drain") return;
         phasesRef.current.set(cmb.id, "vanish");
         playSfx("death");
         redraw((version) => version + 1);
+        const deadTimer = window.setTimeout(() => {
+          if (phasesRef.current.get(cmb.id) !== "vanish") return;
+          phasesRef.current.set(cmb.id, "dead");
+          timersRef.current.delete(cmb.id);
+          redraw((version) => version + 1);
+        }, vanish / rate);
+        timersRef.current.set(cmb.id, [vanishTimer, deadTimer]);
       }, (impactOffset + drain) / rate);
-      const deadTimer = window.setTimeout(() => {
-        if (phasesRef.current.get(cmb.id) !== "vanish") return;
-        phasesRef.current.set(cmb.id, "dead");
-        timersRef.current.delete(cmb.id);
-        redraw((version) => version + 1);
-      }, (impactOffset + drain + vanish) / rate);
-      timersRef.current.set(cmb.id, [vanishTimer, deadTimer]);
+      timersRef.current.set(cmb.id, [vanishTimer, 0]);
     }
 
     if (changed) redraw((version) => version + 1);

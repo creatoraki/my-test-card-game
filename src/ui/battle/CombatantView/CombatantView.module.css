@@ -142,7 +142,7 @@
   /* 文档性钩子: drain 阶段保持活体外观, 只让 HpBar 自己完成掉血演出。 */
 }
 .combatant[data-death="flee"] .combatant-figure {
-  animation: fleeAway calc(var(--death-vanish-ms, 700ms) / max(var(--death-rate, 1), 0.25)) ease-in forwards;
+  animation: fleeAway calc(var(--death-flee-ms, 700ms) / max(var(--death-rate, 1), 0.25)) ease-in forwards;
 }
 @keyframes fleeAway {
   0% {
@@ -162,9 +162,35 @@
     transform: translate(112px, -112px) rotate(42deg) scale(0.72, 0.78);
   }
 }
-.combatant[data-death="vanish"] .combatant-figure {
-  /* animation 是简写, 必须连写以覆盖 idleBob, 否则立绘会边消散边继续呼吸。 */
+/* 无 WebGL / 贴图未就绪时的 CSS 兜底消散。
+   ⚠ 特异性 (0,5,0) 必须高于 motion.module.css 的受击反应 (0,4,0): 受击 react 会一直挂到分镜
+     hold 结束, 同权时整段消散都被它顶掉(即「吞死亡动效」)。CombatantView 已在消散期撤掉 react,
+     这里再抬一档做双保险。animation 是简写, 连写以覆盖 idleBob。 */
+.combatant[data-unit][data-side="enemy"][data-death="vanish"] .combatant-figure {
   animation: deathVanish calc(var(--death-vanish-ms, 700ms) / max(var(--death-rate, 1), 0.25)) ease-out forwards;
+}
+/* 余烬焚解接管: 着色器首帧就是原样立绘, 立绘本体稍后一拍再隐藏, 交接期两者重叠, 不闪空帧。
+   用 step-end 关键帧而不是直接 visibility: hidden —— 宿主要到下一个 rAF 才画出第一帧。 */
+.combatant[data-unit][data-side="enemy"][data-death="vanish"][data-death-glsl] .combatant-figure {
+  animation: deathHandoff 80ms step-end forwards;
+}
+@keyframes deathHandoff {
+  to {
+    visibility: hidden;
+  }
+}
+/* 脚下影子随焚解淡去(连写 animation 以覆盖 idleShadow)。 */
+.combatant[data-death="vanish"] .combatant-stage::after {
+  animation: deathShadowFade calc(var(--death-vanish-ms, 700ms) / max(var(--death-rate, 1), 0.25)) ease-in forwards;
+}
+@keyframes deathShadowFade {
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
 }
 @keyframes deathVanish {
   0% {

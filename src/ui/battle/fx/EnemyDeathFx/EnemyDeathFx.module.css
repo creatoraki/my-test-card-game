@@ -1,0 +1,15 @@
+/* 余烬焚解画布: 内框(立绘展示框)与 .combatant-figure 重合 —— 水平居中, 底边对齐,
+   画布向下多伸 --death-pad-bottom 给脚下冲击环。叠在立绘与命中特效之上。 */
+.enemy-death {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--death-pad-bottom, 0px) * -1);
+  translate: -50% 0;
+  z-index: 6;
+  pointer-events: none;
+}
+/* GlslSprite 的画布默认可点(传送门需要), 死亡特效必须穿透。 */
+.enemy-death canvas {
+  display: block;
+  pointer-events: none;
+}

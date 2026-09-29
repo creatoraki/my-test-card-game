@@ -150,10 +150,14 @@ export function BattleScreen() {
     warmBattleBg();
   }, []);
 
+  // 最后一个敌人消散完后再停一拍才结算(弹胜利面板), 余火与灰烬的尾韵不被面板盖住。
+  const battleWon = battle?.phase === "won";
   useEffect(() => {
-    if (!battle || battle.phase !== "won" || battleSettled || deaths.pending) return;
-    resolveBattle();
-  }, [battle, battleSettled, deaths.pending, resolveBattle]);
+    if (!battleWon || battleSettled || deaths.pending) return;
+    const rate = Math.max(0.25, playback.playbackRateRef.current);
+    const timer = window.setTimeout(() => resolveBattle(), DEATH.victoryBeat / rate);
+    return () => window.clearTimeout(timer);
+  }, [battleWon, battleSettled, deaths.pending, playback.playbackRateRef, resolveBattle]);
 
   useEffect(() => {
     if (!battle || battle.phase !== "lost") {
@@ -308,7 +312,7 @@ export function BattleScreen() {
           needsAlly={needsAlly}
           deathPhaseOf={deaths.phaseOf}
           deathRate={playback.playbackRateRef.current}
-          deathVanishMs={DEATH.vanish}
+          deathVanishMs={DEATH.allyVanish}
           renderHand={hand.renderHand}
           discardingUids={hand.discardingUidSet}
           selectedUid={selectedUid}

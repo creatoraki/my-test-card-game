@@ -60,7 +60,7 @@ export function AllyBar({
   onSelect,
   deathPhaseOf,
   deathRate = 1,
-  deathVanishMs = DEATH.vanish,
+  deathVanishMs = DEATH.allyVanish,
 }: Props) {
   const focusCharId = useHandHoverOwner() ?? focusFallbackCard?.ownerCharId;
   return (

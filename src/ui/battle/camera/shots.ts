@@ -1,5 +1,6 @@
 import type { CardAnim } from "@/engine";
 import { ANIM } from "@/ui/battle/choreo/animations";
+import { DEATH } from "@/ui/battle/choreo/deathChoreo";
 import type { SpringTuning } from "./spring";
 
 export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "tri" | "blood" | "neon" | "triple" | "keen" | "lunar" | "sakura" | "twin" | "foe" | "foeCast";
@@ -54,8 +55,8 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
   foeCast: { kind: "foeCast", scale: 1.3, fit: 0.8, yaw: 3, pitch: 1, roll: 1, rig: { s: QUICK }, lead: 820, hold: 1250, punch: 0.05, shake: 20, creep: 0, hitstop: 150, slowmo: { scale: 0.35, ms: 400 } },
   heavy: { kind: "heavy", scale: 1.7, fit: 0.72, yaw: 5, pitch: 5, roll: 5, rig: { s: QUICK, roll: { stiffness: 150, damping: 16 } }, lead: 280, hold: 980, punch: 0.06, shake: 22, creep: 0, hitstop: 90 },
   aoe: { kind: "aoe", scale: 1.1, fit: 0.72, yaw: 8, pitch: 0, roll: 3, rig: { s: SOFT, yaw: SOFT }, lead: 240, hold: 820, punch: 0.025, shake: 12, creep: 0, hitstop: 70 },
-  // DEATH.drain + DEATH.vanish = 1520ms; 击杀镜头多留 40ms 覆盖完整消散段。
-  kill: { kind: "kill", scale: 1.85, fit: 0.68, yaw: 6, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 190, damping: 16 } }, lead: 320, hold: 1560, punch: 0.08, shake: 28, creep: 20, hitstop: 140, slowmo: { scale: 0.25, ms: 320 } },
+  // hold = 掉血 + 消散(余烬焚解) + 40ms, 击杀镜头盖住完整死亡演出; 分镜侧另按 impactMs 再兜底。
+  kill: { kind: "kill", scale: 1.85, fit: 0.68, yaw: 6, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 190, damping: 16 } }, lead: 320, hold: DEATH.drain + DEATH.vanish + 40, punch: 0.08, shake: 28, creep: 20, hitstop: 140, slowmo: { scale: 0.25, ms: 320 } },
   iai: { kind: "iai", scale: 1.65, fit: 0.72, yaw: 5, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 210, damping: 15 } }, lead: 260, hold: 960, punch: 0.075, shake: 24, creep: 0, hitstop: 110 },
   // 刀光视觉时间轴约 1600ms; hold 1800ms 给刀痕消散尾段留 170ms 卸载余量。
   blade: { kind: "blade", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 1800, punch: 0.06, shake: 20, creep: 0, hitstop: 90 },
@@ -81,11 +82,15 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
 /** 敌人自己的戏: 先把镜头聚焦到施法者、落位后再起蓄力(见 BattleScreen 的 focusLead)。 */
 export const isFoeLedShot = (p: ShotPreset) => p.kind === "foe" || p.kind === "foeCast";
 
-// 击杀冲击只覆盖打击感参数, 取景与节拍留给动画对应的 base 预设, 避免长特效被 kill 的 hold 截断。
+// 原生节拍不长于 KILL_FRAMING_BEAT 的镜头(普攻/重击/群攻/居合)整条换成击杀镜头;
+// 更长的专属特效保留自身取景, 只换打击感参数, hold 取两者较长者, 死亡演出不被截断。
+// 阈值与 kill.hold 解耦: 消散时长调整不应改变哪些特效用击杀取景。
+const KILL_FRAMING_BEAT = 1560;
+
 function killShot(base: ShotPreset): ShotPreset {
-  if (base.hold <= SHOTS.kill.hold) return SHOTS.kill;
+  if (base.hold <= KILL_FRAMING_BEAT) return SHOTS.kill;
   const { punch, shake, creep, hitstop, slowmo } = SHOTS.kill;
-  return { ...base, kind: "kill", punch, shake, creep, hitstop, slowmo };
+  return { ...base, kind: "kill", punch, shake, creep, hitstop, slowmo, hold: Math.max(base.hold, SHOTS.kill.hold) };
 }
 
 export function pickShot(ctx: ShotContext): ShotPreset {

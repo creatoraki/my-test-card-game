@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import type { EnemyPlacement } from "@/data";
 import { getStatus, type Enemy } from "@/engine";
 import { StatusPips } from "@/ui/common/bar/StatusPips";
@@ -9,7 +9,8 @@ import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
 import { EnemySprite } from "@/ui/common/unit/EnemySprite";
 import { enemyArt, enemyIdle } from "@/ui/art/battle/enemyArt";
 import { HitFxLayer, hitFxVars } from "@/ui/battle/fx/HitFxLayer";
-import { DeathVanishFx } from "@/ui/battle/fx/DeathVanishFx";
+import { EnemyDeathFx, deathGeometry, useDeathTexture } from "@/ui/battle/fx/EnemyDeathFx";
+import { glslAvailable } from "@/ui/common/fx/GlslSprite";
 import { DEATH, type DeathPhase } from "@/ui/battle/choreo/deathChoreo";
 import { HpBar } from "@/ui/common/bar/HpBar";
 import { ShieldBar } from "@/ui/common/bar/ShieldBar";
@@ -55,11 +56,25 @@ export const CombatantView = memo(function CombatantView({
 }: Props) {
   const phase = deathPhase ?? (!cmb.alive ? "dead" : "alive");
   const dead = phase === "dead";
+  // 消散起, 立绘交给死亡演出独占: 受击/前冲/待机小动作的 animation 特异性更高,
+  // 留着会把消散整条顶掉(命中特效的 react 要到分镜 hold 结束才清)。
+  const perished = phase === "vanish" || dead;
 
   // 敌人立绘按 enemyDefId 查登记表; 未登记的退回 CharacterPortrait 的 emoji
   const enemySprite = enemyArt(cmb.enemyDefId);
 
   const { react, vars } = hitFxVars(hit ?? null);
+
+  // 余烬焚解: 挂载即预热立绘贴图; 贴图没好或无 WebGL 时退回 CSS 消散。
+  const deathTexture = useDeathTexture(enemySprite, !!placement?.flip, cmb.emoji);
+  // placements 每次渲染都会重建, 依赖只取几何真正用到的两个字段, 保持 uniforms 引用稳定。
+  const placeScale = placement?.scale;
+  const placeFlip = placement?.flip;
+  const deathGeo = useMemo(
+    () => deathGeometry(enemySprite, { id: cmb.enemyDefId, scale: placeScale, flip: placeFlip }),
+    [enemySprite, cmb.enemyDefId, placeScale, placeFlip],
+  );
+  const glslDeath = phase === "vanish" && !!deathTexture && glslAvailable();
 
   // --place-*: 手工站位, dx/dy 落到 .combatant 的 translate, scale 由几何变量自然参与
   // (不能走 transform —— 那条已被 hover/前冲/hitShake 占满, 见 CombatantView.module.css)
@@ -115,14 +130,24 @@ export const CombatantView = memo(function CombatantView({
   vars["--idle-delay"] = `${idle.delay}ms`;
   vars["--shadow-w"] = "calc(var(--body-w) * 0.78)";
   vars["--death-vanish-ms"] = `${DEATH.vanish}ms`;
+  vars["--death-flee-ms"] = `${DEATH.flee}ms`;
 
   return (
     <div
       data-cmb-id={cmb.id}
       // 外壳状态一律走 data-*(见 battle/unitShell.ts): fx/HitFxLayer 与 EnemySprite 都要
       // 按这些状态改自己的表现, 而它们够不着本文件被哈希的类名。
-      {...unitShellAttrs({ side: "enemy", dead, death: phase, targetable, attacking, telegraph, react })}
-      data-twitch={twitching && !dead ? "" : undefined}
+      {...unitShellAttrs({
+        side: "enemy",
+        dead,
+        death: phase,
+        targetable,
+        attacking: attacking && !perished,
+        telegraph,
+        react: perished ? null : react,
+      })}
+      data-twitch={twitching && !perished ? "" : undefined}
+      data-death-glsl={glslDeath ? "" : undefined}
       className={s["combatant"]}
       style={vars as React.CSSProperties}
       onClick={(e) => {
@@ -148,7 +173,7 @@ export const CombatantView = memo(function CombatantView({
           <HitChanceBadge value={hitChance} damage={damagePreview} />
         )}
         <HitFxLayer hit={hit ?? null} />
-        {phase === "vanish" && <DeathVanishFx />}
+        {glslDeath && deathTexture && <EnemyDeathFx texture={deathTexture} geometry={deathGeo} />}
 
         <div className={cx(s["combatant-figure"], m.figure)} {...UNIT_BODY_ATTR}>
           {enemySprite ? (

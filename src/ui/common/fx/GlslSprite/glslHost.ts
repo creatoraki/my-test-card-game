@@ -1,4 +1,4 @@
-import { compileProgram, createFullscreenTriangle, setUniform, setUniforms, type CompiledProgram } from "./glslProgram";
+import { compileProgram, createFullscreenTriangle, setSampler, setUniform, setUniforms, type CompiledProgram } from "./glslProgram";
 import type { GlslTarget, GlslTargetInit } from "./types";
 
 /** 像素比上限：门类特效是柔和光效，1.5 倍已足够锐利。 */
@@ -22,6 +22,8 @@ class GlslHost {
   private lost = false;
   private triangle: WebGLBuffer | null = null;
   private programs = new Map<string, CompiledProgram | null>();
+  /** 贴图按源对象只上传一次；上下文丢失后整表作废重建。 */
+  private textures = new WeakMap<TexImageSource, WebGLTexture>();
   private targets = new Set<GlslTarget>();
   private byCanvas = new Map<Element, GlslTarget>();
   private observer: IntersectionObserver | null = null;
@@ -46,6 +48,8 @@ class GlslHost {
       uniforms: init.uniforms,
       seed: init.seed,
       rate: init.rate ?? 1,
+      texture: init.texture ?? null,
+      pixelRatio: init.pixelRatio ?? null,
       activeGoal: on,
       active: on,
       phase: 0,
@@ -94,6 +98,7 @@ class GlslHost {
       event.preventDefault();
       this.lost = true;
       this.programs.clear();
+      this.textures = new WeakMap();
       this.triangle = null;
     });
     canvas.addEventListener("webglcontextrestored", () => {
@@ -132,6 +137,29 @@ class GlslHost {
     return this.programs.get(def.key) ?? null;
   }
 
+  private texture(source: TexImageSource): WebGLTexture | null {
+    const gl = this.gl;
+    if (!gl || this.lost) return null;
+    const cached = this.textures.get(source);
+    if (cached) return cached;
+    const texture = gl.createTexture();
+    if (!texture) return null;
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    // 与宿主的预乘合成约定一致; 翻转 Y 让 vUv(左下原点)直接对上图像。
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    // 非 2 的幂尺寸: WebGL1 只允许 CLAMP + 无 mipmap。
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    this.textures.set(source, texture);
+    return texture;
+  }
+
   private start(): void {
     if (this.frame) return;
     this.lastTime = this.now();
@@ -160,7 +188,7 @@ class GlslHost {
     if (!gl || !canvas || this.lost || !this.triangle) return;
     const compiled = this.program(target.program);
     if (!compiled) return;
-    const ratio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+    const ratio = Math.min(window.devicePixelRatio || 1, target.pixelRatio ?? MAX_PIXEL_RATIO);
     const w = Math.max(1, Math.round(target.width * ratio));
     const h = Math.max(1, Math.round(target.height * ratio));
     if (target.canvas.width !== w || target.canvas.height !== h) {
@@ -185,6 +213,13 @@ class GlslHost {
     setUniform(gl, compiled, "uSeed", target.seed);
     setUniform(gl, compiled, "uAA", 1 / ratio);
     setUniforms(gl, compiled, target.uniforms);
+    const texture = target.texture ? this.texture(target.texture) : null;
+    if (texture) {
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      setSampler(gl, compiled, "uTex", 0);
+    }
+    setUniform(gl, compiled, "uTexOn", texture ? 1 : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     target.ctx.drawImage(canvas, 0, canvas.height - h, w, h, 0, 0, w, h);
   }

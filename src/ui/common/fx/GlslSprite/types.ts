@@ -21,6 +21,10 @@ export interface GlslTarget {
   seed: number;
   /** 播放速率：uPhase 的推进倍数(战斗倍速/慢放)，缺省 1。 */
   rate: number;
+  /** 可选贴图：绑到 0 号纹理单元的 uTex(已预乘、左下原点)，并写 uTexOn = 1。 */
+  texture: TexImageSource | null;
+  /** 像素比上限覆盖(缺省 1.5)；会被镜头推近的特效需要更高的分辨率。 */
+  pixelRatio: number | null;
   /** 激活目标值(0/1)与平滑后的当前值。 */
   activeGoal: number;
   active: number;
@@ -37,5 +41,7 @@ export interface GlslTargetInit {
   uniforms: GlslUniforms;
   seed: number;
   rate?: number;
+  texture?: TexImageSource | null;
+  pixelRatio?: number | null;
   active: boolean;
 }
