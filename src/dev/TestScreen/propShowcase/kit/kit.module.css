@@ -1,0 +1,83 @@
+/* 两层 SVG 叠放；动效层独立合成。 */
+.layer { position: absolute; left: 0; top: 0; display: block; }
+.live { pointer-events: none; will-change: transform; }
+
+/* ---- 发光动效：只动画 opacity / transform ---- */
+
+/* 灯珠跑马：各灯按 --delay 错开相位。 */
+.marquee { animation: marquee 1.2s steps(1, end) infinite; animation-delay: var(--delay, 0s); }
+@keyframes marquee {
+  0% { opacity: 1; }
+  50% { opacity: .18; }
+}
+
+.breath { animation: breath 2.4s ease-in-out infinite; animation-delay: var(--delay, 0s); }
+@keyframes breath {
+  0%, 100% { opacity: .4; }
+  50% { opacity: 1; }
+}
+
+.sleepy { animation: sleepy 4.2s ease-in-out infinite; animation-delay: var(--delay, 0s); }
+@keyframes sleepy {
+  0%, 100% { opacity: .2; }
+  45%, 55% { opacity: .95; }
+}
+
+.blink { animation: blink 1.6s ease-in-out infinite; animation-delay: var(--delay, 0s); }
+@keyframes blink {
+  0%, 60%, 100% { opacity: .15; }
+  70%, 85% { opacity: 1; }
+}
+
+/* 电量格逐格点亮，整轮一起熄灭。 */
+.charge { animation: charge 3s linear infinite; animation-delay: var(--delay, 0s); }
+@keyframes charge {
+  0% { opacity: .12; }
+  6%, 74% { opacity: 1; }
+  82%, 100% { opacity: .12; }
+}
+
+.flicker { animation: flicker 3.8s linear infinite; }
+@keyframes flicker {
+  0%, 84%, 100% { opacity: 1; }
+  86% { opacity: .3; }
+  88% { opacity: .95; }
+  90% { opacity: .12; }
+  93% { opacity: 1; }
+}
+
+/* 扫描带：位移距离由 --scan-distance 决定。 */
+.scan { animation: scan 2.4s linear infinite; }
+@keyframes scan {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(var(--scan-distance, 100px)); opacity: 0; }
+}
+
+/* 全息粒子缓慢上浮。 */
+.rise { animation: rise 3.2s linear infinite; animation-delay: var(--delay, 0s); }
+@keyframes rise {
+  0% { transform: translateY(0); opacity: 0; }
+  20% { opacity: .9; }
+  100% { transform: translateY(-46px); opacity: 0; }
+}
+
+/* 断线电火花：大部分时间隐藏，偶发两次急闪。 */
+.spark { animation: spark 2.6s steps(1, end) infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes spark {
+  0% { opacity: 0; transform: scale(.6); }
+  70% { opacity: 1; transform: scale(1); }
+  73% { opacity: 0; }
+  78% { opacity: 1; transform: scale(.8) rotate(25deg); }
+  81%, 100% { opacity: 0; transform: scale(.6); }
+}
+
+/* 指针轻微抖动。 */
+.needle { animation: needle 2.8s ease-in-out infinite; transform-box: view-box; transform-origin: var(--pivot, 0 0); }
+@keyframes needle {
+  0%, 100% { transform: rotate(0deg); }
+  30% { transform: rotate(9deg); }
+  36% { transform: rotate(4deg); }
+  70% { transform: rotate(-6deg); }
+}
