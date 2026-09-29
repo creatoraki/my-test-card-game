@@ -33,4 +33,4 @@
 .description strong { color: #eff6ff; font-size: 24px; }
 .discard { composes: smallButton from "./styles/growthKit.module.css"; min-width: 190px; color: #b7c8df; border-color: #6280a8; background: #172844; }
 .confirm { composes: action from "./styles/growthKit.module.css"; width: 310px; min-height: 76px; font-size: 28px; }
-.selection[data-mode="remove"] .confirm { --hold-fill: #d52d58; background: linear-gradient(130deg, #ec577e, #ac1942); box-shadow: inset 0 0 0 5px #ff9aaf55, 0 0 14px #ff376760; }
+.selection[data-mode="remove"] .confirm { --hold-fill: #ffd0dc; background: linear-gradient(130deg, #ec577e, #ac1942); box-shadow: inset 0 0 0 5px #ff9aaf55, 0 0 14px #ff376760; }

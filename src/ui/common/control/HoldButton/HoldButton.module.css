@@ -1,3 +1,7 @@
+/*
+ * 长按进度三层：未充能区压暗(.dim) + 已充能区滤色提亮(.fill) + 进度前沿亮线(.edge)。
+ * 调用方可覆盖：--hold-fill 充能亮色（建议取按钮主色的高明度版本）、--hold-dim 未充能区遮罩色。
+ */
 .button {
   position: relative;
   isolation: isolate;
@@ -6,28 +10,63 @@
 
 .content {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: inherit;
 }
 
-.button::after {
+.dim,
+.fill,
+.edge {
   position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+
+.dim {
   z-index: 0;
   inset: 0;
-  background: var(--hold-fill, currentColor);
-  content: "";
-  opacity: 0.3;
-  pointer-events: none;
+  background: var(--hold-dim, #040a1e99);
+  clip-path: inset(0 0 0 calc(var(--hold-progress, 0) * 100%));
+}
+
+.fill {
+  z-index: 1;
+  inset: 0;
+  background:
+    linear-gradient(180deg, #ffffff38, transparent 45%, #ffffff1f),
+    linear-gradient(90deg, transparent, var(--hold-fill, #fff) 88%, #fff);
+  mix-blend-mode: screen;
   transform: scaleX(var(--hold-progress, 0));
   transform-origin: left center;
 }
 
+.edge {
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--hold-progress, 0) * 100%);
+  width: 4px;
+  background: #fff;
+  box-shadow: 0 0 8px 2px #fff, 0 0 20px 6px var(--hold-fill, #fff);
+  transform: translateX(-50%);
+}
+
+.button[data-holding="true"]:not(:disabled) .dim,
+.button[data-holding="true"]:not(:disabled) .edge {
+  opacity: 1;
+}
+
+.button[data-holding="true"]:not(:disabled) .fill {
+  opacity: 0.85;
+}
+
 .button::before {
   position: absolute;
-  z-index: 2;
+  z-index: 4;
   inset: 0;
   background: #fff;
   content: "";

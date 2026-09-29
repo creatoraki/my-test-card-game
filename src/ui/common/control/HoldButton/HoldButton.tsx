@@ -127,6 +127,9 @@ export function HoldButton({
         if (event.key === "Enter" || event.key === " ") cancelHold();
       }}
     >
+      <span className={s.dim} aria-hidden="true" />
+      <span className={s.fill} aria-hidden="true" />
+      <span className={s.edge} aria-hidden="true" />
       <span className={s.content}>{children}</span>
     </button>
   );
