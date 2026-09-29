@@ -1,5 +1,6 @@
 import type { Card } from "@/engine";
 import { CARD_MARK_DEFS, cultivateOverripe, cultivateReady } from "@/engine";
+import { cardMarkArtOf } from "@/ui/art/battle/cardMarkArt";
 import { CultivatedEmblem } from "@/ui/common/icon/BuffIcon";
 import { CULTIVATION_ART } from "@/ui/art/battle/buffArt";
 import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
@@ -33,9 +34,10 @@ export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
         {card.marks?.map((markId) => {
           const mark = CARD_MARK_DEFS[markId];
           if (!mark) return null;
+          const art = cardMarkArtOf(markId);
           return (
             <span key={markId} className={s["hc-mark-inline"]} aria-label={mark.name}>
-              {mark.emoji}
+              {art ? <img src={art} alt="" aria-hidden="true" /> : mark.emoji}
             </span>
           );
         })}
@@ -54,11 +56,18 @@ export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
           {card.marks!.map((markId) => {
             const mark = CARD_MARK_DEFS[markId];
             if (!mark) return null;
+            const art = cardMarkArtOf(markId);
             return (
               <span key={markId} className={s["hc-mark"]} aria-label={mark.name}>
-                <span className={s["hc-mark-icon"]} aria-hidden>{mark.emoji}</span>
+                <span className={s["hc-mark-icon"]} aria-hidden>
+                  {art ? <img className={s["hc-mark-art"]} src={art} alt="" /> : mark.emoji}
+                </span>
                 <span className={s["hc-mark-tip"]} role="tooltip">
-                  <TooltipCard icon={mark.emoji} title={mark.name} desc={mark.desc} />
+                  <TooltipCard
+                    icon={art ? <img src={art} alt="" /> : mark.emoji}
+                    title={mark.name}
+                    desc={mark.desc}
+                  />
                 </span>
               </span>
             );

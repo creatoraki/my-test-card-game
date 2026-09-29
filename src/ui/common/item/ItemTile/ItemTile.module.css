@@ -276,6 +276,18 @@
   transform: none;
 }
 
+/* ── 未收录: 无徽章、无稀有度条, 上下留白对称, 让问号落在格子正中 ── */
+.tile.locked {
+  padding-top: calc(var(--tile-pad) + 10px);
+  padding-bottom: calc(var(--tile-pad) + 10px);
+}
+
+.tile.is-compact.locked {
+  padding-top: calc(var(--tile-pad) + 8px);
+  padding-bottom: calc(var(--tile-pad) + 8px);
+}
+
 .locked .art {
   font-size: 32px;
+  line-height: 1;
 }
