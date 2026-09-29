@@ -11,8 +11,8 @@ import { CardOwnerTabs } from "./CardOwnerTabs";
 import s from "./MuseumCardHall.module.css";
 
 /** 每行固定列数：卡牌按网格实际宽度等比缩放，正好铺满一行。 */
-const COLUMNS = 5;
-const COLUMN_GAP = 18;
+const COLUMNS = 4;
+const COLUMN_GAP = 22;
 /** 与 tokens.css 的 --card-w 保持一致。 */
 const BASE_CARD_W = 220;
 

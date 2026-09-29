@@ -45,7 +45,7 @@ export const MATERIAL_BUY_BY_RARITY: Record<ItemRarity, number> = {
 };
 
 export const RELIC_BUY_BY_RARITY: Record<ItemRarity, number> = {
-  common: 300,
+  common: 500,
   fine: 600,
   rare: 1200,
   epic: 2000,
@@ -54,9 +54,9 @@ export const RELIC_BUY_BY_RARITY: Record<ItemRarity, number> = {
 
 export const relicBuyValue = (def: ItemDef): number => RELIC_BUY_BY_RARITY[def.rarity];
 
-// 祝福遗物的回收价 = 商店价的 1/4，与装备的买卖比例一致。诅咒遗物不收，只能去圣所净化。
+// 祝福遗物的回收价(普通档 100 = 商店价的 1/5)。诅咒遗物不收，只能去圣所净化。
 export const RELIC_SELL_BY_RARITY: Record<ItemRarity, number> = {
-  common: 75,
+  common: 100,
   fine: 150,
   rare: 300,
   epic: 500,

@@ -8,8 +8,8 @@ import type { EnemyDef } from "../types";
 const BOSS_DROPS: DropEntry[] = [
   { kind: "item", itemId: "red-crystal", chance: 1 },
   { kind: "item", itemId: regionalMaterial(DEFAULT_REGION_ID, "boss").id, chance: 1 },
-  { kind: "item", itemId: "gold-coin", chance: 0.5 },
-  { kind: "item", itemId: "silver-coin", chance: 0.6 },
+  { kind: "item", itemId: "gold-coin", chance: 0.58 },
+  { kind: "item", itemId: "silver-coin", chance: 0.69 },
   { kind: "item", itemId: "standard-gear", chance: 0.6 },
 ];
 

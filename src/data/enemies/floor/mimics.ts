@@ -9,9 +9,9 @@ const generalDrop = (itemId: string, chance: number): DropEntry => ({
 });
 
 const MIMIC_BASE: DropEntry[] = [
-  generalDrop("silver-coin", 0.6),
-  generalDrop("gold-coin", 0.25),
-  generalDrop("copper-coin", 0.5),
+  generalDrop("silver-coin", 0.69),
+  generalDrop("gold-coin", 0.29),
+  generalDrop("copper-coin", 0.58),
   generalDrop("green-crystal", 0.3),
 ];
 

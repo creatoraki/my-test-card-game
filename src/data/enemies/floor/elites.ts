@@ -8,7 +8,7 @@ import type { EnemyDef } from "../types";
 const ELITE_BASE: DropEntry[] = [
   { kind: "item", itemId: "blue-crystal", chance: 0.6 },
   { kind: "item", itemId: regionalMaterial(DEFAULT_REGION_ID, "mid").id, chance: 0.5 },
-  { kind: "item", itemId: "copper-coin", chance: 0.4 },
+  { kind: "item", itemId: "copper-coin", chance: 0.46 },
   { kind: "item", itemId: "module-crate-t1", chance: 0.08 },
 ];
 
@@ -20,9 +20,9 @@ const generalDrop = (itemId: string, chance: number): DropEntry => ({
 
 const ELITE_BOONS: BoonEntry[] = [
   { kind: "healDew", chance: 0.5 },
-  { kind: "equipCrate", chance: 0.25 },
+  { kind: "equipCrate", chance: 0.21 },
   { kind: "moduleCrate", chance: 0.15 },
-  { kind: "cardOffer", chance: 0.65 },
+  { kind: "cardOffer", chance: 0.55 },
 ];
 
 export const ELITE_ENEMIES: EnemyDef[] = [

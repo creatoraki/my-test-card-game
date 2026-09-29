@@ -163,6 +163,12 @@
   flex-direction: column;
   gap: 12px;
   overflow: auto;
+  /* 详情栏宽度固定, 滚动条会挤压内容并破坏面板质感 ⇒ 保留滚轮滚动, 隐藏滚动条。 */
+  scrollbar-width: none;
+}
+
+.enemy-detail::-webkit-scrollbar {
+  display: none;
 }
 
 .detail-portrait {
