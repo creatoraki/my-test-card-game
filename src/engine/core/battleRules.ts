@@ -47,7 +47,7 @@ export const RULES = {
     fastCardAdvance: 0,
     waitAdvance: 1,
     waitsPerRound: 1,
-    redrawsPerRound: 1,
+    redrawsPerRound: 0,
   },
 
   squadCaps: {

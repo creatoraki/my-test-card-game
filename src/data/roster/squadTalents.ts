@@ -99,10 +99,10 @@ const VOYAGE_BRANCHES: TalentBranchDef[] = [
 
 const VOYAGE_NODES: TalentNodeDef[] = [
   ...chain(VOYAGE_BRANCHES[0], [2]),
-  ...chain(VOYAGE_BRANCHES[1], [2]),
+  ...chain(VOYAGE_BRANCHES[1], [3]),
   ...chain(VOYAGE_BRANCHES[2], [2]),
   ...chain(VOYAGE_BRANCHES[3], [6]),
-  ...chain(VOYAGE_BRANCHES[4], [4]),
+  ...chain(VOYAGE_BRANCHES[4], [5]),
   ...chain(VOYAGE_BRANCHES[5], [3]),
 ];
 
@@ -116,8 +116,8 @@ const VANGUARD_BRANCHES: TalentBranchDef[] = [
 const VANGUARD_NODES: TalentNodeDef[] = [
   ...chain(VANGUARD_BRANCHES[0], [3, 4]),
   ...chain(VANGUARD_BRANCHES[1], [2, 3]),
-  ...chain(VANGUARD_BRANCHES[2], [2]),
-  ...chain(VANGUARD_BRANCHES[3], [4]),
+  ...chain(VANGUARD_BRANCHES[2], [3]),
+  ...chain(VANGUARD_BRANCHES[3], [5]),
 ];
 
 const CLOCKWORK_BRANCHES: TalentBranchDef[] = [
@@ -129,7 +129,7 @@ const CLOCKWORK_BRANCHES: TalentBranchDef[] = [
 
 const CLOCKWORK_NODES: TalentNodeDef[] = [
   ...chain(CLOCKWORK_BRANCHES[0], [2, 3]),
-  ...chain(CLOCKWORK_BRANCHES[1], [2, 3]),
+  ...chain(CLOCKWORK_BRANCHES[1], [3, 4]),
   ...chain(CLOCKWORK_BRANCHES[2], [6]),
   ...chain(CLOCKWORK_BRANCHES[3], [2]),
 ];
