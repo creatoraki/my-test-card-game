@@ -81,10 +81,21 @@ export function mapDifficultyIds(mapId: string): readonly MapDifficulty[] {
   return !map.locked && !map.hideAfterClear ? MAP_DIFFICULTY_IDS : [];
 }
 
+function withNormalOverride(map: MapDef): MapDef {
+  const override = map.normalOverride;
+  if (!override) return map;
+  return {
+    ...map,
+    roomCount: override.roomCount ?? map.roomCount,
+    battleEncounters: { ...map.battleEncounters, ...override.battleEncounters },
+  };
+}
+
 export function difficultyMapConfig(mapId: string, difficulty: MapDifficulty): MapDef {
   const map = requireMap(mapId);
   const definition = getMapDifficulty(difficulty);
-  if (!mapHasDifficulty(mapId) || difficulty === "normal") return map;
+  if (!mapHasDifficulty(mapId)) return map;
+  if (difficulty === "normal") return withNormalOverride(map);
 
   return {
     ...map,

@@ -167,6 +167,31 @@ const MIMIC_CARD = placeRow(
 
 const T5_BOSS = placeRow(ground("scrap-mountain-guardian", { dy: -60 }));
 
+// 普通难度终局战: 精英居中, 两侧各一只小怪。
+const T5_LITE_COMPACTOR = placeRow(
+  ground("sweep-drone", { x: -426, scale: 1.1 }),
+  ground("scrap-bot"),
+  ground("radio-bot", { x: 426, dy: GROUND_DY + 30, scale: 0.7, flip: true }),
+);
+
+const T5_LITE_SCRAPYARD = placeRow(
+  ground("maintenance-spider", { x: -426, dy: SPIDER_DY, scale: 1.1 }),
+  ground("scrap-bot"),
+  flyer("glass-jelly", { x: 426, scale: 1.2, flip: true }),
+);
+
+const T5_LITE_HIVOLT = placeRow(
+  ground("traffic-light-bot", { x: -426 }),
+  ground("pole-bot"),
+  ground("radio-bot", { x: 426, dy: GROUND_DY + 30, scale: 0.7, flip: true }),
+);
+
+const T5_LITE_ARC = placeRow(
+  flyer("glass-jelly", { x: -426, scale: 1.2 }),
+  ground("pole-bot"),
+  ground("sweep-drone", { x: 426, scale: 1.1, flip: true }),
+);
+
 const TUT_T1_INTRO = placeRow(
   ground("radio-bot", { x: -238, scale: 0.7 }),
   ground("maintenance-spider", { x: 238, dy: SPIDER_DY, scale: 1.1, flip: true }),
@@ -222,6 +247,10 @@ export const ENCOUNTERS: EncounterDef[] = [
   { id: "n-mimic-gear", name: "械匣暗格", enemies: MIMIC_GEAR },
   { id: "n-mimic-card", name: "牌匣暗格", enemies: MIMIC_CARD },
   { id: "n-t5-boss", name: "回收总控", enemies: T5_BOSS },
+  { id: "n-t5-lite-compactor", name: "压缩车间", enemies: T5_LITE_COMPACTOR },
+  { id: "n-t5-lite-scrapyard", name: "废料堆场", enemies: T5_LITE_SCRAPYARD },
+  { id: "n-t5-lite-hivolt", name: "变电闸口", enemies: T5_LITE_HIVOLT },
+  { id: "n-t5-lite-arc", name: "电弧回廊", enemies: T5_LITE_ARC },
   { id: "tut-t1-intro", name: "入门巡逻", enemies: TUT_T1_INTRO },
   { id: "tut-t1-scout", name: "初次接触", enemies: TUT_T1_SCOUT },
   { id: "tut-t2-crew", name: "训练班组", enemies: TUT_T2_CREW },

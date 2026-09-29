@@ -75,9 +75,11 @@
   transition: transform 160ms ease;
 }
 
-.moduleMark svg {
+.moduleMark svg,
+.moduleMark img {
   width: 62%;
   height: 62%;
+  object-fit: contain;
 }
 
 /* DeckCard 在 hover 时会 translateY(-4px), 徽章挂在外层 wrapper 上不会跟着走,

@@ -132,6 +132,7 @@ export function SortieScreen() {
         <SortieBackdrop
           maps={maps}
           mapId={selectedMapId}
+          difficulty={selectedDifficulty}
           depth={visibleStep}
           infoMotion={mapMotion}
           lockReason={lockReason}

@@ -13,6 +13,7 @@ import type { ReactNode } from "react";
 import { regionalTierOf, type RegionalTier } from "@/data/items/catalog/regional";
 import type { EquipSlot, ItemCategory, ItemDef } from "@/items/types";
 import { ModuleGlyph, hasModuleGlyph } from "../moduleGlyphs/moduleGlyphs";
+import { MODULE_ART, MODULE_ART_SOURCES } from "./moduleArt";
 import deflectionBladeArt from "@/assets/道具/装备/武器/太刀.webp";
 import saberArt from "@/assets/道具/装备/武器/军刀.webp";
 import crossSwordArt from "@/assets/道具/装备/武器/盾斧.webp";
@@ -401,6 +402,7 @@ export const ITEM_ART_SOURCES: readonly string[] = [...new Set([
   ...Object.values(EQUIPMENT_ART),
   ...Object.values(CONSUMABLE_ART),
   ...Object.values(MATERIAL_ART),
+  ...MODULE_ART_SOURCES,
   ...Object.values(SCRAP_ART),
   ...Object.values(RELIC_ART),
   relicPlaceholderArt,
@@ -408,6 +410,9 @@ export const ITEM_ART_SOURCES: readonly string[] = [...new Set([
 
 export function itemIcon(def: ItemDef): ReactNode {
   if (def.category === "relic") return <img src={RELIC_ART[def.id] ?? relicPlaceholderArt} alt="" />;
+  const moduleArt = def.category === "module" ? MODULE_ART[def.id] : undefined;
+  if (moduleArt) return <img src={moduleArt} alt="" />;
+
   const art =
     EQUIPMENT_ART[def.id] ??
     (def.familyId ? EQUIPMENT_ART[def.familyId] : undefined) ??
@@ -423,8 +428,7 @@ export function itemIcon(def: ItemDef): ReactNode {
   const regionalTier = regionalTierOf(def.id);
   if (regionalTier) return <RegionalTierIcon tier={regionalTier} />;
 
-  // 成品模组各有专属徽记与配色(见 moduleGlyphs), 不跟随稀有度 currentColor;
-  // 未登记徽记的模组继续走下面的通用 ModuleIcon。
+  // 没有登记图片的模组保留专属矢量徽记作为兜底；当前成品模组优先使用上面的图片映射。
   if (def.category === "module" && hasModuleGlyph(def.id)) return <ModuleGlyph moduleId={def.id} />;
 
   const key = def.icon ?? BY_CATEGORY[def.category];

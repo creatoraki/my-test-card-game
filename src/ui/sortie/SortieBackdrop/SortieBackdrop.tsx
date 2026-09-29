@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState, type CSSProperties } from "react";
-import type { MapDef } from "@/data";
+import type { MapDef, MapDifficulty } from "@/data";
 import type { SortieStep } from "@/store/sortie/sortieStore";
 import { mapArt, warmMapArt } from "@/ui/art/explore/mapArt";
 import { cx } from "@/ui/common/shared/cx";
@@ -12,6 +12,7 @@ const BACKGROUND_SLIDE_MS = 460;
 interface Props {
   maps: readonly MapDef[];
   mapId: string;
+  difficulty: MapDifficulty;
   /** 纵深: 进入物资准备 = 镜头推近一层并压暗, 返回选层时拉远。 */
   depth: SortieStep;
   /** 任务信息随选层步骤进出场; hidden 时不渲染。 */
@@ -28,6 +29,7 @@ interface BackgroundLayer {
 function SortieBackdrop({
   maps,
   mapId,
+  difficulty,
   depth,
   infoMotion,
   lockReason = null,
@@ -89,7 +91,7 @@ function SortieBackdrop({
       <div className={s.depthShade} aria-hidden />
 
       {infoMotion !== "hidden" && (
-        <MapMissionInfo map={map} index={maps.indexOf(map)} motion={infoMotion} lockReason={lockReason} />
+        <MapMissionInfo map={map} difficulty={difficulty} index={maps.indexOf(map)} motion={infoMotion} lockReason={lockReason} />
       )}
     </div>
   );

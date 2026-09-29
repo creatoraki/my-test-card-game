@@ -3,8 +3,7 @@ import { getItemDef } from "@/data";
 import { itemIcon } from "@/ui/art/items/itemArt";
 import s from "./CardModuleMark.module.css";
 
-// 卡面右上角的「已装模组」标识。图形直接复用物品图标派发:
-// 登记了专属徽记的走 ModuleGlyph, 未登记的落到通用 ModuleIcon。
+// 卡面右上角的「已装模组」标识。直接复用物品图标派发，优先使用已登记的模组美术。
 export function CardModuleMark({ card }: { card: Card }) {
   if (!card.cardModule) return null;
   const def = getItemDef(card.cardModule.itemId);

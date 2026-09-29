@@ -1,11 +1,11 @@
 import type { CSSProperties } from "react";
 import type { Card } from "@/engine";
 import type { ItemStack } from "@/items/types";
-import { canEquipModule } from "@/data";
+import { canEquipModule, getItemDef } from "@/data";
+import { itemIcon } from "@/ui/art/items/itemArt";
 import { getModuleTheme } from "@/ui/art/moduleGlyphs/moduleGlyphs";
 import { DeckCard } from "@/ui/common/card/DeckCard";
 import { cx } from "@/ui/common/shared/cx";
-import { CardModuleIcon } from "@/ui/town/assembly/AssemblyScene/icons";
 import { TerminalPanel } from "../TerminalPanel";
 import s from "./AssemblyDeckGrid.module.css";
 
@@ -60,7 +60,7 @@ export function AssemblyDeckGrid({ deck, selectedUid, moduleStacks, onSelect, cl
                       } as CSSProperties
                     }
                   >
-                    <CardModuleIcon />
+                    {itemIcon(getItemDef(card.cardModule.itemId))}
                   </span>
                 )}
               </div>
