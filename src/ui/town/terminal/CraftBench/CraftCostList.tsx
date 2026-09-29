@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { getItemDef, type CraftCheck, type ModuleRecipe } from "@/data";
-import type { ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/items/itemArt";
 import { ExpIcon } from "./craftIcons";
 import s from "./CraftCostList.module.css";
@@ -10,19 +9,15 @@ interface Props {
   check: CraftCheck | null;
   /** 制造者当前的可用经验池。 */
   exp: number;
-  onShowTooltip?: (element: HTMLElement, stack: ItemStack) => void;
-  onHideTooltip?: () => void;
 }
 
-/** 所需材料清单: 首行经验, 其后逐行材料; 每行「需求 / 持有 N」, 不足的行转琥珀色。 */
-export function CraftCostList({ recipe, check, exp, onShowTooltip, onHideTooltip }: Props) {
+/** 所需材料清单: 首行经验, 其后逐行材料; 每行「持有 / 需求 + 足够 or 缺 N」, 足够走青绿、不足走琥珀。 */
+export function CraftCostList({ recipe, check, exp }: Props) {
   return (
     <ul className={s.list}>
       <CostRow icon={<ExpIcon />} name="经验" need={recipe.exp} have={exp} ok={check?.expOk ?? false} />
       {check?.materials.map((material) => {
         const def = getItemDef(material.itemId);
-        // 仓库里是逐 uid 的独立堆, 这里合并成一个只用于提示展示的堆。
-        const stack: ItemStack = { uid: `material-${material.itemId}`, itemId: material.itemId, count: Math.max(material.have, 1) };
         return (
           <CostRow
             key={material.itemId}
@@ -31,8 +26,6 @@ export function CraftCostList({ recipe, check, exp, onShowTooltip, onHideTooltip
             need={material.need}
             have={material.have}
             ok={material.ok}
-            onEnter={(element) => onShowTooltip?.(element, stack)}
-            onLeave={onHideTooltip}
           />
         );
       })}
@@ -46,30 +39,21 @@ interface RowProps {
   need: number;
   have: number;
   ok: boolean;
-  onEnter?: (element: HTMLElement) => void;
-  onLeave?: () => void;
 }
 
-function CostRow({ icon, name, need, have, ok, onEnter, onLeave }: RowProps) {
-  const interactive = Boolean(onEnter);
+function CostRow({ icon, name, need, have, ok }: RowProps) {
+  const lack = Math.max(need - have, 0);
   return (
-    <li
-      className={s.row}
-      data-ok={ok}
-      tabIndex={interactive ? 0 : undefined}
-      aria-label={`${name}，需要 ${need}，持有 ${have}${ok ? "" : "，数量不足"}`}
-      onPointerEnter={(event) => onEnter?.(event.currentTarget)}
-      onPointerLeave={onLeave}
-      onFocus={(event) => onEnter?.(event.currentTarget)}
-      onBlur={onLeave}
-    >
+    <li className={s.row} data-ok={ok} aria-label={`${name}，持有 ${have}，需要 ${need}${ok ? "，数量足够" : `，还缺 ${lack}`}`}>
       <span className={s.icon} aria-hidden="true">{icon}</span>
       <span className={s.name}>{name}</span>
       <span className={s.value} aria-hidden="true">
-        <b>{need}</b>
-        <i>/</i>
-        <span className={s.haveLabel}>持有</span>
         <em>{have}</em>
+        <i>/</i>
+        <b>{need}</b>
+      </span>
+      <span className={s.badge} aria-hidden="true">
+        {ok ? "足够" : `缺 ${lack}`}
       </span>
     </li>
   );

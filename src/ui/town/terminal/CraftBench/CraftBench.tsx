@@ -1,5 +1,5 @@
-// 「03 制造详情」面板: 产出预览(图标 / 名称 / 状态 / 效果) + 所需材料 + 制造按钮。
-import { getItemDef, type CraftCheck, type ModuleRecipe } from "@/data";
+// 「03 制造详情」面板: 产出预览(图标 / 名称 / 状态 / 效果) + 装配条件 + 所需材料 + 制造按钮。
+import { getCardModule, getItemDef, type CraftCheck, type ModuleRecipe } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/items/itemArt";
 import { craftStatusLabel } from "../CraftRecipeGrid/craftStatus";
@@ -24,6 +24,7 @@ interface Props {
 export function CraftBench({ recipe, check, exp, className, onCraft, onShowTooltip, onHideTooltip }: Props) {
   const state: BenchState = !recipe ? "empty" : check?.ok ? "ready" : "blocked";
   const def = recipe ? getItemDef(recipe.itemId) : null;
+  const equipText = recipe ? getCardModule(recipe.itemId)?.equipText : undefined;
   // tooltip 需要一个 ItemStack, 产出物尚未入库, 这里造一个只用于展示的临时堆。
   const previewStack: ItemStack | null = recipe
     ? { uid: `preview-${recipe.itemId}`, itemId: recipe.itemId, count: 1 }
@@ -64,6 +65,12 @@ export function CraftBench({ recipe, check, exp, className, onCraft, onShowToolt
           <p className={s.desc}>{def?.desc ?? "从制造清单中选择要制造的模组。"}</p>
         </div>
       </div>
+      {equipText && (
+        <div className={s.equip}>
+          <span className={s.equipLabel}>装配条件</span>
+          <span className={s.equipText}>{equipText}</span>
+        </div>
+      )}
       <span className={s.divider} aria-hidden="true" />
       <div className={s.materialsHead}>
         <span>所需材料</span>
@@ -72,13 +79,7 @@ export function CraftBench({ recipe, check, exp, className, onCraft, onShowToolt
         </span>
       </div>
       {recipe ? (
-        <CraftCostList
-          recipe={recipe}
-          check={check}
-          exp={exp}
-          onShowTooltip={onShowTooltip}
-          onHideTooltip={onHideTooltip}
-        />
+        <CraftCostList recipe={recipe} check={check} exp={exp} />
       ) : (
         <p className={s.costEmpty}>选择模组后显示所需材料</p>
       )}

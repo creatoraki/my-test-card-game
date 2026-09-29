@@ -1,4 +1,4 @@
-// 制造清单里的一张配方卡: 模组图标 / 名称 / 效果 / 可制造状态 / 编号条码装饰。
+// 制造清单里的一张配方卡: 模组图标 / 名称 / 可制造状态 / 编号条码装饰(效果只在制造详情里看)。
 import { getItemDef, type CraftCheck } from "@/data";
 import { itemIcon } from "@/ui/art/items/itemArt";
 import { craftStatusLabel } from "./craftStatus";
@@ -27,7 +27,6 @@ export function RecipeCard({ itemId, order, check, selected, onSelect }: Props) 
     >
       <span className={s.icon} aria-hidden="true">{itemIcon(def)}</span>
       <strong className={s.name}>{def.name}</strong>
-      <span className={s.desc}>{def.desc}</span>
       <span className={s.rule} aria-hidden="true" />
       <span className={s.tag} data-ok={check?.ok ?? false} aria-hidden="true">
         <span className={s.tagInner}>{status}</span>

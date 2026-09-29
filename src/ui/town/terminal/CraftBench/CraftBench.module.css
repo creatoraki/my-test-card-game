@@ -140,11 +140,44 @@
   -webkit-line-clamp: 3;
 }
 
+/* 装配条件: 产出预览下方独立一行, 左侧切角小签 + 条件正文。 */
+.equip {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 20px;
+  padding: 10px 14px;
+  background: linear-gradient(90deg, #ffffff0c, #ffffff04);
+  border: 1px solid #ffffff17;
+  border-radius: 3px;
+}
+
+.equipLabel {
+  flex: none;
+  padding: 2px 10px;
+  color: #140809;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 1px;
+  background: #d8d2d3;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+
+.equipText {
+  min-width: 0;
+  padding-top: 1px;
+  color: #eeeaea;
+  font-size: 20px;
+  line-height: 1.4;
+}
+
 .divider {
   display: block;
   height: 1px;
   flex: none;
-  margin: 28px -6px 0 -8px;
+  margin: 22px -6px 0 -8px;
   background: linear-gradient(90deg, #ff3b4e, #ff3b4e8c 30%, #ffffff1f 70%, #ffffff0d);
   box-shadow: 0 0 6px #ff3b4e4d;
 }

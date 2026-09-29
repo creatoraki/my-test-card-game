@@ -10,7 +10,7 @@
   aspect-ratio: 198 / 344;
   flex-direction: column;
   align-items: center;
-  padding: 46px 12px 0;
+  padding: 64px 12px 0;
   color: var(--sx-ink);
   text-align: center;
   background:
@@ -103,23 +103,11 @@
   white-space: nowrap;
 }
 
-.desc {
-  display: -webkit-box;
-  min-height: calc(18px * 1.4 * 2);
-  margin-top: 10px;
-  overflow: hidden;
-  color: #d3cdce;
-  font-size: 18px;
-  line-height: 1.4;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
 .rule {
   width: 82%;
   height: 1px;
   flex: none;
-  margin-top: 12px;
+  margin-top: 20px;
   background: linear-gradient(90deg, transparent, #ffffff26 20%, #ffffff26 80%, transparent);
 }
 
@@ -131,7 +119,7 @@
   width: 130px;
   height: 34px;
   flex: none;
-  margin-top: 14px;
+  margin-top: 20px;
   padding: 0 11px;
   background:
     var(--tag-hatch) 0 50% / 7px 14px no-repeat,

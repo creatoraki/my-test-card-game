@@ -1,4 +1,5 @@
-/* 材料行: 设计稿 394×52、行距 4 → 游戏约 452×60、行距 5。行数超出时在本区内滚动。 */
+/* 材料行: 设计稿 394×52、行距 4 → 游戏约 452×60、行距 5。行数超出时在本区内滚动。
+   配色约定: 足够 = 青绿, 不足 = 琥珀(与状态签的「不可制造」同一警示色)。持有数是主角, 需求数退成灰色。 */
 .list {
   display: grid;
   min-height: 0;
@@ -18,24 +19,24 @@
 }
 
 .row {
+  --row-c: var(--craft-ok, #62e3a2);
   display: flex;
   height: 60px;
   flex: none;
   align-items: center;
-  padding: 0 17px 0 21px;
-  background: linear-gradient(90deg, #ffffff0d, #ffffff07 60%, #ffffff0a);
+  padding: 0 14px 0 18px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--row-c) 9%, transparent), #ffffff07 55%, #ffffff0a);
   border: 1px solid #ffffff1c;
+  border-left: 3px solid var(--row-c);
   border-radius: 3px;
   box-shadow: inset 0 1px 0 #ffffff0d;
-  cursor: var(--cursor-default);
-  outline: none;
-  transition: border-color 160ms ease, background-color 160ms ease;
 }
 
-.row[tabindex]:hover,
-.row[tabindex]:focus-visible {
-  border-color: #ffffff47;
-  background-color: #ffffff08;
+.row[data-ok="false"] {
+  --row-c: var(--sx-alert, #ffb454);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--row-c) 16%, transparent), #ffffff07 55%, #ffffff0a);
+  border-color: color-mix(in srgb, var(--row-c) 40%, transparent);
+  border-left-color: var(--row-c);
 }
 
 .icon {
@@ -58,7 +59,7 @@
 
 .name {
   min-width: 0;
-  margin-left: 31px;
+  margin-left: 20px;
   overflow: hidden;
   color: #f4f1f1;
   font-size: 20px;
@@ -72,51 +73,62 @@
   display: flex;
   flex: none;
   align-items: baseline;
-  gap: 8px;
+  gap: 4px;
   margin-left: auto;
   font-variant-numeric: tabular-nums;
 }
 
-.value b {
-  color: #fbf9f9;
+/* 持有数: 跟随行色, 一眼看出够不够。 */
+.value em {
+  color: var(--row-c);
   font-family: var(--font-family);
   font-size: 32px;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--row-c) 45%, transparent);
+}
+
+.value i {
+  margin: 0 2px;
+  color: #6f6a6b;
+  font-family: var(--font-family);
+  font-size: 24px;
+  font-style: normal;
+  line-height: 1;
+}
+
+.value b {
+  color: #bdb7b8;
+  font-family: var(--font-family);
+  font-size: 24px;
   font-weight: 400;
   line-height: 1;
   letter-spacing: 1px;
 }
 
-.value i {
-  margin: 0 2px;
-  color: #8f8a8b;
-  font-family: var(--font-family);
-  font-size: 26px;
-  font-style: normal;
-  line-height: 1;
-}
-
-.haveLabel {
-  color: #d6d0d1;
-  font-size: 20px;
+/* 结论签: 足够 / 缺 N, 与行色一致。 */
+.badge {
+  display: grid;
+  min-width: 70px;
+  height: 30px;
+  flex: none;
+  place-items: center;
+  margin-left: 14px;
+  padding: 0 8px;
+  color: var(--row-c);
+  font-size: 18px;
+  font-weight: 700;
   letter-spacing: 1px;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--row-c) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--row-c) 65%, transparent);
+  border-radius: 2px;
 }
 
-.value em {
-  color: #d6d0d1;
-  font-family: var(--font-family);
-  font-size: 30px;
-  font-style: normal;
-  line-height: 1;
-  letter-spacing: 1px;
-}
-
-/* 不足: 需求数字与左缘转琥珀, 和状态标签同一警示色。 */
-.row[data-ok="false"] {
-  border-left: 2px solid var(--sx-alert, #ffb454);
-  background: linear-gradient(90deg, #ffb45417, #ffffff07 60%, #ffffff0a);
-}
-
-.row[data-ok="false"] .value b,
-.row[data-ok="false"] .value em {
-  color: var(--sx-alert, #ffb454);
+.row[data-ok="false"] .badge {
+  color: #1a1206;
+  background: var(--row-c);
+  border-color: var(--row-c);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--row-c) 50%, transparent);
 }
