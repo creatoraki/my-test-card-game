@@ -15,7 +15,7 @@ import type { ExploreState } from "@/explore/types";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { useBattleStore } from "../battle/battleStore";
 import { useExploreStore } from "../explore/exploreStore";
-import { snapshotTownProfile } from "./expeditionBackup";
+import { ensureTownSnapshot } from "./expeditionBackup";
 import { useTownStore } from "../town/townStore";
 import {
   chooseCurio as chooseCurioAction,
@@ -107,7 +107,9 @@ export const useRunStore = create<RunStore>((set, get) => ({
 
   startExpedition: (mapId, backpack = [], difficulty = "normal") => {
     // 探索期 townStore 的散点写入统一由出击快照兜底, 中途刷新时整档回滚。
-    snapshotTownProfile();
+    // ★ 快照在进入出击准备时就已拍下(sortieStore.open), 这里只兜底, 不覆盖 ——
+    //   否则回滚点会落在「货柜已扣积分、遗物已出仓」之后。
+    ensureTownSnapshot();
     const town = useTownStore.getState();
     const ownedRelicIds = [...town.storage, ...backpack]
       .filter((stack) => getItemDef(stack.itemId).category === "relic")

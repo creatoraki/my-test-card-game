@@ -3,6 +3,8 @@
 // 边界(与 exploreStore 同一条): **不持久化**。准备到一半刷新页面即作废 —— 那是一个还没
 // 发生的远征, 存下来只会让「积分扣了但东西不在仓库也不在背包」这种半截状态漏进存档。
 // ⚠ 正因为不持久化, cancel() 的回滚必须做全: 玩家关页面前唯一的正规出口就是它。
+// ⚠ 非正规出口(刷新 / 关页 / 开发期热重载)由出击快照兜底: open() 在任何出仓扣款之前拍下
+//   城镇档案, 直到远征收尾落袋才提交; 期间刷新, townStore 加载时整档回滚到进准备页之前。
 //
 // 分工: 本 store 只管「带什么走」。真的建立探索会话是 runStore.startExpedition 的事 ——
 // 只有它同时认识 exploreStore 与界面路由。钱与仓库的真相点仍在 townStore, 本 store 不缓存
@@ -21,6 +23,7 @@ import { getItemDef, makeAidSupplyStacks, makeItemStack } from "@/data";
 import { addToContainer, isDisposable, occupiedSlots, removeByUid } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
 import type { MapDifficulty } from "@/data/maps/mapDifficulty";
+import { commitTownBackup, snapshotTownProfile } from "../run/expeditionBackup";
 import { useTownStore } from "../town/townStore";
 
 export type SortieStep = "map" | "prep";
@@ -37,7 +40,7 @@ interface SortieStore {
   backToMap: () => void; // 准备页「重选地图」(已装的物资保留)
   buy: (itemId: string) => boolean; // 货柜购买。false = 钱不够 / 背包满
   takeFromStorage: (uid: string) => boolean; // 仓库物资/遗物 → 背包。false = 背包满或遗物达到上限
-  autoLoadRelics: () => void; // 进入出击准备时按上次回归记录自动装填遗物
+  autoLoadRelics: () => void; // 进入出击准备时自动装填遗物: 先按上次回归记录, 不足上限再用仓库祝福遗物补齐
   putBack: (uid: string) => void; // 背包里的一整堆退回来源
   cancel: () => void; // 取消出击: 全量回滚
   clear: () => void; // 出击成功后清空(不回滚 —— 东西跟着远征走了)
@@ -57,6 +60,9 @@ export const sortieUsedSlots = (backpack: ItemStack[]): number =>
   occupiedSlots(backpack, getItemDef);
 
 export const SORTIE_RELIC_LIMIT = 6;
+
+const carriedRelics = (backpack: ItemStack[]): ItemStack[] =>
+  backpack.filter((stack) => !isDisposable(stack) && getItemDef(stack.itemId).category === "relic");
 
 // 把一整堆退回来源。★ 纯计算 + 副作用集中在这里, putBack 与 cancel 共用同一条规则,
 //   两处各写一份必然在某次改动后对不上。返回新的 { backpack, bought }。
@@ -139,6 +145,8 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
     // 再重置并自动装填，才能保证重复进入不会吞掉仓库物资。
     refundAll(backpack, bought);
     set(emptyState());
+    // ★ 回滚点必须拍在任何出仓 / 扣积分之前: 准备会话不持久化, 之后任何时刻刷新都整档回到这里。
+    snapshotTownProfile();
     get().autoLoadRelics();
   },
 
@@ -178,10 +186,7 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
     if (!peek) return false;
     if (
       getItemDef(peek.itemId).category === "relic" &&
-      backpack.filter(
-        (stack) =>
-          !isDisposable(stack) && getItemDef(stack.itemId).category === "relic",
-      ).length >= SORTIE_RELIC_LIMIT
+      carriedRelics(backpack).length >= SORTIE_RELIC_LIMIT
     )
       return false;
     const probe = addToContainer(backpack, [peek], getItemDef, RULES.burden.backpackSlots);
@@ -192,16 +197,25 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
     return true;
   },
 
+  // 两段装填: ① 上次回归时带着的遗物优先(保留玩家的搭配); ② 仍不足上限时, 按仓库顺序
+  //   补入其余祝福遗物, 于是拥有的遗物不足 6 个时会全部带上。
+  // ⚠ 补齐只取祝福遗物: 诅咒遗物留在仓库等圣水池净化, 不能替玩家自动背上负面效果。
+  // ⚠ 同一 itemId 只带一件, 重复遗物不叠加效果, 白占格子。
   autoLoadRelics: () => {
-    const rememberedIds = useTownStore.getState().lastSortieRelicIds;
-    for (const itemId of new Set(rememberedIds)) {
-      const source = useTownStore
-        .getState()
-        .storage.find(
-          (stack) =>
-            stack.itemId === itemId && getItemDef(stack.itemId).category === "relic",
-        );
-      if (source) get().takeFromStorage(source.uid);
+    const relicStacks = () =>
+      useTownStore.getState().storage.filter((stack) => getItemDef(stack.itemId).category === "relic");
+    const isFull = () => carriedRelics(get().backpack).length >= SORTIE_RELIC_LIMIT;
+    const isCarried = (itemId: string) => carriedRelics(get().backpack).some((stack) => stack.itemId === itemId);
+
+    for (const itemId of new Set(useTownStore.getState().lastSortieRelicIds)) {
+      if (isFull()) return;
+      const source = relicStacks().find((stack) => stack.itemId === itemId);
+      if (source && !isCarried(itemId)) get().takeFromStorage(source.uid);
+    }
+    for (const source of relicStacks()) {
+      if (isFull()) return;
+      if (getItemDef(source.itemId).relic?.polarity !== "blessing" || isCarried(source.itemId)) continue;
+      get().takeFromStorage(source.uid);
     }
   },
 
@@ -213,10 +227,12 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
   },
 
   // 取消出击 = 把背包里每一堆都退回来源, 状态完全回到进准备页之前。
+  // ★ 全量退回后档案已与进准备页前一致, 快照随之作废; 出击成功走 clear(), 快照留给远征收尾提交。
   cancel: () => {
     const { backpack, bought } = get();
     refundAll(backpack, bought);
     set(emptyState());
+    commitTownBackup();
   },
 
   clear: () => set(emptyState()),
