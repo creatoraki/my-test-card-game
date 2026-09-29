@@ -1,13 +1,17 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useConfirmStore } from "@/ui/common/control/ConfirmDialog";
-import { cx } from "@/ui/common/shared/cx";
-import s from "./SettingsPanel.module.css";
+import { PANEL_OUT_MS, PanelShell } from "@/ui/common/frame/PanelShell";
+
+// 设置面板外壳直接走 common/PanelShell(遮罩 + 切角半透面板 + EventPanelFrame)。
+const SETTINGS_ACCENT = "#52cfff";
+const SETTINGS_SIZE = { w: 900 };
 
 export interface SettingsPanelShellProps {
   open: boolean;
   onClose: () => void;
   kicker: string;
   title: string;
+  /** 遮罩层附加类名 —— 各场景据此压自己的 z-index / 遮罩浓度。 */
   scrimClassName?: string;
   children: ReactNode;
 }
@@ -20,6 +24,16 @@ export function SettingsPanelShell({
   scrimClassName,
   children,
 }: SettingsPanelShellProps) {
+  // open 置假后多留 PANEL_OUT_MS 播完退场动画再卸载。
+  const [shown, setShown] = useState(open);
+  if (open && !shown) setShown(true);
+
+  useEffect(() => {
+    if (open || !shown) return;
+    const timer = window.setTimeout(() => setShown(false), PANEL_OUT_MS);
+    return () => window.clearTimeout(timer);
+  }, [open, shown]);
+
   // Esc 关面板。⚠ 用捕获阶段并吃掉事件 —— 战斗页另有 Esc 监听, 面板开着时不该让它抢走这一下。
   // ⚠ 确认框开着时必须让路: 它自己也在 window 捕获阶段听 Esc, 否则会留下确认框而关掉本面板。
   useEffect(() => {
@@ -35,28 +49,20 @@ export function SettingsPanelShell({
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!shown) return null;
 
   return (
-    <div className={cx(s.scrim, scrimClassName)} role="presentation" onClick={onClose}>
-      <section
-        className={s.panel}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="settings-panel-title"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className={s.head}>
-          <div>
-            <span className={s.kicker}>{kicker}</span>
-            <h2 id="settings-panel-title">{title}</h2>
-          </div>
-          <button className={s.close} type="button" aria-label="关闭设置" onClick={onClose}>
-            ×
-          </button>
-        </div>
-        {children}
-      </section>
-    </div>
+    <PanelShell
+      accent={SETTINGS_ACCENT}
+      title={title}
+      status={kicker}
+      closeLabel="关闭设置"
+      closing={!open}
+      onClose={onClose}
+      size={SETTINGS_SIZE}
+      className={scrimClassName}
+    >
+      {children}
+    </PanelShell>
   );
 }

@@ -1,0 +1,197 @@
+/* 系统操作按钮, 照搬探索事件档案 DossierButton 的双线切角板:
+   默认 = 暗色板; 悬浮 / 键盘聚焦 = 主题色实心亮板(深色字)。danger 把主题色换成警示红。
+   主题色 --k 取外壳 PanelShell 下发的 --event-accent。 */
+.grid {
+  --k: var(--event-accent, #52cfff);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 89px;
+  gap: 14px 16px;
+}
+
+.button {
+  --c: 11px;
+  --line: #5a97aa;
+  --fill-a: #0d2635;
+  --fill-b: #051b27;
+  --ink: #e8f3f6;
+  --glyph: #8fe8f4;
+  --sub: #7fdce8;
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 32px 0 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font-family);
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  transition: filter 180ms ease, transform 180ms ease;
+}
+
+.plate,
+.plate::before,
+.plate::after {
+  position: absolute;
+  clip-path: polygon(
+    var(--c) 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c)),
+    0 var(--c)
+  );
+}
+
+.plate {
+  z-index: 0;
+  inset: 0;
+  background: var(--line);
+  transition: background 180ms ease;
+}
+
+.plate::before {
+  --c: 10.4px;
+  inset: 1.5px;
+  content: "";
+  background: linear-gradient(90deg, var(--fill-a) 0%, var(--fill-b) 46%, var(--fill-b) 70%, var(--fill-a) 100%);
+  transition: background 180ms ease;
+}
+
+/* 亮态的实心内芯: 与外细线之间留 3px 暗缝, 还原"双线"质感。 */
+.plate::after {
+  --c: 9px;
+  inset: 5px;
+  content: "";
+  opacity: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 58%, #ffffff) 0%, color-mix(in srgb, var(--k) 82%, #ffffff) 55%, color-mix(in srgb, var(--k) 90%, #ffffff) 100%);
+  transition: opacity 180ms ease;
+}
+
+.icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin: 0 22px 0 30px;
+  color: var(--glyph);
+  transition: color 180ms ease;
+}
+
+.icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.text {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+
+.text strong {
+  overflow: hidden;
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.text em {
+  overflow: hidden;
+  color: var(--sub);
+  font-size: 18px;
+  font-style: normal;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.arrow {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 12px;
+  height: 22px;
+  color: #eef8fa;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.arrow svg {
+  width: 100%;
+  height: 100%;
+}
+
+.button:not(:disabled):hover,
+.button:not(:disabled):focus-visible {
+  --line: color-mix(in srgb, var(--k) 80%, #ffffff);
+  --ink: #04191e;
+  --glyph: #04191e;
+  --sub: #07343c;
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--k) 55%, transparent));
+}
+
+.button:not(:disabled):hover .plate::before,
+.button:not(:disabled):focus-visible .plate::before {
+  background: #032d35;
+}
+
+.button:not(:disabled):hover .plate::after,
+.button:not(:disabled):focus-visible .plate::after {
+  opacity: 1;
+}
+
+.button:not(:disabled):hover .text strong,
+.button:not(:disabled):focus-visible .text strong {
+  font-weight: 700;
+}
+
+.button:not(:disabled):hover .arrow,
+.button:not(:disabled):focus-visible .arrow {
+  color: #04191e;
+  transform: translateX(4px);
+}
+
+.button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+/* danger: 红色描边与图标; 悬浮时整颗亮成红色(亮态读的是 --k)。 */
+.button[data-tone="danger"] {
+  --k: #ff6a5e;
+  --line: #a5524b;
+  --fill-a: #2a1214;
+  --fill-b: #1b0b0d;
+  --glyph: #ff8a80;
+  --sub: #ff8a80;
+}
+
+.button[data-tone="danger"]:not(:disabled):hover,
+.button[data-tone="danger"]:not(:disabled):focus-visible {
+  --sub: #4a0f0b;
+}
+
+.button[data-tone="danger"]:not(:disabled):hover .plate::before,
+.button[data-tone="danger"]:not(:disabled):focus-visible .plate::before {
+  background: #3a0f0d;
+}

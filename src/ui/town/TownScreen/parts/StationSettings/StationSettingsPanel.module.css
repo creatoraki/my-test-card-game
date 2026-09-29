@@ -1,5 +1,6 @@
-/* 据点背景经过 PixelSwap 包装，设置面板只用更深的实心遮罩，不采样底图。 */
+/* 据点设置浮层的层序与遮罩浓度。遮罩只做轻度压暗、不加模糊 ——
+   背景板经过 PixelSwap 包装, 不做整屏 backdrop-filter; 面板自身的毛玻璃只采样面板那一块。 */
 .scrim {
   z-index: 20;
-  background: #020609e6;
+  background: #0206095c;
 }

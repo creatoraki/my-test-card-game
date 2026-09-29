@@ -45,6 +45,7 @@ export function StationSettingsPanel({
         <SettingsAction
           name="重置存档"
           note="清空据点档案，回到第 1 日"
+          icon="reset"
           danger
           onClick={askReset}
         />
@@ -52,6 +53,7 @@ export function StationSettingsPanel({
           <SettingsAction
             name="测试奖励"
             note="发放 2000 经验与 10000 积分"
+            icon="reward"
             onClick={onTestReward}
           />
         )}

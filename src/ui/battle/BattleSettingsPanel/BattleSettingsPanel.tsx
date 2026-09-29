@@ -71,12 +71,14 @@ export function BattleSettingsPanel({
         <SettingsAction
           name="重新开始战斗"
           note="回到本场开局，血量与卡组重置"
+          icon="restart"
           disabled={battleOver}
           onClick={askRestart}
         />
         <SettingsAction
           name="撤退"
           note="结束整趟远征，带着现有收获回据点"
+          icon="retreat"
           danger
           disabled={battleOver}
           onClick={askRetreat}

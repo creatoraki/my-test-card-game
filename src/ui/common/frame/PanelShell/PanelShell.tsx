@@ -31,8 +31,8 @@ interface Props {
   onClose: () => void;
   /** 换配色用: 覆盖 --asm-frame / --asm-glow / --asm-select 等变量。缺省沿用装配舱的青蓝。 */
   themeStyle?: CSSProperties;
-  /** 面板尺寸(设计 px)。缺省 1600×920, 与装配舱两个弹窗一致。 */
-  size?: { w: number; h: number };
+  /** 面板尺寸(设计 px)。缺省 1600×920, 与装配舱两个弹窗一致。省略 h 时高度随内容撑开。 */
+  size?: { w: number; h?: number };
   /** 遮罩层的附加类名 —— 各场景据此压自己的 z-index / 定位(公共组件铁律 3)。 */
   className?: string;
   morph?: {
@@ -71,7 +71,9 @@ export function PanelShell({
   }, [sfx]);
 
   const morphPhase = morph ? (closing ? "closing" : morph.ready ? "open" : "opening") : null;
-  const panelStyle = morph ? box(morph.rect) : { width: `${size.w}px`, height: `${size.h}px` };
+  const panelStyle = morph
+    ? box(morph.rect)
+    : { width: `${size.w}px`, height: size.h === undefined ? "auto" : `${size.h}px` };
 
   return (
     <div
@@ -88,7 +90,7 @@ export function PanelShell({
       style={
         {
           "--panel-w": `${size.w}px`,
-          "--panel-h": `${size.h}px`,
+          "--panel-h": size.h === undefined ? "auto" : `${size.h}px`,
           ...(morph
             ? {
                 "--veil-in-ms": `${SLIDE_MS}ms`,
