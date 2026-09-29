@@ -10,24 +10,30 @@ import flammableArt from "@/assets/buffs/debuffs/易燃.webp";
 import scorchedArt from "@/assets/buffs/debuffs/焦灼.webp";
 import pierceArt from "@/assets/buffs/debuffs/穿孔.webp";
 import sharpArt from "@/assets/buffs/锋利.webp";
-import insuranceArt from "@/assets/buffs/保险.webp";
-import tauntArt from "@/assets/buffs/嘲讽.webp";
+import insuranceArt from "@/assets/buffs/buffs/保险.webp";
+import tauntArt from "@/assets/buffs/buffs/嘲讽.webp";
+import weakArt from "@/assets/buffs/debuffs/虚弱.webp";
+import attackDownArt from "@/assets/buffs/debuffs/萎靡.webp";
+import blindArt from "@/assets/buffs/debuffs/致盲.webp";
+import armorBreakArt from "@/assets/buffs/debuffs/破甲.webp";
+import jamArt from "@/assets/buffs/debuffs/电磁干扰.webp";
+import vulnerableArt from "@/assets/buffs/debuffs/易伤.webp";
 import chargedShellArt from "@/assets/buffs/buffs/充能外壳.webp";
-import retortWallArt from "@/assets/buffs/反应釜壁.webp";
+import retortWallArt from "@/assets/buffs/buffs/反应釜壁.webp";
 import overloadArt from "@/assets/buffs/buffs/过载.webp";
-import echoArt from "@/assets/buffs/回响.webp";
-import feignInjuryArt from "@/assets/buffs/假装受伤.webp";
-import strengthArt from "@/assets/buffs/力量.webp";
+import echoArt from "@/assets/buffs/buffs/回响.webp";
+import feignInjuryArt from "@/assets/buffs/buffs/假装受伤.webp";
+import strengthArt from "@/assets/buffs/buffs/力量.webp";
 import tequilaArt from "@/assets/buffs/buffs/龙舌兰.webp";
 import rashomonArt from "@/assets/buffs/buffs/罗生门.webp";
-import deductibleArt from "@/assets/buffs/免赔.webp";
-import bountyHunterArt from "@/assets/buffs/赏金猎人.webp";
-import vitalityArt from "@/assets/buffs/生机.webp";
+import deductibleArt from "@/assets/buffs/buffs/免赔.webp";
+import bountyHunterArt from "@/assets/buffs/buffs/赏金猎人.webp";
+import vitalityArt from "@/assets/buffs/buffs/生机.webp";
 import ironwallArt from "@/assets/buffs/铁壁.webp";
-import cactusCounterattackArt from "@/assets/buffs/仙人掌.webp";
-import starlightArt from "@/assets/buffs/星辉.webp";
+import cactusCounterattackArt from "@/assets/buffs/buffs/仙人掌.webp";
+import starlightArt from "@/assets/buffs/buffs/星辉.webp";
 import insightArt from "@/assets/buffs/洞察.webp";
-import thornsArt from "@/assets/buffs/荆棘.webp";
+import thornsArt from "@/assets/buffs/buffs/荆棘.webp";
 
 export const STATUS_ART: Record<string, string> = {
   starlight: starlightArt,
@@ -55,6 +61,12 @@ export const STATUS_ART: Record<string, string> = {
   echo: echoArt,
   feignInjury: feignInjuryArt,
   deductible: deductibleArt,
+  weak: weakArt,
+  attackDown: attackDownArt,
+  blind: blindArt,
+  armorBreak: armorBreakArt,
+  jam: jamArt,
+  vulnerable: vulnerableArt,
 };
 
 export const SHIELD_ART: string = shieldArt;
@@ -89,5 +101,11 @@ export const STATUS_ART_SOURCES: readonly string[] = [
   echoArt,
   feignInjuryArt,
   deductibleArt,
+  weakArt,
+  attackDownArt,
+  blindArt,
+  armorBreakArt,
+  jamArt,
+  vulnerableArt,
   shieldArt,
 ];
