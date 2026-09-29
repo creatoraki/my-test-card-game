@@ -10,6 +10,7 @@ import type { CardModuleDef } from "./types";
 export type { CardModuleDef } from "./types";
 export { hasDamageEffect, hasScaledDamage, hasScaledSupport } from "./types";
 export { GENERIC_T1_MODULE_IDS } from "./genericT1";
+export { moduleCratePool, pickModuleFromCrate } from "./crates";
 
 export const CARD_MODULES: CardModuleDef[] = [
   ...CHARACTER_CARD_MODULES,

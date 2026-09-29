@@ -112,8 +112,14 @@ export interface TownStore extends CurioTownSlice {
   wearStack: (charId: string, stack: ItemStack) => ItemStack | null; // 穿上, 返回被替下的旧件
   takeOffStack: (charId: string, slot: EquipSlot) => ItemStack | null; // 卸下并交出
   equipCardModule: (charId: string, cardUid: string, moduleUid: string) => void;
-  /** 直接把一件**不在仓库里**的模组装到卡上(远征途中从待拾取框直接装载)。成功返回 true。 */
+  /** 直接把一件**不在仓库里**的模组装到**空槽**卡上。成功返回 true。 */
   installModuleStack: (charId: string, cardUid: string, stack: ItemStack) => boolean;
+  /** 装配核心(允许顶替): 成功返回被顶下来的旧模组(空槽为 null), 失败返回 null。旧件去向由调用方决定。 */
+  replaceModuleStack: (charId: string, cardUid: string, stack: ItemStack) => { replaced: ItemStack | null } | null;
+  /** 仓库「装载」: 新模组出仓、旧模组回仓。 */
+  installStoredModule: (charId: string, cardUid: string, uid: string) => boolean;
+  /** 仓库拆模组箱: 返回开出的模组(已入仓), 失败返回 null。 */
+  openStoredCrate: (uid: string) => ItemStack | null;
   unequipCardModule: (charId: string, cardUid: string) => void;
   craftModule: (charId: string, itemId: string) => void;
   resetProfile: () => void; // 重置存档

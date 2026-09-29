@@ -18,7 +18,7 @@ export const TUTORIAL_DUNGEON_PLAN: readonly DungeonRoomPlan[] = [
   { kind: "normal", curios: ["tutorialMedical", "tutorialRelicCache"] },
   {
     kind: "boss",
-    curios: ["cashBox"],
+    curios: ["tutorialCashBox"],
     guard: { tier: "t2", encounterId: "tut-t2-crew" },
   },
 ];

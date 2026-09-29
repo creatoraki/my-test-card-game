@@ -1,4 +1,4 @@
-import { GENERIC_T1_MODULE_IDS, newUid } from "@/data";
+import { newUid, pickModuleFromCrate } from "@/data";
 import { rngInt } from "@/engine/core/rng";
 import { rollEquipment } from "@/items/equipRoll";
 import { pickByQuality, rollAffinity, rollCount, type DropContext } from "@/items/drops";
@@ -69,13 +69,12 @@ export function rollEquipCrate(s: ExploreState, ctx: DropContext): ItemStack | n
   });
 }
 
-// 1 阶模组箱 —— 族内均匀随机开出一件 1 阶通用模组。
+// 模组箱 —— 族内均匀随机开出一件对应阶的通用模组(开箱池见 data/cardModules/crates)。
 // ★ 与装备箱不同, 这里**不吃品质右移**: 1 阶模组全部是 fine, 池子里没有别的档可右移到。
 //   等 2/3 阶清单落地后, 再各自出一种对应阶的箱子, 而不是把右移塞进同一个箱子里。
-export function rollModuleCrate(s: ExploreState, ctx: DropContext): ItemStack | null {
-  if (!GENERIC_T1_MODULE_IDS.length) return null;
-  const itemId = GENERIC_T1_MODULE_IDS[rngInt(s, GENERIC_T1_MODULE_IDS.length)];
-  return ctx.makeStack(itemId, 1);
+export function rollModuleCrate(s: ExploreState, ctx: DropContext, tier = 1): ItemStack | null {
+  const itemId = pickModuleFromCrate(tier, (length) => rngInt(s, length));
+  return itemId ? ctx.makeStack(itemId, 1) : null;
 }
 
 export function openCardOffer(s: ExploreState, offers: CardOfferCandidate[]): void {

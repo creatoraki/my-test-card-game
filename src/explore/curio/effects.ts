@@ -5,6 +5,7 @@ import type { ExploreEffect } from "../types";
 import { addPendingLoot, applyEffect } from "../session";
 import type { ExploreState } from "../types";
 import { rewardPool } from "@/data/curios/rules/rewardPools";
+import { getMapDifficulty } from "@/data/maps/mapDifficulty";
 import type { ActorTarget, CurioEffect, CurioEffectContext, CurioLevel } from "@/data/curios/types";
 import { CURIO_LEVEL_RULES } from "@/data/curios/rules/levelRules";
 import { queueAlarm } from "../corridor/alarm";
@@ -33,13 +34,14 @@ function damageMember(s: ExploreState, charId: string, percent: number): string 
   return `${member.name} 损失 ${Math.round(percent * 100)}% 生命`;
 }
 
-/** 按物件等级把奖励池权重向高品质档倾斜：品质档 n 的权重 × gradeBoost^n。 */
+/** 按物件等级把奖励池权重向高品质档倾斜：品质档 n 的权重 × gradeBoost^n；先剔除当前难度禁投的物品。 */
 function rollPoolItem(
   s: ExploreState,
   pool: Extract<CurioEffect, { type: "GAIN_POOL_ITEM" }>,
   level: CurioLevel,
 ): string | null {
-  const entries = rewardPool(pool.pool);
+  const excludes = getMapDifficulty(s.difficulty).curioPoolExcludes;
+  const entries = rewardPool(pool.pool).filter((entry) => !excludes.includes(entry.itemId));
   if (!entries.length) return null;
   const boost = CURIO_LEVEL_RULES[level].gradeBoost;
   const entry = rngPickWeighted(s, [...entries], (candidate) => candidate.weight * boost ** candidate.grade);

@@ -14,6 +14,7 @@ import { persist } from "zustand/middleware";
 import { makeItemStack } from "@/data";
 import { TOWN_PROFILE_KEY, commitTownBackup, restoreTownBackup } from "../run/expeditionBackup";
 import { vitalsOf } from "./characterStats";
+import { createCardModuleSlice } from "../townSlices/cardModuleSlice";
 import { createConditionSlice } from "../townSlices/conditionSlice";
 import { createCurioTownSlice } from "../townSlices/curioTownSlice";
 import { createDeckForgeSlice } from "../townSlices/deckForgeSlice";
@@ -96,6 +97,7 @@ export const useTownStore = create<TownStore>()(
       ...createCurioTownSlice(set, get),
       ...createDeckForgeSlice(set, get),
       ...createStorageSlice(set, get),
+      ...createCardModuleSlice(set, get),
       ...createMemberCareSlice(set, get),
       ...createConditionSlice(set, get),
       ...createSquadTalentSlice(set, get),

@@ -1,0 +1,142 @@
+/* 物品操作卡: 挂在设计画布内(设计 px), 位置由 tooltipStyle 下发 left/top。
+   深色玻璃切角面板 + 顶部稀有度光条 + 底部指向格子的小三角。正文字号最小 18px。 */
+
+.card {
+  --rr: var(--rarity-common);
+  position: absolute;
+  z-index: 1001;
+  box-sizing: border-box;
+  width: 420px;
+  padding-bottom: 12px; /* 底部三角的高度 */
+  filter: drop-shadow(0 16px 28px #000000b0);
+  animation: cardIn 200ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.panel {
+  --card-cut: 14px;
+  position: relative;
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  color: #e6f1f5;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%, color-mix(in srgb, var(--rr) 16%, transparent), transparent 70%),
+    linear-gradient(180deg, #13212af2, #0a1217f7);
+  border: 1px solid color-mix(in srgb, var(--rr) 45%, #ffffff22);
+  clip-path: polygon(
+    var(--card-cut) 0,
+    100% 0,
+    100% calc(100% - var(--card-cut)),
+    calc(100% - var(--card-cut)) 100%,
+    0 100%,
+    0 var(--card-cut)
+  );
+}
+
+.accent {
+  position: absolute;
+  top: 0;
+  left: var(--card-cut);
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--rr), color-mix(in srgb, var(--rr) 20%, transparent));
+  box-shadow: 0 0 10px var(--rr);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.meta {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  overflow: hidden;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.count {
+  color: #9fb4c0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #9fb4c0;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.rarity {
+  color: var(--rr);
+  font-weight: 700;
+}
+
+.dot {
+  opacity: 0.6;
+}
+
+.desc {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #c8d8de;
+  font-size: 18px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.hint {
+  margin: -2px 0 0;
+  color: #ffcf7a;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+/* 底部三角: 用两层叠出「描边 + 填充」, 横向位置跟随锚点。 */
+.arrow {
+  position: absolute;
+  bottom: 1px;
+  left: clamp(24px, var(--arrow-x), calc(100% - 24px));
+  width: 22px;
+  height: 13px;
+  background: color-mix(in srgb, var(--rr) 45%, #ffffff22);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform: translateX(-50%);
+}
+
+.arrow::after {
+  content: "";
+  position: absolute;
+  inset: 0 2px 2px;
+  top: -1px;
+  background: #0a1217;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -9,7 +9,7 @@ import { useCallback, useState, type ReactNode } from "react";
 import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 import type { SlotAction } from "@/ui/common/item/ItemActionMask";
-import { ModuleInstallDialog } from "./ModuleInstallDialog";
+import { ExploreModuleInstall } from "./ExploreModuleInstall";
 
 interface Options {
   /** 「拾取」时执行的原有拾取动作。 */
@@ -43,7 +43,7 @@ export function useLootSlotActions({ onTake }: Options): LootSlotActions {
   );
 
   const overlay = installing ? (
-    <ModuleInstallDialog stack={installing} onClose={() => setInstalling(null)} />
+    <ExploreModuleInstall stack={installing} source="loot" onClose={() => setInstalling(null)} />
   ) : null;
 
   return { isModule, actionsFor, overlay };

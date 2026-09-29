@@ -7,6 +7,7 @@
 
 import { useState, type MouseEvent } from "react";
 import { cx } from "@/ui/common/shared/cx";
+import type { ActionIconName } from "@/ui/common/item/ItemActionCard/actionIcons";
 import s from "./ItemActionMask.module.css";
 
 export interface SlotAction {
@@ -16,6 +17,10 @@ export interface SlotAction {
   disabled?: boolean;
   /** 传了就需要二次确认, 确认态按钮显示这段文字。 */
   confirmLabel?: string;
+  /** 操作卡(ItemActionCard)上按钮左侧的小图标; 格内遮罩不画。 */
+  icon?: ActionIconName;
+  /** 置灰理由, 操作卡底部写成一行小字(项目禁用原生 title); 格内遮罩不画。 */
+  hint?: string;
   onSelect: () => void;
 }
 

@@ -1,7 +1,7 @@
 .loot-layer {
   position: absolute;
   inset: 0;
-  /* 必须压过背包面板(z-index: 40): 在背包里开模组箱时, 开出的模组直接进待拾取框,
+  /* 必须压过背包面板(z-index: 40): 背包打开时产生的待拾取物(如事件掉落)
      盖在背包下面的话玩家会以为东西丢了。 */
   z-index: 44;
   display: grid;

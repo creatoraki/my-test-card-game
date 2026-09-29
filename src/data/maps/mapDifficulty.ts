@@ -17,6 +17,8 @@ export interface MapDifficultyDef {
   reward: MapClearRewardDef;
   /** 该难度下随机房间图的物件等级区间。 */
   curioLevelRange: readonly [CurioLevel, CurioLevel];
+  /** 交互物奖励池在该难度下剔除的物品；普通难度(含新手关)金币只由首领与宝箱怪投放。 */
+  curioPoolExcludes: readonly string[];
 }
 
 export const MAP_DIFFICULTIES: Record<MapDifficulty, MapDifficultyDef> = {
@@ -24,6 +26,7 @@ export const MAP_DIFFICULTIES: Record<MapDifficulty, MapDifficultyDef> = {
     id: "normal",
     name: "普通",
     curioLevelRange: [1, 3],
+    curioPoolExcludes: ["gold-coin"],
     reward: {
       materialCount: 3,
       equipRarity: "common",
@@ -35,6 +38,7 @@ export const MAP_DIFFICULTIES: Record<MapDifficulty, MapDifficultyDef> = {
     id: "hard",
     name: "困难",
     curioLevelRange: [2, 4],
+    curioPoolExcludes: [],
     reward: {
       materialCount: 5,
       equipRarity: "fine",
@@ -47,6 +51,7 @@ export const MAP_DIFFICULTIES: Record<MapDifficulty, MapDifficultyDef> = {
     id: "abyss",
     name: "深渊",
     curioLevelRange: [3, 5],
+    curioPoolExcludes: [],
     reward: {
       materialCount: 5,
       equipRarity: "rare",

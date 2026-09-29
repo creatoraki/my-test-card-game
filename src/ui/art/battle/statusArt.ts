@@ -34,6 +34,12 @@ import cactusCounterattackArt from "@/assets/buffs/buffs/仙人掌.webp";
 import starlightArt from "@/assets/buffs/buffs/星辉.webp";
 import insightArt from "@/assets/buffs/洞察.webp";
 import thornsArt from "@/assets/buffs/buffs/荆棘.webp";
+import illOmenArt from "@/assets/buffs/debuffs/凶兆.webp";
+import insectTrapArt from "@/assets/buffs/debuffs/捕虫夹.webp";
+import stunArt from "@/assets/buffs/debuffs/眩晕.webp";
+import etchArt from "@/assets/buffs/debuffs/蚀刻.webp";
+import slowArt from "@/assets/buffs/debuffs/迟滞.webp";
+import staticArt from "@/assets/buffs/debuffs/静电.webp";
 
 export const STATUS_ART: Record<string, string> = {
   starlight: starlightArt,
@@ -67,6 +73,12 @@ export const STATUS_ART: Record<string, string> = {
   armorBreak: armorBreakArt,
   jam: jamArt,
   vulnerable: vulnerableArt,
+  illOmen: illOmenArt,
+  insectTrap: insectTrapArt,
+  stun: stunArt,
+  etch: etchArt,
+  slow: slowArt,
+  static: staticArt,
 };
 
 export const SHIELD_ART: string = shieldArt;
@@ -107,5 +119,11 @@ export const STATUS_ART_SOURCES: readonly string[] = [
   armorBreakArt,
   jamArt,
   vulnerableArt,
+  illOmenArt,
+  insectTrapArt,
+  stunArt,
+  etchArt,
+  slowArt,
+  staticArt,
   shieldArt,
 ];

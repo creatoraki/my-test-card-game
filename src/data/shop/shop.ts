@@ -15,7 +15,7 @@ import { rollEquipment } from "@/items/equipRoll";
 import { RARITY_ORDER } from "@/items/types";
 import { ROLLABLE_BOND_IDS } from "../roster/bonds";
 import { RANDOM_RELIC_POOL } from "../items/relics";
-import { EQUIPMENT_ITEM_DEFS, MATERIAL_ITEM_DEFS } from "../items";
+import { EQUIPMENT_ITEM_DEFS, GENERIC_MODULE_ITEM_DEFS, MATERIAL_ITEM_DEFS } from "../items";
 import { relicBuyValue } from "../items/rules/pricing";
 
 // ---------------------------------------------------------------------------
@@ -61,9 +61,10 @@ export const SHOP_LEVELS: Record<number, ShopLevel> = {
 export const DEFAULT_SHOP_LEVEL = 1;
 
 export const SHOP_KIND_WEIGHTS = {
-  card: 40,
-  equipment: 35,
-  material: 20,
+  card: 36,
+  equipment: 32,
+  material: 17,
+  module: 10,
   relic: 5,
 } as const;
 
@@ -94,6 +95,8 @@ const sellable = (category: ItemDef["category"]): ItemDef[] =>
 const EQUIP_POOL = sellable("equipment");
 const MATERIAL_POOL = sellable("material");
 const RELIC_POOL = RANDOM_RELIC_POOL;
+// 只有通用模组标了 buyValue; 角色模组留给装配舱制造, 不上架。
+const MODULE_POOL = GENERIC_MODULE_ITEM_DEFS.filter((def) => def.buyValue != null);
 
 // ---------------------------------------------------------------------------
 // 生成工具
@@ -129,6 +132,7 @@ function pickByWeight(
 function poolOf(kind: ShopItemKind): ItemDef[] {
   if (kind === "equipment") return EQUIP_POOL;
   if (kind === "material") return MATERIAL_POOL;
+  if (kind === "module") return MODULE_POOL;
   return RELIC_POOL;
 }
 
@@ -144,7 +148,10 @@ export function rollShopItemSlot(
 
   const cfg = shopLevel(level);
   let def: ItemDef | undefined;
-  for (let tries = 0; tries < 24; tries += 1) {
+  // ★ 通用模组的阶 = 稀有度, 1 级商店的品质权重只开了 common —— 走 pickByWeight 会退化成
+  //   「永远出排序第一的那件」。模组池因此在未上架的候选里均匀随机, 不吃品质权重。
+  if (kind === "module") def = unused[pickIndex(unused.length, rand)];
+  for (let tries = 0; !def && tries < 24; tries += 1) {
     const candidate = pickByWeight(pool, cfg.weights, rand);
     if (!candidate) break;
     if (!used.has(candidate.id)) {

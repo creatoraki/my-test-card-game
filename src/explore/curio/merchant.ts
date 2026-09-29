@@ -1,4 +1,4 @@
-import { getItemDef, makeRolledItemStack } from "@/data";
+import { GENERIC_T1_MODULE_IDS, getItemDef, makeRolledItemStack } from "@/data";
 import { rngPick, shuffle } from "@/engine/core/rng";
 import { addToContainer, consumeItems, countByItemId, stackSlots } from "@/items/inventory";
 import { RULES } from "@/engine/core/battleRules";
@@ -47,7 +47,8 @@ export function createMerchantShelf(s: ExploreState, cards: CardOfferCandidate[]
       sold: false,
     });
   }
-  slots.push(itemSlot(s, "attack-module-t1", foods));
+  // 模组货位在 1 阶通用模组里随机, 不再固定攻击力模组。
+  if (GENERIC_T1_MODULE_IDS.length) slots.push(itemSlot(s, rngPick(s, GENERIC_T1_MODULE_IDS), foods));
   const relicId = randomRelicId(s);
   if (relicId) {
     const stack = makeRolledItemStack(s, relicId, 1);

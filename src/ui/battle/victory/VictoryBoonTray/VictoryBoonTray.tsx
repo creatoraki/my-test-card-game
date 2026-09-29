@@ -9,8 +9,7 @@ import type { BattleBoonKind, PendingBoon } from "@/explore/types";
 import cardOfferArt from "@/assets/通用素材/卡牌奖励.webp";
 import healDewArt from "@/assets/通用素材/治疗露珠.webp";
 import equipCrateArt from "@/assets/通用素材/装备宝箱.webp";
-// TODO 美术: 模组箱暂用占位素材, 补正式图后只换这一行。
-import moduleCrateArt from "@/assets/占位素材.webp";
+import moduleCrateArt from "@/assets/道具/消耗品/1阶模组箱.webp";
 import victoryCell from "@/ui/battle/styles/victoryCell.module.css";
 import s from "./VictoryBoonTray.module.css";
 

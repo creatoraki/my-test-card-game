@@ -112,7 +112,7 @@ export const BOSS_ENEMIES: EnemyDef[] = [
     boonTable: [
       { kind: "healDew", chance: 0.8 },
       { kind: "equipCrate", chance: 1 },
-      { kind: "moduleCrate", chance: 0.5 },
+      { kind: "moduleCrate", chance: 1 },
       { kind: "cardOffer", chance: 1 },
     ],
   },

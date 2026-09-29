@@ -146,6 +146,12 @@ export const LOOT_CURIOS = {
         }),
         byJob("alchemist", { chanceDelta: -0.25, note: "炼金术士先中和了封存层里的残留气体" }),
       ),
+    }, {
+      // 稳妥的另一条路: 不拆封存层, 整箱带走 —— 多占一格背包, 回头在背包或仓库里再拆。
+      id: "carryCase",
+      label: "整箱带走",
+      story: "你们没有惊动封存层，把整个模组箱塞进了背包。",
+      effects: [{ type: "GAIN_ITEM", itemId: "module-crate-t1", count: 1 }],
     }],
   },
 } satisfies Partial<Record<CurioKind, CurioDef>>;

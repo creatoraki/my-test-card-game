@@ -1,14 +1,6 @@
-// 物资中转仓与装备 —— 落袋、出售、仓库 ↔ 装备槽、卡牌模组装配与模组制造。
+// 物资中转仓与装备 —— 落袋、出售、仓库 ↔ 装备槽。卡牌模组相关见 cardModuleSlice。
 
-import {
-  canEquipModule,
-  craftCheck,
-  getItemDef,
-  getModuleRecipe,
-  makeItemStack,
-  recomputeCardModule,
-  sellPriceOf,
-} from "@/data";
+import { getItemDef, sellPriceOf } from "@/data";
 import { removeByUid } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
 import { shiftVitals } from "../town/characterStats";
@@ -26,10 +18,6 @@ export type StorageSlice = Pick<
   | "unequipItem"
   | "wearStack"
   | "takeOffStack"
-  | "equipCardModule"
-  | "installModuleStack"
-  | "unequipCardModule"
-  | "craftModule"
 >;
 
 export function createStorageSlice(set: TownSet, get: TownGet): StorageSlice {
@@ -153,92 +141,6 @@ export function createStorageSlice(set: TownSet, get: TownGet): StorageSlice {
         },
       });
       return { ...st };
-    },
-
-    equipCardModule: (charId, cardUid, moduleUid) => {
-      const moduleStack = get().storage.find((stack) => stack.uid === moduleUid);
-      if (!moduleStack) return;
-      // ★ 先装、装成了才扣仓库 —— 校验全在 installModuleStack 里, 这里不重复一遍。
-      if (get().installModuleStack(charId, cardUid, moduleStack))
-        set({ storage: removeByUid(get().storage, moduleUid) });
-    },
-
-    // 模组来源无关的装配核心。仓库装配与远征途中「从战利品直接装载」共用同一份校验,
-    // 差别只在调用方要不要把这件模组从某个容器里扣掉。
-    installModuleStack: (charId, cardUid, moduleStack) => {
-      const { characters } = get();
-      const cs = characters[charId];
-      const card = cs?.deck.find((entry) => entry.uid === cardUid);
-      if (!cs || !card || card.cardModule) return false;
-      if (getItemDef(moduleStack.itemId).category !== "module") return false;
-      if (!canEquipModule(card, moduleStack.itemId)) return false;
-
-      const nextCard = { ...card, cardModule: { uid: moduleStack.uid, itemId: moduleStack.itemId } };
-      recomputeCardModule(nextCard);
-      set({
-        characters: {
-          ...characters,
-          [charId]: {
-            ...cs,
-            deck: cs.deck.map((entry) => (entry.uid === cardUid ? nextCard : entry)),
-          },
-        },
-      });
-      return true;
-    },
-
-    unequipCardModule: (charId, cardUid) => {
-      const { storage, characters } = get();
-      const cs = characters[charId];
-      const card = cs?.deck.find((entry) => entry.uid === cardUid);
-      if (!cs || !card?.cardModule) return;
-
-      const nextCard = { ...card, cardModule: null };
-      recomputeCardModule(nextCard);
-      set({
-        storage: [...storage, { uid: card.cardModule.uid, itemId: card.cardModule.itemId, count: 1 }],
-        characters: {
-          ...characters,
-          [charId]: {
-            ...cs,
-            deck: cs.deck.map((entry) => (entry.uid === cardUid ? nextCard : entry)),
-          },
-        },
-      });
-    },
-
-    // ---- 模组制造 ----
-    // 选定角色 → 按配方扣该角色经验与仓库材料 → 产出模组进仓库。
-    // ⚠ 可行性判定统一走 data/crafting/moduleCrafting 的 craftCheck, UI 的置灰读的是同一个函数。
-    craftModule: (charId, itemId) => {
-      const { storage, characters } = get();
-      const cs = characters[charId];
-      const recipe = getModuleRecipe(charId, itemId);
-      if (!cs || !recipe) return;
-      if (!craftCheck(recipe, cs.exp, storage).ok) return;
-
-      // 逐堆扣材料: 仓库存的是逐 uid 的独立堆, 扣空的堆整堆移除。
-      let nextStorage = storage;
-      for (const material of recipe.materials) {
-        let left = material.count;
-        for (const stack of nextStorage.filter((entry) => entry.itemId === material.itemId)) {
-          if (left <= 0) break;
-          const take = Math.min(left, stack.count);
-          left -= take;
-          nextStorage =
-            take >= stack.count
-              ? removeByUid(nextStorage, stack.uid)
-              : nextStorage.map((entry) =>
-                  entry.uid === stack.uid ? { ...entry, count: entry.count - take } : entry,
-                );
-        }
-      }
-
-      set({
-        storage: [...nextStorage, makeItemStack(recipe.itemId)],
-        // expEarned 是累计获得量, 只增不减 —— 消费只动可用经验池。
-        characters: { ...characters, [charId]: { ...cs, exp: cs.exp - recipe.exp } },
-      });
     },
   };
 }

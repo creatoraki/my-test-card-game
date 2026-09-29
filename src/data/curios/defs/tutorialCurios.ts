@@ -75,4 +75,18 @@ export const TUTORIAL_CURIOS = {
       }],
     }],
   },
+  // 演示换金物拾取；金币只由首领与宝箱怪投放，这里固定给铜币。
+  tutorialCashBox: {
+    name: "遗落的钱箱",
+    role: "loot",
+    verb: "清点",
+    size: 120,
+    description: "钱箱被丢在角落，锁扣已经断开，箱底还剩几枚旧铜币。",
+    decisions: [{
+      id: "grabCoins",
+      label: "收走铜币",
+      story: "你们打开钱箱，收走了箱底的两枚铜币。",
+      effects: [{ type: "GAIN_ITEM", itemId: "copper-coin", count: 2 }],
+    }],
+  },
 } satisfies Partial<Record<CurioKind, CurioDef>>;

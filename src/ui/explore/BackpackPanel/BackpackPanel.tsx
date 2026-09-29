@@ -35,6 +35,7 @@ import {
   EventPanelStage,
 } from "@/ui/common/widget/EventPanel";
 import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
+import { useBackpackModules } from "@/ui/explore/BackpackModules";
 import { cx } from "@/ui/common/shared/cx";
 import s from "./BackpackPanel.module.css";
 
@@ -57,6 +58,7 @@ export default function BackpackPanel({
   const [selected, setSelected] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null); // 丢弃二次确认的 uid
   const [shipping, setShipping] = useState<string[]>([]); // 寄件模式的勾选
+  const modules = useBackpackModules();
 
   const backpack = session?.backpack ?? [];
   // 与底部背包同一套分区排序(只排展示, 不动存储顺序)。
@@ -196,15 +198,21 @@ export default function BackpackPanel({
                 >
                   {sel && selDef && (
                     <>
+                      {/* 模组随时可装载(阶段白名单同背包本身); 模组箱与消耗品同受 canUseItem 约束。 */}
+                      {modules.isModule(sel) && (
+                        <EventPanelButton tone="primary" className={s["bp-mini"]} onClick={() => modules.install(sel)}>
+                          装载
+                        </EventPanelButton>
+                      )}
                       {selDef.use && (
                         <>
                           <EventPanelButton
                             tone="primary"
                             className={s["bp-mini"]}
                             disabled={!canUseItem(session)}
-                            onClick={() => sel && onUse(sel)}
+                            onClick={() => (modules.isCrate(sel) ? modules.openCrate(sel) : onUse(sel))}
                           >
-                            使用
+                            {modules.isCrate(sel) ? "拆箱" : "使用"}
                           </EventPanelButton>
                           {/* 原生 title 提示已去掉, 锁定理由直接写在按钮下面(项目约定: 不用 title) */}
                           {!canUseItem(session) && <p className={s["bp-locked"]}>本阶段不能使用消耗品</p>}
@@ -257,6 +265,7 @@ export default function BackpackPanel({
           </EventPanelStage>
         </EventPanelFrame>
       </section>
+      {modules.overlay}
     </div>
   );
 }

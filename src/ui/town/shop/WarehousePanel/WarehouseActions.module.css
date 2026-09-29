@@ -1,0 +1,19 @@
+/* 仓库操作区: 贴在详情卡下方, 一排按钮 + 一行说明。 */
+
+.actions {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 12px;
+  margin-top: 10px;
+  border-top: 1px solid var(--sx-line, #2b3b45);
+}
+
+.note {
+  flex: 1 0 100%;
+  margin: 0;
+  color: var(--sx-dim, #9fb4c0);
+  font-size: 18px;
+  line-height: 1.45;
+}

@@ -53,6 +53,16 @@ export const RELIC_BUY_BY_RARITY: Record<ItemRarity, number> = {
   legendary: 3200,
 };
 
+// 通用模组的据点商店挂牌价(阶 = 稀有度)。角色模组只能在装配舱制造, 不上架。
+// ⚠ 只标 buyValue、不标 sellValue: 模组不进回收台(《通用模组设计.md》§1)。
+export const MODULE_BUY_BY_RARITY: Record<ItemRarity, number> = {
+  common: 150,
+  fine: 150,
+  rare: 300,
+  epic: 560,
+  legendary: 900,
+};
+
 export const relicBuyValue = (def: ItemDef): number => RELIC_BUY_BY_RARITY[def.rarity];
 
 // 祝福遗物的回收价(普通档 100 = 商店价的 1/5)。诅咒遗物不收，只能去圣所净化。

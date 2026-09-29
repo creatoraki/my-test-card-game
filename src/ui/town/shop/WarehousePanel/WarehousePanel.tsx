@@ -80,7 +80,7 @@ export default function WarehousePanel({ columns = 6 }: WarehousePanelProps) {
           </footer>
         </div>
 
-        <WarehouseDetail stack={selectedStack} />
+        <WarehouseDetail stack={selectedStack} onSelect={setSelectedUid} />
       </div>
     </div>
   );

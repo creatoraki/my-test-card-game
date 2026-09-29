@@ -50,6 +50,8 @@ export interface ItemInventoryPanelProps {
    * 返回空数组 = 这一格点了不进交互模式。启用后点击不再走选中逻辑。
    */
   slotActions?: (stack: ItemStack) => SlotAction[];
+  /** 交互模式的呈现: mask = 格内遮罩(默认); card = 格子上方浮出操作卡(探索底部物品栏)。 */
+  actionStyle?: "mask" | "card";
   footer?: ReactNode;
   panelId?: string;
   colorMap?: InventoryColorMap;
@@ -91,6 +93,7 @@ export default function ItemInventoryPanel({
   renderSelectedInfo,
   sectioned = false,
   slotActions,
+  actionStyle = "mask",
   footer,
   panelId = "item-inventory-panel",
   colorMap,
@@ -116,7 +119,8 @@ export default function ItemInventoryPanel({
   const activeSelectedUid = isControlled ? selectedUid : internalSelectedUid;
   const selectedStack =
     stacks.find((stack) => stack.uid === activeSelectedUid) ?? null;
-  const hoveredStack = hoveredItem
+  // 操作卡已经把「这是什么」讲清楚了, 正在交互的那一格不再叠悬浮详情。
+  const hoveredStack = hoveredItem && !(actionStyle === "card" && hoveredItem.uid === actionMode.activeUid)
     ? stacks.find((stack) => stack.uid === hoveredItem.uid) ?? null
     : null;
 
@@ -248,13 +252,20 @@ export default function ItemInventoryPanel({
                   mark={marks?.[index]}
                   rowStart={index % safeColumns === 0}
                   actions={actionMode.activeUid === stack.uid ? activeActions : null}
+                  actionStyle={actionStyle}
                   onClick={() => handleClick(stack)}
                   onDismiss={actionMode.close}
-                  onEnter={(element) => showTooltip(stack, tooltipPointFromElement(element))}
+                  onEnter={(element) => {
+                    if (actionMode.activeUid === stack.uid) actionMode.keepOpen();
+                    showTooltip(stack, tooltipPointFromElement(element));
+                  }}
                   onLeave={() => {
                     hideTooltip(stack.uid);
-                    actionMode.closeIf(stack.uid);
+                    if (actionStyle === "card") actionMode.closeSoon(stack.uid);
+                    else actionMode.closeIf(stack.uid);
                   }}
+                  onCardEnter={actionMode.keepOpen}
+                  onCardLeave={() => actionMode.closeSoon(stack.uid)}
                 />
               ) : (
                 <div

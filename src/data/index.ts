@@ -115,6 +115,8 @@ export {
   hasDamageEffect,
   hasScaledDamage,
   hasScaledSupport,
+  moduleCratePool,
+  pickModuleFromCrate,
   recomputeCardModule,
   type CardModuleDef,
 } from "./cardModules";

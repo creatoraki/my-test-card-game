@@ -1,0 +1,113 @@
+/* 切角按钮: 外层渐变描边 + 内层面板两层 clip-path(与据点货架标签同一手法)。
+   悬浮时一道斜向扫光划过, 按下整体下沉 1px。文字 18px。 */
+
+.btn {
+  --ab-color: #c9d6dc;
+  --ab-edge: #5f7179;
+  --ab-bg: #17232a;
+  --ab-cut: 8px;
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  height: 44px;
+  padding: 1px;
+  color: var(--ab-color);
+  font-family: var(--font-family);
+  background: linear-gradient(135deg, var(--ab-color), var(--ab-edge) 45%, var(--ab-color));
+  border: 0;
+  clip-path: polygon(var(--ab-cut) 0, 100% 0, 100% calc(100% - var(--ab-cut)), calc(100% - var(--ab-cut)) 100%, 0 100%, 0 var(--ab-cut));
+  cursor: var(--cursor-pointer);
+  transition: transform 120ms ease, filter 160ms ease;
+  animation: abIn 220ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(var(--ab-order, 0) * 30ms + 60ms);
+}
+
+.btn[data-tone="primary"] { --ab-color: #8fe6ff; --ab-edge: #2c8fb0; --ab-bg: #0d2c38; }
+.btn[data-tone="module"] { --ab-color: #d2b8ff; --ab-edge: #7a52c4; --ab-bg: #25163f; }
+.btn[data-tone="danger"] { --ab-color: #ffa4ae; --ab-edge: #b8384b; --ab-bg: #3a121a; }
+
+.block {
+  flex: 1 1 0;
+}
+
+.face {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 16px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, #ffffff14, transparent 55%),
+    var(--ab-bg);
+  clip-path: polygon(calc(var(--ab-cut) - 1px) 0, 100% 0, 100% calc(100% - var(--ab-cut) + 1px), calc(100% - var(--ab-cut) + 1px) 100%, 0 100%, 0 calc(var(--ab-cut) - 1px));
+}
+
+/* 扫光 */
+.face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, color-mix(in srgb, var(--ab-color) 38%, transparent) 50%, transparent 70%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+
+.btn:hover:not(:disabled) .face::after {
+  transform: translateX(120%);
+  transition: transform 520ms ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ab-color) 55%, transparent));
+}
+
+.label {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--ab-color) 40%, transparent);
+}
+
+.btn:disabled {
+  --ab-color: #6d7d84;
+  --ab-edge: #34434a;
+  --ab-bg: #0f171b;
+  cursor: not-allowed;
+}
+
+.btn:disabled .icon {
+  filter: none;
+}
+
+.armed {
+  animation:
+    abIn 220ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards,
+    abArmed 900ms ease-in-out infinite;
+}
+
+@keyframes abIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes abArmed {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.45) drop-shadow(0 0 8px #ff7a8a); }
+}

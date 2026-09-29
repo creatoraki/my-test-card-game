@@ -24,6 +24,7 @@ const CURIO_THEME: Record<CurioKind, DossierThemeId> = {
   merchant: "supply",
   tutorialArmory: "supply",
   tutorialRelicCache: "supply",
+  tutorialCashBox: "supply",
 
   collapsedCeiling: "danger",
   leakingPipe: "danger",

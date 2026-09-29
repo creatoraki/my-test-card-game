@@ -23,6 +23,6 @@ export const ARK_BOSSES: EnemyDef[] = [{
   dropTable: arkDrops("boss", "standard-battery"),
   boonTable: [
     { kind: "healDew", chance: 0.8 }, { kind: "equipCrate", chance: 1 },
-    { kind: "moduleCrate", chance: 0.5 }, { kind: "cardOffer", chance: 1 },
+    { kind: "moduleCrate", chance: 1 }, { kind: "cardOffer", chance: 1 },
   ],
 }];

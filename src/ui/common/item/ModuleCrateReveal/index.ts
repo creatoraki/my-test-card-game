@@ -1,0 +1,1 @@
+export { ModuleCrateReveal } from "./ModuleCrateReveal";

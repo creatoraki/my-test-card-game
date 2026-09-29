@@ -1,4 +1,5 @@
 import type { ItemDef } from "@/items/types";
+import { MODULE_BUY_BY_RARITY } from "../rules/pricing";
 
 /** 1 阶通用模组的族 id。掉落表写 family 时按稀有度右移, 阶 = 稀有度(《通用模组设计.md》§2)。 */
 export const GENERIC_MODULE_FAMILY = "generic-module";
@@ -112,7 +113,7 @@ export const MODULE_ITEM_DEFS: ItemDef[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// 1 阶通用模组 —— 只从战斗掉落, 不可制造, 不进商店也不进回收台(不填 sellValue/buyValue)。
+// 1 阶通用模组 —— 战斗掉落 / 探索投放 / 据点商店上架, 不可制造, 不进回收台(只填 buyValue)。
 // ★ 阶 = 稀有度: 1 阶统一 fine, 名称直接带阶数字, 玩家不用读稀有度色就能比强弱。
 // ---------------------------------------------------------------------------
 function genericModuleT1(id: string, name: string, desc: string): ItemDef {
@@ -125,6 +126,7 @@ function genericModuleT1(id: string, name: string, desc: string): ItemDef {
     maxStack: 1,
     icon: "module",
     familyId: GENERIC_MODULE_FAMILY,
+    buyValue: MODULE_BUY_BY_RARITY.fine,
   };
 }
 

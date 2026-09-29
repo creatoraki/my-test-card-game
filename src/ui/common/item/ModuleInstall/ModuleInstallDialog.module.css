@@ -1,4 +1,5 @@
 /* 原地装配弹窗 —— 战利品盘/拾取框上方的最高一层浮层。
+   正文字号最小 18px。
    自带全屏遮罩(与探索页的无遮罩浮层不同): 它是从另一个浮层里拉起来的模态, 必须压住下层的点击。
    行分配: 头部 / 信息带 / 卡牌区(吃满剩余高度) / 页脚。 */
 
@@ -41,8 +42,8 @@
 .icon {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   flex: 0 0 auto;
   background: #0a0e11;
   border: 1px solid var(--border);
@@ -62,12 +63,12 @@
 }
 
 .title strong {
-  font-size: 22px;
+  font-size: 24px;
 }
 
 .kicker {
   color: var(--rarity-fine);
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
@@ -106,21 +107,21 @@
 
 .infoCol dt {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 0.06em;
 }
 
 .infoCol dd {
   margin: 0;
   color: var(--text);
-  font-size: 13px;
+  font-size: 18px;
   line-height: 1.5;
 }
 
 .hint {
   display: block;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .stage {
@@ -142,7 +143,7 @@
   gap: 6px;
   padding: 6px 14px;
   color: var(--text);
-  font-size: 14px;
+  font-size: 18px;
   background: #0d1216;
   border: 1px solid var(--border);
   cursor: var(--cursor-pointer);
@@ -162,7 +163,7 @@
 
 .downed {
   color: var(--bad);
-  font-size: 11px;
+  font-size: 18px;
 }
 
 .deck {
@@ -209,7 +210,7 @@
   z-index: 3;
   padding: 2px 6px;
   color: #06171a;
-  font-size: 11px;
+  font-size: 18px;
   background: var(--rarity-fine);
   pointer-events: none;
 }
@@ -217,7 +218,7 @@
 .empty {
   margin: auto;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 18px;
 }
 
 .foot {
@@ -229,7 +230,12 @@
 
 .note {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 18px;
+}
+
+/* 顶替提示: 用暖色点醒「旧模组会被卸下」。 */
+.note.isWarn {
+  color: #ffcf7a;
 }
 
 .actions {
@@ -240,7 +246,7 @@
 .btn {
   padding: 8px 20px;
   color: var(--text);
-  font-size: 15px;
+  font-size: 18px;
   background: #0d1216;
   border: 1px solid var(--border);
   cursor: var(--cursor-pointer);
@@ -268,8 +274,3 @@
   background: #0d1216;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .card {
-    transition: none;
-  }
-}

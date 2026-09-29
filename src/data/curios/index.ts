@@ -47,7 +47,7 @@ export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> 
   vending: 6,
   compactor: 6,
   crystalVein: 5,
-  moduleCase: 5,
+  moduleCase: 8,
   remains: 4,
   modBench: 4,
   // 装备、遗物与成长服务

@@ -11,6 +11,7 @@ import corridorCardPrinterArt from "@/assets/explore-corridor/废弃楼层/可�
 import corridorShrineArt from "@/assets/explore-corridor/废弃楼层/可交互物体/神龛.webp";
 import corridorDispatchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/传送带.webp";
 import corridorCrystalVeinArt from "@/assets/explore-corridor/废弃楼层/可交互物体/矿脉.webp";
+import moduleCrateArt from "@/assets/道具/消耗品/1阶模组箱.webp";
 import corridorFarArt from "@/assets/explore-corridor/废弃楼层/无限远景.webp";
 import neonCityNear1Art from "@/assets/explore-corridor/废弃楼层/近景/近景1.webp";
 import neonCityNear2Art from "@/assets/explore-corridor/废弃楼层/近景/近景2.webp";
@@ -20,14 +21,9 @@ import type { CurioKind } from "@/explore/corridor/types";
 import { ECO_ARK_SCENERY, ECO_ARK_SCENERY_SOURCES } from "../ecoArk/ecoArkScenery";
 import { ECO_ARK_NEAR_ART } from "../ecoArk/ecoArkNearArt";
 import { ECO_ARK_PROP_ART } from "../ecoArk/ecoArkPropArt";
+import { sizeCorridorProp } from "./corridorPropSizing";
 
-export const CORRIDOR_PROP_SCALES = {
-  small: 0.7,
-  medium: 1,
-  large: 1.2,
-} as const;
-
-export const CORRIDOR_PROP_BASE_SCALE = 0.5;
+export { CORRIDOR_PROP_BASE_SCALE } from "./corridorPropSizing";
 
 export interface CorridorPropArt {
   src: string;
@@ -52,49 +48,66 @@ export function getCorridorFarArt(mapId: string | undefined): string {
 }
 
 /**
- * 交互物原图按 0.35 作为设计画布基准，再叠加小/中/大三档尺寸。
- * 512px 方图的中档绘制边长约为 179px，宽幅素材仍按原始比例绘制。
+ * 废弃楼层交互物按主体高度对齐角色身高分档(小 70% / 中 135% / 大 170%)。
+ * 边界为素材不透明区域的上下像素，换图后需重新测量。
  * 房间传送门与首领红门由着色器绘制(ui/art/portal)，不在此登记。
  */
+const SAFE = sizeCorridorProp(corridorSafeArt, { width: 400, height: 400, top: 26, bottom: 381 }, "medium");
+const REMAINS = sizeCorridorProp(corridorRemainsArt, { width: 400, height: 400, top: 11, bottom: 380 }, "medium");
+const MEDICAL = sizeCorridorProp(corridorMedicalArt, { width: 400, height: 400, top: 19, bottom: 384 }, "medium");
+const CARD_PRINTER = sizeCorridorProp(corridorCardPrinterArt, { width: 400, height: 400, top: 16, bottom: 385 }, "medium");
+const VENDING = sizeCorridorProp(corridorVendingArt, { width: 400, height: 400, top: 4, bottom: 386 }, "medium");
+const MOD_BENCH = sizeCorridorProp(corridorModBenchArt, { width: 400, height: 400, top: 25, bottom: 380 }, "medium");
+const MERCHANT = sizeCorridorProp(corridorMerchantArt, { width: 362, height: 272, top: 3, bottom: 266 }, "medium");
+const SHRINE = sizeCorridorProp(corridorShrineArt, { width: 308, height: 308, top: 13, bottom: 280 }, "medium");
+const DISPATCH = sizeCorridorProp(corridorDispatchArt, { width: 400, height: 400, top: 124, bottom: 328 }, "small");
+const SINK = sizeCorridorProp(corridorSinkArt, { width: 400, height: 400, top: 101, bottom: 326 }, "small");
+const REPAIR_POD = sizeCorridorProp(corridorRepairPodArt, { width: 400, height: 400, top: 81, bottom: 304 }, "small");
+const COMPACTOR = sizeCorridorProp(corridorCompactorArt, { width: 400, height: 400, top: 29, bottom: 374 }, "large");
+// 封存的模组箱直接用物品图标同一张模组箱素材, 场景与背包里看到的是同一个箱子。
+const MODULE_CRATE = sizeCorridorProp(moduleCrateArt, { width: 256, height: 256, top: 44, bottom: 227 }, "small");
+const CRYSTAL_VEIN = sizeCorridorProp(corridorCrystalVeinArt, { width: 400, height: 400, top: 24, bottom: 379 }, "large");
+
 export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
   ...ECO_ARK_PROP_ART,
-  equipmentCache: { src: corridorSafeArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.small, groundTrim: 0 / 400 },
-  fieldTraining: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 14 / 400 },
-  cardExchange: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 14 / 400 },
-  cardArchive: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 14 / 400 },
-  bondWorkbench: { src: corridorModBenchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 18 / 400 },
-  perfectnessWorkbench: { src: corridorModBenchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 18 / 400 },
-  temporaryRelicCache: { src: corridorShrineArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 46 / 512 },
-  relicCache: { src: corridorShrineArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 46 / 512 },
-  safe: { src: corridorSafeArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.small, groundTrim: 0 / 400 },
-  crystalVein: { src: corridorCrystalVeinArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 18 / 400 },
-  vending: { src: corridorVendingArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 7 / 400 },
-  remains: { src: corridorRemainsArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.small, groundTrim: 19 / 400 },
-  compactor: { src: corridorCompactorArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 25 / 400 },
-  medical: { src: corridorMedicalArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 14 / 400 },
-  sink: { src: corridorSinkArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 18 / 400 },
-  repairPod: { src: corridorRepairPodArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 58 / 400 },
+  equipmentCache: SAFE,
+  fieldTraining: CARD_PRINTER,
+  cardExchange: CARD_PRINTER,
+  cardArchive: CARD_PRINTER,
+  bondWorkbench: MOD_BENCH,
+  perfectnessWorkbench: MOD_BENCH,
+  temporaryRelicCache: SHRINE,
+  relicCache: SHRINE,
+  safe: SAFE,
+  crystalVein: CRYSTAL_VEIN,
+  vending: VENDING,
+  remains: REMAINS,
+  compactor: COMPACTOR,
+  medical: MEDICAL,
+  sink: SINK,
+  repairPod: REPAIR_POD,
   // 粒子净化站暂无专属素材，复用修复舱图片。
-  energyStation: { src: corridorRepairPodArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 58 / 400 },
-  modBench: { src: corridorModBenchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 18 / 400 },
-  cardPrinter: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 14 / 400 },
-  shrine: { src: corridorShrineArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 46 / 512 },
-  dispatch: { src: corridorDispatchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 27 / 400 },
-  merchant: { src: corridorMerchantArt, width: 724, height: 543, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 5 / 543 },
-  tutorialArmory: { src: corridorSafeArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.small, groundTrim: 0 / 400 },
-  tutorialModBench: { src: corridorModBenchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 18 / 400 },
-  tutorialForge: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 14 / 400 },
-  tutorialMedical: { src: corridorMedicalArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 14 / 400 },
+  energyStation: REPAIR_POD,
+  modBench: MOD_BENCH,
+  cardPrinter: CARD_PRINTER,
+  shrine: SHRINE,
+  dispatch: DISPATCH,
+  merchant: MERCHANT,
+  tutorialArmory: SAFE,
+  tutorialModBench: MOD_BENCH,
+  tutorialForge: CARD_PRINTER,
+  tutorialMedical: MEDICAL,
   // 以下物件暂无专属素材，复用已有交互物图片。
-  tutorialRelicCache: { src: corridorShrineArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 46 / 512 },
-  supplyCrate: { src: corridorSafeArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.small, groundTrim: 0 / 400 },
-  toolLocker: { src: corridorModBenchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 18 / 400 },
-  courierDrone: { src: corridorDispatchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 27 / 400 },
-  cashBox: { src: corridorRemainsArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.small, groundTrim: 19 / 400 },
-  moduleCase: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 14 / 400 },
-  collapsedCeiling: { src: corridorCompactorArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 25 / 400 },
-  leakingPipe: { src: corridorSinkArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 18 / 400 },
-  rogueDrone: { src: corridorVendingArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 7 / 400 },
+  tutorialRelicCache: SHRINE,
+  tutorialCashBox: REMAINS,
+  supplyCrate: SAFE,
+  toolLocker: MOD_BENCH,
+  courierDrone: DISPATCH,
+  cashBox: REMAINS,
+  moduleCase: MODULE_CRATE,
+  collapsedCeiling: COMPACTOR,
+  leakingPipe: SINK,
+  rogueDrone: VENDING,
 };
 
 /** 各交互物独立的场景 Y 轴微调值（设计 px，正值向下）。 */
@@ -120,7 +133,7 @@ export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
   medical: 0,
   sink: 0,
   repairPod: 0,
-  energyStation: 12,
+  energyStation: 0,
   modBench: 0,
   cardPrinter: 0,
   shrine: 0,
@@ -131,6 +144,7 @@ export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
   tutorialForge: 0,
   tutorialMedical: 0,
   tutorialRelicCache: 0,
+  tutorialCashBox: 0,
   supplyCrate: 0,
   toolLocker: 0,
   courierDrone: 0,

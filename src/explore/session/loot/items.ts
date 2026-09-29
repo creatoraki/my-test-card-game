@@ -2,9 +2,9 @@
 
 import { getItemDef } from "@/data";
 import { findByUid, removeByUid } from "@/items/inventory";
+import type { ItemStack } from "@/items/types";
 import { rollModuleCrate } from "../../core/boons";
 import type { ExploreEffect, ExploreState, PartySnapshot } from "../../types";
-import { addPendingLoot } from "./backpack";
 import { dropContext } from "./drops";
 import { applyEffect } from "../core/effects";
 import { restoreLimit } from "../core/party";
@@ -28,6 +28,8 @@ export interface ItemUseResult {
   itemName: string;
   note: string; // 效果摘要; 污染类会被 store 按实际落地值重建
   pollution?: { charId: string; name: string; amount: number };
+  /** 开模组箱: 开出的那件(已原地放进箱子那一格), 供 UI 做开箱演出。 */
+  opened?: ItemStack;
 }
 
 // 指定角色的效果共用: 目标必须是本次远征队伍里**存活**的成员(治疗/修复/降污染都不复活)。
@@ -80,13 +82,16 @@ export function useItem(s: ExploreState, uid: string, targetCharId?: string): It
       break;
     }
     case "openModuleCrate": {
-      // 开箱产出走**待拾取框**而不是直接进背包: 箱子占 1 格、模组也占 1 格,
-      // 直接塞背包会在背包刚好满时把开出的模组顶掉, 进拾取框玩家还能自己腾格子。
-      const stack = rollModuleCrate(s, dropContext(s));
-      if (!stack) return null;
-      addPendingLoot(s, [stack]);
-      note = `开出 ${getItemDef(stack.itemId).name}，已放入待拾取框`;
-      break;
+      // 开出的模组**原地替换**箱子那一格: 箱子与模组都是 maxStack 1、各占 1 格, 净 0 格,
+      // 背包再满也不会溢出; 也省得玩家再去待拾取框里拿一次。
+      const opened = rollModuleCrate(s, dropContext(s), u.tier);
+      if (!opened) return null;
+      s.backpack = st.count > 1
+        ? [...s.backpack.map((stack) => (stack.uid === uid ? { ...stack, count: stack.count - 1 } : stack)), opened]
+        : s.backpack.map((stack) => (stack.uid === uid ? opened : stack));
+      note = `开出 ${getItemDef(opened.itemId).name}`;
+      logLine(s, `打开了 ${def.name} · ${note}`);
+      return { itemName: def.name, note, opened };
     }
     default: {
       // 无需目标的效果(healParty / healOneFull / gainEnergy)沿用 applyEffect 翻译。

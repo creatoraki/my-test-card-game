@@ -38,6 +38,7 @@ export type CurioKind =
   | "tutorialForge"
   | "tutorialMedical"
   | "tutorialRelicCache"
+  | "tutorialCashBox"
   | "supplyCrate"
   | "toolLocker"
   | "courierDrone"
