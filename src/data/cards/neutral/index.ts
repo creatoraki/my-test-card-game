@@ -25,7 +25,7 @@ export const NEUTRAL_CARD_DEFS: CardDef[] = [
     rarity: "basic",
     temporary: true,
     exhaust: true,
-    anim: "buff",
+    anim: "debuff",
     effects: [{ type: "APPLY_STATUS", status: "stun", stacks: 1, duration: 1, target: "primary" }],
     text: "击晕目标 1 拍。",
   },

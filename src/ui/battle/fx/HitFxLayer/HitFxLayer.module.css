@@ -91,30 +91,6 @@
   filter: drop-shadow(0 0 10px var(--vfx-color));
   animation: vfxPop 0.5s ease-out forwards;
 }
-/* 图标特效(护盾等 BUFF 图标 SVG): 与 emoji 同锚点, "虚幻放大"浮现 ——
-   图标从 150px 宽起步, 1s 内持续放大到 300px(scale 2)并淡出, 全程半透明柔光。 */
-.vfx-icon {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 150px;
-  height: 150px;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  animation: vfxIconRise 1s ease-out forwards;
-}
-.vfx-icon svg,
-.vfx-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-@keyframes vfxIconRise {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 0; filter: drop-shadow(0 0 8px var(--vfx-color)) blur(4px); }
-  20% { transform: translate(-50%, -50%) scale(1.12); opacity: 0.95; filter: drop-shadow(0 0 22px var(--vfx-color)) blur(0); }
-  38% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.9; filter: drop-shadow(0 0 14px var(--vfx-color)) blur(0); }
-  100% { transform: translate(-50%, -50%) scale(2); opacity: 0; filter: drop-shadow(0 0 32px var(--vfx-color)) blur(2px); }
-}
 /* 攻击: 冲击环扩散 */
 .vfx-attack::after {
   content: "";
@@ -163,6 +139,10 @@
    基态即常态, 故延迟期无副作用; emoji 系特效 --vfx-impact 缺省 0, 行为不变。 */
 [data-unit][data-react="hit"] [data-unit-body] {
   animation-delay: var(--vfx-impact, 0ms), var(--vfx-impact, 0ms);
+}
+/* 受益柔光同理: 治疗/增益/护盾改为 GLSL 后爆点延后 200ms 以上, 光晕要等回血那一拍才亮。 */
+[data-unit][data-react="bless"] [data-unit-body] {
+  animation-delay: var(--vfx-impact, 0ms);
 }
 
 /* 顿帧期间连受击抖动/闪红与飘字一起冻住 —— 否则画面定格了、挨打的人还在抽搐 */
@@ -223,7 +203,14 @@
 .vfx-shot.vfx-attack::after,
 .vfx-fire.vfx-attack::after,
 .vfx-lightning.vfx-attack::after,
-.vfx-poison.vfx-attack::after {
+.vfx-poison.vfx-attack::after,
+.vfx-debuff.vfx-attack::after {
+  content: none;
+}
+/* 辅助系 GLSL 特效(治疗/增益/护盾)自带光环与柔光, 默认光晕挂载即扩散会抢在爆点之前。 */
+.vfx-heal.vfx-support::after,
+.vfx-buff.vfx-support::after,
+.vfx-shield.vfx-support::after {
   content: none;
 }
 /* —— 伤害/治疗飘字 —— */

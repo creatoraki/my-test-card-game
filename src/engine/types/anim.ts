@@ -13,6 +13,7 @@ export interface AnimHitPart {
   shield?: number; // 本段被护盾吸收的量(护航分担同样计入持有者), 供 UI 飘蓝白数字
   blocked?: boolean; // 本段触发了格挡(伤害减半), 供 UI 飘放大的 BLOCK 字样
   guard?: boolean; // 本段是护航替友方分担的伤害 —— UI 演护盾抵挡而不是受击
+  flags?: string[]; // 本段伤害的标签(如 "burn" / "poison"), 供 UI 按来源挑拍点特效; 引擎不读取
 }
 
 export interface AnimHit {

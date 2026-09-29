@@ -1,4 +1,4 @@
-import type { ComponentType, CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import type { CardAnim } from "@/engine";
 import { ANIM, type HitFx, type ProcFxPreset } from "@/ui/battle/choreo/animations";
 import type { UnitReact } from "@/ui/battle/choreo/unitShell";
@@ -24,7 +24,7 @@ import s from "./HitFxLayer.module.css";
 // 签名允许返回 null: reduced-motion 下 proc 特效整层不挂载(如 TriSlashFx 的外壳直返 null)。
 // color = ANIM[*].color, 只有着色器类(GLSL_HIT_FX)需要, 其余组件忽略。
 const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset; color: string }) => JSX.Element | null>> = {
-  // 基础档位(斩击/重击/射击/火焰/雷电/毒素): GLSL 着色器特效, 取代原 emoji。
+  // 基础档位(攻击系元素 + 治疗/增益/减益/护盾): GLSL 着色器特效, 取代原 emoji 与护盾图标。
   ...GLSL_HIT_FX,
   "iai-slash": IaiSlashFx,
   "blade-slash": BladeSlashFx,
@@ -37,12 +37,6 @@ const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset; color: strin
   "lunar-ring": LunarRingFx,
   "sakura-flurry": SakuraFlurryFx,
   "twin-arrow": TwinArrowFx,
-};
-
-// 图标特效(与 PROC_FX 平行的分支): 复用状态图标(如护盾), 以"虚幻放大"浮现动画播放。
-// 由 ANIM[*].icon 标记启用; 与 emoji 互斥 —— icon 存在时优先渲染图标。
-const ICON_FX: Partial<Record<CardAnim, ComponentType<{ className?: string }>>> = {
-  shield: ShieldIcon,
 };
 
 // 护航代挡的主色: 与护盾飘字同一蓝白。
@@ -83,7 +77,6 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
   const preset = hit ? ANIM[hit.anim] : null;
   const proc = preset?.proc;
   const Proc = hit ? PROC_FX[hit.anim] : undefined;
-  const Icon = hit && preset?.icon ? ICON_FX[hit.anim] : undefined;
 
   return (
     <>
@@ -105,10 +98,6 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
         >
           {Proc && proc ? (
             <Proc preset={proc} color={preset.color} />
-          ) : Icon ? (
-            <span className={s["vfx-icon"]}>
-              <Icon />
-            </span>
           ) : (
             <span className={s["vfx-emoji"]}>{preset.emoji}</span>
           )}

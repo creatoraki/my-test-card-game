@@ -106,7 +106,11 @@ function applyHpLoss(state: BattleState, dmg: DamageCtx, target: Combatant, opts
   target.hp = target.team === "player" ? Math.max(0, target.hp - dmg.amount) : target.hp - dmg.amount;
   dmg.hpLost = dmg.amount;
   opts.onDealt?.(dmg.hpLost);
-  recordHitPart(target.id, dmg.hpLost, false, dmg.crit, { shield: dmg.blocked, blocked: dmg.blockRolled });
+  recordHitPart(target.id, dmg.hpLost, false, dmg.crit, {
+    shield: dmg.blocked,
+    blocked: dmg.blockRolled,
+    flags: dmg.flags.length ? [...dmg.flags] : undefined,
+  });
 
   const marks =
     (dmg.crit ? " 暴击!" : "") +

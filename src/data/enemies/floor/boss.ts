@@ -91,7 +91,7 @@ export const BOSS_ENEMIES: EnemyDef[] = [
         delay: 3,
         kind: "debuff",
         targeting: "foe",
-        anim: "buff",
+        anim: "debuff",
         effects: [
           { type: "DAMAGE", multiplier: 0.35, target: "primary" },
           { type: "APPLY_STATUS", status: "weak", stacks: 1, duration: 2, target: "primary" },

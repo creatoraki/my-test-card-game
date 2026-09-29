@@ -28,9 +28,8 @@ export interface ProcFxPreset {
 
 export interface AnimPreset {
   kind: "attack" | "support"; // attack: 目标受击特效; support: 目标柔和光效
-  emoji?: string; // 首击特效图形(无 sprite/proc/icon 时使用)
-  proc?: ProcFxPreset; // 程序化 CSS 特效
-  icon?: "shield"; // 图标特效(复用 BUFF 图标 SVG, 优先于 emoji); 渲染映射见 HitFxLayer 的 ICON_FX
+  emoji?: string; // 首击特效图形(无 proc 时使用)
+  proc?: ProcFxPreset; // 程序化特效(CSS / Canvas / GLSL)
   screenFx?: "dim" | "flash" | "blood" | "glitch" | "twin"; // 可选的场景外全屏层
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
   windup: number; // ms: 施法者前冲蓄力 → 命中时刻(伤害/特效在此刻触发)
@@ -263,11 +262,18 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     shake: 1,
   },
   // —— 辅助系(柔和光效): 一律不震屏, 治疗/加盾不该有冲击反馈 ——
-  heal: { kind: "support", emoji: "💚", color: "#69db7c", windup: 200, hold: 720, shake: 0 },
-  // 护盾: 不再用 emoji, 改用护盾 BUFF 图标 SVG(见 StatusPips 的 ShieldIcon)做虚幻放大浮现。
-  // hold 须 ≥ 图标动画 1s(见 HitFxLayer.module.css 的 vfxIconRise), 否则末尾帧被卸载截断。
-  shield: { kind: "support", icon: "shield", color: "#6ea8fe", windup: 200, hold: 1100, shake: 0 },
-  buff: { kind: "support", emoji: "✨", color: "#ffd43b", windup: 200, hold: 700, shake: 0 },
+  // 同样走 GLSL 命中特效(fx/GlslHitFx), 规则与攻击系一致: impactMs = 回血/加盾/柔光锚点,
+  // hold 须盖住 max(totalMs, impactMs + floatMs); damageAtImpact 让血条/护盾条在爆点才涨。
+  // 生命光泉: 光点汇聚 → 光环扩散 + 光柱涌起 + 十字光粒上浮。
+  heal: { kind: "support", proc: { impactMs: 260, floatMs: 560, damageAtImpact: true }, color: "#69db7c", windup: 200, hold: 1150, shake: 0 },
+  // 六边形能量壳: 扫描线自下而上成形 → 外壳一闪 + 蜂窝涟漪 → 逐格熄灭。
+  shield: { kind: "support", proc: { impactMs: 200, floatMs: 500, damageAtImpact: true }, color: "#6ea8fe", windup: 200, hold: 1100, shake: 0 },
+  // 金辉升腾: 地面法阵画满 → 四芒星闪现 + 「︿」光纹升起。
+  buff: { kind: "support", proc: { impactMs: 220, floatMs: 500, damageAtImpact: true }, color: "#ffd43b", windup: 200, hold: 1050, shake: 0 },
+  // —— 减益(咒印压制): 施加给对面的负面效果。刻意归入攻击系 ——
+  // 目标演受击反应(而非受益柔光)、附带的伤害照常飘红字, 音效/运镜也走攻击分支;
+  // shake 1 且伤害占比低 ⇒ pickShot 落到 light 档, 不会抢镜。
+  debuff: { kind: "attack", proc: { impactMs: 240, floatMs: 480, damageAtImpact: true }, color: "#b77cff", windup: 200, hold: 1000, shake: 1 },
 };
 
 // 一条飘字。多段伤害每段一条, 靠 delayMs 依次弹出(见 hitFloats.ts)。

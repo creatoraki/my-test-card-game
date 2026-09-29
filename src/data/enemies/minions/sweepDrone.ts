@@ -43,7 +43,7 @@ export const SWEEP_DRONE: EnemyDef = {
       kind: "special",
       targeting: "foe",
       weight: 1,
-      anim: "buff",
+      anim: "debuff",
       effects: [
         {
           type: "STRIP_STATUS",

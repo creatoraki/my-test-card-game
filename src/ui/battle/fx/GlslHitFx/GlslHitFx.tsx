@@ -1,5 +1,6 @@
 // ============================================================================
-// GLSL 命中特效(斩击/重击/射击/火焰/雷电/毒素) —— 取代原 emoji 首击特效的基础档位。
+// GLSL 命中特效 —— 取代原 emoji 首击特效的基础档位:
+//   攻击系(斩击/重击/射击/火焰/雷电/毒素)、辅助系(治疗/增益/护盾)与减益(咒印压制)。
 //
 // 全部挂在共享 WebGL 宿主(ui/common/fx/GlslSprite)上: 整局一个上下文、每种程序只编译一次,
 // 群攻同屏多目标也只是多几次 drawImage。时间轴约定:
@@ -67,4 +68,8 @@ export const GLSL_HIT_FX: Record<GlslHitKind, (p: GlslHitFxProps) => JSX.Element
   fire: (p) => <GlslHitFx kind="fire" {...p} />,
   lightning: (p) => <GlslHitFx kind="lightning" {...p} />,
   poison: (p) => <GlslHitFx kind="poison" {...p} />,
+  heal: (p) => <GlslHitFx kind="heal" {...p} />,
+  buff: (p) => <GlslHitFx kind="buff" {...p} />,
+  debuff: (p) => <GlslHitFx kind="debuff" {...p} />,
+  shield: (p) => <GlslHitFx kind="shield" {...p} />,
 };

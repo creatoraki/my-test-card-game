@@ -20,7 +20,7 @@ import {
   rewardMultiplier,
   shipHome,
   spendBattleEnergy,
-  takePending,
+  takeLoot,
   useItem,
 } from "../session";
 import { WIN, dungeonOf, intoBattle, newSession, phaseOf, roomNow, useFirstCurio } from "./session.testkit";
@@ -167,12 +167,12 @@ describe("背包与负重(设计文档 §六)", () => {
     const s = newSession();
     expect(applyEffect(s, { type: "GRANT_RELIC", relicId: "relic-old-clockwork" }, true)).toContain("旧式发条");
     expect(s.backpack).toHaveLength(0);
-    expect(s.pendingPickup).toHaveLength(1);
-    expect(takePending(s, 0)).toBe(true);
+    expect(s.pendingLoot).toHaveLength(1);
+    expect(takeLoot(s, 0)).toBe(true);
     expect(backpackSlots(s)).toBe(1);
     expect(s.ownedRelicIds).toContain("relic-old-clockwork");
     expect(applyEffect(s, { type: "GRANT_RELIC", relicId: "relic-old-clockwork" }, true)).toContain("回落");
-    expect(s.pendingPickup).toHaveLength(0);
+    expect(s.pendingLoot).toHaveLength(0);
   });
 
   it("一件物品一格, 有效负重随占格线性上升", () => {

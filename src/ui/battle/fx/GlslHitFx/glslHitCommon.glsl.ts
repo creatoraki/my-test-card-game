@@ -46,6 +46,16 @@ float sdSegment(vec2 p, vec2 a, vec2 b) {
   return length(pa - ba * h);
 }
 
+float sdBox(vec2 p, vec2 b) {
+  vec2 d = abs(p) - b;
+  return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
+}
+
+/** 辅助系「受益在上方」的向上渐隐：y 越高越淡，fadeTop 为完全消失的高度。 */
+float riseFade(float y, float fadeTop) {
+  return 1.0 - smoothstep(fadeTop * 0.35, fadeTop, y);
+}
+
 /** 距离 → 柔光强度：r 为半衰距离。 */
 float glowOf(float d, float r) {
   return r / (max(d, 0.0) + r);

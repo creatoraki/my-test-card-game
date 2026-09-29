@@ -37,7 +37,7 @@ export const PROPHET_PROPHECY_CARDS: CardDef[] = [
     cardType: "fast",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "buff",
+    anim: "debuff",
     effects: [{ type: "START_PROPHECY", prophecy: "illOmen", target: "primary" }],
     text: "预言：该敌人下次行动是攻击。应验：该次攻击伤害 -50%，汇星 1。落空：抽 1 张牌。",
   },

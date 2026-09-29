@@ -64,7 +64,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         kind: "debuff",
         targeting: "foe",
         weight: 1,
-        anim: "buff",
+        anim: "debuff",
         effects: [
           { type: "DAMAGE", multiplier: 0.3, target: "primary" },
           { type: "MARK_CARDS", mark: "heavy", markPick: "handRandom", amount: 1 },

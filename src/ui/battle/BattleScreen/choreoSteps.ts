@@ -1,4 +1,4 @@
-import { effectiveTargeting, type AnimFrame, type BattleState, type Card, type DiscardTriggerFx, type FxStep, type RelicTriggerFx, type TempoFx } from "@/engine";
+import { effectiveTargeting, type AnimFrame, type BattleState, type Card, type CardAnim, type DiscardTriggerFx, type FxStep, type RelicTriggerFx, type TempoFx } from "@/engine";
 import { getEnemyDef } from "@/data";
 import type { ChoicePlan } from "@/store/battle/battleStore";
 import { type ChoreoStep } from "@/ui/battle/camera";
@@ -24,12 +24,25 @@ function stepFromDiscard(battle: BattleState, trigger: DiscardTriggerFx): Choreo
   };
 }
 
+// 拍点掉血按伤害标签挑特效: 灼烧占多数演火焰, 否则(中毒/无标签)演毒雾。
+// 一帧只能有一个 anim, 灼烧与中毒同拍结算时按掉血量取主导的那种。
+function tempoHurtAnim(hits: TempoFx["hits"]): CardAnim {
+  let burn = 0;
+  let other = 0;
+  for (const part of hits.flatMap((hit) => hit.parts ?? [])) {
+    if (part.hpDelta <= 0) continue;
+    if (part.flags?.includes("burn")) burn += part.hpDelta;
+    else other += part.hpDelta;
+  }
+  return burn > other ? "fire" : "poison";
+}
+
 function stepFromTempo(_battle: BattleState, tempo: TempoFx): ChoreoStep {
   const hurt = tempo.hits.some((hit) => hit.hpDelta > 0);
   return {
     kind: "tempo",
     actorId: tempo.ownerId,
-    anim: hurt ? "poison" : "heal",
+    anim: hurt ? tempoHurtAnim(tempo.hits) : "heal",
     snapshot: tempo.snapshot,
     hits: tempo.hits,
   };

@@ -43,7 +43,8 @@ export type CardAnim =
   | "twin-arrow"
   | "heal"
   | "shield"
-  | "buff";
+  | "buff"
+  | "debuff";
 
 export interface CardDef {
   id: string;

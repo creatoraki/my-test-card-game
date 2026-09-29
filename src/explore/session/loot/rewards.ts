@@ -56,14 +56,25 @@ export function rollEquipOffers(s: ExploreState, count: number, slot?: EquipSlot
     });
 }
 
+// 已拥有 / 已在待拾取或拾取框里的遗物 id —— 遗物投放与候选生成共用的去重口径。
+function heldRelicIds(s: ExploreState): Set<string> {
+  return new Set([
+    ...s.ownedRelicIds,
+    ...[...s.pendingPickup, ...s.pendingLoot]
+      .filter((stack) => getItemDef(stack.itemId).category === "relic")
+      .map((stack) => stack.itemId),
+  ]);
+}
+
+// ★ 与普通物品一样进事件面板的待拾取框(pendingLoot), 而不是背包满时才用的替换面板。
 export function grantRelic(s: ExploreState, relicId: string): string {
   const def = getItemDef(relicId);
   if (def.category !== "relic" || !def.relic) return "遗物投放失败";
-  if (s.ownedRelicIds.includes(relicId) || s.pendingPickup.some((st) => st.itemId === relicId)) {
+  if (heldRelicIds(s).has(relicId)) {
     s.loot += 10;
     return `遗物「${def.name}」已拥有，回落为居民积分 +10`;
   }
-  s.pendingPickup = [...s.pendingPickup, makeRolledItemStack(s, relicId, 1)];
+  addPendingLoot(s, [makeRolledItemStack(s, relicId, 1)]);
   return `获得遗物「${def.name}」，已放入待拾取框`;
 }
 
@@ -75,12 +86,7 @@ export function rollRelicOffers(
   rarity?: ItemRarity,
   relicIds?: string[],
 ): ItemStack[] {
-  const taken = new Set([
-    ...s.ownedRelicIds,
-    ...[...s.pendingPickup, ...s.pendingLoot]
-      .filter((stack) => getItemDef(stack.itemId).category === "relic")
-      .map((stack) => stack.itemId),
-  ]);
+  const taken = heldRelicIds(s);
   // 指名候选按给定顺序排, 不洗牌 —— 剧情箱子里三格的位置是设计好的。
   // 指名的三件恰好全被拿过时退回随机祝福遗物, 总比把面板开成空箱子强。
   const named = relicIds
@@ -96,13 +102,7 @@ export function rollRelicOffers(
 }
 
 export function randomRelicId(s: ExploreState, rarity?: ItemRarity): string | undefined {
-  const pending = new Set(
-    s.pendingPickup
-      .filter((stack) => getItemDef(stack.itemId).category === "relic")
-      .map((stack) => stack.itemId),
-  );
-  const candidates = randomRelicPool(rarity).filter(
-    (def) => !s.ownedRelicIds.includes(def.id) && !pending.has(def.id),
-  );
+  const held = heldRelicIds(s);
+  const candidates = randomRelicPool(rarity).filter((def) => !held.has(def.id));
   return candidates.length ? rngPick(s, candidates).id : undefined;
 }

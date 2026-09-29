@@ -120,7 +120,7 @@ export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
   medical: 0,
   sink: 0,
   repairPod: 0,
-  energyStation: 0,
+  energyStation: 12,
   modBench: 0,
   cardPrinter: 0,
   shrine: 0,

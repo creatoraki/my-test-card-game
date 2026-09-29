@@ -78,7 +78,7 @@ export const BOTANIST_BOW_CARDS: CardDef[] = [
     targeting: "foe",
     cultivateTargeting: "allFoes",
     rarity: "common",
-    anim: "buff",
+    anim: "debuff",
     effects: [{ type: "APPLY_STATUS", status: "pierce", stacks: 3, target: "primary" }],
     cultivate: {
       turns: 2,

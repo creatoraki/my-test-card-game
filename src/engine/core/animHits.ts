@@ -40,7 +40,7 @@ export function recordHitPart(
   hpDelta: number,
   missed = false,
   crit = false,
-  extra: Pick<AnimHitPart, "shield" | "blocked" | "guard"> = {},
+  extra: Pick<AnimHitPart, "shield" | "blocked" | "guard" | "flags"> = {},
 ): void {
   activeParts?.push({ id: targetId, hpDelta, missed, crit, ...extra });
 }
@@ -65,6 +65,7 @@ function mergeParts(parts: RawPart[]): AnimHit[] {
       shield: part.shield,
       blocked: part.blocked,
       guard: part.guard,
+      flags: part.flags,
     });
   }
   for (const hit of byId.values()) {
