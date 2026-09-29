@@ -1,10 +1,10 @@
-import { ops } from "../core/ops";
-import type { RelicBehavior } from "./types";
+import { ops } from "../../core/ops";
+import type { RelicBehavior } from "../types";
 
 const dataOf = (behavior: Parameters<NonNullable<RelicBehavior["onRoundStart"]>>[0]) =>
   (behavior.relic.data ??= {});
 
-export const TUTORIAL_RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
+export const RARE_RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
   "relic-heart-mirror": {
     onAllyHpCrossedHalf: ({ state, relic }, targetId) => {
       const data = (relic.data ??= {});

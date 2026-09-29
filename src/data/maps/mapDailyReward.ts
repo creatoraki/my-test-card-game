@@ -2,7 +2,7 @@ import { rngInt, rngPick } from "@/engine/core/rng";
 import { bumpPerfectness } from "@/items/equipRoll";
 import type { ItemStack } from "@/items/types";
 import { GENERAL_MATERIAL_DEFS } from "../items/catalog/materials";
-import { BLESSING_RELIC_DEFS } from "../items/relics";
+import { randomRelicPool } from "../items/relics";
 import {
   equipmentDefsBySlot,
   getItemDef,
@@ -58,7 +58,7 @@ function rollClearReward(
   stacks.push(stack);
 
   if (reward.relicRarity) {
-    const relicCandidates = BLESSING_RELIC_DEFS.filter((def) => def.rarity === reward.relicRarity);
+    const relicCandidates = randomRelicPool(reward.relicRarity);
     if (!relicCandidates.length) {
       throw new Error(`没有稀有度为 ${reward.relicRarity} 的通关奖励遗物`);
     }

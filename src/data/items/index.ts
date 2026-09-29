@@ -30,7 +30,15 @@ export {
   MODULE_CRATE_ITEM_DEFS,
   MODULE_ITEM_DEFS,
 } from "./catalog/modules";
-export { BLESSING_RELIC_DEFS, CURSE_RELIC_DEFS, RELIC_ITEM_DEFS, RELIC_ITEM_IDS } from "./relics";
+export {
+  BLESSING_RELIC_DEFS,
+  CURSE_RELIC_DEFS,
+  RANDOM_RELIC_POOL,
+  RELIC_ITEM_DEFS,
+  RELIC_ITEM_IDS,
+  TEMPORARY_RELIC_POOL,
+  randomRelicPool,
+} from "./relics";
 
 export const DESIGN_ITEM_DEFS = [
   ...MATERIAL_ITEM_DEFS,

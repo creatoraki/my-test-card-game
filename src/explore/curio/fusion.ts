@@ -1,4 +1,4 @@
-import { BLESSING_RELIC_DEFS, equipmentDefsBySlot, getItemDef, makeRolledItemStack } from "@/data";
+import { RANDOM_RELIC_POOL, equipmentDefsBySlot, getItemDef, makeRolledItemStack } from "@/data";
 import { RARITY_ORDER } from "@/items/types";
 import { rngInt, shuffle } from "@/engine/core/rng";
 import type { ItemStack } from "@/items/types";
@@ -30,10 +30,10 @@ export function upgradeRelic(s: ExploreState, offered: ItemStack[]): string {
       .filter((stack) => stack.uid !== source.uid && getItemDef(stack.itemId).relic?.polarity === "blessing")
       .map((stack) => stack.itemId),
   ]);
-  const higher = BLESSING_RELIC_DEFS.filter(
+  const higher = RANDOM_RELIC_POOL.filter(
     (def) => RARITY_ORDER.indexOf(def.rarity) > sourceRank && !owned.has(def.id),
   );
-  const same = BLESSING_RELIC_DEFS.filter(
+  const same = RANDOM_RELIC_POOL.filter(
     (def) => def.rarity === sourceDef.rarity && def.id !== source.itemId && !owned.has(def.id),
   );
   const candidates = higher.length ? higher : same;

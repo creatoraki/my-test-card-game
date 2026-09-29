@@ -14,7 +14,7 @@ import { rollAffinity } from "@/items/drops";
 import { rollEquipment } from "@/items/equipRoll";
 import { RARITY_ORDER } from "@/items/types";
 import { ROLLABLE_BOND_IDS } from "../roster/bonds";
-import { BLESSING_RELIC_DEFS } from "../items/relics";
+import { RANDOM_RELIC_POOL } from "../items/relics";
 import { EQUIPMENT_ITEM_DEFS, MATERIAL_ITEM_DEFS } from "../items";
 import { relicBuyValue } from "../items/rules/pricing";
 
@@ -93,7 +93,7 @@ const sellable = (category: ItemDef["category"]): ItemDef[] =>
 
 const EQUIP_POOL = sellable("equipment");
 const MATERIAL_POOL = sellable("material");
-const RELIC_POOL = BLESSING_RELIC_DEFS;
+const RELIC_POOL = RANDOM_RELIC_POOL;
 
 // ---------------------------------------------------------------------------
 // 生成工具

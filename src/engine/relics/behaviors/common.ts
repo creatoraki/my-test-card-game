@@ -1,11 +1,11 @@
-import type { Card, DamageCtx } from "../types";
-import { ops } from "../core/ops";
-import { STATUS_DEFS } from "../core/hookRegistry";
-import { RULES } from "../core/battleRules";
-import { playableHandUids, isPassive } from "../cards/passiveCards";
-import { activeEffectsOf } from "../cards/cardEffects";
-import type { RelicBehavior, RelicBehaviorContext } from "./types";
-import { randomAliveEnemy, relicData } from "./shared";
+import type { Card, DamageCtx } from "../../types";
+import { ops } from "../../core/ops";
+import { STATUS_DEFS } from "../../core/hookRegistry";
+import { RULES } from "../../core/battleRules";
+import { playableHandUids, isPassive } from "../../cards/passiveCards";
+import { activeEffectsOf } from "../../cards/cardEffects";
+import type { RelicBehavior, RelicBehaviorContext } from "../types";
+import { randomAliveEnemy, relicData } from "../shared";
 
 function ownerOf(state: RelicBehaviorContext["state"], card: Card) {
   return state.combatants[card.ownerCharId];
@@ -33,7 +33,7 @@ function hasDebuff(state: RelicBehaviorContext["state"], targetId: string): bool
   return Boolean(target?.statuses.some((status) => STATUS_DEFS[status.id]?.kind === "debuff"));
 }
 
-export const BASIC_RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
+export const COMMON_RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
   "relic-warm-match": {
     beforeCardEffects: (ctx, card) => {
       if (playableHandUids(ctx.state).length > 0) return;

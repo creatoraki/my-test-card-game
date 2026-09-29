@@ -46,9 +46,13 @@ const VictoryLootTray = forwardRef<VictoryLootTrayHandle, Props>(function Victor
     onPicked?.(stack.uid);
   };
 
-  // 点击物品进入交互模式: 遮罩上竖排「拾取」(模组为「装载 / 拾取」), 移出格子退出。
+  // 只能拾取的物品点击即拾取; 模组有「装载 / 拾取」两种去向, 才进入交互模式展示遮罩按钮, 移出格子退出。
   const lootActions = useLootSlotActions({ onTake: pick });
   const actionMode = useSlotActionMode(pendingLoot.map((stack) => stack.uid));
+  const clickSlot = (stack: ItemStack) => {
+    if (lootActions.isModule(stack)) actionMode.open(stack.uid);
+    else pick(stack);
+  };
 
   const takeAll = () => {
     setHovered(null);
@@ -97,7 +101,7 @@ const VictoryLootTray = forwardRef<VictoryLootTrayHandle, Props>(function Victor
               <ItemSlot
                 stack={stack}
                 showName={false}
-                onClick={() => actionMode.open(stack.uid)}
+                onClick={() => clickSlot(stack)}
                 className={cx(s["loot-slot"])}
               />
               {actionMode.activeUid === stack.uid && (

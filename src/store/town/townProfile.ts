@@ -2,7 +2,7 @@
 
 import { RULES } from "@/engine";
 import {
-  BLESSING_RELIC_DEFS,
+  randomRelicPool,
   CHARACTERS,
   getItemDef,
   makeCard,
@@ -108,7 +108,7 @@ export function squadTrainingPoints(
 
 export const techLevels = (state: TownStore): TechTreeState["levels"] => state.techTree.levels;
 
-// 圣水池净化完成: 在同稀有度、尚未拥有的祝福遗物里随机挑一件。没有候选返回 null(调用方折积分)。
+// 圣水池净化完成: 在随机池同稀有度、尚未拥有的祝福遗物里随机挑一件。没有候选返回 null(调用方折积分)。
 export function purifiedRelicId(relicId: string, storage: ItemStack[]): string | null {
   const source = getItemDef(relicId).relic;
   if (!source?.purifyTo) return null;
@@ -118,7 +118,7 @@ export function purifiedRelicId(relicId: string, storage: ItemStack[]): string |
       .filter((stack) => getItemDef(stack.itemId).category === "relic")
       .map((stack) => stack.itemId),
   );
-  const candidates = BLESSING_RELIC_DEFS.filter((def) => def.rarity === rarity && !owned.has(def.id));
+  const candidates = randomRelicPool(rarity).filter((def) => !owned.has(def.id));
   if (!candidates.length) return null;
   return candidates[Math.floor(Math.random() * candidates.length)].id;
 }

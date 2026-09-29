@@ -1,10 +1,10 @@
-import { rngInt } from "../core/rng";
-import { getStatus, ops } from "../core/ops";
-import { RULES } from "../core/battleRules";
-import { addMod } from "../combat/stats";
-import type { BattleState } from "../types";
-import type { RelicBehavior } from "./types";
-import { aliveAllyIds, randomAliveEnemy, relicData } from "./shared";
+import { rngInt } from "../../core/rng";
+import { getStatus, ops } from "../../core/ops";
+import { RULES } from "../../core/battleRules";
+import { addMod } from "../../combat/stats";
+import type { BattleState } from "../../types";
+import type { RelicBehavior } from "../types";
+import { aliveAllyIds, randomAliveEnemy, relicData } from "../shared";
 
 const FAMILY_PHOTO_BONUS = 10;
 
@@ -17,7 +17,7 @@ function applyFamilyBonus(state: BattleState, sign: 1 | -1): void {
   }
 }
 
-export const UNCOMMON_RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
+export const FINE_RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
   "relic-stun-hammer": {
     onShuffle: ({ state }) => {
       const allies = aliveAllyIds(state);

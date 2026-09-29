@@ -19,6 +19,7 @@
 // ============================================================================
 
 import type { ItemDef, ItemRarity } from "@/items/types";
+import { relicChannelOf } from "@/items/types";
 
 export const EQUIP_BUY_BY_RARITY: Record<ItemRarity, number> = {
   common: 200,
@@ -63,8 +64,16 @@ export const RELIC_SELL_BY_RARITY: Record<ItemRarity, number> = {
   legendary: 800,
 };
 
+// 可回收 = 祝福遗物, 且不是一次性限定(一次性遗物永远到不了仓库)。
+function isRelicSellable(def: ItemDef): boolean {
+  const spec = def.relic;
+  return spec?.polarity === "blessing" && relicChannelOf(spec) !== "disposable";
+}
+
 export function withRelicSellValue(defs: ItemDef[]): ItemDef[] {
-  return defs.map((d) => ({ ...d, sellValue: d.sellValue ?? RELIC_SELL_BY_RARITY[d.rarity] }));
+  return defs.map((d) =>
+    isRelicSellable(d) ? { ...d, sellValue: d.sellValue ?? RELIC_SELL_BY_RARITY[d.rarity] } : d,
+  );
 }
 
 // 未单独配置价格的消耗品使用此基础价。已配置价格的消耗品由自身 ItemDef.buyValue 覆盖。

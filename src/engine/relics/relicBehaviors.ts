@@ -1,13 +1,14 @@
 import type { RelicBehavior } from "./types";
 import { registerRelicBehaviors } from "../core/hookRegistry";
-import { TUTORIAL_RELIC_BEHAVIORS } from "./tutorial";
-import { BASIC_RELIC_BEHAVIORS } from "./basic";
-import { UNCOMMON_RELIC_BEHAVIORS } from "./uncommon";
+import { COMMON_RELIC_BEHAVIORS } from "./behaviors/common";
+import { FINE_RELIC_BEHAVIORS } from "./behaviors/fine";
+import { RARE_RELIC_BEHAVIORS } from "./behaviors/rare";
 
+// 战斗内遗物行为, 按稀有度分文件 —— 与 data/items/relics/<极性>/<稀有度>.ts 一一对应。
 export const RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
-  ...TUTORIAL_RELIC_BEHAVIORS,
-  ...BASIC_RELIC_BEHAVIORS,
-  ...UNCOMMON_RELIC_BEHAVIORS,
+  ...COMMON_RELIC_BEHAVIORS,
+  ...FINE_RELIC_BEHAVIORS,
+  ...RARE_RELIC_BEHAVIORS,
 };
 
 // 填入钩子注册表 —— runRelicHook 查的是那张表, 不直接 import 本文件(否则成环)。

@@ -42,7 +42,9 @@ export function ExploreScreen() {
   const curioHandlesLoot = curioOpen && activeObject?.kind !== "merchant";
   const curioCovered = inventory.blocked || Boolean(session.pendingActions.length || session.pendingPickup.length);
   const sceneBlocked = blocked || travelTransition.phase !== "idle";
-  const encountering = phase === "encounter" && travelTransition.phase === "idle";
+  // 演出结束即进入 inBattle, 此时玻璃碎裂才开始 —— 黑影要一直留到切屏, 否则碎裂瞬间会闪没。
+  const encounterStaged = phase === "encounter" || (phase === "inBattle" && Boolean(session.corridor.encounterId));
+  const encountering = encounterStaged && travelTransition.phase === "idle";
 
   return <StageCanvas className={s.screen} viewportClassName={s.viewport} data-explore-stage>
     <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={sceneBlocked} encountering={encountering} nearMapVariant={currentRoom?.nearMapVariant ?? "neonCity1"} onPortalTravel={travelTransition.start} />

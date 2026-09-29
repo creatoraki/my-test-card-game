@@ -1,12 +1,12 @@
 // 奖励生成 —— 装备 / 遗物候选、遗物投放与掉落摘要。事件效果与战斗结算共用。
 
 import {
-  BLESSING_RELIC_DEFS,
   equipmentDefsBySlot,
   getItemDef,
   getItemFamily,
   difficultyEquipRarities,
   makeRolledItemStack,
+  randomRelicPool,
 } from "@/data";
 import { rngPick, shuffle } from "@/engine/core/rng";
 import { pickByQuality } from "@/items/drops";
@@ -90,7 +90,7 @@ export function rollRelicOffers(
     ? named
     : shuffle(
         s,
-        BLESSING_RELIC_DEFS.filter((def) => (!rarity || def.rarity === rarity) && !taken.has(def.id)),
+        randomRelicPool(rarity).filter((def) => !taken.has(def.id)),
       );
   return pool.slice(0, Math.max(0, count)).map((def) => makeRolledItemStack(s, def.id, 1));
 }
@@ -101,8 +101,8 @@ export function randomRelicId(s: ExploreState, rarity?: ItemRarity): string | un
       .filter((stack) => getItemDef(stack.itemId).category === "relic")
       .map((stack) => stack.itemId),
   );
-  const candidates = BLESSING_RELIC_DEFS.filter(
-    (def) => (!rarity || def.rarity === rarity) && !s.ownedRelicIds.includes(def.id) && !pending.has(def.id),
+  const candidates = randomRelicPool(rarity).filter(
+    (def) => !s.ownedRelicIds.includes(def.id) && !pending.has(def.id),
   );
   return candidates.length ? rngPick(s, candidates).id : undefined;
 }

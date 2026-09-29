@@ -11,7 +11,8 @@
 //    卡牌那套只出现在 Card/卡组锻造里, 物品这套只出现在 ItemDef/ItemStack 里, 别混用。
 // ============================================================================
 
-import type { EffectDescriptor, SquadResourceMods, StatBlock, StatModifier } from "@/engine/types";
+import type { StatBlock } from "@/engine/types";
+import type { RelicSpec } from "./relic";
 
 // ---------------------------------------------------------------------------
 // 稀有度 —— 五档(《物品设计.md》第四章)
@@ -101,27 +102,14 @@ export interface EquipModelDef {
   upgradeAdd?: readonly [number, number];
 }
 
-export type RelicTriggerId =
-  | "roundStart"
-  | "roundEnd"
-  | "cardPlayed"
-  | "allyAttacked"
-  | "enemyKilled"
-  | "nodeArrived"
-  | "itemPicked"
-  | "rested"
-  | "battleVictory";
-
-export interface RelicSpec {
-  polarity: "blessing" | "curse";
-  scope: "battle" | "explore";
-  on?: RelicTriggerId | RelicTriggerId[];
-  effects?: EffectDescriptor[];
-  mods?: StatModifier;
-  squadMods?: Partial<SquadResourceMods>; // 小队资源修正(开局手牌/每回合抽牌/换牌/待机/费用/手牌上限)
-  every?: number;
-  purifyTo?: string | { rarity: ItemRarity };
-}
+// 遗物规格(类型 / 渠道 / 标签)独立在 ./relic.ts, 这里转出以保持原有引用路径。
+export type { RelicChannel, RelicPolarity, RelicScope, RelicSpec, RelicTriggerId } from "./relic";
+export {
+  RELIC_POLARITY_LABEL,
+  RELIC_SCOPE_LABEL,
+  RELIC_TRIGGER_LABEL,
+  relicChannelOf,
+} from "./relic";
 
 export interface EquipRoll {
   budget: number;

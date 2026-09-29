@@ -7,8 +7,15 @@ import { getBondDef, getCardModule, getItemDef } from "@/data";
 import { STAT_KEYS } from "@/engine";
 import type { StatBlock } from "@/engine";
 import { rollPerfectness, rollToFlat } from "@/items/equipRoll";
-import type { ItemStack } from "@/items/types";
-import { CATEGORY_LABEL, RARITY_LABEL, SLOT_LABEL } from "@/items/types";
+import type { ItemStack, RelicTriggerId } from "@/items/types";
+import {
+  CATEGORY_LABEL,
+  RARITY_LABEL,
+  RELIC_POLARITY_LABEL,
+  RELIC_SCOPE_LABEL,
+  RELIC_TRIGGER_LABEL,
+  SLOT_LABEL,
+} from "@/items/types";
 import { BondIcon } from "@/ui/common/bond/BondIcon";
 import { cx } from "@/ui/common/shared/cx";
 import { itemIcon } from "@/ui/art/items/itemArt";
@@ -121,7 +128,8 @@ export default function ItemDetail({
 
       {def.relic && (
         <div className={s["item-detail-relic"]}>
-          <strong>{def.relic.polarity === "blessing" ? "祝福遗物" : "诅咒遗物"}</strong>
+          <strong>{RELIC_POLARITY_LABEL[def.relic.polarity]}</strong>
+          <span>{RELIC_SCOPE_LABEL[def.relic.scope]}</span>
           {def.relic.on && <span>{relicTriggerText(def.relic.on)}触发</span>}
           {def.relic.every && <span>每 {def.relic.every} 次触发结算</span>}
           {def.relic.purifyTo && <span>可在圣水池净化</span>}
@@ -177,17 +185,6 @@ const signed = (value: number) => {
   return n > 0 ? `+${n}` : `${n}`;
 };
 
-function relicTriggerText(on: string | string[]): string {
-  const labels: Record<string, string> = {
-    roundStart: "回合开始",
-    roundEnd: "回合结束",
-    cardPlayed: "出牌后",
-    allyAttacked: "队友受击",
-    enemyKilled: "击杀敌人",
-    nodeArrived: "抵达节点",
-    itemPicked: "拾取物品",
-    rested: "休整后",
-    battleVictory: "战斗胜利",
-  };
-  return (Array.isArray(on) ? on : [on]).map((id) => labels[id] ?? id).join("、");
+function relicTriggerText(on: RelicTriggerId | RelicTriggerId[]): string {
+  return (Array.isArray(on) ? on : [on]).map((id) => RELIC_TRIGGER_LABEL[id]).join("、");
 }
