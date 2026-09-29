@@ -106,7 +106,7 @@ export interface EventChoice {
   outcomes?: EventOutcome[];
 }
 
-export type PendingAction =
+type PendingActionBody =
   | { kind: "expOne"; amount: number }
   | { kind: "forgeDraw"; contaminate?: number }
   | { kind: "replaceCard"; foodCost?: number }
@@ -120,6 +120,9 @@ export type PendingAction =
   | { kind: "cureQuirk"; scope: "one" | "party"; count: number }
   | { kind: "reducePollution"; scope: "one" | "party"; amount: number }
   | { kind: "purifyCards"; scope: "one" | "party"; count: number };
+
+/** actorId: 由探索交互产生、目标已锁定为交互者的单人待办; 奖励浮层跳过选人环节。 */
+export type PendingAction = PendingActionBody & { actorId?: string };
 
 // 场景里一件物件或一个黑影对应的事件。物件的真实交互走 curio/ 的决策表, 这里只提供标题与分类;
 // 黑影事件的唯一选项带 START_NODE_BATTLE, 由 session/battle.ts 的 engageRoomThreat 结算。

@@ -6,7 +6,7 @@
 //   本文件只负责: 奖励种类 → 内容与文案。
 // ★ 角色卡牌奖励(forgeDraw)生成候选后, 三选一交给通用的 CardRewardPicker 独立弹窗,
 //   此时本面板整体隐藏, 避免弹窗背后再露出一块空面板。
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { makeCard } from "@/data";
 import type { ExploreState, PendingAction } from "@/explore/types";
 import { useTownStore } from "@/store/town/townStore";
@@ -61,6 +61,9 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   const [selectedChar, setSelectedChar] = useState<string | null>(null);
   // 三选一已在弹窗里结算: 队列清空后的退场期间不再把本面板亮出来(否则会闪一下选角色页)。
   const [drawSettled, setDrawSettled] = useState(false);
+  // 锁定交互者的锻造自动开始; 以队列长度作键(会话克隆不改变它), ref 防 StrictMode 双触发重复污染。
+  const autoDrawRef = useRef<number | null>(null);
+  const [autoDrawKey, setAutoDrawKey] = useState<number | null>(null);
 
   const currentAction = session?.pendingActions[0];
   const presence = useRevealPresence<RewardView | null>(
@@ -71,13 +74,32 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   const view = presence.data;
   const displayedSession = view?.session ?? session;
   const action = view?.action;
+  const lockedCharId = lockedTarget(displayedSession, action);
   useEffect(() => {
     setSelectedChar(null);
   }, [action?.kind]);
   useEffect(() => {
     if (currentAction) setDrawSettled(false);
   }, [currentAction]);
-  const pendingDraw = action?.kind === "forgeDraw" && selectedChar ? characters[selectedChar]?.pendingDraw ?? null : null;
+  const effectiveCharId = lockedCharId ?? selectedChar;
+  const pendingDraw = action?.kind === "forgeDraw" && effectiveCharId ? characters[effectiveCharId]?.pendingDraw ?? null : null;
+
+  const liveLockedId = currentAction?.kind === "forgeDraw" ? lockedTarget(session, currentAction) : null;
+  const liveDrawKey = session?.pendingActions.length ?? 0;
+  const liveHasDraw = Boolean(liveLockedId && characters[liveLockedId]?.pendingDraw);
+  useEffect(() => {
+    if (!liveLockedId) {
+      autoDrawRef.current = null;
+      setAutoDrawKey(null);
+      return;
+    }
+    if (!gate || liveHasDraw || autoDrawRef.current === liveDrawKey) return;
+    autoDrawRef.current = liveDrawKey;
+    setAutoDrawKey(liveDrawKey);
+    startTaintedDraw(liveLockedId);
+  }, [gate, liveLockedId, liveHasDraw, liveDrawKey, startTaintedDraw]);
+  // 自动锻造尚未开始的这一帧不显示面板, 避免闪出选人页。
+  const awaitingAutoDraw = Boolean(liveLockedId && !liveHasDraw && autoDrawKey !== liveDrawKey);
   const drawOptions = useMemo<CardPickOption[] | null>(
     () => pendingDraw?.length ? pendingDraw.map((cardId, index) => ({ key: `${index}-${cardId}`, card: makeCard(cardId) })) : null,
     [pendingDraw],
@@ -85,7 +107,8 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   if (!presence.mounted || !displayedSession || !action) return null;
 
   const selectableCharacters = displayedSession.party.filter((member) => member.alive);
-  const chosenCharId = selectedChar && characters[selectedChar] ? selectedChar : null;
+  const chosenCharId = effectiveCharId && characters[effectiveCharId] ? effectiveCharId : null;
+  const lockedName = lockedCharId ? displayedSession.party.find((member) => member.charId === lockedCharId)?.name : null;
   const chosenCharacter = chosenCharId ? characters[chosenCharId] : null;
   const detailStage = action.kind === "forgeDraw"
     ? Boolean(chosenCharacter?.pendingDraw)
@@ -116,7 +139,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
     />
   );
   // 弹窗与面板并列常驻同一位置, 弹窗关闭时才能播完退场动画(不因分支切换被直接卸载)。
-  const hidePanel = Boolean(drawOptions) || drawSettled;
+  const hidePanel = Boolean(drawOptions) || drawSettled || awaitingAutoDraw;
 
   return (
     <>
@@ -136,7 +159,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
               accent={REWARD_ACCENT}
               kicker="成长协议 / 奖励"
               title={titleOf(action.kind)}
-              status={<span className={s["reward-step"]}>待处理奖励</span>}
+              status={<span className={s["reward-step"]}>{lockedName ? `目标：${lockedName}` : "待处理奖励"}</span>}
               contentKey={`${action.kind}-${detailStage ? "detail" : "pick"}`}
             >
               {action.kind === "expOne" && (
@@ -156,6 +179,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
 
               {action.kind === "forgeDraw" && (
                 <FreeDraw
+                  locked={Boolean(lockedCharId)}
                   members={selectableCharacters}
                   selected={chosenCharId}
                   character={chosenCharacter}
@@ -325,6 +349,13 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
       )}
     </>
   );
+}
+
+/** 待办已锁定交互者且其仍存活时返回其 id; 否则走手动选人。 */
+function lockedTarget(session: ExploreState | null | undefined, action: PendingAction | undefined): string | null {
+  const actorId = action?.actorId;
+  if (!actorId || !session) return null;
+  return session.party.some((member) => member.charId === actorId && member.alive) ? actorId : null;
 }
 
 function titleOf(kind: string): string {

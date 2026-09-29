@@ -11,6 +11,7 @@ import type { ExploreState } from "../types";
 import type { CorridorObject, CurioKind } from "../corridor/types";
 import { matchOffering, takeOfferedStacks, validOfferingPicks, type OfferingPick } from "./offering";
 import { applyCurioEffect } from "./effects";
+import { settleActorRewards } from "./actorRewards";
 import { activeCurioDef, feedFoodFor, visibleDecisions } from "./visibility";
 import { payServiceFood } from "./foodPayment";
 import { resolveFailure } from "./failure";
@@ -39,7 +40,9 @@ function failureDisabled(s: ExploreState): boolean {
 
 function applyAll(s: ExploreState, effects: CurioEffect[], ctx: CurioEffectContext, notes: string[]): void {
   for (const effect of effects) {
-    const note = applyCurioEffect(s, effect, ctx);
+    const before = s.pendingActions.length;
+    const applied = applyCurioEffect(s, effect, ctx);
+    const note = settleActorRewards(s, ctx.actorId, before) ?? applied;
     if (note) notes.push(note);
   }
 }

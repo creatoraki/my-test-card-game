@@ -4,7 +4,7 @@
 import { bondPool, getItemDef } from "@/data";
 import { rngInt } from "@/engine/core/rng";
 import { findByUid } from "@/items/inventory";
-import type { ExploreState } from "../../types";
+import type { ExploreState, PendingAction } from "../../types";
 import { addPendingLoot } from "../loot/backpack";
 import { restoreLimit } from "./party";
 
@@ -54,22 +54,27 @@ export function resolvePendingAction(s: ExploreState): boolean {
   return true;
 }
 
-export function resolvePendingHealing(s: ExploreState, charId: string, limit: boolean): boolean {
-  const action = s.pendingActions[0];
-  if (!action) return false;
-  const target = s.party.find((p) => p.charId === charId && p.alive);
-  if (!target) return false;
-  if (limit) {
-    if (action.kind !== "healLimitOne") return false;
+type HealingAction = Extract<PendingAction, { kind: "healOne" | "healLimitOne" }>;
+
+/** 把一条指定治疗 / 体力极限修复作用到目标身上; 不处理出队。 */
+export function applyMemberHealing(target: ExploreState["party"][number], action: HealingAction): void {
+  if (action.kind === "healLimitOne") {
     // 全恢复按满额 maxHp 计: 体力极限回满, 当前生命也同步回满。
     restoreLimit(target, action.full ? target.maxHp : Math.ceil(target.maxHp * action.percent));
-  } else {
-    if (action.kind !== "healOne") return false;
-    target.hp = Math.min(
-      target.hpLimit,
-      action.full ? target.hpLimit : target.hp + Math.ceil(target.maxHp * action.percent),
-    );
+    return;
   }
+  target.hp = Math.min(
+    target.hpLimit,
+    action.full ? target.hpLimit : target.hp + Math.ceil(target.maxHp * action.percent),
+  );
+}
+
+export function resolvePendingHealing(s: ExploreState, charId: string, limit: boolean): boolean {
+  const action = s.pendingActions[0];
+  if (!action || action.kind !== (limit ? "healLimitOne" : "healOne")) return false;
+  const target = s.party.find((p) => p.charId === charId && p.alive);
+  if (!target) return false;
+  applyMemberHealing(target, action as HealingAction);
   s.pendingActions.shift();
   return true;
 }

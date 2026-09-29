@@ -5,6 +5,7 @@ import { EventPanelStage, EventPanelBody, EventPanelFoot, EventPanelButton, Even
 import { MemberList } from "./RewardCharacters";
 import s from "@/ui/explore/styles/rewardKit.module.css";
 export function FreeDraw({
+  locked = false,
   members,
   selected,
   character,
@@ -13,6 +14,8 @@ export function FreeDraw({
   onSkip,
   onAbandon,
 }: {
+  /** 目标已锁定为交互者: 由 RewardOverlay 自动开始锻造, 不再显示选人页。 */
+  locked?: boolean;
   members: ExploreState["party"];
   selected: string | null;
   character: { pendingDraw: string[] | null } | null;
@@ -22,7 +25,7 @@ export function FreeDraw({
   /** 候选为空时结束奖励: 清掉候选, 不加入任何卡牌。 */
   onAbandon: () => void;
 }) {
-  if (!character?.pendingDraw) {
+  if (!character?.pendingDraw && !locked) {
     return (
       <EventPanelStage>
         <EventPanelBody caption="选择一名角色，生成三张角色专属候选卡牌。" scroll={false}>
