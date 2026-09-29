@@ -11,6 +11,7 @@ import { CurioPanel } from "./parts/CurioPanel";
 import { BossGatePanel } from "./parts/BossGatePanel";
 import { WanderingMerchantPanel } from "../WanderingMerchant/WanderingMerchantPanel";
 import { ExploreDock } from "./parts/ExploreDock";
+import { ExploreActions } from "./parts/ExploreActions";
 import { ExploreInventory } from "./parts/ExploreInventory";
 import { useExploreInventory } from "./useExploreInventory";
 import { usePortalTravelTransition } from "./usePortalTravelTransition";
@@ -50,7 +51,8 @@ export function ExploreScreen() {
     <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={sceneBlocked} encountering={encountering} nearMapVariant={currentRoom?.nearMapVariant ?? "neonCity1"} onPortalTravel={travelTransition.start} />
     <div className={s.readout}><EnergyReadout energy={session.energy} /></div>
     <ExploreInventory session={session} inventory={inventory} />
-    <ExploreDock session={session} inventory={inventory} locked={locked} pending={pending} />
+    <ExploreDock session={session} inventory={inventory} locked={locked} />
+    <ExploreActions session={session} inventory={inventory} locked={locked} pending={pending} />
     {curioOpen && !inventory.target && activeObject?.kind !== "merchant" && <CurioPanel session={session} covered={curioCovered} onOpenBag={() => inventory.setBagOpen(true)} />}
     {session.corridor.bossGateOpen && !inventory.target && <BossGatePanel session={session} />}
     {merchantOpen && !inventory.target && <WanderingMerchantPanel session={session} />}

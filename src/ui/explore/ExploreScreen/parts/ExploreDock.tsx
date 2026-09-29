@@ -1,20 +1,15 @@
-import { canRetreat } from "@/explore/session";
 import type { ExploreState } from "@/explore/types";
-import { useRunStore } from "@/store/run/runStore";
 import { useTownStore } from "@/store/town/townStore";
-import BackpackBar from "@/ui/explore/BackpackBar";
-import { BeaconButton } from "@/ui/explore/BeaconSkill";
-import { PicnicButton } from "@/ui/explore/PicnicSkill";
+import BackpackHand from "@/ui/explore/BackpackHand";
 import { PartyMemberCard } from "@/ui/common/unit/PartyMemberCard";
 import type { ExploreInventoryState } from "../useExploreInventory";
 import s from "./ExploreDock.module.css";
 
-/** 底部整条 HUD：左段立绘(与战斗等尺寸)、中段随身背包、右段行动按钮。 */
-export function ExploreDock({ session, inventory, locked, pending }: {
+/** 底部整条 HUD：左段立绘(与战斗等尺寸)、右段随身背包手牌。行动按钮在右上角 ExploreActions。 */
+export function ExploreDock({ session, inventory, locked }: {
   session: ExploreState;
   inventory: ExploreInventoryState;
   locked: boolean;
-  pending: boolean;
 }) {
   const characters = useTownStore((state) => state.characters);
   return <div className={s.dock}>
@@ -27,13 +22,7 @@ export function ExploreDock({ session, inventory, locked, pending }: {
       </div>
     </div>
     <div className={s.backpack} data-locked={locked || undefined}>
-      <BackpackBar onUseItem={inventory.useItem} />
-    </div>
-    <div className={s.actions}>
-      <BeaconButton onPick={() => inventory.setBeaconPicking(true)} />
-      <PicnicButton onOpen={() => inventory.setPicnicOpen(true)} />
-      <button className={s.retreat} type="button" disabled={!canRetreat(session) || locked || pending || inventory.blocked}
-        onClick={() => useRunStore.getState().retreat()}>撤离远征</button>
+      <BackpackHand onUseItem={inventory.useItem} />
     </div>
   </div>;
 }

@@ -35,7 +35,7 @@ export default function PicnicButton({ onOpen }: { onOpen: () => void }) {
         <span className={s.badge}>{used ? "已使用" : "1 / 1"}</span>
       </button>
       {phaseLocked && (
-        <RailPopover side="top-right">
+        <RailPopover side="left">
           <TooltipCard title="野餐暂不可用" desc="完成物件交互、恢复自由行走后才能野餐。" />
         </RailPopover>
       )}

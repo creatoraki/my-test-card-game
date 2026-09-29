@@ -1,0 +1,71 @@
+/* 手牌背包 —— 单排物品卡, 左对齐从左往右排, 右边的卡压左边的卡。
+   间距纯 CSS 算, 不量 DOM:
+     步长 = min(卡宽 + 12px, (容器宽 − 卡宽) / (n − 1))
+   物品少时卡与卡之间留 12px 缝; 物品多到放不下时步长收窄, 最后一张恰好贴右边。
+   ⚠ 100% 在 .card 的 left 里取值, 相对的是 .hand(绝对定位的包含块)的宽度。
+   --n 由 BackpackHand.tsx 注入, --i 由 HandCard.tsx 注入。 */
+.hand {
+  --card-w: 180px;
+  --lift: 28px; /* 与 BackpackHand.tsx 的 HOVER_LIFT 一致 */
+  --step: min(
+    var(--card-w) + 12px,
+    (100% - var(--card-w)) / max(var(--n, 1) - 1, 1)
+  );
+
+  position: relative;
+  width: 100%;
+  height: 316px;
+}
+
+.empty {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  margin: 0;
+  color: #b6c7c999;
+  font-size: 20px;
+  letter-spacing: 2px;
+}
+
+.card {
+  position: absolute;
+  left: calc(var(--i) * var(--step));
+  bottom: 0;
+  z-index: var(--i);
+  width: var(--card-w);
+  /* 叠在上层的卡往左投影, 让压叠关系读得出来。 */
+  filter: drop-shadow(-8px 0 10px #000000a6);
+  transform-origin: 50% 100%;
+  transition:
+    left 260ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1),
+    filter 180ms ease;
+  animation: handDeal 280ms cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+}
+
+/* 悬浮 / 键盘聚焦 / 交互中: 置顶并上抬放大。 */
+.card:hover,
+.card:focus-within,
+.card[data-active="true"] {
+  z-index: 100;
+  transform: translateY(calc(-1 * var(--lift))) scale(1.06);
+  filter: drop-shadow(0 14px 18px #000000cc);
+}
+
+/* ItemTile 自带的 hover 位移交给外层统一处理, 免得两段上抬叠加。 */
+.tile.tile,
+.tile.tile:hover {
+  transform: none;
+}
+
+.hint {
+  --ihint-offset: 5px;
+  --ihint-size: 16px;
+}
+
+@keyframes handDeal {
+  from {
+    opacity: 0;
+    transform: translateY(48px);
+  }
+}
