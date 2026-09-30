@@ -38,10 +38,12 @@ function pickAffordable(state: BattleState, e: Enemy, def: EnemyDef): EnemyMove 
   return pool.length > 0 ? rngPickWeighted(state, pool, (move) => enemyMoveWeight(state, e, move)) : null;
 }
 
-// 保底行动: 最便宜的招式; 付不起时照出, 点数透支(为负), 下回合回复时补上。
-function cheapestMove(state: BattleState, e: Enemy, def: EnemyDef, minCost: number): EnemyMove {
-  const cheapest = def.moves.filter((move) => move.cost === minCost);
-  return rngPickWeighted(state, cheapest, (move) => enemyMoveWeight(state, e, move));
+// 保底行动: 在付得起的招式里按权重随机; 一招都付不起时在全部招式里按权重随机,
+// 点数透支(为负), 下回合回复时补上。
+function fallbackMove(state: BattleState, e: Enemy, def: EnemyDef): EnemyMove {
+  const affordable = def.moves.filter((move) => move.cost <= e.ap);
+  const pool = affordable.length > 0 ? affordable : def.moves;
+  return rngPickWeighted(state, pool, (move) => enemyMoveWeight(state, e, move));
 }
 
 // mustAct: 本回合第一次出招 —— 每回合至少行动一次, 跳过待机掷骰。
@@ -50,7 +52,7 @@ export function chooseNextMove(state: BattleState, e: Enemy, def: EnemyDef, must
   const costs = def.moves.map((move) => move.cost);
   const maxCost = Math.max(...costs);
   const minCost = Math.min(...costs);
-  if (e.ap < minCost) return mustAct ? cheapestMove(state, e, def, minCost) : null;
+  if (e.ap < minCost) return mustAct ? fallbackMove(state, e, def) : null;
 
   const ultimate = forcedUltimate(state, e, def, maxCost);
   if (ultimate) return ultimate;
@@ -59,5 +61,5 @@ export function chooseNextMove(state: BattleState, e: Enemy, def: EnemyDef, must
     const actChance = (e.ap - minCost + 1) / (maxCost - minCost + 1);
     if (rngFloat(state) >= actChance) return null;
   }
-  return pickAffordable(state, e, def) ?? (mustAct ? cheapestMove(state, e, def, minCost) : null);
+  return pickAffordable(state, e, def) ?? (mustAct ? fallbackMove(state, e, def) : null);
 }
