@@ -1,0 +1,36 @@
+/* 外层只负责发光(一层黑色细描托轮廓 + 一层金色柔光): mask 会裁掉自身的 filter, 所以发光挂在未被遮罩的父层上。 */
+.frame {
+  /* 小型厚角: 臂长约图标 1/5, 线宽随图标尺寸缩放但不低于 3px。 */
+  --fc-len: calc(var(--pip-box, 30px) * 0.2);
+  --fc-w: max(3px, calc(var(--pip-box, 30px) * 0.1));
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 3px rgba(242, 198, 90, 0.55));
+}
+
+/* 统一的白金渐变: 左上纯白过渡到右下亮金。整块铺满后用 8 条短臂拼成四个 L 角遮罩, 让渐变在四角间连续过渡。 */
+.corners {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #fff4d2 30%, #f2c65a 70%, #d19a2e 100%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) left top / var(--fc-len) var(--fc-w) no-repeat,
+    linear-gradient(#000 0 0) left top / var(--fc-w) var(--fc-len) no-repeat,
+    linear-gradient(#000 0 0) right top / var(--fc-len) var(--fc-w) no-repeat,
+    linear-gradient(#000 0 0) right top / var(--fc-w) var(--fc-len) no-repeat,
+    linear-gradient(#000 0 0) left bottom / var(--fc-len) var(--fc-w) no-repeat,
+    linear-gradient(#000 0 0) left bottom / var(--fc-w) var(--fc-len) no-repeat,
+    linear-gradient(#000 0 0) right bottom / var(--fc-len) var(--fc-w) no-repeat,
+    linear-gradient(#000 0 0) right bottom / var(--fc-w) var(--fc-len) no-repeat;
+  mask:
+    linear-gradient(#000 0 0) left top / var(--fc-len) var(--fc-w) no-repeat,
+    linear-gradient(#000 0 0) left top / var(--fc-w) var(--fc-len) no-repeat,
+    linear-gradient(#000 0 0) right top / var(--fc-len) var(--fc-w) no-repeat,
+    linear-gradient(#000 0 0) right top / var(--fc-w) var(--fc-len) no-repeat,
+    linear-gradient(#000 0 0) left bottom / var(--fc-len) var(--fc-w) no-repeat,
+    linear-gradient(#000 0 0) left bottom / var(--fc-w) var(--fc-len) no-repeat,
+    linear-gradient(#000 0 0) right bottom / var(--fc-len) var(--fc-w) no-repeat,
+    linear-gradient(#000 0 0) right bottom / var(--fc-w) var(--fc-len) no-repeat;
+}

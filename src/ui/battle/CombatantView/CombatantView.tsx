@@ -203,6 +203,7 @@ export const CombatantView = memo(function CombatantView({
               team={cmb.team}
               detail
               popoverSide="top-left"
+              frame
               className={s["combatant-statuses"]}
             />
           </div>

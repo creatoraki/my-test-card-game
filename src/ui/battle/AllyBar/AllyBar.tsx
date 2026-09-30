@@ -151,6 +151,7 @@ const AllySlot = memo(function AllySlot({
           detail
           vertical
           popoverSide="top-left"
+          frame
         />
       </div>
 

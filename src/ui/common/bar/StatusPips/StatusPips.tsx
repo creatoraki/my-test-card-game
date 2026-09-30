@@ -7,6 +7,7 @@ import { TooltipCard, type BuffStat } from "@/ui/common/tooltip/TooltipCard";
 import { cx } from "@/ui/common/shared/cx";
 import { RailPopover } from "@/ui/common/tooltip/RailPopover";
 import { ShieldIcon } from "./icons";
+import { StatusFrame } from "./StatusFrame";
 import s from "./StatusPips.module.css";
 
 export function StatusPips({
@@ -18,6 +19,7 @@ export function StatusPips({
   vertical = false,
   popoverSide,
   team = "player",
+  frame,
 }: {
   statuses: StatusInstance[];
   /** 调用方的布局类(这一排在自己的槽位里怎么占位)。图标外观一律由本组件持有。 */
@@ -34,6 +36,8 @@ export function StatusPips({
   popoverSide?: "left" | "top" | "top-right" | "top-left";
   /** 状态持有者阵营, 用于将节拍解释为回合或敌人行动。 */
   team?: Team;
+  /** 四角 L 型白金边框, 层数随之压到右下角上。 */
+  frame?: boolean;
 }) {
   if (statuses.length === 0 && shield <= 0) return null;
 
@@ -78,6 +82,7 @@ export function StatusPips({
       className={cx(
         s.pip,
         s[`pip-${kind}`],
+        frame && s["pip-framed"],
         shieldPip && s["pip-shield"],
         !shieldPip && stacks === 1 && duration != null && s["pip-duration"],
       )}
@@ -89,6 +94,7 @@ export function StatusPips({
           : `${name}，当前层数 ${stacks}${duration != null ? `，剩余 ${duration} ${durationUnit}` : ""}`
       }
     >
+      {frame && <StatusFrame />}
       {icon ?? emoji}
       {!shieldPip && stacks > 1 && <b>{stacks}</b>}
       {!shieldPip && stacks === 1 && duration != null && <b>{duration}</b>}
