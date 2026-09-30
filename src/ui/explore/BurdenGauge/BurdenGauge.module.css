@@ -2,14 +2,12 @@
   --gauge-color: var(--expl-glow, #6fe3f5);
   --ui-glow-color: var(--gauge-color);
 
-  /* 底栏背包表头行里的横排读数(紧贴行动按钮左侧): 占格数在左、图标在右。
-     整体高度与右侧行动按钮(min-height 58px)对齐，图标与数字都按这个高度放大。 */
+  /* 底栏背包表头行里的占格读数(紧贴行动按钮左侧)，整体高度与右侧行动按钮(58px)对齐。 */
   --gauge-h: 58px;
   position: relative;
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 8px;
   height: var(--gauge-h);
   color: var(--gauge-color);
   cursor: var(--cursor-help, default);
@@ -23,25 +21,15 @@
   --gauge-color: #ff806f;
 }
 
-.icon {
-  width: 48px;
-  height: 48px;
-  color: var(--gauge-color);
-  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--gauge-color) 42%, transparent));
-}
-
 .slots {
   color: var(--gauge-color);
   font-family: var(--font-family);
-  font-size: 44px;
-  font-weight: 900;
+  font-size: 32px;
+  font-weight: var(--ui-weight);
   letter-spacing: var(--ui-tracking);
   line-height: 1;
   /* BebasNeue 的上下留白不对称，行框居中时数字会偏；裁到大写字高/基线后由 .gauge 的 flex 居中，数字才真正落在正中。 */
   text-box: trim-both cap alphabetic;
-  /* BebasNeue 只有单一字重文件，font-weight 拉不粗，用同色描边加厚笔画。 */
-  -webkit-text-stroke: 1.6px currentColor;
-  paint-order: stroke fill;
   text-shadow: var(--ui-glow), 0 2px 10px #000c;
   animation: countBump 260ms var(--sm-ease);
 }

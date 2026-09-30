@@ -8,23 +8,6 @@ import s from "./BurdenGauge.module.css";
 
 const WARN_AT = 0.8;
 
-function BackpackIcon() {
-  return (
-    <svg
-      className={s.icon}
-      viewBox="8 8 32 32"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M13 18h22l3 20H10l3-20ZM17 18c0-5 3-8 7-8s7 3 7 8" strokeWidth="1.8" />
-      <path d="M24 23v10M19 28h10" strokeWidth="1.8" />
-    </svg>
-  );
-}
-
 export function BurdenGauge() {
   // 只订阅数值: 行走中的暗雷检定 / 扣粒子等提交不会让负重读数重渲染。
   const active = useExploreStore((state) => Boolean(state.session));
@@ -54,7 +37,6 @@ export function BurdenGauge() {
       <span key={occupied} className={s.slots}>
         {occupiedShown}/{total}
       </span>
-      <BackpackIcon />
       <RailPopover side="top">
         <TooltipCard title="背包负重">
           <div className={s.detail}>

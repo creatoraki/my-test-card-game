@@ -1,0 +1,149 @@
+/* 底部 HUD 装饰外壳。整层 z-index:-1 —— .dock 自身 z-index:30 已是层叠上下文，
+   负层级会画在 .dock 背景之上、所有内容之下，不会盖住立绘和格子。
+   外扩 1px 压住 .dock 的描边，护角 / 灯带 / 指示灯都骑在边框线上。 */
+.frame {
+  --df-c: var(--expl-glow, #6fe3f5);
+  --df-warm: #ffc86b;
+
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: 11px;
+  pointer-events: none;
+}
+
+/* ── 底纹材质：顶部漏光 + 两侧底角环境光 + 细横纹拉丝 ── */
+.material {
+  position: absolute;
+  inset: 1px;
+  overflow: hidden;
+  border-radius: 10px;
+  background:
+    radial-gradient(ellipse 55% 70% at 50% -12%, color-mix(in srgb, var(--df-c) 16%, transparent), transparent 72%),
+    radial-gradient(ellipse 26% 80% at 0% 100%, color-mix(in srgb, var(--df-c) 10%, transparent), transparent 70%),
+    radial-gradient(ellipse 26% 80% at 100% 100%, color-mix(in srgb, var(--df-warm) 8%, transparent), transparent 70%),
+    repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 4px);
+}
+
+/* 点阵网格：只在上半部可见，往下淡出，避免和格子抢视线。 */
+.material::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, color-mix(in srgb, var(--df-c) 22%, transparent) 1px, transparent 1.6px) 0 0 / 14px 14px;
+  mask-image: linear-gradient(180deg, #000 0%, #0008 35%, transparent 75%);
+}
+
+/* 斜向压暗条纹：极淡的对角金属刻纹，给底板一点质感。 */
+.material::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(135deg, transparent 0 22px, #00000026 22px 23px);
+}
+
+/* ── 内框线：与外描边隔一道暗槽，形成双层边框 ── */
+.innerLine {
+  position: absolute;
+  inset: 6px;
+  border: 1px solid #ffffff14;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px #0000004d,
+    inset 0 1px 0 #ffffff0d;
+}
+
+/* ── 灯带：顶边主灯带(带扫光) + 底边弱灯带 ── */
+.lightTop,
+.lightBottom {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.lightTop {
+  top: 0;
+  left: 24%;
+  right: 24%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--df-c) 22%, #e8fdff 50%, var(--df-c) 78%, transparent);
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--df-c) 80%, transparent),
+    0 0 28px color-mix(in srgb, var(--df-c) 40%, transparent);
+}
+
+.lightTop::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 16%;
+  background: linear-gradient(90deg, transparent, #ffffff, transparent);
+  animation: lightSweep 5.5s linear infinite;
+}
+
+.lightBottom {
+  bottom: 0;
+  left: 38%;
+  right: 38%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--df-c) 70%, transparent), transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--df-c) 45%, transparent);
+}
+
+@keyframes lightSweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(640%); }
+}
+
+/* ── 四角护角：L 形亮边骑在外描边上 ── */
+.corner {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 0 solid var(--df-c);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--df-c) 70%, transparent));
+}
+
+.corner[data-at="tl"] { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; border-top-left-radius: 11px; }
+.corner[data-at="tr"] { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; border-top-right-radius: 11px; }
+.corner[data-at="bl"] { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; border-bottom-left-radius: 11px; }
+.corner[data-at="br"] { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; border-bottom-right-radius: 11px; }
+
+/* ── 指示灯：顶边护角内侧各一组三格，左冷右暖，首格慢闪 ── */
+.leds {
+  position: absolute;
+  top: -1px;
+  display: flex;
+  gap: 5px;
+}
+
+.leds[data-at="left"] { left: 44px; --led: var(--df-c); }
+.leds[data-at="right"] { right: 44px; flex-direction: row-reverse; --led: var(--df-warm); }
+
+.leds i {
+  width: 14px;
+  height: 4px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--led) 30%, #0b1216);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--led) 35%, transparent);
+}
+
+.leds i:first-child {
+  background: var(--led);
+  box-shadow: 0 0 8px var(--led), 0 0 16px color-mix(in srgb, var(--led) 50%, transparent);
+  animation: ledBlink 2.6s ease-in-out infinite;
+}
+
+.leds i:nth-child(2) {
+  background: color-mix(in srgb, var(--led) 65%, #0b1216);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--led) 45%, transparent);
+}
+
+.leds[data-at="right"] i:first-child { animation-delay: -1.3s; }
+
+@keyframes ledBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}

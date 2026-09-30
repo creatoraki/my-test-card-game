@@ -25,9 +25,12 @@
   background:
     radial-gradient(ellipse at 50% 0%, #ffffff0d, transparent 60%),
     linear-gradient(160deg, #0b1a1fd9, #04090ceb);
-  border: 1px solid #ffffff2e;
+  /* 外描边用冷光色压实轮廓，外圈再补一道黑线把容器从场景里切出来；装饰层见 DockFrame。 */
+  border: 1px solid #6fe3f559;
   border-radius: 10px;
   box-shadow:
+    0 0 0 1px #000000cc,
+    0 0 26px #6fe3f51f,
     0 24px 60px #000000b3,
     inset 0 1px 0 #ffffff1f,
     inset 0 0 40px #ffffff08;
@@ -60,10 +63,5 @@
 .bagGrid { flex: 0 0 auto; }
 .bagGrid[data-locked] { pointer-events: none; }
 
-/* 表头行右端：负重读数紧贴在行动按钮左侧，按钮横排、三颗等宽。 */
+/* 表头行右端：负重读数紧贴在行动按钮左侧，按钮横排；按钮尺寸由 ExploreActionButton 自带。 */
 .actions { margin-left: auto; display: flex; flex: 0 0 auto; align-items: center; gap: 12px; }
-.actions > :global([data-picnic-button]),
-.actions > :global([data-beacon-button]),
-.actions .retreat { width: 200px; }
-.actions .retreat { min-height: 58px; padding: 0 24px; font-size: 21px; background: #111b20e6; border: 1px solid #a16f5544; color: #cba18d; }
-.actions .retreat:disabled { opacity: .4; }

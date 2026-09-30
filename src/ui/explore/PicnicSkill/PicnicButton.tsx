@@ -2,7 +2,7 @@ import { canPicnic } from "@/explore/resources/picnic";
 import { useExploreStore } from "@/store/explore/exploreStore";
 import { RailPopover } from "@/ui/common/tooltip/RailPopover";
 import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
-import { cx } from "@/ui/common/shared/cx";
+import { ExploreActionButton } from "@/ui/explore/ExploreActionButton";
 import s from "./PicnicButton.module.css";
 
 export default function PicnicButton({ onOpen }: { onOpen: () => void }) {
@@ -13,7 +13,6 @@ export default function PicnicButton({ onOpen }: { onOpen: () => void }) {
   if (!active) return null;
 
   const phaseLocked = !used && !allowed;
-  const available = !used && !phaseLocked;
 
   return (
     <div
@@ -23,17 +22,15 @@ export default function PicnicButton({ onOpen }: { onOpen: () => void }) {
       tabIndex={phaseLocked ? 0 : undefined}
       aria-label={phaseLocked ? "野餐：当前阶段不可用" : undefined}
     >
-      <button
-        className={cx(s.button, available && s["is-available"], phaseLocked && s["is-locked"], used && s["is-used"])}
-        type="button"
-        disabled={!available}
+      <ExploreActionButton
+        tone="amber"
+        state={used ? "used" : phaseLocked ? "locked" : "ready"}
+        icon="🧺"
+        label="野餐"
+        badge={used ? "已使用" : "1/1"}
+        ariaLabel={used ? "野餐：已使用" : "野餐"}
         onClick={onOpen}
-        aria-label={used ? "野餐：已使用" : "野餐"}
-      >
-        <span className={s.icon} aria-hidden="true">🧺</span>
-        <span className={s.label}>野餐</span>
-        <span className={s.badge}>{used ? "已使用" : "1 / 1"}</span>
-      </button>
+      />
       {phaseLocked && (
         <RailPopover side="top-right">
           <TooltipCard title="野餐暂不可用" desc="完成物件交互、恢复自由行走后才能野餐。" />
