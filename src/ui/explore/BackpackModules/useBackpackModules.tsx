@@ -56,7 +56,7 @@ export function useBackpackModules(): BackpackModuleFlow {
         />
       )}
       {installing && (
-        <ExploreModuleInstall stack={installing} source="backpack" onClose={() => setInstalling(null)} />
+        <ExploreModuleInstall stack={installing} onClose={() => setInstalling(null)} />
       )}
     </>
   );

@@ -15,8 +15,6 @@ import ItemTooltip, {
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
-import { ItemActionMask, useSlotActionMode } from "@/ui/common/item/ItemActionMask";
-import { useLootSlotActions } from "@/ui/common/item/ModuleInstall";
 import { inventoryThemeVars } from "@/ui/common/item/shared/inventoryTheme";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
@@ -54,11 +52,8 @@ function LootPickup({ gate, onOpenBag }: LootPickupProps) {
     }
   }, [displayed, hovered]);
 
+  // 点击物品即拾取进背包(模组也一样, 装载要进背包后再操作)。
   const pick = (stack: ItemStack) => { loot.pick(stack); };
-
-  // 点击物品进入交互模式: 遮罩上竖排「拾取」(模组为「装载 / 拾取」), 移出格子退出。
-  const lootActions = useLootSlotActions({ onTake: pick });
-  const actionMode = useSlotActionMode(displayed.map((stack) => stack.uid));
 
   if (!presence.mounted || !displayed.length) return null;
 
@@ -87,7 +82,7 @@ function LootPickup({ gate, onOpenBag }: LootPickupProps) {
             <EventPanelBody
               caption={
                 loot.message ??
-                "点击物品选择拾取，未拾取的物品会丢失；模组可以选择直接装载。"
+                "点击物品即可拾取，未拾取的物品会丢失；模组拾取后可在背包里装载。"
               }
             >
               <div className={s["loot-grid"]}>
@@ -96,7 +91,7 @@ function LootPickup({ gate, onOpenBag }: LootPickupProps) {
                     className={s["loot-item"]}
                     data-loot-uid={stack.uid}
                     data-guide-anchor={
-                      lootActions.isModule(stack)
+                      getItemDef(stack.itemId).category === "module"
                         ? "loot-module"
                         : getItemDef(stack.itemId).category === "equipment"
                           ? "loot-equipment"
@@ -110,19 +105,11 @@ function LootPickup({ gate, onOpenBag }: LootPickupProps) {
                         point: tooltipPointFromElement(event.currentTarget),
                       })
                     }
-                    onPointerLeave={() => {
-                      setHovered((current) => (current?.uid === stack.uid ? null : current));
-                      actionMode.closeIf(stack.uid);
-                    }}
+                    onPointerLeave={() =>
+                      setHovered((current) => (current?.uid === stack.uid ? null : current))
+                    }
                   >
-                    <ItemSlot
-                      stack={stack}
-                      showName={false}
-                      onClick={() => actionMode.open(stack.uid)}
-                    />
-                    {actionMode.activeUid === stack.uid && (
-                      <ItemActionMask actions={lootActions.actionsFor(stack)} onDismiss={actionMode.close} />
-                    )}
+                    <ItemSlot stack={stack} showName={false} onClick={() => pick(stack)} />
                   </div>
                 ))}
               </div>
@@ -153,7 +140,6 @@ function LootPickup({ gate, onOpenBag }: LootPickupProps) {
           </EventPanelStage>
         </EventPanelFrame>
       </section>
-      {lootActions.overlay}
       {loot.flyingPortal}
     </div>
   );

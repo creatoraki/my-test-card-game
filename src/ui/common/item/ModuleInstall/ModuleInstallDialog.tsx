@@ -1,6 +1,6 @@
 // 模组装配弹窗(通用壳) —— 选角色 → 选卡牌 → 确认装配。
 //
-// 探索(ExploreModuleInstall: 出战队员, 来源 = 背包 / 待拾取框)与据点仓库(TownModuleInstall:
+// 探索(ExploreModuleInstall: 出战队员, 来源 = 背包)与据点仓库(TownModuleInstall:
 // 全部已唤醒角色, 来源 = 仓库)各包一层, 只差「列哪些人」「确认时调哪个 action」「旧模组去哪」。
 // 允许顶替: 已装模组的卡也可选, 详情栏写清楚被顶下来的旧模组会去哪儿。
 //

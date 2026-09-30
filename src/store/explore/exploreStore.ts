@@ -104,8 +104,6 @@ interface ExploreStore {
   takeLoot: (index: number) => boolean;
   /** 背包里的一整堆放回拾取框(背包满时腾格子, 可再拿回)。成功返回 true。 */
   returnToLoot: (uid: string) => boolean;
-  /** 待拾取的模组直接装到某张卡上(不进背包, 不占格; 允许顶替, 旧模组进待拾取框)。成功返回 true。 */
-  installLootModule: (lootUid: string, charId: string, cardUid: string) => boolean;
   takeAllLoot: () => void;
   abandonLoot: () => void;
   takeBoonAction: (uid: string) => string | null;
@@ -300,23 +298,6 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
       return ok;
     });
     return ok;
-  },
-
-  // 「装载」通路: 模组不落背包直接上卡。★ 卡组是城镇侧的持久数据, 所以装配本身走 townStore;
-  //   这里只负责在装成之后把这件模组从待拾取框里划掉 —— 装失败(条件不符)则原样留着。
-  //   允许顶替: 被顶下来的旧模组进待拾取框(直接进背包可能装不下), 玩家再决定拾取或装到别处。
-  installLootModule: (lootUid, charId, cardUid) => {
-    const stack = get().session?.pendingLoot.find((item) => item.uid === lootUid);
-    if (!stack) return false;
-    if (getItemDef(stack.itemId).category !== "module") return false;
-    const result = useTownStore.getState().replaceModuleStack(charId, cardUid, stack);
-    if (!result) return false;
-    mutate(get, set, (d) => {
-      d.pendingLoot = d.pendingLoot.filter((item) => item.uid !== lootUid);
-      if (result.replaced) addPendingLoot(d, [result.replaced]);
-      return true;
-    });
-    return true;
   },
 
   takeAllLoot: () => {

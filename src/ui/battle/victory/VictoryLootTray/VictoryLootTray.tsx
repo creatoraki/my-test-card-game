@@ -6,8 +6,6 @@ import ItemTooltip, {
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
-import { ItemActionMask, useSlotActionMode } from "@/ui/common/item/ItemActionMask";
-import { useLootSlotActions } from "@/ui/common/item/ModuleInstall";
 import { cx } from "@/ui/common/shared/cx";
 import { victoryStagger } from "@/ui/battle/choreo/victoryChoreo";
 import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
@@ -44,14 +42,6 @@ const VictoryLootTray = forwardRef<VictoryLootTrayHandle, Props>(function Victor
     if (index < 0) return;
     takeLoot(index);
     onPicked?.(stack.uid);
-  };
-
-  // 只能拾取的物品点击即拾取; 模组有「装载 / 拾取」两种去向, 才进入交互模式展示遮罩按钮, 移出格子退出。
-  const lootActions = useLootSlotActions({ onTake: pick });
-  const actionMode = useSlotActionMode(pendingLoot.map((stack) => stack.uid));
-  const clickSlot = (stack: ItemStack) => {
-    if (lootActions.isModule(stack)) actionMode.open(stack.uid);
-    else pick(stack);
   };
 
   const takeAll = () => {
@@ -93,27 +83,23 @@ const VictoryLootTray = forwardRef<VictoryLootTrayHandle, Props>(function Victor
                   point: tooltipPointFromElement(event.currentTarget, "top"),
                 })
               }
-              onPointerLeave={() => {
-                setHovered((current) => (current?.uid === stack.uid ? null : current));
-                actionMode.closeIf(stack.uid);
-              }}
+              onPointerLeave={() =>
+                setHovered((current) => (current?.uid === stack.uid ? null : current))
+              }
             >
+              {/* 点击即拾取进背包; 模组也一样, 装载要进背包后再操作。 */}
               <ItemSlot
                 stack={stack}
                 showName={false}
-                onClick={() => clickSlot(stack)}
+                onClick={() => pick(stack)}
                 className={cx(s["loot-slot"])}
               />
-              {actionMode.activeUid === stack.uid && (
-                <ItemActionMask actions={lootActions.actionsFor(stack)} onDismiss={actionMode.close} />
-              )}
             </div>
           ) : (
             <div className={cx(victoryCell.empty, s["empty-slot"])} key={`empty-${index}`} aria-hidden="true" />
           )
         ))}
       </div>
-      {lootActions.overlay}
       {hoveredStack && hovered && (
         <ItemTooltip
           stack={hoveredStack}
