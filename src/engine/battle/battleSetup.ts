@@ -12,6 +12,7 @@ import type {
 import type { QuirkId } from "../combat/quirks";
 import { enemyBaselineStats } from "../combat/stats";
 import { shuffle } from "../core/rng";
+import { RULES } from "../core/battleRules";
 import { applyStatus, log } from "../core/ops";
 import { rollChallenges } from "../challenges";
 import { getEncounter, getEnemyDef, slotDefId } from "@/data";
@@ -109,8 +110,8 @@ export function createBattleState(
       tempo: 0,
       moveDelayDelta: mod?.moveDelayDelta ?? 0,
       nextActTick: null,
-      actsPerRound: Math.max(1, def.actsPerRound ?? 1),
-      actsThisRound: 0,
+      ap: 0,
+      apPerRound: Math.max(0, def.apPerRound ?? RULES.enemy.apPerRound),
       intent: { moveId: "", name: "", emoji: "", kind: "special" },
     };
     combatants[id] = enemy;

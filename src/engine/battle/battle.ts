@@ -116,7 +116,7 @@ export function startRound(state: BattleState): void {
   for (const id of state.enemyIds) {
     const e = state.combatants[id] as Enemy;
     if (!e.alive) continue;
-    e.actsThisRound = 0;
+    e.ap += e.apPerRound;
     startCharge(state, id);
   }
 

@@ -8,25 +8,23 @@ import { allIds, cleanup, ctxFor, getStatus, log, markDead, ops } from "../core/
 import { STATUS_DEFS } from "../core/hookRegistry";
 import { runEnemyTempo } from "../combat/statusLifecycle";
 import { attackDamage, enemyActDelay, statOf } from "../combat/stats";
-import { rngPickWeighted } from "../core/rng";
 import { withHitRecorder } from "../core/animHits";
-import { enemyMoveWeight, pickAllyTarget, pickScriptedTarget } from "./enemyMovePick";
+import { pickAllyTarget, pickScriptedTarget } from "./enemyMovePick";
 import { pickScriptedMove, updateAiMemory } from "./enemyScript";
+import { chooseNextMove } from "./apPick";
 
-// 消耗一个行动点, 随机抽取下一招并开始蓄力。
+// 按行动点抽取下一招并开始蓄力(开蓄即扣点); 抽不到 = 本回合停手攒点。
 export function startCharge(state: BattleState, enemyId: string): void {
   const e = state.combatants[enemyId] as Enemy;
-  if (!e.alive || e.actsThisRound >= e.actsPerRound) {
+  const def = getEnemyDef(e.enemyDefId);
+  const move = e.alive ? chooseNextMove(state, e, def) : null;
+  if (!move) {
     e.nextActTick = null;
     return;
   }
 
-  const def = getEnemyDef(e.enemyDefId);
-  const move = def.ai
-    ? pickScriptedMove(state, e, def)
-    : rngPickWeighted(state, def.moves, (m) => enemyMoveWeight(state, e, m));
   if (def.ai) updateAiMemory(e, move, def.ai);
-  e.actsThisRound += 1;
+  e.ap -= move.cost;
 
   const dmgEff = move.effects.find((x) => x.type === "DAMAGE");
   const shieldEff = move.effects.find((x) => x.type === "GAIN_SHIELD");
@@ -138,9 +136,14 @@ export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase
     return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [enemyId], missedIds: [] };
 
   const def = getEnemyDef(e.enemyDefId);
-  const scriptedMove = def.ai && e.aiMemory?.justBrokeShell ? pickScriptedMove(state, e, def) : undefined;
-  const move = scriptedMove ?? def.moves.find((m) => m.id === e.intent.moveId) ?? def.moves[0];
+  const chargedMove = def.moves.find((m) => m.id === e.intent.moveId) ?? def.moves[0];
+  // 破壳临时换招: 已扣的蓄力招点数退回, 改扣新招(付得起的范围内挑)。
+  const budget = e.ap + chargedMove.cost;
+  const scriptedMove =
+    def.ai && e.aiMemory?.justBrokeShell ? pickScriptedMove(state, e, def, (m) => m.cost <= budget) : undefined;
+  const move = scriptedMove ?? chargedMove;
   if (scriptedMove) {
+    e.ap = Math.max(0, budget - scriptedMove.cost);
     e.intent = { moveId: move.id, name: move.name, emoji: move.emoji, kind: move.kind };
     updateAiMemory(e, move, def.ai);
   }

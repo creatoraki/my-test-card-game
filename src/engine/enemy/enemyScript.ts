@@ -59,9 +59,11 @@ function usableMoves(
   def: EnemyDef,
   script: NonNullable<EnemyDef["ai"]>,
   lastMoveId: string | undefined,
+  canAfford: (move: EnemyMove) => boolean,
 ): Set<string> {
   const available = new Set<string>();
   for (const move of def.moves) {
+    if (!canAfford(move)) continue;
     if (move.id === lastMoveId) continue;
     if (move.id === script.recycleMoveId && enemy.shield > 0) continue;
     if (move.id === script.hammerMoveId && memoryOf(enemy).hammerCooldown > 0) continue;
@@ -70,11 +72,27 @@ function usableMoves(
   return available;
 }
 
-export function pickScriptedMove(state: BattleState, enemy: Enemy, def: EnemyDef): EnemyMove {
+// 脚本此刻允许出的招式(不看行动点) —— 供"固定放大招"判断, 避免绕过冷却/禁连发。
+export function scriptAllowedMoveIds(enemy: Enemy, def: EnemyDef): Set<string> {
+  if (!def.ai) return new Set(def.moves.map((move) => move.id));
+  return usableMoves(enemy, def, def.ai, memoryOf(enemy).lastMoveId, () => true);
+}
+
+export function scriptOpeningPending(enemy: Enemy): boolean {
+  return !memoryOf(enemy).openingDone;
+}
+
+// canAfford: 行动点过滤。开场招与兜底招可能付不起, 由调用方判定为停手攒点。
+export function pickScriptedMove(
+  state: BattleState,
+  enemy: Enemy,
+  def: EnemyDef,
+  canAfford: (move: EnemyMove) => boolean = () => true,
+): EnemyMove {
   const script = def.ai;
   if (!script) return def.moves[0];
   const memory = memoryOf(enemy);
-  const available = usableMoves(enemy, def, script, memory.lastMoveId);
+  const available = usableMoves(enemy, def, script, memory.lastMoveId, canAfford);
   const recycle = moveOf(def, script.recycleMoveId);
   const shred = moveOf(def, script.shredMoveId);
   const hammer = moveOf(def, script.hammerMoveId);
@@ -83,6 +101,7 @@ export function pickScriptedMove(state: BattleState, enemy: Enemy, def: EnemyDef
   if (memory.justBrokeShell) return pickBreather(state, def, script, available);
   if (memory.lastMoveId === script.shredMoveId) return pickBreather(state, def, script, available);
   if (memory.lastMoveId === script.recycleMoveId) return pickBreather(state, def, script, available);
+  // 回收保底付不起时照样返回 —— 调用方判为停手攒点, 下回合再放, 不让保底被便宜招挤掉。
   if (memory.actsSinceRecycle >= script.recycleInsurance && enemy.shield <= 0 && recycle)
     return recycle;
 

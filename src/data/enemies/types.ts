@@ -18,6 +18,7 @@ export interface EnemyMove {
   id: string;
   name: string;
   emoji: string;
+  cost: number; // 行动点消耗: 小招 3 / 普通 4~5 / 大招 6
   delay: number;
   kind: "attack" | "block" | "buff" | "debuff" | "special";
   targeting: Targeting;
@@ -37,7 +38,7 @@ export interface EnemyDef {
   maxHp: number;
   exp: number;
   fleeAfterRound?: number;
-  actsPerRound?: number;
+  apPerRound?: number; // 每回合回复的行动点, 缺省取 RULES.enemy.apPerRound
   ai?: EnemyAiScript;
   stats?: Partial<StatBlock>;
   moves: EnemyMove[];

@@ -1,6 +1,7 @@
 import { ShopDetailAside } from "@/ui/town/shop/ShopDetailAside";
 import { useState } from "react";
 import type { EnemyDef } from "@/data";
+import { RULES } from "@/engine";
 import { InteractiveHint } from "@/ui/common/tooltip/InteractiveHint";
 import { useTownStore } from "@/store/town/townStore";
 import { cx } from "@/ui/common/shared/cx";
@@ -81,7 +82,7 @@ function EnemyDetail({ enemy }: { enemy: EnemyDef }) {
       <dl className={s["facts"]}>
         <div><dt>生命</dt><dd>{enemy.maxHp}</dd></div>
         <div><dt>经验</dt><dd>{enemy.exp}</dd></div>
-        <div><dt>每轮行动</dt><dd>{enemy.actsPerRound ?? 1}</dd></div>
+        <div><dt>每回合行动点</dt><dd>{enemy.apPerRound ?? RULES.enemy.apPerRound}</dd></div>
         <div><dt>掉落档位</dt><dd>{group?.name.replace("敌人", "") ?? "普通"}</dd></div>
       </dl>
       <div className={s["moves"]}>
@@ -93,7 +94,7 @@ function EnemyDetail({ enemy }: { enemy: EnemyDef }) {
               <span className={s["move-kind"]}>{moveKindLabel(move.kind)}</span>
             </div>
             <p>{moveSummary(move)}</p>
-            <small>延迟 {move.delay} · 权重 {move.weight ?? 1}{move.hitBonus ? ` · 命中 ${move.hitBonus > 0 ? "+" : ""}${move.hitBonus}%` : ""}</small>
+            <small>消耗 {move.cost} · 延迟 {move.delay} · 权重 {move.weight ?? 1}{move.hitBonus ? ` · 命中 ${move.hitBonus > 0 ? "+" : ""}${move.hitBonus}%` : ""}</small>
           </div>
         ))}
       </div>
