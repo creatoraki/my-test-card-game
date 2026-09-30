@@ -1,4 +1,14 @@
 /* 横向铺满 ExploreDock 背包段: 宽度决定 12 列的列宽, 格子 1:1, 高度随之而定。 */
 .bar {
   width: 100%;
+  /* 与出击准备页仓库格子同款: 收小圆角 + 稀有度色实体边框。 */
+  --inventory-slot-radius: 3px;
+  --inventory-slot-rarity-edge: 75%;
+  /* 分区色条贴着格子底边(边框内侧)铺满整宽, 直角, 与小圆角格子成一套。 */
+  --item-section-strip-inset: 1px;
+  --item-section-strip-bottom: 1px;
+  --item-section-strip-height: 5px;
+  --item-section-strip-radius: 0 0 2px 2px;
+  /* 分区起点左侧不画竖分割线, 归属靠底边色条 + 分区标签就够了。 */
+  --item-section-divider-display: none;
 }

@@ -1,3 +1,7 @@
 .panel {
   max-width: none;
+  /* 仓库格子收小圆角, 与硬朗的玻璃托盘保持一致。 */
+  --inventory-slot-radius: 3px;
+  /* 有物格实体边框用稀有度色, 避免浅白描边在玻璃托盘上看不清。 */
+  --inventory-slot-rarity-edge: 75%;
 }

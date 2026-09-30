@@ -9,20 +9,22 @@
   pointer-events: none;
 }
 
-/* 底边色条: 每件物品都有, 分区跨行时靠它认归属。 */
+/* 底边色条: 每件物品都有, 分区跨行时靠它认归属。
+   调用方可在祖先上覆盖 --item-section-strip-inset / -bottom / -height / -radius 改成贴底通栏。 */
 .strip {
-  right: 10%;
-  bottom: 3px;
-  left: 10%;
-  height: 3px;
-  border-radius: 2px;
+  right: var(--item-section-strip-inset, 10%);
+  bottom: var(--item-section-strip-bottom, 3px);
+  left: var(--item-section-strip-inset, 10%);
+  height: var(--item-section-strip-height, 3px);
+  border-radius: var(--item-section-strip-radius, 2px);
   background: var(--item-section-color);
   box-shadow: 0 0 8px var(--item-section-color);
   opacity: 0.85;
 }
 
-/* 格间竖分割线: 落在左侧列间距的正中。 */
+/* 格间竖分割线: 落在左侧列间距的正中。调用方可在祖先上设 --item-section-divider-display: none 隐藏。 */
 .divider {
+  display: var(--item-section-divider-display, block);
   top: -6px;
   bottom: -6px;
   left: calc(var(--item-section-gap, 10px) / -2 - 1px);
