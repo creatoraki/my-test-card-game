@@ -12,7 +12,7 @@ import { AssemblyBench } from "../AssemblyBench";
 import { AssemblyCharacterStage } from "../AssemblyCharacterStage";
 import { AssemblyDeckGrid } from "../AssemblyDeckGrid";
 import { AssemblyModuleRack } from "../AssemblyModuleRack";
-import { TerminalPanel } from "../TerminalPanel";
+import { TerminalPanel } from "@/ui/common/frame/TerminalPanel";
 import s from "./ModuleAssemblyView.module.css";
 
 interface HoveredItem {
@@ -67,7 +67,7 @@ export function ModuleAssemblyView() {
   };
 
   const showTooltip = (element: HTMLElement, stack: ItemStack) => {
-    setHoveredItem({ stack, point: tooltipPointFromElement(element) });
+    setHoveredItem({ stack, point: tooltipPointFromElement(element, "left") });
   };
 
   return (

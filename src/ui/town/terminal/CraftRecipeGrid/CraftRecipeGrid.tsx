@@ -1,6 +1,6 @@
 // 「02 制造清单」面板: 当前角色能造的模组, 两列配方卡; 面板底部压一层标语与徽标水印。
 import type { CraftCheck, ModuleRecipe } from "@/data";
-import { TerminalPanel } from "../TerminalPanel";
+import { TerminalPanel } from "@/ui/common/frame/TerminalPanel";
 import { RecipeCard } from "./RecipeCard";
 import s from "./CraftRecipeGrid.module.css";
 

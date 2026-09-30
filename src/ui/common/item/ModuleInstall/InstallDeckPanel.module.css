@@ -1,0 +1,89 @@
+/* 「02 卡组」: 网格与徽章口径照搬研究中心 AssemblyDeckGrid。 */
+.body {
+  --ui-glow-color: var(--sx-key-hot, #ff909a);
+  overflow: hidden;
+  padding: 4px 8px 12px;
+}
+
+.track {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: repeat(auto-fill, minmax(190px, max-content));
+  justify-content: center;
+  align-content: start;
+  gap: 14px;
+  /* 内边距要吃得下选中框的外扩和发光, 否则边缘那列会被 overflow 裁掉。 */
+  padding: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  position: relative;
+  min-width: 0;
+  justify-self: center;
+  --deck-card-scale: 0.74;
+  transition: opacity 180ms ease;
+}
+
+.deckCard {
+  position: relative;
+  z-index: 3;
+}
+
+.card.dimmed {
+  opacity: 0.34;
+  filter: saturate(0.3);
+}
+
+/* 「已装配」徽章: 钉在插画区右上角(唯一不压信息的位置), 百分比尺寸随卡缩放。 */
+.moduleMark {
+  --mark-c: var(--mark-hue, var(--sx-key, #ff3b4e));
+  position: absolute;
+  top: 3%;
+  right: 3.5%;
+  z-index: 4;
+  display: grid;
+  width: 17%;
+  aspect-ratio: 1;
+  place-items: center;
+  color: var(--sx-bg-lo);
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--mark-c) 92%, white),
+    var(--mark-c) 62%,
+    color-mix(in srgb, var(--mark-c) 72%, var(--sx-bg-lo))
+  );
+  border: 1px solid color-mix(in srgb, var(--mark-c) 60%, white);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--sx-bg) 72%, transparent),
+    0 0 16px -1px color-mix(in srgb, var(--mark-c) 78%, transparent),
+    0 3px 8px #000000a6;
+  clip-path: polygon(28% 0, 100% 0, 100% 72%, 72% 100%, 0 100%, 0 28%);
+  pointer-events: none;
+  transition: transform 160ms ease;
+}
+
+.moduleMark svg,
+.moduleMark img {
+  width: 62%;
+  height: 62%;
+  object-fit: contain;
+}
+
+/* DeckCard hover 时上浮 4px, 徽章挂在外层 wrapper 上, 补一份同样的位移免得掉队。 */
+.card:hover .moduleMark {
+  transform: translateY(-4px);
+}
+
+.empty {
+  margin: auto;
+  color: var(--ui-label);
+  font-size: var(--rs-font-body, 20px);
+}

@@ -1,6 +1,6 @@
 /* 三栏按设计稿 463 : 448 : 448 分宽, 栏距 22(设计稿 19 × 1.148)。 */
 .body {
-  composes: rs-tokens from "../styles/terminalKit.module.css";
+  composes: rs-tokens from "../../../common/frame/TerminalPanel/terminalKit.module.css";
   height: 100%;
   display: grid;
   min-width: 0;

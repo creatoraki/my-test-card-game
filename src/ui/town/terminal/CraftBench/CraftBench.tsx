@@ -3,7 +3,7 @@ import { getCardModule, getItemDef, type CraftCheck, type ModuleRecipe } from "@
 import type { ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/items/itemArt";
 import { craftStatusLabel } from "../CraftRecipeGrid/craftStatus";
-import { TerminalPanel } from "../TerminalPanel";
+import { TerminalPanel } from "@/ui/common/frame/TerminalPanel";
 import { CraftButton } from "./CraftButton";
 import { CraftCostList } from "./CraftCostList";
 import s from "./CraftBench.module.css";

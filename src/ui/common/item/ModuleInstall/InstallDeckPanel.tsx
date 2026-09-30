@@ -1,64 +1,56 @@
+// 装配弹窗「02 卡组」: 当前角色的卡牌网格, 装不了这件模组的牌压暗不可选;
+// 已装模组的牌右上角挂模组徽章(按模组主色染色), 仍可选 —— 确认时顶替。
 import type { CSSProperties } from "react";
+import { getItemDef } from "@/data";
 import type { Card } from "@/engine";
-import type { ItemStack } from "@/items/types";
-import { canEquipModule, getItemDef } from "@/data";
 import { itemIcon } from "@/ui/art/items/itemArt";
 import { getModuleTheme } from "@/ui/art/moduleGlyphs/moduleGlyphs";
 import { DeckCard } from "@/ui/common/card/DeckCard";
-import { cx } from "@/ui/common/shared/cx";
 import { TerminalPanel } from "@/ui/common/frame/TerminalPanel";
-import s from "./AssemblyDeckGrid.module.css";
+import { cx } from "@/ui/common/shared/cx";
+import s from "./InstallDeckPanel.module.css";
 
 interface Props {
-  deck: Card[];
+  deck: readonly Card[];
+  equippable: ReadonlySet<string>;
   selectedUid: string | null;
-  moduleStacks: ItemStack[];
   onSelect: (uid: string) => void;
-  className?: string;
 }
 
-/** 「02 卡组」面板: 当前角色的卡组网格, 选中一张作为装配目标。 */
-export function AssemblyDeckGrid({ deck, selectedUid, moduleStacks, onSelect, className }: Props) {
+export function InstallDeckPanel({ deck, equippable, selectedUid, onSelect }: Props) {
   return (
     <TerminalPanel
       index="02"
       title="卡组"
       deco="DECK"
-      extra={`${deck.length} 张`}
-      ariaLabel="卡组浏览"
-      className={className}
-      bodyClassName={s.gridPanel}
+      extra={`可装 ${equippable.size} / ${deck.length} 张`}
+      ariaLabel="选择装配卡牌"
+      bodyClassName={s.body}
     >
       {deck.length ? (
         <div className={s.track} role="list">
           {deck.map((card, index) => {
-            const usable = Boolean(card.cardModule) || moduleStacks.some((stack) => canEquipModule(card, stack.itemId));
+            const usable = equippable.has(card.uid);
             return (
               <div
                 key={card.uid}
                 className={cx(s.card, !usable && s.dimmed)}
                 role="listitem"
-                data-installed={card.cardModule ? "true" : undefined}
                 data-selected={card.uid === selectedUid ? "true" : undefined}
               >
                 <DeckCard
                   card={card}
                   selected={card.uid === selectedUid}
                   index={index}
-                  onClick={() => onSelect(card.uid)}
+                  onClick={() => usable && onSelect(card.uid)}
                   className={s.deckCard}
                 />
                 {card.cardModule && (
-                  // 徽章染成该模组的主色 —— 卡面上不点开也能认出装的是哪一件。
                   <span
                     className={s.moduleMark}
                     role="img"
-                    aria-label="已装配模组"
-                    style={
-                      {
-                        "--asm-cyan": getModuleTheme(card.cardModule.itemId)?.hue,
-                      } as CSSProperties
-                    }
+                    aria-label={`已装配：${getItemDef(card.cardModule.itemId).name}`}
+                    style={{ "--mark-hue": getModuleTheme(card.cardModule.itemId)?.hue } as CSSProperties}
                   >
                     {itemIcon(getItemDef(card.cardModule.itemId))}
                   </span>
@@ -68,7 +60,7 @@ export function AssemblyDeckGrid({ deck, selectedUid, moduleStacks, onSelect, cl
           })}
         </div>
       ) : (
-        <p className={s.empty}>当前角色没有卡牌</p>
+        <p className={s.empty}>该角色没有卡牌</p>
       )}
     </TerminalPanel>
   );

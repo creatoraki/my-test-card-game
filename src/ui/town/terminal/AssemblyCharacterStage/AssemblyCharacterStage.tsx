@@ -3,7 +3,7 @@ import { useEffect, useRef, type KeyboardEvent } from "react";
 import { getCharacter } from "@/data";
 import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
 import { cx } from "@/ui/common/shared/cx";
-import { TerminalPanel } from "../TerminalPanel";
+import { TerminalPanel } from "@/ui/common/frame/TerminalPanel";
 import s from "./AssemblyCharacterStage.module.css";
 
 interface Props {

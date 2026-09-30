@@ -1,7 +1,6 @@
-/* 原地装配弹窗 —— 战利品盘/拾取框上方的最高一层浮层。
-   正文字号最小 18px。
-   自带全屏遮罩(与探索页的无遮罩浮层不同): 它是从另一个浮层里拉起来的模态, 必须压住下层的点击。
-   行分配: 头部 / 信息带 / 卡牌区(吃满剩余高度) / 页脚。 */
+/* 原地装配弹窗 —— 战利品盘/拾取框/仓库上方的最高一层浮层。
+   自带全屏遮罩: 它是从另一个浮层里拉起来的模态, 必须压住下层的点击。
+   三栏与研究中心「模组装配」页同构: 01 角色 / 02 卡组(吃满剩余宽度) / 03 装配详情。 */
 
 .layer {
   position: fixed;
@@ -9,268 +8,39 @@
   z-index: 120;
   display: grid;
   place-items: center;
+  color: var(--sx-ink);
 }
 
 .backdrop {
   position: absolute;
   inset: 0;
-  background: #04070980;
-  backdrop-filter: blur(2px);
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 50%, #ff3b4e0d, transparent 70%),
+    #050203d9;
+  backdrop-filter: blur(3px);
 }
 
-.panel {
+.body {
+  composes: rs-tokens from "../../frame/TerminalPanel/terminalKit.module.css";
   position: relative;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
-  gap: 10px;
-  width: min(920px, 88vw);
-  height: min(880px, 92vh);
-  padding: 18px 20px;
-  color: var(--text);
-  background: linear-gradient(180deg, var(--panel2), var(--panel));
-  border: 1px solid var(--border);
-  box-shadow: 0 18px 48px #000000a8;
-  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
-}
-
-.head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.icon {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 auto;
-  background: #0a0e11;
-  border: 1px solid var(--border);
-}
-
-.icon svg,
-.icon img {
-  width: 100%;
-  height: 100%;
-}
-
-.title {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-right: auto;
-}
-
-.title strong {
-  font-size: 24px;
-}
-
-.kicker {
-  color: var(--rarity-fine);
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.close {
-  width: 32px;
-  height: 32px;
-  flex: 0 0 auto;
-  color: var(--muted);
-  background: transparent;
-  border: 1px solid var(--border);
-  cursor: var(--cursor-pointer);
-}
-
-.close:hover {
-  color: var(--text);
-  border-color: var(--rarity-fine);
-}
-
-/* 信息带: 效果 | 条件 两列, 压成一条不抢卡牌区的高度。 */
-.info {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 4px 18px;
-  margin: 0;
-  padding: 8px 12px;
-  background: #0a0e11;
-  border: 1px solid var(--border);
-}
-
-.infoCol {
-  display: grid;
-  gap: 2px;
+  width: min(1500px, 94vw);
+  height: min(860px, 90vh);
   min-width: 0;
-}
-
-.infoCol dt {
-  color: var(--muted);
-  font-size: 18px;
-  letter-spacing: 0.06em;
-}
-
-.infoCol dd {
-  margin: 0;
-  color: var(--text);
-  font-size: 18px;
-  line-height: 1.5;
-}
-
-.hint {
-  display: block;
-  color: var(--muted);
-  font-size: 18px;
-}
-
-.stage {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 8px;
   min-height: 0;
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr) minmax(0, 400px);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 22px;
+  animation: install-rise 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
-.chars {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+@keyframes install-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-
-.charTab {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  color: var(--text);
-  font-size: 18px;
-  background: #0d1216;
-  border: 1px solid var(--border);
-  cursor: var(--cursor-pointer);
-}
-
-.charTab:disabled {
-  color: var(--muted);
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.charTab.isActive {
-  color: var(--owner-color, var(--rarity-fine));
-  border-color: currentColor;
-  box-shadow: 0 0 12px -4px currentColor;
-}
-
-.downed {
-  color: var(--bad);
-  font-size: 18px;
-}
-
-.deck {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(164px, max-content));
-  justify-content: center;
-  align-content: start;
-  gap: 14px;
-  min-height: 0;
-  padding: 10px;
-  overflow-y: auto;
-  border: 1px solid #232b30;
-  background: #0a0e11;
-  /* 抽屉里仍可滚动, 只是不画滚动条(与据点各面板一致)。 */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.deck::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
-
-.card {
-  position: relative;
-  --deck-card-scale: 0.68;
-  transition: opacity 180ms ease;
-}
-
-.deckCard {
-  position: relative;
-  z-index: 2;
-}
-
-.card.dimmed {
-  opacity: 0.34;
-  filter: saturate(0.3);
-}
-
-.installed {
-  position: absolute;
-  top: 4%;
-  right: 4%;
-  z-index: 3;
-  padding: 2px 6px;
-  color: #06171a;
-  font-size: 18px;
-  background: var(--rarity-fine);
-  pointer-events: none;
-}
-
-.empty {
-  margin: auto;
-  color: var(--muted);
-  font-size: 18px;
-}
-
-.foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.note {
-  color: var(--muted);
-  font-size: 18px;
-}
-
-/* 顶替提示: 用暖色点醒「旧模组会被卸下」。 */
-.note.isWarn {
-  color: #ffcf7a;
-}
-
-.actions {
-  display: flex;
-  gap: 10px;
-}
-
-.btn {
-  padding: 8px 20px;
-  color: var(--text);
-  font-size: 18px;
-  background: #0d1216;
-  border: 1px solid var(--border);
-  cursor: var(--cursor-pointer);
-}
-
-.btn:hover:not(:disabled) {
-  border-color: var(--rarity-fine);
-}
-
-.btn:disabled {
-  color: var(--muted);
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.btn.isPrimary {
-  color: #06171a;
-  font-weight: 700;
-  background: var(--rarity-fine);
-  border-color: var(--rarity-fine);
-}
-
-.btn.isPrimary:disabled {
-  color: var(--muted);
-  background: #0d1216;
-}
-

@@ -1,0 +1,236 @@
+/* 「03 装配详情」: 铭牌 / 信息段 / 提示 / 按钮自上而下, 按钮行沉底。 */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 22px 22px;
+  overflow: hidden;
+}
+
+.close {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  color: var(--sx-muted);
+  background: transparent;
+  border: 1px solid var(--sx-line);
+  cursor: var(--cursor-pointer);
+  transition: color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.close:hover,
+.close:focus-visible {
+  color: var(--sx-ink);
+  border-color: var(--sx-key);
+  box-shadow: 0 0 10px #ff3b4e59;
+}
+
+.close svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 铭牌: 切角图标槽(口径同装配台模组槽) + 小标题 / 模组名。 */
+.plate {
+  --plate-accent: var(--sx-key);
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 16px;
+  padding: 14px;
+  background:
+    radial-gradient(circle at 18% 50%, color-mix(in srgb, var(--plate-accent) 14%, transparent), transparent 46%),
+    var(--sx-bg-hi);
+  border: 1px solid var(--sx-line);
+  box-shadow: inset 0 0 30px #0007;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+.plate[data-state="invalid"] {
+  --plate-accent: var(--sx-alert);
+}
+
+.slot {
+  display: grid;
+  width: 84px;
+  height: 84px;
+  flex: none;
+  place-items: center;
+  background: color-mix(in srgb, var(--sx-bg-lo) 87%, transparent);
+  border: 1px solid var(--plate-accent);
+  box-shadow:
+    inset 0 0 18px color-mix(in srgb, var(--plate-accent) 22%, transparent),
+    0 0 18px color-mix(in srgb, var(--plate-accent) 30%, transparent);
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+.icon {
+  display: grid;
+  width: 60px;
+  height: 60px;
+  place-items: center;
+  color: var(--sx-key);
+}
+
+.icon svg,
+.icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.plateText {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kicker {
+  color: var(--sx-key-hot);
+  font-size: var(--rs-font-mark, 18px);
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.moduleName {
+  overflow: hidden;
+  color: var(--sx-title);
+  font-size: var(--rs-font-name, 26px);
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 10px var(--sx-title-glow);
+  white-space: nowrap;
+}
+
+/* 信息段: 小标题前一道红色短竖线, 正文不限行, 超长时整段滚动。 */
+.info {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 2px 4px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.info::-webkit-scrollbar {
+  display: none;
+}
+
+.row {
+  display: grid;
+  gap: 4px;
+}
+
+.row dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ui-label);
+  font-size: var(--rs-font-mark, 18px);
+  letter-spacing: 1px;
+}
+
+.row dt::before {
+  width: 3px;
+  height: 14px;
+  background: var(--sx-key);
+  box-shadow: 0 0 6px #ff3b4e8c;
+  content: "";
+}
+
+.row dd {
+  margin: 0;
+  color: var(--sx-ink);
+  font-size: var(--rs-font-body, 20px);
+  line-height: 1.5;
+}
+
+.row dd.placeholder {
+  color: var(--sx-dim);
+}
+
+.note {
+  flex: none;
+  margin: 0;
+  padding: 8px 12px;
+  color: var(--sx-muted);
+  font-size: var(--rs-font-mark, 18px);
+  line-height: 1.45;
+  background: var(--sx-bg);
+  border: 1px solid var(--sx-line);
+  border-left: 3px solid var(--sx-dim);
+}
+
+.note[data-state="ready"] {
+  color: var(--sx-ink);
+  border-left-color: var(--sx-key);
+}
+
+/* 顶替 / 装不了: 琥珀色点醒, 与主红区分开。 */
+.note[data-state="replace"],
+.note[data-state="invalid"] {
+  color: var(--sx-alert);
+  border-color: color-mix(in srgb, var(--sx-alert) 40%, transparent);
+  border-left-color: var(--sx-alert);
+}
+
+.actions {
+  display: grid;
+  flex: none;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.btn {
+  height: 50px;
+  padding: 0 12px;
+  color: var(--sx-ink);
+  font-size: var(--rs-font-kicker, 22px);
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: linear-gradient(180deg, #1c1718, #0d0b0c);
+  border: 1px solid #ffffff2e;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  cursor: var(--cursor-pointer);
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: #ffffff6b;
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+  transition-duration: 90ms;
+}
+
+.btn.primary {
+  color: #fff4f5;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sx-key) 46%, #1c0a0d), var(--sx-fill));
+  border-color: var(--sx-key);
+  box-shadow: inset 0 1px 0 #ffffff26, 0 0 14px #ff3b4e4d;
+  text-shadow: 0 0 8px #ff3b4e99;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sx-key) 62%, #1c0a0d), color-mix(in srgb, var(--sx-key) 40%, var(--sx-fill)));
+  box-shadow: inset 0 1px 0 #ffffff33, 0 0 20px #ff3b4e80;
+}
+
+.btn:disabled {
+  color: var(--sx-dim);
+  background: var(--sx-bg);
+  border-color: var(--sx-line);
+  box-shadow: none;
+  text-shadow: none;
+  cursor: not-allowed;
+}

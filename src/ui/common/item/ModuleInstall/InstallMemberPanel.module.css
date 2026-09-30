@@ -1,0 +1,137 @@
+/* 「01 角色选择」: 竖排角色条, 选中态照搬装配页缩略图的红色四角标 + 左侧亮条。 */
+.body {
+  padding: 16px 18px 20px;
+  overflow: hidden;
+}
+
+.list {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.member {
+  --mk-c: var(--sx-key, #ff3b4e);
+  --mk-bar: linear-gradient(var(--mk-c), var(--mk-c));
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 14px 6px 6px;
+  color: var(--sx-ink);
+  text-align: left;
+  background: linear-gradient(90deg, #1c1718, #0d0b0c);
+  border: 1px solid #ffffff2e;
+  cursor: var(--cursor-pointer);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.member:hover:not(:disabled),
+.member:focus-visible {
+  border-color: #ffffff6b;
+}
+
+.member:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  filter: saturate(0.3);
+}
+
+.member.selected {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--mk-c) 18%, #1c1718), #0d0b0c 70%);
+  border-color: color-mix(in srgb, var(--mk-c) 70%, transparent);
+  box-shadow: 0 0 10px #ff3b4e99, inset 0 0 14px #ff3b4e33;
+}
+
+.member.selected::after {
+  position: absolute;
+  inset: 0;
+  background:
+    var(--mk-bar) 0 0 / 16px 3px no-repeat,
+    var(--mk-bar) 0 0 / 3px 16px no-repeat,
+    var(--mk-bar) 100% 0 / 16px 3px no-repeat,
+    var(--mk-bar) 100% 0 / 3px 16px no-repeat,
+    var(--mk-bar) 100% 100% / 16px 3px no-repeat,
+    var(--mk-bar) 100% 100% / 3px 16px no-repeat,
+    var(--mk-bar) 0 100% / 16px 3px no-repeat,
+    var(--mk-bar) 0 100% / 3px 16px no-repeat;
+  content: "";
+  pointer-events: none;
+}
+
+/* 半身缩略: 取景口径与装配页角色缩略图一致(78:112 框 + 头部上移)。 */
+.avatar {
+  position: relative;
+  display: block;
+  width: 58px;
+  flex: none;
+  aspect-ratio: 78 / 112;
+  overflow: hidden;
+  background: linear-gradient(180deg, #241c1e, #0d0b0c);
+  border: 1px solid #ffffff1f;
+}
+
+.avatar .thumb {
+  --slot-base-w: 47%;
+  --bust-zoom: 2.15;
+  --frame-k: 0.18;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: calc(var(--slot-base-w) * var(--bust-zoom) * var(--bust-scale, 1));
+  height: auto;
+  max-width: none;
+  translate:
+    calc(-50% + var(--portrait-dx, 0px) * var(--frame-k))
+    calc(var(--portrait-dy, 0px) * var(--frame-k));
+  opacity: 0.86;
+}
+
+.member.selected .thumb {
+  opacity: 1;
+}
+
+.info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.name {
+  overflow: hidden;
+  font-size: var(--rs-font-entry, 24px);
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member.selected .name {
+  color: var(--sx-title);
+  text-shadow: 0 0 10px #ff3b4e80;
+}
+
+.tag {
+  align-self: flex-start;
+  padding: 1px 8px;
+  color: var(--sx-key-hot);
+  font-size: var(--rs-font-mark, 18px);
+  border: 1px solid color-mix(in srgb, var(--sx-key) 60%, transparent);
+  background: var(--sx-key-wash);
+}
+
+.empty {
+  margin: auto;
+  color: var(--ui-label);
+  font-size: var(--rs-font-body, 20px);
+}

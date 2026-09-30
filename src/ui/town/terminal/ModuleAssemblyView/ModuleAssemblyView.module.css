@@ -1,7 +1,7 @@
 /* 与模组制造页同一套编号面板: 01 角色选择 / 02 卡组 / 03 装配详情(装配台 + 模组仓库)。
    中栏要放下三列卡牌, 两侧栏给定宽度, 剩余全归中栏。 */
 .body {
-  composes: rs-tokens from "../styles/terminalKit.module.css";
+  composes: rs-tokens from "../../../common/frame/TerminalPanel/terminalKit.module.css";
   height: 100%;
   display: grid;
   min-width: 0;
