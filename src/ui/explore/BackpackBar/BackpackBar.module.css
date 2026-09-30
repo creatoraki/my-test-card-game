@@ -1,6 +1,4 @@
+/* 横向铺满 ExploreDock 背包段: 宽度决定 12 列的列宽, 格子 1:1, 高度随之而定。 */
 .bar {
   width: 100%;
-  max-width: none;
-  height: 316px;
-  justify-content: center;
 }

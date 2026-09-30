@@ -1,7 +1,6 @@
 import { memo } from "react";
-import { RULES } from "@/engine";
 import { getItemDef } from "@/data";
-import { backpackSlots, canOpenBackpack, canUseItem } from "@/explore/session";
+import { canOpenBackpack, canUseItem } from "@/explore/session";
 import { useExploreStore } from "@/store/explore/exploreStore";
 import ItemInventoryPanel from "@/ui/common/item/ItemInventoryPanel";
 import type { SlotAction } from "@/ui/common/item/ItemActionMask";
@@ -14,6 +13,7 @@ const COLS = 12;
 const ROWS = 2;
 
 // memo + 只订阅背包本身与两个布尔值: 行走中的暗雷检定 / 扣粒子等提交不会重绘这 24 格。
+// 无框形态: 外框由 ExploreDock 的整条底栏容器提供; 容量读数已在左上角 HUD, 这里不再占一行标题。
 export default memo(function BackpackBar({
   onUseItem,
 }: {
@@ -23,7 +23,6 @@ export default memo(function BackpackBar({
   const backpack = useExploreStore((state) => state.session?.backpack);
   const editable = useExploreStore((state) => Boolean(state.session && canOpenBackpack(state.session)));
   const useAllowed = useExploreStore((state) => Boolean(state.session && canUseItem(state.session)));
-  const occupied = useExploreStore((state) => state.session ? backpackSlots(state.session) : 0);
   const discardItem = useExploreStore((state) => state.discardItem);
   const modules = useBackpackModules();
 
@@ -83,11 +82,8 @@ export default memo(function BackpackBar({
         stacks={backpack}
         rows={ROWS}
         columns={COLS}
-        compact
+        bare
         sectioned
-        title="背包"
-        capacity={RULES.burden.backpackSlots}
-        occupied={occupied}
         gridLabel="随身背包格位"
         panelId="explore-backpack-bar"
         colorMap={EXPLORE_BACKPACK_COLORS}
@@ -96,6 +92,8 @@ export default memo(function BackpackBar({
         slotHint={editable}
         slotActions={editable ? slotActions : undefined}
         actionStyle="card"
+        // 背包贴在屏幕底部, 详情往格子上方弹, 不遮同排的格子。
+        tooltipDirection="top"
       />
       {modules.overlay}
     </>

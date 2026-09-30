@@ -62,7 +62,7 @@ export function DossierLoot({
             style={{ "--i": index } as CSSProperties}
             data-loot-uid={stack.uid}
             data-guide-anchor={guideAnchor(stack, lootActions.isModule(stack))}
-            onPointerEnter={(event) => setHovered({ uid: stack.uid, point: tooltipPointFromElement(event.currentTarget) })}
+            onPointerEnter={(event) => setHovered({ uid: stack.uid, point: tooltipPointFromElement(event.currentTarget, "top") })}
             onPointerLeave={() => {
               setHovered((current) => (current?.uid === stack.uid ? null : current));
               actionMode.closeIf(stack.uid);

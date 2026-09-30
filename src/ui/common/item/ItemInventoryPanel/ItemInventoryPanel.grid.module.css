@@ -35,6 +35,19 @@
   --item-section-gap: 10px;
 }
 
+/* 无框形态(bare): 托盘退化为透明占位, 网格横向铺满父容器, 格子仍是 1:1。 */
+[data-bare="true"] .inventory-tray {
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+
+[data-bare="true"] .inventory-grid {
+  --item-section-gap: 6px;
+}
+
 .inventory-slot-anchor {
   position: relative;
   min-width: 0;
@@ -81,6 +94,8 @@
 
 .inventory-slot.inventory-slot {
   --item-slot-icon-size: 72%;
+  /* 「弃」角标抬到分区色条(底边 3px 起、高 3px, 见 ItemSectionMark)之上。 */
+  --item-slot-disposable-bottom: 8px;
 
   padding: 4px 3px;
   /* background:
@@ -120,6 +135,12 @@
   box-shadow:
     0 0 30px var(--inventory-selected-glow),
     inset 0 0 30px var(--inventory-selected-glow);
+}
+
+[data-bare="true"] .inventory-slot.inventory-slot {
+  --item-slot-icon-size: 88%;
+
+  padding: 2px;
 }
 
 .inventory-empty.inventory-empty {

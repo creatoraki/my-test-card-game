@@ -9,6 +9,7 @@ import { occupiedSlots } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
 import ItemTooltip, {
   tooltipPointFromElement,
+  type TooltipDirection,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import { EmptySlot } from "@/ui/common/item/ItemSlot";
@@ -33,6 +34,11 @@ export interface ItemInventoryPanelProps {
   title?: ReactNode;
   subtitle?: ReactNode;
   compact?: boolean;
+  /**
+   * 无框形态: 不画外壳/表头/托盘/底栏, 网格横向铺满父容器(格子仍 1:1)。
+   * 给已经自带容器的宿主用(探索底栏)。容量读数由宿主自行在别处展示。
+   */
+  bare?: boolean;
   credits?: number | string;
   creditsLabel?: ReactNode;
   capacity?: number;
@@ -59,6 +65,8 @@ export interface ItemInventoryPanelProps {
   pulseUids?: ReadonlySet<string>;
   /** 开启后, 悬浮到**有物品**的格子时在格外浮出统一的「可点击」四角提示; 空格不给提示。 */
   slotHint?: boolean;
+  /** 悬浮详情的弹出方向, 默认 right(格子右侧); 贴底的物品栏传 top。 */
+  tooltipDirection?: TooltipDirection;
   className?: string;
 }
 
@@ -81,6 +89,7 @@ export default function ItemInventoryPanel({
   title = "物品终端",
   subtitle,
   compact = false,
+  bare = false,
   credits,
   creditsLabel = "pts",
   capacity,
@@ -99,6 +108,7 @@ export default function ItemInventoryPanel({
   colorMap,
   pulseUids,
   slotHint = false,
+  tooltipDirection = "right",
   className,
 }: ItemInventoryPanelProps) {
   const safeRows = positiveInteger(rows, 1);
@@ -192,8 +202,11 @@ export default function ItemInventoryPanel({
       className={cx(s["inventory-panel"], className)}
       style={style}
       data-compact={compact ? "true" : undefined}
-      aria-labelledby={`${panelId}-title`}
+      data-bare={bare ? "true" : undefined}
+      aria-labelledby={bare ? undefined : `${panelId}-title`}
+      aria-label={bare ? gridLabel : undefined}
     >
+      {!bare && <>
       <span className={s["inventory-tech-border"]} aria-hidden="true" />
       <span className={cx(s["inventory-line"], s["inventory-line-top"])} aria-hidden="true" />
       <span className={cx(s["inventory-line"], s["inventory-line-bottom"])} aria-hidden="true" />
@@ -203,9 +216,10 @@ export default function ItemInventoryPanel({
       <span className={cx(s["inventory-corner"], s["inventory-corner-tr"])} aria-hidden="true" />
       <span className={cx(s["inventory-corner"], s["inventory-corner-bl"])} aria-hidden="true" />
       <span className={cx(s["inventory-corner"], s["inventory-corner-br"])} aria-hidden="true" />
+      </>}
 
       <div className={s["inventory-content"]}>
-        <header className={s["inventory-header"]}>
+        {!bare && <header className={s["inventory-header"]}>
           <div className={s["inventory-heading"]}>
             {!compact && <span className={s["inventory-kicker"]}>{kicker}</span>}
             <h2 id={`${panelId}-title`} className={s["inventory-title"]}>
@@ -237,7 +251,7 @@ export default function ItemInventoryPanel({
               <em>/ {displayedCapacity}</em>
             </div>
           </div>
-        </header>
+        </header>}
 
         <div className={g["inventory-tray"]}>
           <div className={g["inventory-grid"]} role="group" aria-label={gridLabel}>
@@ -257,7 +271,7 @@ export default function ItemInventoryPanel({
                   onDismiss={actionMode.close}
                   onEnter={(element) => {
                     if (actionMode.activeUid === stack.uid) actionMode.keepOpen();
-                    showTooltip(stack, tooltipPointFromElement(element));
+                    showTooltip(stack, tooltipPointFromElement(element, tooltipDirection));
                   }}
                   onLeave={() => {
                     hideTooltip(stack.uid);
@@ -279,7 +293,7 @@ export default function ItemInventoryPanel({
           </div>
         </div>
 
-        {!compact && (
+        {!compact && !bare && (
           <footer className={g["inventory-footer"]}>
             <div className={g["inventory-selected"]} aria-live="polite">
               {selectedInfo}

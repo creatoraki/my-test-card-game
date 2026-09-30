@@ -1,23 +1,51 @@
-/* 探索底部整条 HUD：立绘 | 背包(12×2) | 操作按钮竖排。
-   几何与战斗底部 HUD 对齐 —— 立绘段 500×316、贴边留白 16px 均取自
+/* 探索底部整条 HUD：一个整体容器装下 立绘 | 背包段，段间用细竖线分隔。
+   背包段 = 表头行(随身遗物 | 负重读数 + 行动按钮) + 12×2 格子。
+   几何与战斗底部 HUD 对齐 —— 立绘段 500×316、内容贴边留白 16px 均取自
    battle/BattleScreen/BattleScreen.module.css 的 --hud-party-w / --canvas-pad
    与 battle/AllyBar 的条高，两个场景看同一批角色时尺寸必须一致。
-   三段自然高度不同(背包内容约 280px)，用 align-items: end 让底边对齐；
-   背包外框与立绘卡同高，格子继续保持 aspect-ratio:1。 */
+   ⇒ 容器外沿向外扩 --dock-pad：外边距 16 − pad、高度 316 + 2×pad + 2(描边)，内容区仍是原来那块 316 高的区域。
+   背包段拿到除立绘外的全部宽度，格子保持 1:1(宽度决定边长，约 108)并贴底；
+   316 高里剩下的约 80px 给表头行。
+   顶边 y = 1080 − (16 − pad) − (316 + 2×pad + 2) = 736，CorridorScreen 的浮层以此为准压在上方。 */
 .dock {
+  --dock-pad: 10px;
+  --dock-gap: 16px;
   position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
-  height: 316px;
+  left: calc(16px - var(--dock-pad));
+  right: calc(16px - var(--dock-pad));
+  bottom: calc(16px - var(--dock-pad));
+  box-sizing: border-box;
+  height: calc(316px + var(--dock-pad) * 2 + 2px);
+  padding: var(--dock-pad);
   z-index: 30;
   display: grid;
-  grid-template-columns: 500px minmax(0, 1fr) 200px;
-  gap: 12px;
-  align-items: end;
+  grid-template-columns: 500px minmax(0, 1fr);
+  gap: var(--dock-gap);
+  align-items: stretch;
+  background:
+    radial-gradient(ellipse at 50% 0%, #ffffff0d, transparent 60%),
+    linear-gradient(160deg, #0b1a1fd9, #04090ceb);
+  border: 1px solid #ffffff2e;
+  border-radius: 10px;
+  box-shadow:
+    0 24px 60px #000000b3,
+    inset 0 1px 0 #ffffff1f,
+    inset 0 0 40px #ffffff08;
 }
 
-.party { width: 500px; }
+/* 段间分隔线：画在立绘段与背包段之间的列间距正中。 */
+.backpack::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, #ffffff3d 20%, #ffffff3d 80%, transparent);
+  pointer-events: none;
+}
+.backpack::before { left: calc(var(--dock-gap) / -2); }
+
+.party { width: 500px; align-self: end; }
 .partyMembers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .memberSlot { position: relative; min-width: 0; }
 /* 卡高/取景高/取景基准宽刻意不覆盖 —— PartyMemberCard 的默认值(316/268/160)
@@ -26,11 +54,16 @@
 .member:hover { border-color: #d3b67c99; }
 .member span, .member b, .member strong { font-size: max(18px, 1em); }
 
-.backpack { min-width: 0; }
-.backpack[data-locked] { pointer-events: none; }
+.backpack { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+/* 表头行吃掉格子以外的全部高度；下沿留 14px 给骑出首格上沿 11px 的分区标签(见 ItemSectionMark)。 */
+.bagHead { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; gap: 18px; margin-bottom: 14px; }
+.bagGrid { flex: 0 0 auto; }
+.bagGrid[data-locked] { pointer-events: none; }
 
-.actions { display: flex; flex-direction: column; align-items: stretch; gap: 22px; }
-.actions > :global([data-picnic-button]) { width: 100%; }
-.actions > :global([data-beacon-button]) { width: 100%; }
-.actions .retreat { padding: 17px 24px; font-size: 21px; background: #111b20e6; border: 1px solid #a16f5544; color: #cba18d; }
+/* 表头行右端：负重读数紧贴在行动按钮左侧，按钮横排、三颗等宽。 */
+.actions { margin-left: auto; display: flex; flex: 0 0 auto; align-items: center; gap: 12px; }
+.actions > :global([data-picnic-button]),
+.actions > :global([data-beacon-button]),
+.actions .retreat { width: 200px; }
+.actions .retreat { min-height: 58px; padding: 0 24px; font-size: 21px; background: #111b20e6; border: 1px solid #a16f5544; color: #cba18d; }
 .actions .retreat:disabled { opacity: .4; }

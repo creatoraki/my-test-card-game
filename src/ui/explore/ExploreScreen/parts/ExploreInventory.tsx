@@ -8,13 +8,10 @@ import { PicnicPanel } from "@/ui/explore/PicnicSkill";
 import Minimap from "@/ui/explore/Minimap";
 import MinimapAtlas from "@/ui/explore/Minimap/parts/MinimapAtlas";
 import { CharacterModal, MODAL_ACCENT } from "@/ui/common/unit/CharacterModal";
-import { BurdenGauge } from "@/ui/explore/BurdenGauge";
-import { RelicRail } from "./RelicRail";
-import { relicsInBackpack } from "@/explore/relics/relics";
 import type { ExploreInventoryState } from "../useExploreInventory";
 import s from "../CorridorScreen.module.css";
 
-/** 立绘与随身背包已并入底部 ExploreDock；这里只留负重读数与各类浮层。 */
+/** 立绘、随身背包、负重读数与随身遗物已并入底部 ExploreDock；这里只留左上角小地图与各类浮层。 */
 export function ExploreInventory({ session, inventory }: { session: ExploreState; inventory: ExploreInventoryState }) {
   const characters = useTownStore((state) => state.characters);
   const member = session.party.find((item) => item.charId === inventory.detailCharId);
@@ -23,14 +20,12 @@ export function ExploreInventory({ session, inventory }: { session: ExploreState
   // 稳定引用, 让 memo 过的小地图在无关提交时跳过渲染。
   const expandAtlas = useCallback(() => setAtlasOpen(true), [setAtlasOpen]);
   return <>
-    <div className={s.burden}>
+    <div className={s.corner}>
       {session.dungeon && session.corridor && <Minimap
         dungeon={session.dungeon}
         corridor={session.corridor}
         onExpand={inventory.allowed ? expandAtlas : undefined}
       />}
-      <BurdenGauge />
-      <RelicRail stacks={relicsInBackpack(session)} />
     </div>
     {/* 信标传送选房改在展开大图里进行, 小地图只显示当前房间周边, 远处的房间点不到。 */}
     {(inventory.atlasOpen || inventory.beaconPicking) && session.dungeon && session.corridor && <MinimapAtlas

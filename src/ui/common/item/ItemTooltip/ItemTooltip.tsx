@@ -16,7 +16,7 @@ export type TooltipPoint = {
   /** 锚点在 host 局部坐标系里的设计 px。 */
   x: number;
   y: number;
-  /** 默认从右侧展开；left 从左侧展开；vertical 从上下展开。 */
+  /** 默认从右侧展开；left 从左侧展开；vertical 优先下方、放不下翻到上方；top 优先上方、放不下翻到下方。 */
   direction?: TooltipDirection;
   /** 浮层要挂进去的那张设计画布 —— 挂在画布内, 坐标系才和画布内的一切 px 一致。 */
   host: HTMLElement;
@@ -113,7 +113,9 @@ export function useTooltipPlacement(
     const above = point.y - height - TOOLTIP_GAP;
     const wanted = vertical
       ? topward
-        ? above
+        ? above >= TOOLTIP_MARGIN
+          ? above
+          : below
         : below + height <= boxH - TOOLTIP_MARGIN
           ? below
           : above

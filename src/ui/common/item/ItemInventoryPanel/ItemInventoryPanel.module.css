@@ -60,6 +60,24 @@
   min-width: 0;
 }
 
+/* 无框形态(bare): 宿主自带容器, 这里只剩网格。
+   分区标签会骑出格子上沿、分割线落在列间距里, 所以不能 overflow:hidden; 透视倾斜也去掉, 与宿主容器平齐。 */
+.inventory-panel[data-bare="true"] {
+  max-width: none;
+  padding: 0;
+  overflow: visible;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  transform: none;
+}
+
+.inventory-panel[data-bare="true"]::before,
+.inventory-panel[data-bare="true"]::after {
+  content: none;
+}
+
 .inventory-tech-border {
   position: absolute;
   z-index: 2;

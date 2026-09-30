@@ -6,10 +6,11 @@
 @keyframes portalTravelFadeOut { from { opacity: 0; } to { opacity: 1; } }
 @keyframes portalTravelFadeIn { from { opacity: 1; } to { opacity: 0; } }
 /* 左上角：小地图、负重计与随身遗物横向排列。底部整条 HUD 见 ExploreDock.module.css。 */
-.burden { position: absolute; left: 12px; top: 0; display: flex; gap: 12px; align-items: flex-start; z-index: 30; }
+/* 左上角：小地图(负重读数与随身遗物已移到底栏背包段的表头行)。 */
+.corner { position: absolute; left: 12px; top: 0; display: flex; gap: 12px; align-items: flex-start; z-index: 30; }
 /* 右上角：净化粒子读数卡（样式见 EnergyReadout），这里只管定位。 */
 .readout { position: absolute; top: 0; right: 0; z-index: 30; }
-/* 底部 HUD 顶边落在 y=748(1080 − 16 − 316)，浮层一律压在它之上。 */
+/* 底部 HUD 容器顶边落在 y=736(见 parts/ExploreDock.module.css)，浮层一律压在它之上。 */
 .targetBanner { position: absolute; left: 30px; bottom: 348px; z-index: 45; padding: 17px 22px; background: #192c2dee; border: 1px solid #b0caba70; font-size: 21px; }
 .targetBanner button { margin-left: 25px; font-size: 18px; }
 .toast { position: absolute; left: 580px; top: 325px; width: 760px; z-index: 90; padding: 20px; text-align: center; background: #142425ef; color: #e1d5b9; border: 1px solid #af987452; font-size: 22px; pointer-events: none; }

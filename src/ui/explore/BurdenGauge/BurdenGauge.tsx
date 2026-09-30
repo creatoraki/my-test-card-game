@@ -12,7 +12,7 @@ function BackpackIcon() {
   return (
     <svg
       className={s.icon}
-      viewBox="0 0 48 48"
+      viewBox="8 8 32 32"
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
@@ -51,11 +51,11 @@ export function BurdenGauge() {
       tabIndex={0}
       aria-label={`背包负重，已占 ${occupied} / ${total} 格，有效负重 ${burden}，命中 −${hitPenalty}%，闪避 −${dodgePenalty}%，精准 −${precisionPenalty}%`}
     >
-      <BackpackIcon />
       <span key={occupied} className={s.slots}>
         {occupiedShown}/{total}
       </span>
-      <RailPopover side="bottom-right">
+      <BackpackIcon />
+      <RailPopover side="top">
         <TooltipCard title="背包负重">
           <div className={s.detail}>
             <p>已占 {occupied} / {total} 格</p>

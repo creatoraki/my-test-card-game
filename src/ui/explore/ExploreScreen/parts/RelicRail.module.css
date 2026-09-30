@@ -1,18 +1,14 @@
-/* 随身遗物 —— 紧跟在背包负重格后面, 格宽 = 图标宽(68), 遗物之间只留 4px。
-   背包格宽 112(给下方「x / 24」计数留宽度)而图标只有 68, 右侧空出 22px;
-   再加上 .burden 行的 12px 间距, 这里用负外边距吃掉这两段, 让首枚遗物贴近背包图标。 */
+/* 随身遗物 —— 底栏背包表头行左端, 单行不换行, 格宽 = 图标宽(56), 遗物之间只留 4px。
+   与右端负重读数 + 行动按钮之间的空位全归它, 约能横排 9 枚。 */
 .rail {
-  --expl-relic-cell-width: 68px;
+  --expl-relic-cell-width: 56px;
 
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: 4px;
-  max-width: 700px;
-  flex: 0 0 auto;
-  margin-left: -28px;
-  /* 遗物素材自身顶部留白少, 视觉上比背包图标偏高, 整行下压一点对齐。 */
-  padding-top: 12px;
+  min-width: 0;
+  flex: 0 1 auto;
 }
 
 .item {
@@ -20,10 +16,9 @@
   display: flex;
   flex: 0 0 var(--expl-relic-cell-width);
   width: var(--expl-relic-cell-width);
-  min-height: var(--expl-burden-cell-height, 104px);
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   padding: 0;
   color: #f5d477;
   background: none;
@@ -40,8 +35,8 @@
 }
 
 .icon {
-  width: 68px;
-  height: 68px;
+  width: 56px;
+  height: 56px;
   color: currentColor;
   filter: drop-shadow(0 0 12px color-mix(in srgb, currentColor 42%, transparent));
 }

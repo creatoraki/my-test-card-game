@@ -71,7 +71,7 @@ export function DossierOffer({
             return <div
               key={stack.uid}
               className={cx(s.item, count > 0 && s.selected)}
-              onPointerEnter={(event) => setHovered({ stack, point: tooltipPointFromElement(event.currentTarget, "left") })}
+              onPointerEnter={(event) => setHovered({ stack, point: tooltipPointFromElement(event.currentTarget, "top") })}
               onPointerLeave={() => setHovered((current) => current?.stack.uid === stack.uid ? null : current)}
             >
               <ItemSlot

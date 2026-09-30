@@ -1,6 +1,6 @@
-// 随身遗物条 —— 挂在左上「背包负重」那一行, 与负重图标同一套几何。
+// 随身遗物条 —— 挂在底栏背包段表头行的左端。
 //
-// ★ 这里刻意不画框、不写名字: 负重 svg 是这一行的第一枚图标, 遗物顺着往右排,
+// ★ 这里刻意不画框、不写名字: 遗物从行首顺着往右排,
 //   整行读起来就是「我这趟身上带着什么」。具体效果一律靠悬浮浮卡, 不占版面。
 import { useEffect, useState } from "react";
 import type { ItemStack } from "@/items/types";
@@ -31,11 +31,11 @@ export function RelicRail({ stacks }: { stacks: ItemStack[] }) {
             type="button"
             aria-label={`随身遗物 ${def.name}`}
             onPointerEnter={(event) =>
-              setHovered({ uid: stack.uid, point: tooltipPointFromElement(event.currentTarget, "vertical") })
+              setHovered({ uid: stack.uid, point: tooltipPointFromElement(event.currentTarget, "top") })
             }
             onPointerLeave={() => setHovered((current) => (current?.uid === stack.uid ? null : current))}
             onFocus={(event) =>
-              setHovered({ uid: stack.uid, point: tooltipPointFromElement(event.currentTarget, "vertical") })
+              setHovered({ uid: stack.uid, point: tooltipPointFromElement(event.currentTarget, "top") })
             }
             onBlur={() => setHovered((current) => (current?.uid === stack.uid ? null : current))}
           >
