@@ -1,0 +1,11 @@
+.icon {
+  display: block;
+  flex: none;
+  line-height: 0;
+}
+
+.icon > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

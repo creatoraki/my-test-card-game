@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { CHALLENGE_DEFS, type ChallengeRun } from "@/engine";
+import { ChallengeIcon } from "@/ui/art/challenge";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
 import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import { victoryStagger } from "@/ui/battle/choreo/victoryChoreo";
@@ -62,7 +63,7 @@ function ChallengeChip({ run, index }: { run: ChallengeRun; index: number }) {
       style={{ "--chip-accent": "#d8f329", "--chip-delay": victoryStagger(index + 1) } as CSSProperties}
       aria-label={`${def.title}${run.broken ? "，已打破" : "，已达成"}，掉落加成 ${run.broken ? "0.00" : def.dropBonus.toFixed(2)}`}
     >
-      <span className={s.icon} aria-hidden="true">{def.icon}</span>
+      <span className={s.icon} aria-hidden="true"><ChallengeIcon id={run.id} size={32} broken={run.broken} /></span>
       <span className={s.copy}>
         <strong>{def.title}</strong>
         <small>{run.broken ? "+0.00" : `+${def.dropBonus.toFixed(2)}`}</small>
@@ -70,7 +71,7 @@ function ChallengeChip({ run, index }: { run: ChallengeRun; index: number }) {
       {point && (
         <HoverTooltip point={point}>
           <TooltipCard
-            icon={def.icon}
+            icon={<ChallengeIcon id={run.id} size={96} broken={run.broken} />}
             title={def.title}
             desc={def.desc}
             notes={[

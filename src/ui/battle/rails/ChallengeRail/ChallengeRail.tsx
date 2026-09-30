@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CHALLENGE_DEFS, type ChallengeRun } from "@/engine";
+import { ChallengeIcon } from "@/ui/art/challenge";
 import { RailPopover } from "@/ui/common/tooltip/RailPopover";
 import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import s from "./ChallengeRail.module.css";
@@ -22,13 +23,13 @@ function ChallengeItem({ run }: { run: ChallengeRun }) {
   const state = run.broken ? (breaking ? "breaking" : "broken") : "ok";
   return (
     <div className={s.item} data-rail-item data-state={state} tabIndex={0}>
-      <span className={s.icon}>{def.icon}</span>
+      <ChallengeIcon className={s.icon} id={run.id} size={64} broken={run.broken} />
       <span className={s.stroke} />
       <span className={`${s.stroke} ${s.strokeSecond}`} />
       <span className={s.dot} />
       <RailPopover side="bottom-left">
         <TooltipCard
-          icon={def.icon}
+          icon={<ChallengeIcon id={run.id} size={96} broken={run.broken} />}
           title={def.title}
           desc={def.desc}
           notes={[

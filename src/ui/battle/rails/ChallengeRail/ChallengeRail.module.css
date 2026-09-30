@@ -62,9 +62,7 @@
 .icon {
   position: relative;
   z-index: 2;
-  color: #eaffd0;
-  font-size: 44px;
-  text-shadow: 0 0 10px #d8f32966;
+  filter: drop-shadow(0 0 6px #d8f32955);
 }
 .stroke {
   position: absolute;
@@ -128,7 +126,7 @@
   transform: rotate(-45deg) scaleX(1);
 }
 .item[data-state="broken"] .icon {
-  filter: grayscale(1) brightness(0.6);
+  filter: brightness(0.75);
 }
 .item[data-state="broken"]::before {
   filter: grayscale(1) brightness(0.55);
