@@ -8,6 +8,7 @@
 //   · 常规      —— 看 / 用 / 丢
 //   · 替换模式  —— session.pendingPickup 非空: 强制打开且不可关, 必须丢够格子才能拿
 //   · 寄件模式  —— session.chuteOpen: 多选物品寄回据点(E −5)
+// 另外, 拾取框(pendingLoot)非空时顶部挂一条拾取横幅, 选中物品可「放回拾取框」腾格子 —— 背包满时整理用。
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { getItemDef } from "@/data";
@@ -37,6 +38,7 @@ import {
 import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import { useBackpackModules } from "@/ui/explore/BackpackModules";
 import { cx } from "@/ui/common/shared/cx";
+import { BackpackLootBanner } from "./parts/BackpackLootBanner";
 import s from "./BackpackPanel.module.css";
 
 const COLS = 8; // 8 × 3 = 24。只影响 CSS grid 的列数, 排布本身与列数无关。
@@ -54,6 +56,7 @@ export default function BackpackPanel({
   const takePending = useExploreStore((s) => s.takePending);
   const abandonPending = useExploreStore((s) => s.abandonPending);
   const shipHome = useExploreStore((s) => s.shipHome);
+  const returnToLoot = useExploreStore((s) => s.returnToLoot);
 
   const [selected, setSelected] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null); // 丢弃二次确认的 uid
@@ -81,6 +84,7 @@ export default function BackpackPanel({
   const pending = session.pendingPickup;
   const replaceMode = pending.length > 0;
   const chuteMode = session.chuteOpen;
+  const lootMode = session.pendingLoot.length > 0 && !replaceMode && !chuteMode;
   const pendingHasUndroppable = pending.some((st) => getItemDef(st.itemId).undroppable);
   const sel = backpack.find((s) => s.uid === selected) ?? null;
   const selDef = sel ? getItemDef(sel.itemId) : null;
@@ -175,6 +179,8 @@ export default function BackpackPanel({
               </div>
             )}
 
+            {lootMode && <BackpackLootBanner loot={session.pendingLoot} free={free} />}
+
             <EventPanelBody className={s["bp-body"]}>
               <div className={s["bp-grid"]} style={{ "--bp-cols": COLS } as CSSProperties}>
                 {ordered.map((stack, i) => (
@@ -220,6 +226,19 @@ export default function BackpackPanel({
                       )}
                       {/* 丢弃**不可撤销**, 故在详情区原地二次确认 ——
                           探索页已经是「浮层里的浮层」, 再叠一层模态读起来会很脏。 */}
+                      {/* 拾取框非空时可把它放回去腾格子, 离开前还能再拿回, 故不做二次确认。 */}
+                      {lootMode && !selDef.undroppable && (
+                        <EventPanelButton
+                          tone="primary"
+                          className={s["bp-mini"]}
+                          onClick={() => {
+                            returnToLoot(sel.uid);
+                            setSelected(null);
+                          }}
+                        >
+                          放回拾取框
+                        </EventPanelButton>
+                      )}
                       {selDef.undroppable ? (
                         <p className={s["bp-locked"]}>锁死在背包上，远征途中无法卸下</p>
                       ) : confirming === sel.uid ? (
@@ -253,6 +272,8 @@ export default function BackpackPanel({
               note={
                 replaceMode ? (
                   "先处理完待取物才能关上背包"
+                ) : lootMode ? (
+                  `占用 ${used} / ${RULES.burden.backpackSlots} 格 · 放回拾取框的物品离开前都能再拿回`
                 ) : (
                   `占用 ${used} / ${RULES.burden.backpackSlots} 格`
                 )

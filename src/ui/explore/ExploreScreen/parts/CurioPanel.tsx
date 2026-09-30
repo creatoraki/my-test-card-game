@@ -20,6 +20,7 @@ import {
   type DossierAction,
   type DossierIconName,
 } from "@/ui/explore/EventDossier";
+import { useBagFull } from "@/ui/explore/LootPickup";
 import { curioTheme } from "./curioTheme";
 import { useCurioLoot, type CurioLoot } from "../useCurioLoot";
 
@@ -113,6 +114,7 @@ export function CurioPanel({
   const [selectingId, setSelectingId] = useState<string | null>(null);
   const [pickedExecutor, setPickedExecutor] = useState<string | null>(null);
   const loot = useCurioLoot();
+  const bagFull = useBagFull();
   const object = session.corridor?.objects.find((item) => item.id === session.corridor?.activeObjectId);
   const def = activeCurioDef(session);
   const result = session.phase === "resolving";
@@ -164,7 +166,12 @@ export function CurioPanel({
           story={session.pendingStory.flatMap(sentences)}
           notes={session.pendingNotes}
           loot={session.pendingLoot.length
-            ? <DossierLoot items={session.pendingLoot} message={loot.message} onPick={loot.pick} />
+            ? <DossierLoot
+              items={session.pendingLoot}
+              message={loot.message}
+              onPick={loot.pick}
+              onOpenBag={loot.message || bagFull ? onOpenBag : undefined}
+            />
             : undefined}
           actions={resultActions(session, loot, onOpenBag)}
         />

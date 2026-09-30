@@ -1,0 +1,48 @@
+/* 拾取框横幅: 与替换模式 / 投递口横幅同一套排版(压暗底 + 细描边), 主色取拾取浮层的青绿。 */
+.banner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #9be4bd14;
+  border: 1px solid #9be4bd59;
+}
+
+.label {
+  font-size: 18px;
+  color: #bfe9d2;
+}
+
+.label b {
+  color: #9be4bd;
+  font-weight: 700;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.row::-webkit-scrollbar {
+  display: none;
+}
+
+.item {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  width: 84px;
+}
+
+.take {
+  min-width: 0;
+  width: 100%;
+  padding: 7px 4px;
+  font-size: 18px;
+  white-space: nowrap;
+}

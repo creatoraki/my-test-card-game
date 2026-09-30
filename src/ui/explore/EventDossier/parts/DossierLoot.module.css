@@ -56,6 +56,29 @@
   color: #ff8a80;
 }
 
+/* 背包满时的「整理背包」入口: 切角小按钮, 跟事件主题色。 */
+.bag {
+  flex: 0 0 auto;
+  align-self: center;
+  margin-left: 10px;
+  padding: 4px 14px;
+  border: 0;
+  background: color-mix(in srgb, var(--k) 18%, #03121b);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--k) 60%, transparent);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  color: var(--k);
+  font-family: var(--font-family);
+  font-size: 18px;
+  line-height: 26px;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.bag:hover {
+  background: color-mix(in srgb, var(--k) 34%, #03121b);
+  color: #eafcff;
+}
+
 .track {
   display: flex;
   gap: 14px;

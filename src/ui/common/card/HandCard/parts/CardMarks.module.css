@@ -1,11 +1,13 @@
 /* BUFF 图标行与模式徽章共用卡槽上方的落位；进入换牌/丢弃模式时由组件互斥隐藏。 */
 .hc-marks {
+  --hc-mark-size: 40px;
+  --hc-mark-gap: 0px;
   position: absolute;
   left: 2px;
   bottom: calc(100% + 8px);
   z-index: 3;
   display: flex;
-  gap: 6px;
+  gap: var(--hc-mark-gap);
   transition: transform 0.22s cubic-bezier(0.16, 0.86, 0.26, 1.04);
   animation: hc-marks-deal-in 0.8s cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
   animation-delay: var(--deal-delay, 0ms);
@@ -16,7 +18,7 @@
   pointer-events: none;
 }
 .hc-cultivate-row {
-  left: 64px;
+  left: calc(2px + var(--hc-mark-size) + var(--hc-mark-gap));
 }
 .hc-cultivate-ready .hc-mark-icon {
   box-shadow: 0 0 12px #c7e85f99;
@@ -59,11 +61,11 @@
 .hc-mark {
   position: relative;
   display: grid;
-  width: 56px;
-  height: 56px;
+  width: var(--hc-mark-size);
+  height: var(--hc-mark-size);
   place-items: center;
   color: #d9f3ff;
-  font-size: 27px;
+  font-size: 20px;
   line-height: 1;
   text-shadow: 0 0 5px #54c8e8;
   pointer-events: auto;
@@ -80,20 +82,16 @@
   -webkit-backdrop-filter: blur(8px) saturate(130%);
   backdrop-filter: blur(8px) saturate(130%);
   box-shadow: inset 0 1px 0 #ffffff38, inset 0 -1px 3px #0000004d, 0 4px 12px #00000059;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-}
-.hc-mark-art {
-  display: block;
-  width: 124%;
-  height: 124%;
-  object-fit: cover;
-  transform: translateY(-5%);
+  clip-path: none;
 }
 .hc-cultivate-icon {
   background: #102b3566;
   clip-path: none;
 }
+/* 手牌 BUFF 图片共用培育的尺寸，完整显示素材，避免放大裁掉外圈。 */
+.hc-mark-art,
 .hc-cultivate-emblem {
+  display: block;
   position: absolute;
   inset: 1px;
   width: calc(100% - 2px);
@@ -102,14 +100,16 @@
 }
 .hc-mark-count {
   position: absolute;
-  right: 2px;
-  bottom: 1px;
+  right: 0;
+  bottom: 0;
   z-index: 1;
   color: #effff9;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
-  text-shadow: 0 1px 2px #000;
+  text-align: right;
+  text-shadow: -1px 0 1px #000, 1px 0 1px #000, 0 -1px 1px #000, 0 1px 2px #000;
   white-space: nowrap;
   pointer-events: none;
 }

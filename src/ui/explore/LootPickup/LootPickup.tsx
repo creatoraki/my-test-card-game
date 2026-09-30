@@ -21,21 +21,26 @@ import { inventoryThemeVars } from "@/ui/common/item/shared/inventoryTheme";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import { cx } from "@/ui/common/shared/cx";
+import { useBagFull } from "./useBagFull";
 import { useLootPick } from "./useLootPick";
 import s from "./LootPickup.module.css";
 
 interface LootPickupProps {
   gate: boolean;
+  /** 背包满时的「整理背包」入口(打开背包面板); 本阶段不能开背包时不传。 */
+  onOpenBag?: () => void;
 }
 
 /** 独立拾取浮层: 事件面板之外来源的掉落(事件面板内的掉落由 DossierLoot 在面板里直接处理)。 */
-function LootPickup({ gate }: LootPickupProps) {
+function LootPickup({ gate, onOpenBag }: LootPickupProps) {
   const pendingLoot = useExploreStore((state) => state.session?.pendingLoot ?? []);
   const takeAllLoot = useExploreStore((state) => state.takeAllLoot);
   const abandonLoot = useExploreStore((state) => state.abandonLoot);
   const [confirming, setConfirming] = useState(false);
   const [hovered, setHovered] = useState<{ uid: string; point: TooltipPoint } | null>(null);
   const loot = useLootPick();
+  const bagFull = useBagFull();
+  const showBag = Boolean(onOpenBag && (loot.message || bagFull));
   const presence = useRevealPresence(
     gate && pendingLoot.length > 0,
     pendingLoot,
@@ -141,6 +146,7 @@ function LootPickup({ gate }: LootPickupProps) {
                 <EventPanelButton tone="primary" onClick={takeAllLoot} data-sfx="pickupAll">
                   全部拾取
                 </EventPanelButton>
+                {showBag && <EventPanelButton onClick={onOpenBag}>整理背包</EventPanelButton>}
                 <EventPanelButton onClick={() => setConfirming(true)}>放弃剩余</EventPanelButton>
               </EventPanelFoot>
             )}

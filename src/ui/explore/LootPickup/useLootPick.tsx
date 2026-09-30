@@ -12,6 +12,10 @@ interface FlyingLoot {
   to: { left: number; top: number };
 }
 
+function backpackKey(backpack: ItemStack[] | undefined): string {
+  return backpack?.map((stack) => `${stack.uid}:${stack.count}`).join("|") ?? "";
+}
+
 /**
  * 单件拾取 + 飞入背包栏的动画。独立拾取浮层(LootPickup)与事件面板内的物品栏共用。
  * 物品格需带 data-loot-uid, 飞行起点从那里取; 终点是底部背包栏 #explore-backpack-bar。
@@ -19,7 +23,14 @@ interface FlyingLoot {
 export function useLootPick() {
   const takeLoot = useExploreStore((state) => state.takeLoot);
   const [flying, setFlying] = useState<FlyingLoot | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  // 提示连同发出时的背包内容签名一起存: 「背包已满」只在背包没变时成立, 整理背包(丢弃 / 放回拾取框)后自动撤掉。
+  // 会话每次提交都是 structuredClone, 数组引用必变, 所以按内容比。
+  const [notice, setNotice] = useState<{ text: string; bag: string } | null>(null);
+  const bag = useExploreStore((state) => backpackKey(state.session?.backpack));
+  const message = notice && notice.bag === bag ? notice.text : null;
+  const setMessage = (text: string | null) => {
+    setNotice(text ? { text, bag: backpackKey(useExploreStore.getState().session?.backpack) } : null);
+  };
 
   /** 返回是否成功放进背包。 */
   const pick = (stack: ItemStack): boolean => {

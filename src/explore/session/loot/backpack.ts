@@ -80,9 +80,28 @@ export function takeLoot(s: ExploreState, index: number): boolean {
   const result = addToContainer(s.backpack, [st], getItemDef, RULES.burden.backpackSlots);
   if (!result.taken.length) return false;
   s.backpack = result.next;
-  countPickup(s, result.taken.length);
-  noteRelicPicked(s, st.itemId);
+  const returned = s.lootReturnedUids?.includes(st.uid) ?? false;
+  if (returned) {
+    // 自己放回去又拿回来的: 不算新拾取, 也不再触发遗物拾取钩子。
+    s.lootReturnedUids = s.lootReturnedUids?.filter((uid) => uid !== st.uid);
+  } else {
+    countPickup(s, result.taken.length);
+    noteRelicPicked(s, st.itemId);
+  }
   s.pendingLoot = s.pendingLoot.filter((_, i) => i !== index);
+  return true;
+}
+
+// 把背包里的一整堆放回拾取框(背包满时腾格子用)。可反悔: 离开前还能再拿回来。
+export function returnToLoot(s: ExploreState, uid: string): boolean {
+  const st = findByUid(s.backpack, uid);
+  if (!st || getItemDef(st.itemId).undroppable) return false;
+  const next = removeByUid(s.backpack, uid);
+  if (next === s.backpack) return false;
+  s.backpack = next;
+  s.pendingLoot = [...s.pendingLoot, { ...st }];
+  s.lootReturnedUids = [...(s.lootReturnedUids ?? []), st.uid];
+  logLine(s, `放回了 ${getItemDef(st.itemId).name}`);
   return true;
 }
 

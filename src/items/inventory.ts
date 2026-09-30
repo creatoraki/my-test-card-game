@@ -23,10 +23,9 @@ export function canShipHome(stack: ItemStack, def: ItemDef): boolean {
 // ---------------------------------------------------------------------------
 // 占格
 // ---------------------------------------------------------------------------
-// 一堆占几格。★ 一件物品 = 一格; 首版所有 def 的 maxStack 都是 1, 于是这里恒等于 count。
+// 一堆占几格。★ 一件物品 = 一格(装备也一样), 可堆叠物品按 maxStack 折算。
 export function stackSlots(st: ItemStack, def: ItemDef): number {
-  const stackCount = Math.ceil(st.count / Math.max(1, def.maxStack));
-  return def.category === "equipment" ? stackCount * 2 : stackCount;
+  return Math.ceil(st.count / Math.max(1, def.maxStack));
 }
 
 export function occupiedSlots(stacks: ItemStack[], getDef: GetDef): number {

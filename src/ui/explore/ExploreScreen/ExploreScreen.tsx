@@ -45,17 +45,22 @@ export function ExploreScreen() {
   // 演出结束即进入 inBattle, 此时玻璃碎裂才开始 —— 黑影要一直留到切屏, 否则碎裂瞬间会闪没。
   const encounterStaged = phase === "encounter" || (phase === "inBattle" && Boolean(session.corridor.encounterId));
   const encountering = encounterStaged && travelTransition.phase === "idle";
+  const openBag = () => inventory.setBagOpen(true);
 
   return <StageCanvas className={s.screen} viewportClassName={s.viewport} data-explore-stage>
     <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={sceneBlocked} encountering={encountering} nearMapVariant={currentRoom?.nearMapVariant ?? "neonCity1"} onPortalTravel={travelTransition.start} />
     <div className={s.readout}><EnergyReadout energy={session.energy} /></div>
     <ExploreInventory session={session} inventory={inventory} />
     <ExploreDock session={session} inventory={inventory} locked={locked} pending={pending} />
-    {curioOpen && !inventory.target && activeObject?.kind !== "merchant" && <CurioPanel session={session} covered={curioCovered} onOpenBag={() => inventory.setBagOpen(true)} />}
+    {curioOpen && !inventory.target && activeObject?.kind !== "merchant" && <CurioPanel session={session} covered={curioCovered} onOpenBag={openBag} />}
     {session.corridor.bossGateOpen && !inventory.target && <BossGatePanel session={session} />}
     {merchantOpen && !inventory.target && <WanderingMerchantPanel session={session} />}
     <RewardOverlay gate={!locked} />
-    <LootPickup gate={!locked && !session.pendingActions.length && !curioHandlesLoot} />
+    {/* 拾取浮层层级高于背包面板: 背包开着时先让开, 拾取框里的物品改由背包面板顶部横幅展示。 */}
+    <LootPickup
+      gate={!locked && !session.pendingActions.length && !curioHandlesLoot && !inventory.bagOpen}
+      onOpenBag={inventory.allowed ? openBag : undefined}
+    />
     {travelTransition.phase !== "idle" && <div
       aria-hidden
       className={`${s["portal-travel-curtain"]} ${travelTransition.phase === "fade-out" ? s["portal-travel-fade-out"] : s["portal-travel-fade-in"]}`}

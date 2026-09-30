@@ -24,10 +24,13 @@ export function DossierLoot({
   items,
   message,
   onPick,
+  onOpenBag,
 }: {
   items: ItemStack[];
   message: string | null;
   onPick: (stack: ItemStack) => void;
+  /** 背包满时的「整理背包」入口; 不传则不显示。 */
+  onOpenBag?: () => void;
 }) {
   const [hovered, setHovered] = useState<{ uid: string; point: TooltipPoint } | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -53,6 +56,11 @@ export function DossierLoot({
         <b>{items.length}</b>
         <span>件</span>
         <em data-alert={message ? true : undefined}>{message ?? "点击物品选择拾取"}</em>
+        {onOpenBag && (
+          <button type="button" className={s.bag} data-sfx="confirm" onClick={onOpenBag}>
+            整理背包
+          </button>
+        )}
       </p>
       <div ref={trackRef} className={s.track} onWheel={onWheel}>
         {items.map((stack, index) => (

@@ -25,6 +25,7 @@ import {
   recordExpGain,
   retreat,
   retreatFromBattle,
+  returnToLoot,
   type BattleSurvivor,
   reforgeBackpackItem,
   resolvePendingAction,
@@ -101,6 +102,8 @@ interface ExploreStore {
   abandonPending: (index?: number) => void; // 替换模式: 放弃(省略 index = 全部放弃)
   shipHome: (uids: string[]) => void; // 投递口: 提前寄回据点
   takeLoot: (index: number) => boolean;
+  /** 背包里的一整堆放回拾取框(背包满时腾格子, 可再拿回)。成功返回 true。 */
+  returnToLoot: (uid: string) => boolean;
   /** 待拾取的模组直接装到某张卡上(不进背包, 不占格; 允许顶替, 旧模组进待拾取框)。成功返回 true。 */
   installLootModule: (lootUid: string, charId: string, cardUid: string) => boolean;
   takeAllLoot: () => void;
@@ -285,6 +288,15 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     let ok = false;
     mutate(get, set, (d) => {
       ok = takeLoot(d, index);
+      return ok;
+    });
+    return ok;
+  },
+
+  returnToLoot: (uid) => {
+    let ok = false;
+    mutate(get, set, (d) => {
+      ok = returnToLoot(d, uid);
       return ok;
     });
     return ok;

@@ -263,6 +263,8 @@ export interface ExploreState {
   // ⚠ 刻意**不**做成 phase: 它会叠加在 landed / resolving 之上, 做成阶段会把阶段机撑爆。
   pendingPickup: ItemStack[];
   pendingLoot: ItemStack[];
+  // 从背包「放回拾取框」的物品 uid: 再拿回来时不重复计拾取、不重复触发遗物拾取钩子。
+  lootReturnedUids?: string[];
   pendingBoons: PendingBoon[];
   pendingCardOffer: CardOfferCandidate[] | null;
   pendingExp: Record<string, number>;
