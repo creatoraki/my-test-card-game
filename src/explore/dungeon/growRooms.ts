@@ -1,7 +1,7 @@
 import { rngInt, shuffle } from "@/engine/core/rng";
 import { EXPLORE_RULES } from "../core/exploreRules";
 import type { ExploreState } from "../types";
-import { DIR_STEP, PORTAL_DIRS, roomIdAt, type PortalDir, type RoomNode } from "./types";
+import { DIR_STEP, hasVerticalExit, isVerticalDir, PORTAL_DIRS, roomIdAt, type PortalDir, type RoomNode } from "./types";
 import { link, makeRoom } from "./roomNode";
 
 interface Frontier {
@@ -14,7 +14,10 @@ interface Frontier {
 
 const exitCount = (room: RoomNode): number => Object.keys(room.exits).length;
 
-/** 优先填充紧凑区域，最多三行；更大的地图只增加列数。每间房的门数不超过 maxExits。 */
+/**
+ * 优先填充紧凑区域，最多三行；更大的地图只增加列数。
+ * 每间房的门数不超过 maxExits，且纵向(上或下)至多一条 —— 场景里只有左/中/右三个门位, 中门只能留给一个纵向邻房。
+ */
 export function growRooms(s: ExploreState, roomCount: number) {
   const { maxExits } = EXPLORE_RULES.dungeon;
   const rows = Math.min(3, Math.max(1, Math.floor(Math.sqrt(roomCount))));
@@ -34,6 +37,7 @@ export function growRooms(s: ExploreState, roomCount: number) {
       // 门数上限: 已满的房间不再向外生长。
       if (exitCount(from) >= maxExits) continue;
       for (const dir of PORTAL_DIRS) {
+        if (isVerticalDir(dir) && hasVerticalExit(from)) continue;
         const { dx, dy } = DIR_STEP[dir];
         const gx = from.gx + dx;
         const gy = from.gy + dy;
@@ -49,8 +53,8 @@ export function growRooms(s: ExploreState, roomCount: number) {
   };
 
   while (order.length < roomCount) {
-    // 门数上限可能让矩形内的前沿耗尽; 此时允许向右越过列数生长 ——
-    // 最右列中最靠下的房间右侧与下方必然为空, 门数至多 2, 因此兜底前沿一定非空。
+    // 门数与纵向上限可能让矩形内的前沿耗尽; 此时允许向右越过列数生长 ——
+    // 最右列的房间右侧必然为空, 门数至多「左 + 一条纵向」= 2, 因此兜底前沿一定非空。
     const bounded = collectFrontier(true);
     const frontier = bounded.length ? bounded : collectFrontier(false);
     const best = Math.min(...frontier.map((entry) => entry.score));
@@ -80,6 +84,7 @@ export function growRooms(s: ExploreState, roomCount: number) {
   for (const edge of shuffle(s, loops)) {
     if (added >= extra) break;
     if (exitCount(edge.from) >= maxExits || exitCount(edge.to) >= maxExits) continue;
+    if (edge.dir === "down" && (hasVerticalExit(edge.from) || hasVerticalExit(edge.to))) continue;
     link(edge.from, edge.to, edge.dir);
     added += 1;
   }

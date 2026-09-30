@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -56,8 +57,11 @@ export interface ItemInventoryPanelProps {
    * 返回空数组 = 这一格点了不进交互模式。启用后点击不再走选中逻辑。
    */
   slotActions?: (stack: ItemStack) => SlotAction[];
-  /** 交互模式的呈现: mask = 格内遮罩(默认); card = 格子上方浮出操作卡(探索底部物品栏)。 */
-  actionStyle?: "mask" | "card";
+  /**
+   * 交互模式的呈现: mask = 格内遮罩(默认);
+   * tooltip = 悬浮详情浮层不换, 底部动画长出操作区(探索底部物品栏), 退出交互即连浮层一起收起。
+   */
+  actionStyle?: "mask" | "tooltip";
   footer?: ReactNode;
   panelId?: string;
   colorMap?: InventoryColorMap;
@@ -79,6 +83,8 @@ const nonNegativeInteger = (value: number, fallback: number) =>
 interface HoveredItem {
   uid: string;
   point: TooltipPoint;
+  /** 格子包裹层 —— 交互态浮层用它判断「点外部」。 */
+  element: HTMLElement;
 }
 
 export default function ItemInventoryPanel({
@@ -119,6 +125,9 @@ export default function ItemInventoryPanel({
     defaultSelectedUid,
   );
   const [hoveredItem, setHoveredItem] = useState<HoveredItem | null>(null);
+  // tooltip 交互模式: 点击时把当时的浮层位置钉住, 交互期间悬浮别的格子也不挪动这张浮层。
+  const [pinnedItem, setPinnedItem] = useState<HoveredItem | null>(null);
+  const inTooltip = actionStyle === "tooltip";
   const ordered = useMemo(
     () => (sectioned ? sortBySection(stacks) : stacks),
     [sectioned, stacks],
@@ -129,9 +138,10 @@ export default function ItemInventoryPanel({
   const activeSelectedUid = isControlled ? selectedUid : internalSelectedUid;
   const selectedStack =
     stacks.find((stack) => stack.uid === activeSelectedUid) ?? null;
-  // 操作卡已经把「这是什么」讲清楚了, 正在交互的那一格不再叠悬浮详情。
-  const hoveredStack = hoveredItem && !(actionStyle === "card" && hoveredItem.uid === actionMode.activeUid)
-    ? stacks.find((stack) => stack.uid === hoveredItem.uid) ?? null
+  const pinned = inTooltip && pinnedItem && pinnedItem.uid === actionMode.activeUid ? pinnedItem : null;
+  const tooltipItem = pinned ?? hoveredItem;
+  const tooltipStack = tooltipItem
+    ? stacks.find((stack) => stack.uid === tooltipItem.uid) ?? null
     : null;
 
   useEffect(() => {
@@ -146,6 +156,17 @@ export default function ItemInventoryPanel({
       setHoveredItem(null);
     }
   }, [hoveredItem, stacks]);
+
+  // tooltip 模式退出交互(Esc / 点外部 / 执行完动作)时浮层直接消失: 指针还停在格上也一并清掉悬浮,
+  // 要重新移入格子才再出详情。
+  const prevActiveUid = useRef<string | null>(null);
+  useEffect(() => {
+    const prev = prevActiveUid.current;
+    prevActiveUid.current = actionMode.activeUid;
+    if (!inTooltip || !prev || actionMode.activeUid) return;
+    setPinnedItem(null);
+    setHoveredItem((current) => (current?.uid === prev ? null : current));
+  }, [actionMode.activeUid, inTooltip]);
 
   const cells = useMemo(
     () => [
@@ -179,11 +200,13 @@ export default function ItemInventoryPanel({
 
   const handleClick = (stack: ItemStack) => {
     if (!slotActions) return handleSelect(stack);
-    if (slotActions(stack).length) actionMode.open(stack.uid);
+    if (!slotActions(stack).length) return;
+    actionMode.open(stack.uid);
+    if (inTooltip) setPinnedItem(hoveredItem?.uid === stack.uid ? hoveredItem : null);
   };
 
-  const showTooltip = (stack: ItemStack, point: TooltipPoint) => {
-    setHoveredItem({ uid: stack.uid, point });
+  const showTooltip = (stack: ItemStack, element: HTMLElement, point: TooltipPoint) => {
+    setHoveredItem({ uid: stack.uid, point, element });
   };
 
   const hideTooltip = (uid: string) => {
@@ -271,15 +294,14 @@ export default function ItemInventoryPanel({
                   onDismiss={actionMode.close}
                   onEnter={(element) => {
                     if (actionMode.activeUid === stack.uid) actionMode.keepOpen();
-                    showTooltip(stack, tooltipPointFromElement(element, tooltipDirection));
+                    showTooltip(stack, element, tooltipPointFromElement(element, tooltipDirection));
                   }}
                   onLeave={() => {
+                    // tooltip 模式下交互中的浮层由 pinnedItem 撑着, 这里照常清悬浮即可。
                     hideTooltip(stack.uid);
-                    if (actionStyle === "card") actionMode.closeSoon(stack.uid);
+                    if (inTooltip) actionMode.closeSoon(stack.uid);
                     else actionMode.closeIf(stack.uid);
                   }}
-                  onCardEnter={actionMode.keepOpen}
-                  onCardLeave={() => actionMode.closeSoon(stack.uid)}
                 />
               ) : (
                 <div
@@ -302,8 +324,21 @@ export default function ItemInventoryPanel({
           </footer>
         )}
       </div>
-      {hoveredStack && hoveredItem && (
-        <ItemTooltip stack={hoveredStack} point={hoveredItem.point} themeStyle={style} />
+      {tooltipStack && tooltipItem && (
+        <ItemTooltip
+          // 同一件物品从悬浮切到交互不换 key: 浮层不重挂, 只在底部长出操作区。
+          key={tooltipItem.uid}
+          stack={tooltipStack}
+          point={tooltipItem.point}
+          themeStyle={style}
+          interaction={pinned ? {
+            actions: activeActions,
+            anchor: pinned.element,
+            onDismiss: actionMode.close,
+            onPointerEnter: actionMode.keepOpen,
+            onPointerLeave: () => actionMode.closeSoon(pinned.uid),
+          } : undefined}
+        />
       )}
     </section>
   );

@@ -44,7 +44,7 @@ export function RelicRail({ stacks }: { stacks: ItemStack[] }) {
         );
       })}
       {hoveredStack && hovered && (
-        <ItemTooltip stack={hoveredStack} point={hovered.point} className={s.tooltip} />
+        <ItemTooltip stack={hoveredStack} point={hovered.point} />
       )}
     </div>
   );

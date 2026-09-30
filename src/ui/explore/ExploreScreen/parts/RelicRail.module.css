@@ -48,14 +48,3 @@
   height: 100%;
   object-fit: contain;
 }
-
-.tooltip {
-  --item-detail-idle-size: 18px;
-  --item-detail-name-size: 20px;
-  --item-detail-tags-size: 18px;
-  --item-detail-desc-size: 18px;
-  --item-detail-stats-size: 18px;
-  --item-detail-note-size: 18px;
-  --item-detail-padding: 18px;
-  --item-detail-gap: 12px;
-}

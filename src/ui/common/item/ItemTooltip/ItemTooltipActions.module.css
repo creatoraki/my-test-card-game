@@ -1,0 +1,175 @@
+/* 详情卡操作栏: 与 TooltipCard 底栏(StatsBar / NoteBar)同款斜切细框。
+   挂载时行高 0fr → 1fr 展开, 卡片随之向上加高(底边定位)。
+   外边距放在 .bar 上 —— .clip 是 overflow:hidden 的独立格式化上下文, 边距会一起被收进 0fr 里, 不会先跳一下。 */
+
+.drawer {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: 1fr;
+  animation: drawerGrow 280ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.clip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.bar {
+  --panel-fill: #06111ad9;
+  --panel-stroke: #34617f;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 6px 10px 0;
+  padding: 10px 12px 14px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* 按钮: 细描边切角(外层描边色 + 内层面板两层 clip-path), 色调只染描边、图标与文字。 */
+.btn {
+  --c: #9fb4c8;
+  --cut: 6px;
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 40px;
+  padding: 1px;
+  color: var(--c);
+  font-family: var(--font-family);
+  background: color-mix(in srgb, var(--c) 45%, #1b3242);
+  border: 0;
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  cursor: var(--cursor-pointer);
+  transition: background 160ms ease, transform 120ms ease;
+  animation: btnIn 240ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(var(--order, 0) * 40ms + 90ms);
+}
+
+.btn[data-tone="primary"] { --c: #8fd0f0; }
+.btn[data-tone="module"] { --c: #c3a6ff; }
+.btn[data-tone="danger"] { --c: #ff819d; }
+
+.face {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 12px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 12%, #0b1823), #08121b);
+  clip-path: polygon(calc(var(--cut) - 1px) 0, 100% 0, 100% calc(100% - var(--cut) + 1px), calc(100% - var(--cut) + 1px) 100%, 0 100%, 0 calc(var(--cut) - 1px));
+  transition: background 160ms ease;
+}
+
+.icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--c) 55%, transparent));
+}
+
+.label {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--c) 40%, transparent);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--c);
+}
+
+.btn:hover:not(:disabled) .face {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 24%, #0b1823), color-mix(in srgb, var(--c) 8%, #08121b));
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  --c: #5d6f7c;
+  cursor: not-allowed;
+}
+
+.btn:disabled .icon,
+.btn:disabled .label {
+  filter: none;
+  text-shadow: none;
+}
+
+.armed {
+  animation:
+    btnIn 240ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards,
+    armedPulse 900ms ease-in-out infinite;
+}
+
+/* 置灰理由: 与提示条同款的行首小菱形。 */
+.hint {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  color: #ffcf7a;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  animation: fadeIn 220ms ease 160ms both;
+}
+
+.mark {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  background: currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  box-shadow: 0 0 5px currentColor;
+}
+
+.decor {
+  position: absolute;
+  right: 11px;
+  bottom: 5px;
+  display: block;
+  pointer-events: none;
+}
+
+.stripe {
+  fill: #3f78a0;
+  opacity: 0.85;
+}
+
+.rule {
+  fill: none;
+  stroke: #2f5670;
+  stroke-width: 1;
+}
+
+@keyframes drawerGrow {
+  from { grid-template-rows: 0fr; }
+  to { grid-template-rows: 1fr; }
+}
+
+@keyframes btnIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes armedPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.35) drop-shadow(0 0 6px #ff819d); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

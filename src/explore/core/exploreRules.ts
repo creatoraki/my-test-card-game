@@ -42,7 +42,7 @@ export const EXPLORE_RULES = {
     healChance: 0.2,
     // 陷阱房: 在战斗房之外的普通房中按比例投放(可为 0 间), 进房立即触发陷阱、必须指定执行者应对。
     trapRoomRatio: 0.15,
-    // 每间房最多的传送门数量(至少 1 扇, 由连通性保证)。
+    // 每间房最多的传送门数量(至少 1 扇, 由连通性保证); 对应场景左/中/右三个门位, 纵向出口至多一扇。
     maxExits: 3,
     merchants: {
       smallMapMaxRooms: 8,

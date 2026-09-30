@@ -2,7 +2,8 @@
 // 房间图(地牢)类型 —— 一张地图 = 一张由若干房间组成的网格图, 没有「层」的概念。
 // 房间总数(MapDef.roomCount)就是这张地图的庞大程度。
 //
-// · 每个房间最多连通上下左右 4 个房间, 即最多 4 个传送门(网格邻接天然保证上限)。
+// · 每个房间最多 3 个传送门: 左、右各一, 纵向(上或下)至多一个 —— 小地图呈工整的十字格。
+// · 场景里的门位固定: 左门通左邻、右门通右邻、中门通唯一的纵向邻房, 方向与小地图一一对应。
 // · exits 只记录生成时**真正打通**的边, 相邻但未打通的房间之间没有传送门。
 // · 房间内的横向场景(物件位置、玩家坐标、黑影、BOSS 红门)仍由 corridor/ 负责, 本模块只管图。
 // ============================================================================
@@ -37,6 +38,19 @@ export const DIR_STEP: Record<PortalDir, { dx: number; dy: number }> = {
   left: { dx: -1, dy: 0 },
   right: { dx: 1, dy: 0 },
 };
+
+/** 场景里的三个固定门位。 */
+export type PortalLane = "left" | "middle" | "right";
+
+/** 方向 → 门位: 纵向出口每房至多一个, 所以上、下共用中门不会冲突。 */
+export const PORTAL_LANE: Record<PortalDir, PortalLane> = {
+  up: "middle",
+  down: "middle",
+  left: "left",
+  right: "right",
+};
+
+export const isVerticalDir = (dir: PortalDir): boolean => dir === "up" || dir === "down";
 
 export const OPPOSITE_DIR: Record<PortalDir, PortalDir> = {
   up: "down",
@@ -97,5 +111,8 @@ export interface DungeonState {
   /** 网格包围盒, 小地图按它换算画布尺寸。 */
   bounds: { minX: number; maxX: number; minY: number; maxY: number };
 }
+
+/** 已占用纵向出口(上或下)的房间不能再打通第二条纵向路。 */
+export const hasVerticalExit = (room: RoomNode): boolean => Boolean(room.exits.up || room.exits.down);
 
 export const roomIdAt = (gx: number, gy: number): string => `room-${gx}-${gy}`;

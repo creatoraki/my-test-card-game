@@ -28,7 +28,7 @@ export function MinimapBoard({
   const board = layoutBoard(cells, links, dungeon.bounds, metrics);
   const style = { position: "relative", width: board.width, height: board.height, "--num-size": `${numSize}px` } as CSSProperties;
   return <div className={className} style={style} data-picking={picking || undefined}>
-    <MinimapRoutes links={board.links} width={board.width} height={board.height} road={road} />
+    <MinimapRoutes links={board.links} width={board.width} height={board.height} road={road} targetId={targetId} />
     {board.cells.map((cell) => {
       const pickable = picking && cell.room.visited && !cell.current;
       return <MinimapTile

@@ -1,11 +1,10 @@
-// 物品栏面板的单个有物格 —— 格子本体 + 可点击提示 + 分区标记 + 交互模式(格内遮罩 / 上方操作卡)。
+// 物品栏面板的单个有物格 —— 格子本体 + 可点击提示 + 分区标记 + 交互模式(格内遮罩 / 详情浮层内操作区)。
 // 空格很简单, 仍留在 ItemInventoryPanel 里直接画。
 
-import { useRef, type FocusEvent, type PointerEvent } from "react";
+import type { FocusEvent, PointerEvent } from "react";
 import type { ItemStack } from "@/items/types";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import { ItemActionMask, type SlotAction } from "@/ui/common/item/ItemActionMask";
-import { ItemActionCard } from "@/ui/common/item/ItemActionCard";
 import { ItemSectionMark } from "@/ui/common/item/ItemSectionMark";
 import type { SectionMark } from "@/ui/common/item/shared/itemSections";
 import { InteractiveHint } from "@/ui/common/tooltip/InteractiveHint";
@@ -20,17 +19,14 @@ interface Props {
   /** 分区标记; 不分区的面板不传。 */
   mark?: SectionMark;
   rowStart: boolean;
-  /** 非空 = 本格正处于交互模式, 盖遮罩(或浮出操作卡)并显示这些按钮。 */
+  /** 非空 = 本格正处于交互模式。mask 模式在格内盖遮罩显示这些按钮; tooltip 模式按钮由面板画进详情浮层, 本格只高亮。 */
   actions: readonly SlotAction[] | null;
-  /** mask = 格内遮罩竖排按钮; card = 格子上方浮出操作卡。 */
-  actionStyle: "mask" | "card";
+  /** mask = 格内遮罩竖排按钮; tooltip = 详情浮层底部展开操作区。 */
+  actionStyle: "mask" | "tooltip";
   onClick: () => void;
   onDismiss: () => void;
   onEnter: (element: HTMLDivElement) => void;
   onLeave: () => void;
-  /** 操作卡模式: 指针进 / 出操作卡(由 useSlotActionMode 做离开宽限)。 */
-  onCardEnter?: () => void;
-  onCardLeave?: () => void;
 }
 
 export function InventorySlotCell({
@@ -46,14 +42,11 @@ export function InventorySlotCell({
   onDismiss,
   onEnter,
   onLeave,
-  onCardEnter,
-  onCardLeave,
 }: Props) {
-  const anchorRef = useRef<HTMLDivElement>(null);
-  const asCard = actionStyle === "card";
+  const inTooltip = actionStyle === "tooltip";
+  const highlighted = selected || (inTooltip && Boolean(actions));
   return (
     <div
-      ref={anchorRef}
       className={g["inventory-slot-anchor"]}
       data-inventory-uid={stack.uid}
       data-pulse={pulse ? "true" : undefined}
@@ -63,32 +56,22 @@ export function InventorySlotCell({
       onPointerLeave={onLeave}
       onFocus={(event: FocusEvent<HTMLDivElement>) => onEnter(event.currentTarget)}
       onBlur={(event: FocusEvent<HTMLDivElement>) => {
-        // 焦点只是在格内(格子 → 遮罩按钮), 或移进本格的操作卡时不算离开。
+        // 焦点只是在格内(格子 → 遮罩按钮), 或移进详情浮层的操作区时不算离开。
         const next = event.relatedTarget as Element | null;
-        if (event.currentTarget.contains(next) || next?.closest("[data-item-action-card]")) return;
+        if (event.currentTarget.contains(next) || next?.closest("[data-item-action-tooltip]")) return;
         onLeave();
       }}
     >
       <ItemSlot
         stack={stack}
-        selected={selected || (asCard && Boolean(actions))}
+        selected={highlighted}
         showName={false}
         onClick={onClick}
-        className={cx(g["inventory-slot"], (selected || (asCard && actions)) && g["inventory-slot-selected"])}
+        className={cx(g["inventory-slot"], highlighted && g["inventory-slot-selected"])}
       />
       {mark && <ItemSectionMark mark={mark} rowStart={rowStart} />}
       {slotHint && !actions && <InteractiveHint className={g["inventory-slot-hint"]} />}
-      {actions && !asCard && <ItemActionMask actions={actions} onDismiss={onDismiss} />}
-      {actions && asCard && (
-        <ItemActionCard
-          stack={stack}
-          actions={actions}
-          anchorRef={anchorRef}
-          onDismiss={onDismiss}
-          onPointerEnter={onCardEnter}
-          onPointerLeave={onCardLeave}
-        />
-      )}
+      {actions && !inTooltip && <ItemActionMask actions={actions} onDismiss={onDismiss} />}
     </div>
   );
 }

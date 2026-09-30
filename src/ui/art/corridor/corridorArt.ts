@@ -11,7 +11,6 @@ import corridorCardPrinterArt from "@/assets/explore-corridor/废弃楼层/可�
 import corridorShrineArt from "@/assets/explore-corridor/废弃楼层/可交互物体/神龛.webp";
 import corridorDispatchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/传送带.webp";
 import corridorCrystalVeinArt from "@/assets/explore-corridor/废弃楼层/可交互物体/矿脉.webp";
-import moduleCrateArt from "@/assets/道具/消耗品/1阶模组箱.webp";
 import corridorFarArt from "@/assets/explore-corridor/废弃楼层/无限远景.webp";
 import neonCityNear1Art from "@/assets/explore-corridor/废弃楼层/近景/近景1.webp";
 import neonCityNear2Art from "@/assets/explore-corridor/废弃楼层/近景/近景2.webp";
@@ -64,8 +63,6 @@ const DISPATCH = sizeCorridorProp(corridorDispatchArt, { width: 400, height: 400
 const SINK = sizeCorridorProp(corridorSinkArt, { width: 400, height: 400, top: 101, bottom: 326 }, "small");
 const REPAIR_POD = sizeCorridorProp(corridorRepairPodArt, { width: 400, height: 400, top: 81, bottom: 304 }, "small");
 const COMPACTOR = sizeCorridorProp(corridorCompactorArt, { width: 400, height: 400, top: 29, bottom: 374 }, "large");
-// 封存的模组箱直接用物品图标同一张模组箱素材, 场景与背包里看到的是同一个箱子。
-const MODULE_CRATE = sizeCorridorProp(moduleCrateArt, { width: 256, height: 256, top: 44, bottom: 227 }, "small");
 const CRYSTAL_VEIN = sizeCorridorProp(corridorCrystalVeinArt, { width: 400, height: 400, top: 24, bottom: 379 }, "large");
 
 export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
@@ -104,7 +101,8 @@ export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
   toolLocker: MOD_BENCH,
   courierDrone: DISPATCH,
   cashBox: REMAINS,
-  moduleCase: MODULE_CRATE,
+  // 封存的模组箱暂无专属 2D 场景素材，复用保险箱图片(物品图标不能当场景物件)。
+  moduleCase: SAFE,
   collapsedCeiling: COMPACTOR,
   leakingPipe: SINK,
   rogueDrone: VENDING,

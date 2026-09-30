@@ -1,4 +1,4 @@
-// 物品操作按钮 —— 切角科幻按钮 + 左侧小图标。操作卡、开箱演出、仓库操作区共用。
+// 物品操作按钮 —— 切角科幻按钮 + 左侧小图标。详情浮层操作区、开箱演出、仓库操作区共用。
 // 四种色调: primary 青(使用 / 拾取)、module 紫(装载 / 拆箱)、danger 红(确认丢弃)、default 灰。
 
 import type { CSSProperties, MouseEvent } from "react";

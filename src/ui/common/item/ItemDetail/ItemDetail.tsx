@@ -1,52 +1,26 @@
-﻿// 物品详情 —— 背包面板与仓库设施的右栏共用。
+// 物品详情 —— 背包面板与仓库设施的右栏共用。
 // 操作按钮不写在这里: 两个界面能做的事不同(探索里是使用/丢弃/寄回, 据点里是穿戴/出售),
 // 故用 children 插槽让调用方自己塞。本组件只负责「这件东西是什么」。
+// 悬浮详情走 ItemTooltipCard(TooltipCard 款式); 两者的数据口径统一在 itemDetailData。
 
 import type { ReactNode } from "react";
 import { getBondDef, getCardModule, getItemDef } from "@/data";
-import { STAT_KEYS } from "@/engine";
-import type { StatBlock } from "@/engine";
-import { rollPerfectness, rollToFlat } from "@/items/equipRoll";
-import type { ItemStack, RelicTriggerId } from "@/items/types";
+import { rollPerfectness } from "@/items/equipRoll";
+import type { ItemStack } from "@/items/types";
 import {
   CATEGORY_LABEL,
   RARITY_LABEL,
   RELIC_POLARITY_LABEL,
   RELIC_SCOPE_LABEL,
-  RELIC_TRIGGER_LABEL,
   SLOT_LABEL,
 } from "@/items/types";
 import { BondIcon } from "@/ui/common/bond/BondIcon";
 import { cx } from "@/ui/common/shared/cx";
 import { itemIcon } from "@/ui/art/items/itemArt";
-import { isPercentStat } from "@/ui/common/shared/statGroups";
+import { itemStatRows, relicTriggerText } from "./itemDetailData";
 import s from "./ItemDetail.module.css";
 
-// 属性中文名。⚠ 与 CryoScene 的队员档案是同一套口径, 改名要一起改。
-// ★ 导出给 ShopItemCard 复用 —— 商店的详情栏样式独立, 但**文案口径必须同一份**。
-export const STAT_LABEL: Partial<Record<keyof StatBlock, string>> = {
-  maxHp: "生命上限",
-  attack: "攻击力",
-  healPower: "治愈力",
-  lowCostMastery: "低费精通",
-  highCostMastery: "高费精通",
-  fastMastery: "速攻精通",
-  executeMastery: "斩杀精通",
-  chargeMastery: "冲锋精通",
-  defense: "防御力",
-  armorPen: "穿甲",
-  hitRate: "命中率",
-  dodgeRate: "闪避率",
-  critRate: "暴击率",
-  critDamage: "爆伤",
-  precision: "精准",
-  initiative: "先手",
-  blockRate: "格挡率",
-  healBoost: "治愈强度",
-  shieldBoost: "护盾强度",
-  ailmentResist: "异常抗性",
-  burdenAdapt: "负重适应",
-};
+export { STAT_LABEL } from "./itemDetailData";
 
 export default function ItemDetail({
   stack,
@@ -74,29 +48,7 @@ export default function ItemDetail({
   const bond = getBondDef(stack.affinity ?? def.affinity ?? "");
   // 模组的装配条件独立成字段展示 —— 正文只说装配后的效果, 条件不再混在 desc 里。
   const cardModule = def.category === "module" ? getCardModule(def.id) : undefined;
-  const flatMods = stack.roll
-    ? rollToFlat(stack.roll)
-    : def.category === "relic"
-      ? def.relic?.mods?.flat
-      : def.mods?.flat;
-  const pctMods = def.category === "relic" ? def.relic?.mods?.pct : def.mods?.pct;
-  const rows: { label: string; value: string; good: boolean }[] = [];
-  for (const k of STAT_KEYS) {
-    const flat = flatMods?.[k];
-    const pct = pctMods?.[k];
-    if (flat)
-      rows.push({
-        label: STAT_LABEL[k] ?? k,
-        value: `${signed(flat)}${isPercentStat(k) ? "%" : ""}`,
-        good: flat > 0,
-      });
-    if (pct)
-      rows.push({
-        label: STAT_LABEL[k] ?? k,
-        value: `${signed(pct)}${isPercentStat(k) ? "%" : ""}`,
-        good: pct > 0,
-      });
-  }
+  const rows = itemStatRows(stack, def);
 
   return (
     <div className={cx(s["item-detail"], s[`r-${def.rarity}`], className)}>
@@ -177,14 +129,4 @@ export default function ItemDetail({
       {children && <div className={s["item-detail-actions"]}>{children}</div>}
     </div>
   );
-}
-
-// 词条允许小数(如 1.5 倍换算), 显示时四舍五入。
-const signed = (value: number) => {
-  const n = Math.round(value);
-  return n > 0 ? `+${n}` : `${n}`;
-};
-
-function relicTriggerText(on: RelicTriggerId | RelicTriggerId[]): string {
-  return (Array.isArray(on) ? on : [on]).map((id) => RELIC_TRIGGER_LABEL[id]).join("、");
 }

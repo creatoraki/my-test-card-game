@@ -43,12 +43,13 @@ describe("建局与房间图", () => {
     expect(newSession(2024).dungeon).toEqual(newSession(2024).dungeon);
   });
 
-  it("每个房间最多 4 个出口, 且出口一律双向对称", () => {
+  it("每个房间最多 3 个出口、纵向至多 1 个, 且出口一律双向对称", () => {
     const s = newSession(77);
     const opposite: Record<PortalDir, PortalDir> = { up: "down", down: "up", left: "right", right: "left" };
     for (const room of allRooms(s)) {
       const dirs = exitDirs(room);
-      expect(dirs.length).toBeLessThanOrEqual(4);
+      expect(dirs.length).toBeLessThanOrEqual(3);
+      expect(dirs.filter((dir) => dir === "up" || dir === "down").length).toBeLessThanOrEqual(1);
       for (const dir of dirs) {
         const target = dungeonOf(s).rooms[room.exits[dir]!];
         expect(target).toBeDefined();
@@ -87,6 +88,17 @@ describe("建局与房间图", () => {
     const s = newSession(123);
     expect(dungeonOf(s).rooms[dungeonOf(s).startRoomId].curios).toHaveLength(1);
     expect(allRooms(s).filter((room) => room.kind === "battle").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("传送门落在固定门位: 左门在左、右门在右、纵向门居中", () => {
+    const s = newSession(55);
+    for (const room of allRooms(s)) {
+      const { left, right, up, down } = room.portalX;
+      const middle = up ?? down;
+      if (left !== undefined && middle !== undefined) expect(left).toBeLessThan(middle);
+      if (middle !== undefined && right !== undefined) expect(middle).toBeLessThan(right);
+      if (left !== undefined && right !== undefined) expect(left).toBeLessThan(right);
+    }
   });
 
   it("传送门与物件不会挤在同一个地面槽位上", () => {

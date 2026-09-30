@@ -1,47 +1,15 @@
 /* 定位层: 挂在设计画布内部(见 ItemTooltip.tsx 的 portal 目标), left/top 是设计 px,
    缩放由画布的 zoom 统一负责 —— 本层不做任何缩放, 也不认屏幕 px。
-   z-index 取一个画布内的最高档: 弹窗遮罩(.asm-modal)只有 3, 浮层必须压在其上。 */
+   z-index 取一个画布内的最高档: 弹窗遮罩(.asm-modal)只有 3, 浮层必须压在其上。
+   卡片本身(ItemTooltipCard → TooltipCard 大头部)固定 480 宽, 这里只随内容。 */
 .item-tooltip {
   position: absolute;
   z-index: 1000;
-  width: 420px;
+  width: max-content;
   pointer-events: none;
 }
 
-/* 外壳: 深海蓝底 + 斜切外框(TooltipShell), 四周留出外框与角标的位置。 */
-.item-tooltip-shell {
-  width: 100%;
-  padding: 10px;
-}
-
-.item-tooltip-detail {
-  composes: detail-scale-lg from "../ItemDetail/itemDetailScale.module.css";
-}
-
-/* ★ 配色固定为悬浮详情统一的深海蓝色板, 不再读各场景的 --inventory-* 主题;
-   详情区本身画成与状态详情正文面板同款的深色细边框盒子。 */
-.item-tooltip-detail.item-tooltip-detail {
-
-  --accent: #8fd0f0;
-  --accent2: #7fe0d2;
-  --bad: #ff819d;
-  --border: #2b4b5f;
-  --good: #7fe0b0;
-  --muted: #9fb4c8;
-  --text: #eef3f8;
-
-  position: relative;
-  z-index: 1;
-  box-sizing: border-box;
-  width: 100%;
-  height: auto;
-  /* 上限由 JS 下发(画布高度减留白, 设计 px), 不能直接写 100vh:
-     视口单位不随画布 zoom 缩放, 在画布内会被当成设计 px 再放大一遍。
-     减去的 20px 是外壳上下内距。 */
-  max-height: calc(var(--tooltip-max-h, 320px) - 20px);
-  padding: var(--tooltip-detail-padding, 18px);
-  overflow-y: auto;
-  background: #06111acc;
-  border: 1px solid #2b4b5f;
-  border-radius: 0;
+/* 交互态(物品格点击后): 浮层接收指针, 卡片底部长出操作栏。 */
+.item-tooltip.is-interactive {
+  pointer-events: auto;
 }

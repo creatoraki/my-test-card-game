@@ -17,9 +17,9 @@ export interface SlotAction {
   disabled?: boolean;
   /** 传了就需要二次确认, 确认态按钮显示这段文字。 */
   confirmLabel?: string;
-  /** 操作卡(ItemActionCard)上按钮左侧的小图标; 格内遮罩不画。 */
+  /** 详情浮层操作区(ItemTooltipActions)按钮左侧的小图标; 格内遮罩不画。 */
   icon?: ActionIconName;
-  /** 置灰理由, 操作卡底部写成一行小字(项目禁用原生 title); 格内遮罩不画。 */
+  /** 置灰理由, 详情浮层操作区底部写成一行小字(项目禁用原生 title); 格内遮罩不画。 */
   hint?: string;
   onSelect: () => void;
 }

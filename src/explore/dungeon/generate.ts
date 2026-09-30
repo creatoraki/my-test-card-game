@@ -6,7 +6,7 @@
 // ③ BFS 算 depth, 最深的死胡同当 BOSS 房, 其余非起点房按比例投放战斗房与陷阱房;
 // ④ 物件清单由 curioPlan.ts 决定: 每房 1-2 个, 陷阱房固定一个陷阱, 治疗按每房概率投放, 其余按权重偏向物品奖励;
 //    物件等级由 curioLevel.ts 按地图等级区间与房间深度决定;
-// ⑤ 传送门按门数规则分布: 2 门左右、3 门左中右、4 门等距; BOSS 红门与可交互物避开门附近槽位。
+// ⑤ 传送门落在固定门位: 左门通左邻、右门通右邻、中门通纵向邻房; BOSS 红门与可交互物避开门附近槽位。
 // ============================================================================
 
 import { rngInt, shuffle } from "@/engine/core/rng";
@@ -14,10 +14,10 @@ import { difficultyMapConfig } from "@/data";
 import { EXPLORE_RULES } from "../core/exploreRules";
 import type { ExploreState } from "../types";
 import {
-  corridorPortalSlotsFor, corridorSlotsFor, CORRIDOR, type CurioKind,
+  corridorPortalXFor, corridorSlotsFor, CORRIDOR, type CurioKind,
 } from "../corridor/types";
 import {
-  PORTAL_DIRS,
+  PORTAL_DIRS, PORTAL_LANE,
   type DungeonState, type RoomNode,
 } from "./types";
 import { generatePlannedDungeon } from "./planned";
@@ -56,7 +56,7 @@ function pickBossRoom(s: ExploreState, rooms: Record<string, RoomNode>, startId:
   return shuffle(s, pool.map((room) => room.id))[0];
 }
 
-/** 按门数规则分布传送门, 并让红门与可交互物避开传送门附近的中段槽位。 */
+/** 传送门按方向落到固定门位, 并让红门与可交互物避开传送门附近的中段槽位。 */
 function layoutRoom(
   s: ExploreState,
   room: RoomNode,
@@ -64,13 +64,11 @@ function layoutRoom(
   levelOf: () => CurioLevel,
   bossGate = false,
 ): void {
-  // 先打乱方向, 避免固定方向总被分到中段, 让门的朝向只能从小地图获知。
-  const dirs = shuffle(s, PORTAL_DIRS.filter((dir) => room.exits[dir]));
-  const portalSlots = dirs.length <= 1
-    ? shuffle(s, corridorPortalSlotsFor(room.nearMapVariant, dirs.length)).slice(0, dirs.length)
-    : corridorPortalSlotsFor(room.nearMapVariant, dirs.length);
-  dirs.forEach((dir, index) => {
-    room.portalX[dir] = portalSlots[index];
+  // 门位与小地图方向一一对应, 玩家不必记「哪扇门通哪边」。
+  const portalSlots = PORTAL_DIRS.filter((dir) => room.exits[dir]).map((dir) => {
+    const x = corridorPortalXFor(room.nearMapVariant, PORTAL_LANE[dir]);
+    room.portalX[dir] = x;
+    return x;
   });
 
   const allMiddleSlots = corridorSlotsFor(room.nearMapVariant);

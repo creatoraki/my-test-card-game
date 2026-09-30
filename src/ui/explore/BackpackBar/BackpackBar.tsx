@@ -28,7 +28,7 @@ export default memo(function BackpackBar({
 
   if (!backpack) return null;
 
-  // 操作卡按钮: 模组给「装载」、模组箱给「拆箱」、其余有 use 效果的给「使用」(阶段不允许时置灰并写明理由),
+  // 详情浮层操作区的按钮: 模组给「装载」、模组箱给「拆箱」、其余有 use 效果的给「使用」(阶段不允许时置灰并写明理由),
   // 可丢的给「丢弃」(原地二次确认)。
   const slotActions = (stack: ItemStack): SlotAction[] => {
     const def = getItemDef(stack.itemId);
@@ -91,8 +91,9 @@ export default memo(function BackpackBar({
         // 阶段不允许动背包时不给「可点击」提示、也不进交互模式 —— 亮了却点不动比不亮更糟。
         slotHint={editable}
         slotActions={editable ? slotActions : undefined}
-        actionStyle="card"
-        // 背包贴在屏幕底部, 详情往格子上方弹, 不遮同排的格子。
+        // 点击后不另弹操作卡: 悬浮详情原地保留, 底部动画长出操作按钮。
+        actionStyle="tooltip"
+        // 背包贴在屏幕底部, 详情往格子上方弹(底边钉住、向上加高), 不遮同排的格子。
         tooltipDirection="top"
       />
       {modules.overlay}

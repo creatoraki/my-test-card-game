@@ -31,3 +31,61 @@
 .faint path {
   stroke-linecap: butt;
 }
+
+/* 走过但不与当前房相连: 压暗, 把视线让给当前出口。 */
+.walked {
+  opacity: 0.6;
+}
+
+/* 流光光点: 圆头短划, 叠在管芯上。 */
+.routes .flow {
+  stroke-linecap: round;
+}
+
+/* 当前房间出口: 外光更满、管壁更白。 */
+.exit .glow {
+  stroke: #3d9bff;
+  opacity: 1;
+}
+
+.exit .tube {
+  stroke: #d6efff;
+}
+
+.exit .flow {
+  stroke: #ffffff;
+}
+
+/* 出口通往还没去过的房间: 管壁半透明, 与走过的出口区分。 */
+.exit[data-unwalked] .tube,
+.target[data-unwalked] .tube {
+  opacity: 0.55;
+}
+
+.exit[data-unwalked] .core,
+.target[data-unwalked] .core {
+  opacity: 0;
+}
+
+/* 脚下传送门通往的出口: 金色, 与目标格 tileTarget 同为 1.4s 呼吸。 */
+.target .glow {
+  stroke: #ffb020;
+  animation: routeTarget 1.4s ease-in-out infinite;
+}
+
+.target .tube {
+  stroke: #ffe3a3;
+}
+
+.target .core {
+  stroke: #c77a12;
+}
+
+.target .flow {
+  stroke: #fff6dc;
+}
+
+@keyframes routeTarget {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}

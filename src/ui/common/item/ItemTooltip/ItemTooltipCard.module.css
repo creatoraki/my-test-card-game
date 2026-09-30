@@ -1,0 +1,114 @@
+/* 物品详情卡正文面板内的附加信息: 沿用 TooltipCard 正文面板的深海蓝色板与细分隔线, 字号不小于 18px。 */
+
+.extra {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 接在描述之后: 用一条与面板描边同色的细线隔开。 */
+.after-desc {
+  padding-top: 10px;
+  border-top: 1px solid #2b4b5f;
+}
+
+.relic {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  color: #7fe0d2;
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+.relic strong {
+  color: var(--accent);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.rows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.rows dt {
+  flex: none;
+  color: #9fb4c8;
+}
+
+.rows dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.good { color: #7fe0b0; }
+.bad { color: #ff819d; }
+.field { color: #7fe0d2; }
+
+.accent {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.bond {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background: #8fd0f014;
+  border: 1px solid #8fd0f055;
+}
+
+.bond-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+}
+
+.bond-icon {
+  flex: none;
+  width: 26px;
+  height: 26px;
+}
+
+.bond-name {
+  color: #8fd0f0;
+  font-weight: 700;
+}
+
+.bond-arcana,
+.bond-count {
+  color: #9fb4c8;
+  font-size: 18px;
+}
+
+.bond-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.bond-desc {
+  margin: 0;
+  color: #9fb4c8;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.muted {
+  margin: 0;
+  color: #9fb4c8;
+  font-size: 18px;
+  opacity: 0.8;
+}

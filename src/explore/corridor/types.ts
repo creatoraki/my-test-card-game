@@ -1,6 +1,6 @@
 // 房间内的横向场景使用设计画布坐标; 宽度由近景素材按 nearMapArtScale 倍显示宽度决定, 镜头跟随玩家卷动。
 // 场景状态随远征会话保留, 战后返回原处; 房间之间的连通关系见 ../dungeon/types.ts。
-import type { NearMapVariant, PortalDir } from "../dungeon/types";
+import type { NearMapVariant, PortalDir, PortalLane } from "../dungeon/types";
 import { NEAR_MAP_GEOMETRY } from "../dungeon/nearMapGeometry";
 import type { CurioLevel } from "@/data/curios/types";
 import type { BattleTier } from "../types";
@@ -127,13 +127,12 @@ export function corridorPortalEdgeSlotsFor(variant: NearMapVariant): number[] {
   return scaleSlots(CORRIDOR.basePortalEdgeSlots, variant);
 }
 
-/** 按门数给出规则分布的传送门坐标：1 门取随机边缘由调用方处理，2 门左右、3 门左中右、4 门等距。 */
-export function corridorPortalSlotsFor(variant: NearMapVariant, count: number): number[] {
+/** 门位 → 传送门坐标: 左门贴左缘、右门贴右缘、中门居中; 同一门位在任何房间都落在同一处。 */
+export function corridorPortalXFor(variant: NearMapVariant, lane: PortalLane): number {
   const [left, right] = corridorPortalEdgeSlotsFor(variant);
-  if (count <= 1) return [left, right];
-  return Array.from({ length: count }, (_, index) => (
-    Math.round(left + (right - left) * index / (count - 1))
-  ));
+  if (lane === "left") return left;
+  if (lane === "right") return right;
+  return Math.round((left + right) / 2);
 }
 
 export function corridorSlotsFor(variant: NearMapVariant): number[] {

@@ -1,4 +1,4 @@
-import { corridorPortalEdgeSlotsFor, corridorSlotsFor } from "../corridor/types";
+import { corridorPortalXFor, corridorSlotsFor } from "../corridor/types";
 import type { ExploreState } from "../types";
 import { link, makeRoom } from "./roomNode";
 import { assignNearMapVariants } from "./nearMapAssignment";
@@ -15,10 +15,9 @@ function middleSlotIndex(index: number, count: number): number {
 }
 
 function layoutPlannedRoom(room: RoomNode, plan: DungeonRoomPlan): void {
-  const edgeSlots = corridorPortalEdgeSlotsFor(room.nearMapVariant);
   const middleSlots = corridorSlotsFor(room.nearMapVariant);
-  if (room.exits.left) room.portalX.left = edgeSlots[0];
-  if (room.exits.right) room.portalX.right = edgeSlots[edgeSlots.length - 1];
+  if (room.exits.left) room.portalX.left = corridorPortalXFor(room.nearMapVariant, "left");
+  if (room.exits.right) room.portalX.right = corridorPortalXFor(room.nearMapVariant, "right");
 
   room.curios = plan.curios.map((kind, index) => ({
     id: `${room.id}-curio-${index}`,

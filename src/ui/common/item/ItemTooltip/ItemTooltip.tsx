@@ -1,10 +1,12 @@
 import { createPortal } from "react-dom";
 import { useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
-import ItemDetail from "@/ui/common/item/ItemDetail";
+import type { SlotAction } from "@/ui/common/item/ItemActionMask";
 import { cx } from "@/ui/common/shared/cx";
-import { TooltipShell } from "@/ui/common/tooltip/TooltipCard";
 import { designScaleOf, stageHostOf } from "@/ui/app/shared/stage";
+import { ItemTooltipActions } from "./ItemTooltipActions";
+import { ItemTooltipCard } from "./ItemTooltipCard";
 import s from "./ItemTooltip.module.css";
 
 // 全是设计 px(1920×1080 画布基准)。浮层就挂在画布内部, 跟着画布一起 zoom ⇒
@@ -58,7 +60,12 @@ export function tooltipPointFromElement(el: Element, direction: TooltipDirection
 export interface TooltipPlacement {
   left: number;
   top: number;
-  /** 浮层高度上限(设计 px) = 画布高度减两侧留白。渲染时就要下发, 否则量出的高度会超界。 */
+  /**
+   * top 方向且放在锚点上方时给出: 浮层底边到 host 底边的距离(设计 px)。
+   * 此时按底边定位 —— 浮层之后再长高(如详情浮层展开操作区)也只会向上长, 不会压到锚点。
+   */
+  bottom?: number;
+  /** 浮层高度上限(设计 px) = 画布高度减两侧留白(底边定位时 = 锚点上方可用高度)。渲染时就要下发, 否则量出的高度会超界。 */
   maxHeight: number;
   /** 首帧还没量到真实尺寸 —— 此时浮层先以 visibility:hidden 渲染, 免得闪一下错位。 */
   ready: boolean;
@@ -75,8 +82,13 @@ export function useTooltipPlacement(
   topOffset?: number,
 ): TooltipPlacement {
   const boxHeight = point.host.clientHeight;
-  const maxHeight = Math.max(0, boxHeight - TOOLTIP_MARGIN * 2);
-  const [placed, setPlaced] = useState<{ left: number; top: number } | null>(null);
+  const [placed, setPlaced] = useState<{ left: number; top: number; bottom?: number } | null>(null);
+  const maxHeight = Math.max(
+    0,
+    placed?.bottom === undefined
+      ? boxHeight - TOOLTIP_MARGIN * 2
+      : boxHeight - placed.bottom - TOOLTIP_MARGIN,
+  );
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -126,20 +138,44 @@ export function useTooltipPlacement(
       Math.max(TOOLTIP_MARGIN, wanted),
       Math.max(TOOLTIP_MARGIN, boxH - height - TOOLTIP_MARGIN),
     );
-    setPlaced({ left, top });
+    // 放得下上方时 top 与 bottom 两种写法等价; 改用 bottom 是为了之后长高时底边钉住不动。
+    const bottom = topward && above >= TOOLTIP_MARGIN ? boxH - point.y + TOOLTIP_GAP : undefined;
+    setPlaced({ left, top, bottom });
   }, [point, ref, topOffset]);
 
-  return { left: placed?.left ?? 0, top: placed?.top ?? 0, maxHeight, ready: placed !== null };
+  return {
+    left: placed?.left ?? 0,
+    top: placed?.top ?? 0,
+    bottom: placed?.bottom,
+    maxHeight,
+    ready: placed !== null,
+  };
 }
 
 /** 放置结果 → 浮层根节点的 inline style。ItemTooltip / HoverTooltip / RailTooltip 共用。 */
 export function tooltipStyle(placement: TooltipPlacement): CSSProperties {
+  const vertical: CSSProperties = placement.bottom === undefined
+    ? { top: `${placement.top}px` }
+    : { top: "auto", bottom: `${placement.bottom}px` };
   return {
     left: `${placement.left}px`,
-    top: `${placement.top}px`,
+    ...vertical,
     visibility: placement.ready ? undefined : "hidden",
     "--tooltip-max-h": `${placement.maxHeight}px`,
   } as CSSProperties;
+}
+
+/**
+ * 详情浮层的「交互态」: 物品格点击进入交互模式后, 同一张浮层底部长出操作区(见 ItemTooltipActions)。
+ * actions 为空 = 仍是普通悬浮详情(不接收指针)。
+ */
+export interface ItemTooltipInteraction {
+  actions: readonly SlotAction[] | null;
+  /** 物品格的包裹层 —— 点它不算「点外部」。 */
+  anchor: HTMLElement;
+  onDismiss: () => void;
+  onPointerEnter?: () => void;
+  onPointerLeave?: () => void;
 }
 
 export default function ItemTooltip({
@@ -147,26 +183,42 @@ export default function ItemTooltip({
   point,
   themeStyle = {},
   className,
+  interaction,
 }: {
   stack: ItemStack;
   point: TooltipPoint;
   themeStyle?: CSSProperties;
   className?: string;
+  interaction?: ItemTooltipInteraction;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const placement = useTooltipPlacement(point, ref);
+  const actions = interaction?.actions?.length ? interaction.actions : null;
+  const def = getItemDef(stack.itemId);
 
   return createPortal(
     <div
-      className={cx(s["item-tooltip"], className)}
+      className={cx(s["item-tooltip"], actions && s["is-interactive"], className)}
       ref={ref}
       style={{ ...themeStyle, ...tooltipStyle(placement) }}
-      role="tooltip"
+      role={actions ? "dialog" : "tooltip"}
+      aria-label={actions ? `${def.name}的操作` : undefined}
+      {...(actions ? { "data-item-action-tooltip": "" } : null)}
+      onPointerEnter={actions ? interaction?.onPointerEnter : undefined}
+      onPointerLeave={actions ? interaction?.onPointerLeave : undefined}
     >
-      {/* 外框与全项目悬浮详情统一(TooltipShell), 物品详情的内部排版保持不变。 */}
-      <TooltipShell className={s["item-tooltip-shell"]}>
-        <ItemDetail stack={stack} className={cx(s["item-tooltip-detail"], className)} />
-      </TooltipShell>
+      {/* 与 BUFF 详情同款的 TooltipCard; 交互态的操作栏作为卡片底栏长出来。 */}
+      <ItemTooltipCard
+        stack={stack}
+        footer={actions && interaction && (
+          <ItemTooltipActions
+            actions={actions}
+            anchor={interaction.anchor}
+            rootRef={ref}
+            onDismiss={interaction.onDismiss}
+          />
+        )}
+      />
     </div>,
     point.host,
   );

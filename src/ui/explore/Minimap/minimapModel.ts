@@ -4,7 +4,7 @@
 // 宝箱、锁定两种视觉只存在于样式与图例中, 这里不会产出。
 
 import { areRoomCuriosCleared, isRoomExplored } from "@/explore/dungeon/dungeonSession";
-import type { DungeonState, PortalDir, RoomNode } from "@/explore/dungeon/types";
+import { OPPOSITE_DIR, type DungeonState, type PortalDir, type RoomNode } from "@/explore/dungeon/types";
 import type { CorridorState } from "@/explore/corridor/types";
 
 export type CellState = "visited" | "revealed" | "hinted";
@@ -31,6 +31,8 @@ export interface MapLink {
   /** from → to 的方向; 网格邻接保证只有上下左右。 */
   dir: PortalDir;
   solid: boolean;
+  /** 与当前房间直接相连的出口道路; 此时 from 恒为当前房间, 流光由此向外流动。 */
+  active: boolean;
 }
 
 /** 玩家脚下那座传送门通往的房间 id; 没站在门上时为 null。 */
@@ -93,13 +95,12 @@ export function buildMapModel(dungeon: DungeonState): { cells: MapCell[]; links:
       const key = [cell.room.id, targetId].sort().join("|");
       if (seen.has(key)) continue;
       seen.add(key);
-      links.push({
-        from: cell.room.id,
-        to: targetId,
-        dir,
-        // 两端都去过 = 走过的路, 实线; 其余(含神谕揭示出的路)为虚线。
-        solid: cell.room.visited && target.visited,
-      });
+      // 两端都去过 = 走过的路, 实线; 其余(含神谕揭示出的路)为虚线。
+      const solid = cell.room.visited && target.visited;
+      // 出口道路统一从当前房间出发, 流光方向才能指向「要去的地方」。
+      links.push(targetId === dungeon.currentRoomId
+        ? { from: targetId, to: cell.room.id, dir: OPPOSITE_DIR[dir], solid, active: true }
+        : { from: cell.room.id, to: targetId, dir, solid, active: cell.room.id === dungeon.currentRoomId });
     }
   }
   return { cells, links };

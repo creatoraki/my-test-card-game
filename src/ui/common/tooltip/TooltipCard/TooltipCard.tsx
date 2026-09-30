@@ -25,6 +25,7 @@ export function TooltipCard({
   children,
   stats,
   notes,
+  footer,
   accent,
   className,
 }: {
@@ -41,6 +42,8 @@ export function TooltipCard({
   stats?: BuffStat[];
   /** 底部提示条。 */
   notes?: TooltipNote[];
+  /** 自定义底栏(接在沙漏底栏 / 提示条之后), 如物品详情交互态长出的操作栏。 */
+  footer?: ReactNode;
   /** 主题色: 下划线、数字高亮、底栏点缀。 */
   accent?: string;
   className?: string;
@@ -72,6 +75,7 @@ export function TooltipCard({
       )}
       {stats && hasStats && <StatsBar stats={stats} />}
       {notes && hasNotes && <NoteBar notes={notes} />}
+      {footer}
     </TooltipShell>
   );
 }
