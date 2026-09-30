@@ -14,10 +14,11 @@ import { pickScriptedMove, updateAiMemory } from "./enemyScript";
 import { chooseNextMove } from "./apPick";
 
 // 按行动点抽取下一招并开始蓄力(开蓄即扣点); 抽不到 = 本回合停手攒点。
-export function startCharge(state: BattleState, enemyId: string): void {
+// firstOfRound: 回合开始的第一次抽招, 必定出招(每回合至少行动一次)。
+export function startCharge(state: BattleState, enemyId: string, firstOfRound = false): void {
   const e = state.combatants[enemyId] as Enemy;
   const def = getEnemyDef(e.enemyDefId);
-  const move = e.alive ? chooseNextMove(state, e, def) : null;
+  const move = e.alive ? chooseNextMove(state, e, def, firstOfRound) : null;
   if (!move) {
     e.nextActTick = null;
     return;

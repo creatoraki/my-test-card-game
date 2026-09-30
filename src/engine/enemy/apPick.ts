@@ -5,6 +5,7 @@
 //   3. 付不起所有招式 → 掷骰: 出招概率 = (点数 − 最低消耗 + 1) / (最高消耗 − 最低消耗 + 1),
 //      剩的点数越多越倾向出招; 出招只在付得起的招式里抽, 否则停手
 //   4. 点数 < 最低消耗 → 停手
+//   例外: 每回合第一次出招(mustAct)不掷骰、不停手 —— 保证每回合至少行动一次
 
 import type { BattleState, Enemy } from "../types";
 import type { EnemyDef, EnemyMove } from "@/data";
@@ -37,19 +38,26 @@ function pickAffordable(state: BattleState, e: Enemy, def: EnemyDef): EnemyMove 
   return pool.length > 0 ? rngPickWeighted(state, pool, (move) => enemyMoveWeight(state, e, move)) : null;
 }
 
-export function chooseNextMove(state: BattleState, e: Enemy, def: EnemyDef): EnemyMove | null {
+// 保底行动: 最便宜的招式; 付不起时照出, 点数透支(为负), 下回合回复时补上。
+function cheapestMove(state: BattleState, e: Enemy, def: EnemyDef, minCost: number): EnemyMove {
+  const cheapest = def.moves.filter((move) => move.cost === minCost);
+  return rngPickWeighted(state, cheapest, (move) => enemyMoveWeight(state, e, move));
+}
+
+// mustAct: 本回合第一次出招 —— 每回合至少行动一次, 跳过待机掷骰。
+export function chooseNextMove(state: BattleState, e: Enemy, def: EnemyDef, mustAct = false): EnemyMove | null {
   if (def.moves.length === 0) return null;
   const costs = def.moves.map((move) => move.cost);
   const maxCost = Math.max(...costs);
   const minCost = Math.min(...costs);
-  if (e.ap < minCost) return null;
+  if (e.ap < minCost) return mustAct ? cheapestMove(state, e, def, minCost) : null;
 
   const ultimate = forcedUltimate(state, e, def, maxCost);
   if (ultimate) return ultimate;
 
-  if (e.ap < maxCost) {
+  if (!mustAct && e.ap < maxCost) {
     const actChance = (e.ap - minCost + 1) / (maxCost - minCost + 1);
     if (rngFloat(state) >= actChance) return null;
   }
-  return pickAffordable(state, e, def);
+  return pickAffordable(state, e, def) ?? (mustAct ? cheapestMove(state, e, def, minCost) : null);
 }

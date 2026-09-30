@@ -117,7 +117,7 @@ export function startRound(state: BattleState): void {
     const e = state.combatants[id] as Enemy;
     if (!e.alive) continue;
     e.ap += e.apPerRound;
-    startCharge(state, id);
+    startCharge(state, id, true);
   }
 
   // 状态的回合开始钩子(罗生门等)。★ 必须排在抽牌之前 —— 它们大多是"回合开始时抽牌"。
