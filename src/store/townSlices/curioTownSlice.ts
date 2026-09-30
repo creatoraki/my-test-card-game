@@ -1,12 +1,13 @@
-import { POLLUTION_RULES, QUIRK_IDS, type QuirkId } from "@/engine";
+import { POLLUTION_RULES, QUIRK_IDS, type Card, type QuirkId } from "@/engine";
 import { makeCard } from "@/data";
-import { availablePools } from "../town/deckCards";
+import { commonReplaceCandidates } from "../town/deckCards";
 import { shiftVitals } from "../town/characterStats";
 import type { TownStore } from "../town/townStore";
 
 export interface CurioTownSlice {
   addPollution: (charId: string, amount: number) => void;
-  replaceCardWithCommon: (charId: string, uid: string) => boolean;
+  /** 成功返回换上的新卡(原卡连同模组一并移除); 失败返回 null。 */
+  replaceCardWithCommon: (charId: string, uid: string) => Card | null;
 }
 
 export function createCurioTownSlice(
@@ -38,18 +39,17 @@ export function createCurioTownSlice(
     replaceCardWithCommon: (charId, uid) => {
       const state = get();
       const character = state.characters[charId];
-      if (!character) return false;
+      if (!character) return null;
       const index = character.deck.findIndex((card) => card.uid === uid);
-      if (index < 0) return false;
-      const reducedDeck = character.deck.filter((_, cardIndex) => cardIndex !== index);
-      const candidates = availablePools({ ...character, deck: reducedDeck }).common
-        .filter(id => id !== character.deck[index].id);
-      if (!candidates.length) return false;
+      if (index < 0) return null;
+      const candidates = commonReplaceCandidates(character, uid);
+      if (!candidates.length) return null;
       const cardDefId = candidates[Math.floor(Math.random() * candidates.length)];
       const nextDeck = character.deck.slice();
-      nextDeck[index] = makeCard(cardDefId);
+      const fresh = makeCard(cardDefId);
+      nextDeck[index] = fresh;
       set({ characters: { ...state.characters, [charId]: { ...character, deck: nextDeck } } });
-      return true;
+      return fresh;
     },
   };
 }

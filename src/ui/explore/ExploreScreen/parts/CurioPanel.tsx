@@ -3,7 +3,7 @@ import { getItemDef } from "@/data";
 import type { CurioDecision } from "@/data/curios/types";
 import { activeCurioDef, canSelectFor, feedFoodFor, selectableStacks, visibleDecisions } from "@/explore/curio/visibility";
 import { matchOffering, validOfferingPicks } from "@/explore/curio/offering";
-import { serviceFoodCount } from "@/explore/curio/foodPayment";
+import { decisionFoodNeed, serviceFoodCount } from "@/explore/curio/foodPayment";
 import { hasCorridorRewards } from "@/explore/corridor/corridorSession";
 import type { ExploreState } from "@/explore/types";
 import { useRunStore } from "@/store/run/runStore";
@@ -85,14 +85,19 @@ function decisionAction(
   onSelect: (decisionId: string) => void,
 ): DossierAction {
   const feedFood = feedFoodFor(session, decision);
+  // 服务类选项(换卡 / 装备调校)确认目标时才扣食品, 但入口就要拦住: 否则进了面板才发现付不起。
+  const foodNeed = decisionFoodNeed(decision);
+  const foodHave = serviceFoodCount(session);
+  const foodCost = foodNeed > 0 ? `需要临期食品 ×${foodNeed}，当前持有 ${foodHave} 份` : undefined;
   return {
     id: decision.id,
     label: decision.label,
     icon: decisionIcon(decision, index),
-    cost: feedFood && decision.feed ? `消耗 ${getItemDef(feedFood).name} ×${decision.feed.count}` : undefined,
+    cost: feedFood && decision.feed ? `消耗 ${getItemDef(feedFood).name} ×${decision.feed.count}` : foodCost,
+    costTone: foodNeed > foodHave ? "red" : undefined,
     sfx: "confirm",
     disabled: !executorId
-      || serviceFoodCount(session) < (decision.foodCost ?? 0)
+      || foodHave < foodNeed
       || Boolean(decision.select && !canSelectFor(session, decision)),
     onClick: () => {
       if (!executorId) return;

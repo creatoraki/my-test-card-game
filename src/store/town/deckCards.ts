@@ -66,3 +66,11 @@ export function addCardToDeck(cs: CharacterState, cardDefId: string): boolean {
   cs.deck = [...cs.deck, card];
   return true;
 }
+
+/** 普通卡替换的候选池: 把该卡移出卡组后仍可加入的普通卡, 且不与原卡同名。空数组 = 这张卡无法替换。 */
+export function commonReplaceCandidates(cs: CharacterState, uid: string): string[] {
+  const card = cs.deck.find((other) => other.uid === uid);
+  if (!card) return [];
+  return availablePools({ ...cs, deck: cs.deck.filter((other) => other.uid !== uid) }).common
+    .filter((id) => id !== card.id);
+}

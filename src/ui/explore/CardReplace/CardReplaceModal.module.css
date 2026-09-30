@@ -1,0 +1,340 @@
+/* 普通卡替换弹窗(设计 px, 1920×1080 画布)。
+   ★ 外框 1600×944 居中, 与卡牌奖励三选一同一套外框语言: 双斜切角 + ::before 描边 / ::after 面板底
+     (clip-path 会裁掉 border 与 box-shadow, 只能这样出描边), 装饰层复用 PickFrameDecor。
+   ★ 纵向: 内边距 30 + 页眉 ≈ 112 + 18 + 正文(弹性) + 底栏 ≈ 90 + 内边距 26。
+   ★ 正文横向: 左栏卡组(弹性, ≈ 1048) + 36 + 右栏置换舱 420。 */
+.layer {
+  position: absolute;
+  z-index: 300;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at 50% 45%, #0a161bcc 0%, #02070aeb 70%);
+  backdrop-filter: blur(6px) saturate(0.85);
+  animation: layerIn 220ms ease-out both;
+}
+
+.layer[data-closing] {
+  pointer-events: none;
+  animation: layerOut 240ms ease-in both;
+}
+
+.frame {
+  --k: var(--accent);
+  --pick-chamfer: 32px;
+  position: relative;
+  display: flex;
+  width: 1600px;
+  height: 944px;
+  flex-direction: column;
+  padding: 30px 48px 26px;
+  color: var(--text);
+  isolation: isolate;
+  box-shadow: 0 28px 60px -12px #000c;
+  animation: frameIn 460ms cubic-bezier(0.16, 1, 0.3, 1) 40ms both;
+}
+
+.frame::before,
+.frame::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  clip-path: polygon(
+    var(--pick-chamfer) 0, 100% 0, 100% calc(100% - var(--pick-chamfer)),
+    calc(100% - var(--pick-chamfer)) 100%, 0 100%, 0 var(--pick-chamfer)
+  );
+}
+
+.frame::before {
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--k) 70%, transparent),
+    #3b474b 38%,
+    #2a3337 70%,
+    color-mix(in srgb, var(--k) 55%, transparent)
+  );
+}
+
+.frame::after {
+  inset: 1px;
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--k) 10%, transparent), transparent 60%),
+    linear-gradient(165deg, #141d20f5, #0a0f11fa 58%, #070b0cfc);
+}
+
+.layer[data-closing] .frame {
+  animation: frameOut 220ms ease-in both;
+}
+
+/* ── 页眉 ── */
+.head {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  flex: none;
+  justify-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--k);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+}
+
+.kicker::before,
+.kicker::after {
+  width: 36px;
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg, transparent, var(--k));
+}
+
+.kicker::after {
+  background: linear-gradient(270deg, transparent, var(--k));
+}
+
+.title {
+  margin: 0;
+  color: #f4f8ef;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--k) 24%, transparent);
+}
+
+.caption {
+  margin: 0;
+  color: #9fb0b0;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+/* ── 正文 ── */
+.body,
+.showcase {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 36px;
+}
+
+.showcase {
+  animation: showcaseIn 360ms ease-out both;
+}
+
+.deck {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.toolbar {
+  display: flex;
+  height: 44px;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 7px;
+  border-bottom: 1px solid #ffffff12;
+}
+
+.owner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #eef4ef;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.owner i {
+  width: 4px;
+  height: 20px;
+  background: var(--k);
+  box-shadow: 0 0 8px var(--k);
+}
+
+.tabs {
+  display: flex;
+  height: 100%;
+  gap: 4px;
+}
+
+.tab {
+  position: relative;
+  padding: 0 18px;
+  border: 0;
+  color: #8fa0a2;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  background: transparent;
+  cursor: var(--cursor-pointer);
+  transition: color 160ms ease, background 160ms ease;
+}
+
+.tab::after {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 2px;
+  content: "";
+  background: var(--k);
+  box-shadow: 0 0 8px var(--k);
+  scale: 0 1;
+  transition: scale 200ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+.tab:hover {
+  color: #dfe8e3;
+  background: #ffffff08;
+}
+
+.tabActive {
+  color: #f4f8ef;
+}
+
+.tabActive::after {
+  scale: 1 1;
+}
+
+.count {
+  color: #7f9194;
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.notice {
+  margin: 24px 0 0;
+  padding: 22px;
+  border: 1px dashed color-mix(in srgb, var(--k) 45%, transparent);
+  color: #8ba0a0;
+  font-size: 18px;
+  text-align: center;
+}
+
+/* ── 底栏 ── */
+.foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #ffffff14;
+}
+
+.note {
+  min-width: 0;
+  overflow: hidden;
+  color: #9fb0b0;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note[data-tone="danger"] {
+  color: #ff7b6e;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  gap: 14px;
+}
+
+.button {
+  min-width: 156px;
+  height: 52px;
+  padding: 0 26px;
+  color: #c6d0cd;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  background: linear-gradient(180deg, #1a2326, #0e1416);
+  border: 1px solid #3e4a4d;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  cursor: var(--cursor-pointer);
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, filter 160ms ease;
+}
+
+.button:hover:not(:disabled),
+.button:focus-visible {
+  outline: none;
+  color: #eef4f0;
+  border-color: #6b7a7d;
+  background: linear-gradient(180deg, #243034, #121a1c);
+}
+
+.button:active:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+.primary {
+  color: #11160a;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 92%, #fff), var(--k));
+  border-color: var(--k);
+  box-shadow: inset 0 1px 0 #ffffff66;
+}
+
+.primary:hover:not(:disabled),
+.primary:focus-visible {
+  color: #0b0f06;
+  border-color: var(--k);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 70%, #fff), color-mix(in srgb, var(--k) 92%, #fff));
+}
+
+.primary:disabled {
+  color: #6f7a74;
+  background: #151c1e;
+  border-color: #2e383b;
+  box-shadow: none;
+  cursor: var(--cursor-default, default);
+}
+
+@keyframes layerIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes layerOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes frameIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes frameOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(10px) scale(0.98); }
+}
+
+@keyframes showcaseIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

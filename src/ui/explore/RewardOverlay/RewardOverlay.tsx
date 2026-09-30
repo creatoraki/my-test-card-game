@@ -6,6 +6,7 @@
 //   本文件只负责: 奖励种类 → 内容与文案。
 // ★ 角色卡牌奖励(forgeDraw)生成候选后, 三选一交给通用的 CardRewardPicker 独立弹窗,
 //   此时本面板整体隐藏, 避免弹窗背后再露出一块空面板。
+// ★ 普通卡替换(replaceCard)同理, 整段交给 ui/explore/CardReplace 的独立置换弹窗(选卡 + 置换演出)。
 import { useEffect, useMemo, useRef, useState } from "react";
 import { makeCard } from "@/data";
 import type { ExploreState, PendingAction } from "@/explore/types";
@@ -19,9 +20,8 @@ import { CardRewardPicker, type CardPickOption } from "@/ui/common/card/CardRewa
 import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import { DOSSIER_ACCENT } from "@/ui/explore/EventDossier";
 import RelicOffers from "./RelicOffers";
-import { ReplaceCardReward } from "./ReplaceCardReward";
 import { EquipmentTuneReward } from "./EquipmentTuneReward";
-import { replaceExploreCard } from "@/store/explore/exploreGrowthServices";
+import { CardReplaceModal } from "@/ui/explore/CardReplace";
 import { CharacterPicker, PartyReward, QuirkReward, PurifyReward } from "./RewardCharacters";
 import { FreeDraw, FreeRemove } from "./RewardCards";
 import { EquipOffers, ReforgePicker } from "./RewardEquipment";
@@ -112,7 +112,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   const chosenCharacter = chosenCharId ? characters[chosenCharId] : null;
   const detailStage = action.kind === "forgeDraw"
     ? Boolean(chosenCharacter?.pendingDraw)
-    : (action.kind === "forgeRemove" || action.kind === "cureQuirk" || action.kind === "purifyCards" || action.kind === "replaceCard")
+    : (action.kind === "forgeRemove" || action.kind === "cureQuirk" || action.kind === "purifyCards")
       ? Boolean(chosenCharacter)
       : false;
   const finish = () => resolvePendingAction();
@@ -138,12 +138,15 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
       }}
     />
   );
+  // 退场期间(队列已清空)也保持关闭, 让置换弹窗自己播完退场动画。
+  const replaceAction = action.kind === "replaceCard" && !presence.closing ? action : null;
   // 弹窗与面板并列常驻同一位置, 弹窗关闭时才能播完退场动画(不因分支切换被直接卸载)。
-  const hidePanel = Boolean(drawOptions) || drawSettled || awaitingAutoDraw;
+  const hidePanel = Boolean(drawOptions) || drawSettled || awaitingAutoDraw || action.kind === "replaceCard";
 
   return (
     <>
       {drawPicker}
+      <CardReplaceModal action={replaceAction} members={selectableCharacters} lockedCharId={lockedCharId} onFinish={finish} />
       {!hidePanel && (
         <div className={s["reward-layer"]} data-closing={presence.closing || undefined}>
           <section
@@ -192,17 +195,6 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
                     if (chosenCharId) cancelDraw(chosenCharId);
                     finish();
                   }}
-                />
-              )}
-
-              {action.kind === "replaceCard" && (
-                <ReplaceCardReward
-                  members={selectableCharacters}
-                  selected={chosenCharId}
-                  onSelect={setSelectedChar}
-                  onSkip={finish}
-                  foodCost={action.foodCost ?? 0}
-                  onReplace={replaceExploreCard}
                 />
               )}
 

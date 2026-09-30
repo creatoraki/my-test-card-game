@@ -9,6 +9,7 @@
 
 import type { DropEntry, EquipSlot, ItemRarity, ItemStack } from "@/items/types";
 import type { MapDifficulty } from "@/data/maps/mapDifficulty";
+import type { Card } from "@/engine";
 
 export type BattleBoonKind = "healDew" | "cardOffer" | "equipCrate" | "moduleCrate";
 
@@ -109,7 +110,7 @@ export interface EventChoice {
 type PendingActionBody =
   | { kind: "expOne"; amount: number }
   | { kind: "forgeDraw"; contaminate?: number }
-  | { kind: "replaceCard"; foodCost?: number }
+  | { kind: "replaceCard"; foodCost?: number; result?: { charId: string; before: Card; after: Card } }
   | { kind: "equipmentTune"; mode: "bond" | "perfectness"; foodCost: number; result?: { before: ItemStack; after: ItemStack } }
   | { kind: "forgeRemove" }
   | { kind: "equipOffer"; offers: ItemStack[] }

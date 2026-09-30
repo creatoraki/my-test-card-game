@@ -1,7 +1,8 @@
 import { getItemDef, rerollBond } from "@/data";
+import { cardDisplayName } from "@/engine";
 import { rngInt } from "@/engine/core/rng";
 import { payServiceFood } from "@/explore/curio/foodPayment";
-import { resolvePendingAction, syncPartyVitals } from "@/explore/session";
+import { syncPartyVitals } from "@/explore/session";
 import { resetPerfectness } from "@/items/equipRoll";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { deriveStats, shiftVitals } from "../town/characterStats";
@@ -49,14 +50,25 @@ export function tuneExploreEquipment(target: ExploreEquipmentTarget): boolean {
   return true;
 }
 
+/**
+ * 普通卡替换: 扣食品 → 换卡 → 把前后两张卡写进待办的 result, 待办**不出队**。
+ * 奖励弹窗读 result 播放置换演出并展示结果, 玩家点「完成」后才由浮层结算出队。
+ */
 export function replaceExploreCard(charId: string, uid: string): boolean {
   const session = useExploreStore.getState().session;
   const action = session?.pendingActions[0];
-  if (!session || action?.kind !== "replaceCard" || !session.party.some(member => member.charId === charId && member.alive)) return false;
+  if (!session || action?.kind !== "replaceCard" || action.result) return false;
+  if (!session.party.some(member => member.charId === charId && member.alive)) return false;
+  const before = useTownStore.getState().characters[charId]?.deck.find(card => card.uid === uid);
+  if (!before) return false;
   const draft = structuredClone(session);
-  if (!payServiceFood(draft, action.foodCost ?? 0)) return false;
-  if (!useTownStore.getState().replaceCardWithCommon(charId, uid)) return false;
-  resolvePendingAction(draft);
+  const foodCost = action.foodCost ?? 0;
+  if (!payServiceFood(draft, foodCost)) return false;
+  const after = useTownStore.getState().replaceCardWithCommon(charId, uid);
+  if (!after) return false;
+  const pending = draft.pendingActions[0];
+  if (pending.kind === "replaceCard") pending.result = { charId, before: structuredClone(before), after: structuredClone(after) };
+  draft.pendingNotes.push(`「${cardDisplayName(before)}」已替换为「${cardDisplayName(after)}」${foodCost ? `，消耗食品 ×${foodCost}` : ""}`);
   useExploreStore.setState({ session: draft });
   return true;
 }

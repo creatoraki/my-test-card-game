@@ -1,0 +1,227 @@
+/* 置换舱(设计 px): 宽 420, 自上而下 = 标题行 32 + 舱位 420 + 事实表。
+   卡面 220×308 放大 1.25 倍 = 275×385, 居中压在舱位里; 放大走 transform, 外层 .card 按放大后尺寸占位。 */
+.chamber {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.head {
+  display: flex;
+  height: 32px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  color: #eef4ef;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #7f9194;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+}
+
+.status i {
+  width: 8px;
+  height: 8px;
+  background: #3d4b4f;
+  transform: rotate(45deg);
+  transition: background 200ms ease, box-shadow 200ms ease;
+}
+
+.status[data-ready] {
+  color: var(--k);
+}
+
+.status[data-ready] i {
+  background: var(--k);
+  box-shadow: 0 0 10px var(--k);
+  animation: statusBlink 1.6s ease-in-out infinite;
+}
+
+/* ── 舱位 ── */
+.bay {
+  position: relative;
+  display: grid;
+  height: 420px;
+  flex: none;
+  place-items: center;
+  border: 1px solid #2a3538;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 58%, color-mix(in srgb, var(--k) 9%, transparent), transparent 70%),
+    linear-gradient(180deg, #0b1214, #070b0d);
+  transition: border-color 240ms ease, box-shadow 240ms ease;
+}
+
+.bay[data-filled] {
+  border-color: color-mix(in srgb, var(--k) 45%, #2a3538);
+  box-shadow: inset 0 0 40px -18px var(--k);
+}
+
+.bayGrid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--k) 6%, transparent) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(0deg, color-mix(in srgb, var(--k) 6%, transparent) 1px, transparent 1px) 0 0 / 28px 28px;
+  mask-image: radial-gradient(ellipse 65% 60% at 50% 50%, #000, transparent 80%);
+}
+
+/* 舱位四角的定位括号: 空舱时暗, 放入后点亮并向内收一点, 读作「夹住了」。 */
+.bracket {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border-color: #3a484c;
+  border-style: solid;
+  border-width: 0;
+  transition: border-color 240ms ease, translate 240ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+.bracket[data-at="tl"] { top: 10px; left: 10px; border-top-width: 2px; border-left-width: 2px; }
+.bracket[data-at="tr"] { top: 10px; right: 10px; border-top-width: 2px; border-right-width: 2px; }
+.bracket[data-at="bl"] { bottom: 10px; left: 10px; border-bottom-width: 2px; border-left-width: 2px; }
+.bracket[data-at="br"] { bottom: 10px; right: 10px; border-bottom-width: 2px; border-right-width: 2px; }
+
+.bay[data-filled] .bracket { border-color: var(--k); }
+.bay[data-filled] .bracket[data-at="tl"] { translate: 6px 6px; }
+.bay[data-filled] .bracket[data-at="tr"] { translate: -6px 6px; }
+.bay[data-filled] .bracket[data-at="bl"] { translate: 6px -6px; }
+.bay[data-filled] .bracket[data-at="br"] { translate: -6px -6px; }
+
+.card {
+  position: relative;
+  z-index: 1;
+  width: 275px;
+  height: 385px;
+  overflow: hidden;
+  animation: bayCardIn 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.scale {
+  --hand-card-w: 220px;
+  --hand-card-h: 308px;
+  width: 220px;
+  height: 308px;
+  transform: scale(1.25);
+  transform-origin: top left;
+}
+
+/* 放入瞬间的一道亮带, 自上而下扫过卡面一次。 */
+.sweep {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 70px;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--k) 45%, transparent) 60%, #ffffffaa 64%, transparent);
+  mix-blend-mode: screen;
+  translate: 0 -80px;
+  animation: baySweep 620ms cubic-bezier(0.4, 0, 0.2, 1) 120ms both;
+}
+
+.empty {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  color: #6f8184;
+  font-size: 18px;
+  letter-spacing: 0.12em;
+}
+
+.emptyGlyph {
+  display: grid;
+  width: 120px;
+  height: 168px;
+  place-items: center;
+  border: 1px dashed #3a484c;
+  color: #3f5256;
+  font-size: 64px;
+  font-weight: 800;
+  animation: emptyPulse 2.4s ease-in-out infinite;
+}
+
+/* ── 事实表 ── */
+.facts {
+  display: grid;
+  margin: 0;
+  gap: 6px;
+}
+
+.fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 4px 2px;
+  border-bottom: 1px solid #ffffff0d;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.fact dt {
+  flex: none;
+  color: #7f9194;
+  letter-spacing: 0.08em;
+}
+
+.fact dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: #dfe8e3;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fact[data-tone="warn"] dd {
+  color: #f0c46a;
+}
+
+.fact[data-tone="danger"] dd {
+  color: #ff7b6e;
+}
+
+@keyframes bayCardIn {
+  from {
+    opacity: 0;
+    translate: -36px 0;
+    filter: brightness(2.2);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    filter: brightness(1);
+  }
+}
+
+@keyframes baySweep {
+  to {
+    translate: 0 420px;
+  }
+}
+
+@keyframes statusBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes emptyPulse {
+  0%, 100% { border-color: #3a484c; color: #3f5256; }
+  50% { border-color: color-mix(in srgb, var(--k) 45%, #3a484c); color: color-mix(in srgb, var(--k) 50%, #3f5256); }
+}

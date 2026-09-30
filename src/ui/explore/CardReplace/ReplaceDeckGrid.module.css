@@ -1,0 +1,124 @@
+/* 置换弹窗的卡组网格(设计 px)。
+   ★ 卡面按原尺寸 220×308 渲染再整体放大 1.1 倍(= 242×339): 放大走 transform, 字号与装饰不被重排;
+     外层 .cardBox 按放大后的尺寸占实位。4 列 × 242 + 3 × 22 = 1034, 由弹窗左栏(1048)承载。
+   ★ 滚动容器四周留 14px: 选中四角框画在卡面外侧 6px, 贴边会被 overflow 裁掉。 */
+.scroller {
+  min-height: 0;
+  height: 100%;
+  padding: 14px 7px 18px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--k) 40%, #1a2427) transparent;
+}
+
+.grid {
+  --rc-scale: 1.1;
+  --hand-card-w: 220px;
+  --hc-text-h: 88px;
+  --hand-card-h: calc(var(--hand-card-w) + var(--hc-text-h));
+  display: grid;
+  grid-template-columns: repeat(4, calc(220px * var(--rc-scale)));
+  justify-content: center;
+  gap: 18px 22px;
+}
+
+.slot {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 30px;
+  row-gap: 8px;
+  justify-items: center;
+  outline: none;
+  cursor: var(--cursor-pointer);
+  animation: slotIn 360ms cubic-bezier(0.16, 0.84, 0.3, 1) var(--slot-delay, 0ms) both;
+  transition: transform 200ms cubic-bezier(0.2, 0.72, 0.28, 1), filter 200ms ease;
+}
+
+.slot:hover,
+.slot:focus-visible {
+  transform: translateY(-5px);
+}
+
+.slot[data-selected] {
+  transform: translateY(-8px);
+}
+
+.slot:active:not([data-locked]) {
+  transform: translateY(-3px) scale(0.985);
+  transition-duration: 90ms;
+}
+
+/* 已经放入了别的卡: 其余卡退后一步, 悬停时恢复全亮以便比较。 */
+.slot[data-dimmed]:not(:hover):not(:focus-visible) {
+  filter: brightness(0.58) saturate(0.75);
+}
+
+/* 无法替换: 常驻压暗去色, 不响应上浮。 */
+.slot[data-locked],
+.slot[data-locked]:hover {
+  cursor: var(--cursor-default, default);
+  transform: none;
+  filter: grayscale(0.85) brightness(0.45);
+}
+
+.cardBox {
+  position: relative;
+  width: calc(220px * var(--rc-scale));
+  height: calc(308px * var(--rc-scale));
+}
+
+.scale {
+  width: 220px;
+  height: 308px;
+  transform: scale(var(--rc-scale));
+  transform-origin: top left;
+}
+
+/* 选中卡的底光: 与四角框同色, 让「放进去了」在一排卡里一眼可辨, 但不改卡面本身。 */
+.cardBox::before {
+  position: absolute;
+  inset: -10px -8px -14px;
+  content: "";
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 55% at 50% 60%, #4fbfff38, transparent 72%);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.slot[data-selected] .cardBox::before {
+  opacity: 1;
+}
+
+.state {
+  color: var(--muted, #8a9a9a);
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  line-height: 30px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 160ms ease, color 160ms ease;
+}
+
+.slot:hover .state,
+.slot:focus-visible .state,
+.slot[data-locked] .state {
+  opacity: 1;
+}
+
+.slot[data-selected] .state {
+  color: #4fbfff;
+  font-weight: 700;
+  opacity: 1;
+  text-shadow: 0 0 10px #4fbfff8c;
+}
+
+@keyframes slotIn {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}

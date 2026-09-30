@@ -17,6 +17,7 @@
   border-radius: 0;
   background: transparent;
   color: #f2fbfc;
+  font-family: "SourceHanSansSC", "Microsoft YaHei", sans-serif;
   cursor: var(--cursor-pointer);
   text-align: left;
   white-space: nowrap;
@@ -105,7 +106,8 @@
   overflow: hidden;
   font-size: 20px;
   font-weight: 800;
-  line-height: 1;
+  /* 为中文字形上下留出空间，避免 overflow 裁切笔画。 */
+  line-height: 1.5;
   letter-spacing: 0.04em;
   text-shadow:
     0 0 8px color-mix(in srgb, var(--act-accent) 45%, transparent),
@@ -120,7 +122,7 @@
   color: var(--act-hot);
   font-size: 18px;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.5;
   clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
 }
 
