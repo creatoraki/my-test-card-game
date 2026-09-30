@@ -112,14 +112,14 @@ export default function VictoryBackpack({
                 data-pulse={pulseUids?.has(stack.uid) ? "true" : undefined}
                 data-active={actions.length ? "true" : undefined}
                 onPointerEnter={(event) =>
-                  showTooltip(stack, tooltipPointFromElement(event.currentTarget))
+                  showTooltip(stack, tooltipPointFromElement(event.currentTarget, "top"))
                 }
                 onPointerLeave={() => {
                   hideTooltip(stack.uid);
                   actionMode.closeIf(stack.uid);
                 }}
                 onFocus={(event: FocusEvent<HTMLDivElement>) =>
-                  showTooltip(stack, tooltipPointFromElement(event.currentTarget))
+                  showTooltip(stack, tooltipPointFromElement(event.currentTarget, "top"))
                 }
                 onBlur={(event: FocusEvent<HTMLDivElement>) => {
                   if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;

@@ -1,6 +1,5 @@
 // 底栏: 沙漏 + 竖分隔 + 「标签 数值 · 标签 数值 单位」, 右下角斜条纹与细线; 上沿两侧各一个小箭头。
 
-import { Fragment } from "react";
 import { ChamferPanel } from "./ChamferPanel";
 import { HourglassIcon } from "./HourglassIcon";
 import s from "./StatsBar.module.css";
@@ -24,15 +23,17 @@ export function StatsBar({ stats }: { stats: BuffStat[] }) {
       <ChamferPanel chamfer={7} className={s.bar}>
         <HourglassIcon className={s.hourglass} />
         <span className={s.divider} aria-hidden="true" />
+        {/* 条目放不下一行时整条换行; 每条前的「·」在行首被裁掉, 只留在条目之间。 */}
         <span className={s.stats}>
-          {stats.map((stat, index) => (
-            <Fragment key={stat.label}>
-              {index > 0 && <span className={s.dot} aria-hidden="true">·</span>}
-              <span className={s.label}>{stat.label}</span>
-              <b className={s.value}>{stat.value}</b>
-              {stat.suffix && <span className={s.label}>{stat.suffix}</span>}
-            </Fragment>
-          ))}
+          <span className={s.list}>
+            {stats.map((stat) => (
+              <span key={stat.label} className={s.stat}>
+                <span className={s.label}>{stat.label}</span>
+                <b className={s.value}>{stat.value}</b>
+                {stat.suffix && <span className={s.label}>{stat.suffix}</span>}
+              </span>
+            ))}
+          </span>
         </span>
         <svg className={s.decor} width="76" height="5" aria-hidden="true">
           <path className={s.stripe} d="M2 0.5H6L4 3.5H0Z" />

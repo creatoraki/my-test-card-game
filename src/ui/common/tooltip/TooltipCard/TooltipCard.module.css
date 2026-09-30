@@ -42,6 +42,7 @@
   font-weight: 500;
   line-height: 32px;
   letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
   text-shadow: 0 1px 2px #000000aa;
 }
 
@@ -64,6 +65,7 @@
   font-size: 18px;
   line-height: 1.5;
   letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
 }
 
 .desc + .extra {

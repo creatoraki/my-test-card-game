@@ -42,10 +42,10 @@ export const MAINTENANCE_SPIDER: EnemyDef = {
       id: "spider-fume",
       name: "助燃喷雾",
       emoji: "🌫️",
-      delay: 4,
+      delay: 3,
       kind: "debuff",
       targeting: "allFoes",
-      weight: 1,
+      weight: 0.5,
       anim: "fire",
       effects: [
         { type: "DAMAGE", multiplier: 0.3, target: "allFoes" },

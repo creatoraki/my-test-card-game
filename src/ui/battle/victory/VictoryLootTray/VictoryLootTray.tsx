@@ -90,7 +90,7 @@ const VictoryLootTray = forwardRef<VictoryLootTrayHandle, Props>(function Victor
               onPointerEnter={(event) =>
                 setHovered({
                   uid: stack.uid,
-                  point: tooltipPointFromElement(event.currentTarget),
+                  point: tooltipPointFromElement(event.currentTarget, "top"),
                 })
               }
               onPointerLeave={() => {

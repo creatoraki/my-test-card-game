@@ -26,12 +26,6 @@
     0 2px 2px #000000aa;
 }
 
-.name.is-long {
-  top: 38px;
-  font-size: 30px;
-  letter-spacing: 0.02em;
-}
-
 /* 副信息落在下划线下方, 与标题左缘对齐。 */
 .meta {
   position: absolute;
