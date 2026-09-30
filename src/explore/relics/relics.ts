@@ -21,12 +21,21 @@ export function relicsInBackpack(s: ExploreState): ItemStack[] {
   return s.backpack.filter((stack) => getItemDef(stack.itemId).category === "relic");
 }
 
-/** 探索级遗物在这里分发声明式资源效果与探索行为注册表。 */
+/**
+ * 探索级遗物在这里分发声明式资源效果与探索行为注册表。
+ * scope 只拦声明式效果(战斗遗物的 on/effects 归战斗引擎); 行为表按 id 登记, 不论 scope 都执行 ——
+ * 战斗遗物也可以在探索侧挂一段代价或收尾(如过期兴奋剂的战后扣血)。
+ */
 export function fireExploreRelic(s: ExploreState, event: ExploreRelicEvent): void {
   for (const stack of relicsInBackpack(s)) {
     const def = getItemDef(stack.itemId);
     const spec = def.relic;
-    if (!spec || spec.scope !== "explore") continue;
+    if (!spec) continue;
+    const behavior = EXPLORE_RELIC_BEHAVIORS[stack.itemId]?.[event.type];
+    if (spec.scope !== "explore") {
+      behavior?.({ state: s, stack, event });
+      continue;
+    }
     const triggers: readonly string[] = spec.on
       ? Array.isArray(spec.on)
         ? spec.on
@@ -49,7 +58,6 @@ export function fireExploreRelic(s: ExploreState, event: ExploreRelicEvent): voi
         }
       }
     }
-    const behavior = EXPLORE_RELIC_BEHAVIORS[stack.itemId]?.[event.type];
     behavior?.({ state: s, stack, event });
   }
 }

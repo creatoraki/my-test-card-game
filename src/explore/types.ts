@@ -124,6 +124,9 @@ type PendingActionBody =
 /** actorId: 由探索交互产生、目标已锁定为交互者的单人待办; 奖励浮层跳过选人环节。 */
 export type PendingAction = PendingActionBody & { actorId?: string };
 
+/** 污染增减请求, 由 store 落到城镇档案。target: "highest" = 结算时污染最高的存活队员(城镇侧才知道是谁)。 */
+export type PendingPollution = { charId: string; amount: number } | { target: "highest"; amount: number };
+
 // 场景里一件物件或一个黑影对应的事件。物件的真实交互走 curio/ 的决策表, 这里只提供标题与分类;
 // 黑影事件的唯一选项带 START_NODE_BATTLE, 由 session/battle.ts 的 engageRoomThreat 结算。
 export interface NodeEvent {
@@ -270,7 +273,7 @@ export interface ExploreState {
 
   freeNodes: number; // 「隐匿通道」: 接下来几次交互免除基础粒子消耗
   pendingNotes: string[]; // 本次交互的结算摘要, 供 resolving 浮层展示
-  pendingPollution: { charId: string; amount: number }[];
+  pendingPollution: PendingPollution[];
   pendingContaminationCount: number; // 尚未交给 townStore 应用的污染卡数量
   pendingContaminationEach: number; // 每名角色各污染 N 张, 与上面的全队总数语义分开
 

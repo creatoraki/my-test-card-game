@@ -5,7 +5,7 @@ import { earnedChallengeBonus, getStatus } from "@/engine";
 import { getEnemyDef } from "@/data";
 import { dropCoefficient, energyTier, rewardMultiplier } from "@/explore/session";
 import { useBattleStore } from "../battle/battleStore";
-import { settleFallenGear } from "../explore/exploreAftermath";
+import { applyPendingPollution, settleFallenGear } from "../explore/exploreAftermath";
 import { useExploreStore } from "../explore/exploreStore";
 import { useTownStore } from "../town/townStore";
 import { bankEverything, settleClear, settleRetreatScreen } from "./expeditionEnd";
@@ -80,6 +80,8 @@ export function resolveBattle(get: () => RunState, set: RunSet): void {
   const battleTier = session.pendingBattleTier;
   const explore = useExploreStore.getState();
   explore.settleBattle(won, survivorsFrom(battle, session), enemyDefIds, challengeBonus, bountyBonus, battle.round);
+  // 战后遗物(净水片等)登记的污染请求; 战斗内的污染已由 syncConditionsFrom 先回写。
+  applyPendingPollution();
   settleFallenGear();
   syncPartyStatsFrom(battle);
   // 战斗消耗(explore/core/exploreRules.ts energyPerBattleRound + energyPerBattleTier): 打得越久、档位越高, 粒子掉得越多。

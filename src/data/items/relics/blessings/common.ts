@@ -1,6 +1,6 @@
 import { defineRelics } from "../defineRelic";
 
-// 普通档祝福遗物。末尾的野餐遗物为一次性限定, 其余为普通渠道。
+// 普通档祝福遗物(普通渠道)。一次性渠道的普通档遗物按来源分文件: picnic.ts / blessingBox.ts。
 export const COMMON_BLESSING_RELIC_DEFS = defineRelics("blessing", "common", [
   {
     id: "relic-warm-match",
@@ -166,37 +166,40 @@ export const COMMON_BLESSING_RELIC_DEFS = defineRelics("blessing", "common", [
     scope: "explore",
     desc: "每次野餐时，全队额外回复 8 点生命。",
   },
-  // ---- 野餐食谱奖励 ----
   {
-    id: "relic-picnic-soda",
-    name: "快乐汽水",
+    id: "relic-band-aid",
+    name: "创可贴",
     scope: "battle",
-    channel: "disposable",
-    desc: "全队先手 +1。",
-    mods: { flat: { initiative: 1 } },
+    desc: "每回合结束时，为生命比例最低的存活队员回复 3 点生命。",
   },
   {
-    id: "relic-picnic-afterglow",
-    name: "聚会余温",
+    id: "relic-magnifier",
+    name: "放大镜",
     scope: "battle",
-    channel: "disposable",
-    desc: "全队暴击率 +8%。",
-    mods: { flat: { critRate: 8 } },
+    desc: "对带有穿孔的敌人暴击率 +10%。",
   },
   {
-    id: "relic-picnic-calorie",
-    name: "热量储备",
+    id: "relic-eraser",
+    name: "橡皮擦",
     scope: "battle",
-    channel: "disposable",
-    desc: "全队格挡率 +8%。",
-    mods: { flat: { blockRate: 8 } },
+    desc: "每当有卡牌被消耗时，全队获得 2 点护盾。",
   },
   {
-    id: "relic-picnic-cloth",
-    name: "团圆餐布",
-    scope: "battle",
-    channel: "disposable",
-    desc: "全队命中率 +5%，闪避率 +5%。",
-    mods: { flat: { hitRate: 5, dodgeRate: 5 } },
+    id: "relic-flashlight",
+    name: "手电筒",
+    scope: "explore",
+    desc: "操作可交互物时的失败几率 −5%。",
+  },
+  {
+    id: "relic-cling-film",
+    name: "保鲜膜",
+    scope: "explore",
+    desc: "野餐时每份食材有 30% 几率不被消耗。",
+  },
+  {
+    id: "relic-water-tablet",
+    name: "净水片",
+    scope: "explore",
+    desc: "每场战斗胜利后，污染最高的队员污染 −3。",
   },
 ]);

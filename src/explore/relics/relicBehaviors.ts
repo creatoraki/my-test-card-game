@@ -5,6 +5,7 @@ import { restoreLimit } from "../session/core/party";
 import type { ItemStack } from "@/items/types";
 import type { ExploreRelicEvent } from "./relics";
 import type { ExploreState } from "../types";
+import { BLESSING_BOX_EXPLORE_BEHAVIORS } from "./blessingBoxBehaviors";
 
 interface ExploreRelicBehaviorContext {
   state: ExploreState;
@@ -13,9 +14,11 @@ interface ExploreRelicBehaviorContext {
 }
 
 type ExploreRelicBehavior = (ctx: ExploreRelicBehaviorContext) => void;
-type ExploreRelicBehaviorMap = Partial<Record<ExploreRelicEvent["type"], ExploreRelicBehavior>>;
+export type ExploreRelicBehaviorMap = Partial<Record<ExploreRelicEvent["type"], ExploreRelicBehavior>>;
 
+// 探索侧遗物行为表。祝福匣限定遗物的行为分在 blessingBoxBehaviors.ts, 在这里合并。
 export const EXPLORE_RELIC_BEHAVIORS: Record<string, ExploreRelicBehaviorMap> = {
+  ...BLESSING_BOX_EXPLORE_BEHAVIORS,
   "relic-lucky-copper": {
     battleVictory: ({ state }) => {
       if (rngFloat(state) >= 0.2) return;
@@ -76,6 +79,13 @@ export const EXPLORE_RELIC_BEHAVIORS: Record<string, ExploreRelicBehaviorMap> = 
         if (member.alive) member.hp = Math.min(member.hpLimit, member.hp + 8);
       }
       state.log.push("保温杯：全队回复 8 点生命");
+    },
+  },
+  // 污染最高的队员只有城镇侧知道: 登记一条「最高者」请求, 由 store 的 applyPendingPollution 挑人落地。
+  "relic-water-tablet": {
+    battleVictory: ({ state }) => {
+      state.pendingPollution.push({ target: "highest", amount: -3 });
+      state.log.push("净水片：污染最高的队员污染 −3");
     },
   },
   "relic-purify-filter": {

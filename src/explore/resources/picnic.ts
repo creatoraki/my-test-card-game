@@ -1,11 +1,14 @@
 import { getItemDef, makeItemStack, matchPicnicRecipe, NEAR_EXPIRY_FOOD_IDS } from "@/data";
 import type { PicnicReward } from "@/data/facilities/picnicRecipes";
+import { rngFloat } from "@/engine/core/rng";
 import { consumeItems, countByItemId } from "@/items/inventory";
+import { relicChannelOf } from "@/items/types";
 import type { ExploreState } from "../types";
 import { logLine } from "../session";
 import { restoreLimit } from "../session/core/party";
 import { EXPLORE_RULES } from "../core/exploreRules";
 import { fireExploreRelic } from "../relics/relics";
+import { picnicKeepChance } from "../relics/relicModifiers";
 
 const FOOD_ID_SET = new Set<string>(NEAR_EXPIRY_FOOD_IDS);
 
@@ -45,6 +48,21 @@ function recoverPartyLimit(s: ExploreState, amount: number): void {
   }
 }
 
+/** 扣除选中的食材; 保鲜膜让每份各自有几率留下。食谱仍按选中份数匹配。返回保住的份数。 */
+function consumePicnicFoods(s: ExploreState, counts: Record<string, number>): number {
+  const keepChance = picnicKeepChance(s);
+  let kept = 0;
+  for (const [itemId, count] of Object.entries(counts)) {
+    let consumed = count;
+    if (keepChance > 0) {
+      for (let i = 0; i < count; i++) if (rngFloat(s) < keepChance) consumed -= 1;
+    }
+    kept += count - consumed;
+    if (consumed > 0) s.backpack = consumeItems(s.backpack, itemId, consumed);
+  }
+  return kept;
+}
+
 /** 食谱奖励：体力极限回复(上限 picnic.recipeLimitMax)或一次性遗物(远征结束销毁、不能寄回)。 */
 function grantRecipeReward(s: ExploreState, reward: PicnicReward): string {
   if (reward.kind === "limit") {
@@ -53,6 +71,8 @@ function grantRecipeReward(s: ExploreState, reward: PicnicReward): string {
     return `全队体力极限 +${amount}，当前生命回复等值`;
   }
   const def = getItemDef(reward.relicId);
+  // 护栏: 食谱只能发野餐限定遗物, 与临时祝福匣的来源互不相通。
+  if (!def.relic || relicChannelOf(def.relic) !== "picnic") return "这份食谱没有带来特别的收获";
   s.pendingPickup = [...s.pendingPickup, makeItemStack(reward.relicId, 1, { disposable: true })];
   return `获得一次性遗物「${def.name}」，已放入待拾取框`;
 }
@@ -65,9 +85,7 @@ export function resolvePicnic(s: ExploreState, picks: Record<string, number>): P
     Object.entries(picks).filter(([, count]) => count > 0),
   ) as Record<string, number>;
   const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
-  for (const [itemId, count] of Object.entries(counts)) {
-    s.backpack = consumeItems(s.backpack, itemId, count);
-  }
+  const kept = consumePicnicFoods(s, counts);
 
   const recipe = matchPicnicRecipe(counts);
   let result: PicnicResult;
@@ -101,6 +119,7 @@ export function resolvePicnic(s: ExploreState, picks: Record<string, number>): P
   }
 
   // 野餐遗物的结算文案同时写进结果面板, 让玩家当场看到。
+  if (kept > 0) result.notes.push(`保鲜膜：保住了 ${kept} 份食材`);
   const relicLogStart = s.log.length;
   fireExploreRelic(s, { type: "picnic" });
   result.notes.push(...s.log.slice(relicLogStart));

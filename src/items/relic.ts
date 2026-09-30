@@ -23,9 +23,11 @@ export type RelicScope = "battle" | "explore";
  * · normal       普通(缺省): 祝福遗物进入随机池, 可从遗物匣、流浪货商、据点商店、通关奖励、圣水池净化、神龛升级获得
  * · bossDrop     首领掉落限定: 不进随机池, 只由首领掉落表按 id 指名
  * · specialEvent 特殊事件限定: 不进随机池, 只由特定事件/可交互物按 id 指名
- * · disposable   一次性限定: 不进随机池, 只以一次性物资发放(野餐食谱、一次性遗物匣), 永远进不了仓库
+ * · picnic       野餐限定: 不进任何随机池, 只由野餐食谱按 id 指名, 以一次性物资发放
+ * · blessingBox  祝福匣限定: 只进临时遗物池, 只能从临时祝福匣抽出, 以一次性物资发放
+ * 后两者统称一次性渠道: 永远进不了仓库, 且互不相通 —— 野餐遗物抽不出匣子, 匣子遗物也不会被食谱指名。
  */
-export type RelicChannel = "normal" | "bossDrop" | "specialEvent" | "disposable";
+export type RelicChannel = "normal" | "bossDrop" | "specialEvent" | "picnic" | "blessingBox";
 
 export interface RelicSpec {
   polarity: RelicPolarity;
@@ -42,6 +44,10 @@ export interface RelicSpec {
 }
 
 export const relicChannelOf = (spec: RelicSpec): RelicChannel => spec.channel ?? "normal";
+
+/** 一次性渠道(野餐限定 / 祝福匣限定): 只以一次性实例发放, 没有回收价。 */
+export const isDisposableChannel = (channel: RelicChannel): boolean =>
+  channel === "picnic" || channel === "blessingBox";
 
 export const RELIC_POLARITY_LABEL: Record<RelicPolarity, string> = {
   blessing: "祝福遗物",

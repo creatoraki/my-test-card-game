@@ -3,10 +3,12 @@ import { registerRelicBehaviors } from "../core/hookRegistry";
 import { COMMON_RELIC_BEHAVIORS } from "./behaviors/common";
 import { FINE_RELIC_BEHAVIORS } from "./behaviors/fine";
 import { RARE_RELIC_BEHAVIORS } from "./behaviors/rare";
+import { BLESSING_BOX_RELIC_BEHAVIORS } from "./behaviors/blessingBox";
 
-// 战斗内遗物行为, 按稀有度分文件 —— 与 data/items/relics/<极性>/<稀有度>.ts 一一对应。
+// 战斗内遗物行为, 按稀有度(一次性渠道按来源)分文件 —— 与 data/items/relics/<极性>/<稀有度|来源>.ts 一一对应。
 export const RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
   ...COMMON_RELIC_BEHAVIORS,
+  ...BLESSING_BOX_RELIC_BEHAVIORS,
   ...FINE_RELIC_BEHAVIORS,
   ...RARE_RELIC_BEHAVIORS,
 };

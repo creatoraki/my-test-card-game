@@ -6,7 +6,7 @@
 // ============================================================================
 
 import type { BattleState, Combatant, DamageCtx, DamageOpts, DamageResult } from "../types";
-import { RULES } from "../core/battleRules";
+import { RULES, capProb } from "../core/battleRules";
 import { rngFloat } from "../core/rng";
 import { critChance, defenseMultiplier, hitChance, statOf } from "../combat/stats";
 import { noteChallengeDamage } from "../challenges";
@@ -46,7 +46,10 @@ function rollHitAndCrit(state: BattleState, dmg: DamageCtx, src: Combatant | und
     log(state, `${target.emoji} ${target.name} 闪避了这次攻击`);
     return false;
   }
-  if (roll(state, critChance(state, src))) {
+  const critInfo = { sourceId: src.id, targetId: target.id, bonus: 0 };
+  runRelicHook(state, "modifyCritChance", critInfo);
+  const crit = capProb(critChance(state, src) + critInfo.bonus);
+  if (roll(state, crit)) {
     dmg.crit = true;
     opts.onCrit?.();
     dmg.amount *= statOf(src, "critDamage") / 100;
@@ -155,6 +158,7 @@ export function dealDamage(
 
   // ---- 扣血前: 状态可改最终扣血量或保住体力极限 ----
   runStatusHooks(state, targetId, "onBeforeHpLoss", dmg);
+  if (dmg.amount > 0) runRelicHook(state, "beforeHpLoss", dmg);
   dmg.amount = Math.max(0, Math.round(dmg.amount));
 
   // ---- 6. 落到 HP ----

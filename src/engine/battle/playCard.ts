@@ -34,6 +34,7 @@ import {
   resolveWaterfallEncore,
   waterfallHolds,
 } from "./waterfall";
+import { exhaustCard } from "../deck/exhaust";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
@@ -190,7 +191,7 @@ export function playCard(
         const returnsToHand = card.playReturn?.when === "fastPlaysThisRound" &&
           fastPlays >= card.playReturn.atLeast &&
           state.hand.length < partyHandLimit(state);
-        if (card.exhaust) state.exhaust.push(uid);
+        if (card.exhaust) exhaustCard(state, uid);
         else if (returnsToHand) {
           state.hand.push(uid);
           card.costStacks = (card.costStacks ?? 0) + 1;

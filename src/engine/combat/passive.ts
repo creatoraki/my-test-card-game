@@ -10,6 +10,7 @@ import { checkEnd, ops } from "../core/ops";
 import { withHitRecorder } from "../core/animHits";
 import { currentRecorder, ensureCardFxSnapshot, recordCardTrigger, snapshotHp } from "../cards/cardFx";
 import { isPassive, playableHandUids } from "../cards/passiveCards";
+import { exhaustCard } from "../deck/exhaust";
 
 export { isPassive, playableHandUids } from "../cards/passiveCards";
 
@@ -74,7 +75,7 @@ export function recycleHandPassives(state: BattleState, rec?: DiscardRecorder): 
     }
     if (card?.exhaust) {
       state.hand = state.hand.filter((id) => id !== uid);
-      if (!state.exhaust.includes(uid)) state.exhaust.push(uid);
+      exhaustCard(state, uid);
     } else {
       ops.discard(state, uid, "passiveEnd", rec);
     }

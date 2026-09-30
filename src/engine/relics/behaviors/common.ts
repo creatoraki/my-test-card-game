@@ -1,11 +1,11 @@
 import type { Card, DamageCtx } from "../../types";
-import { ops } from "../../core/ops";
+import { getStatus, ops } from "../../core/ops";
 import { STATUS_DEFS } from "../../core/hookRegistry";
 import { RULES } from "../../core/battleRules";
 import { playableHandUids, isPassive } from "../../cards/passiveCards";
 import { activeEffectsOf } from "../../cards/cardEffects";
 import type { RelicBehavior, RelicBehaviorContext } from "../types";
-import { randomAliveEnemy, relicData } from "../shared";
+import { aliveAllyIds, randomAliveEnemy, relicData } from "../shared";
 
 function ownerOf(state: RelicBehaviorContext["state"], card: Card) {
   return state.combatants[card.ownerCharId];
@@ -167,6 +167,26 @@ export const COMMON_RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
       const target = state.combatants[info.targetId];
       if (target?.team !== "player" || info.hpBefore >= target.hpLimit || info.overflow <= 0) return;
       ops.gainShield(state, undefined, target.id, Math.min(4, info.overflow));
+    },
+  },
+  "relic-band-aid": {
+    onRoundEnd: ({ state }) => {
+      const target = aliveAllyIds(state)
+        .map((id) => state.combatants[id])
+        .sort((a, b) => a.hp / Math.max(1, a.maxHp) - b.hp / Math.max(1, b.maxHp))[0];
+      if (target) ops.heal(state, undefined, target.id, 3);
+    },
+  },
+  "relic-magnifier": {
+    modifyCritChance: ({ state }, info) => {
+      const target = state.combatants[info.targetId];
+      if (state.combatants[info.sourceId]?.team !== "player" || target?.team !== "enemy") return;
+      if (getStatus(target, "pierce")) info.bonus += 10;
+    },
+  },
+  "relic-eraser": {
+    onCardExhausted: ({ state }) => {
+      for (const id of aliveAllyIds(state)) ops.gainShield(state, undefined, id, 2);
     },
   },
   "relic-tally-counter": {

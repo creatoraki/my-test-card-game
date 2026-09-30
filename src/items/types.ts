@@ -108,6 +108,7 @@ export {
   RELIC_POLARITY_LABEL,
   RELIC_SCOPE_LABEL,
   RELIC_TRIGGER_LABEL,
+  isDisposableChannel,
   relicChannelOf,
 } from "./relic";
 

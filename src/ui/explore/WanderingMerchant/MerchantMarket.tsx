@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { getItemDef } from "@/data";
 import type { MerchantShelf } from "@/data/curios/types";
+import { merchantCouponActive } from "@/explore/relics/relicModifiers";
 import type { ExploreState } from "@/explore/types";
 import { useRunStore } from "@/store/run/runStore";
 import { MarketActionButton, MarketDetail, MarketShelf } from "@/ui/town/shop/MarketPanel";
@@ -15,6 +16,8 @@ export function MerchantMarket({ session, shelf }: { session: ExploreState; shel
   const buyMerchantSlot = useRunStore((state) => state.buyMerchantSlot);
   const adapted = useMemo(() => merchantShopSlots(shelf.slots), [shelf.slots]);
   const getBuyReason = useMerchantBuyReason(session);
+  // 试吃券: 下一件商品免费, 价格一律显示为免费。
+  const free = merchantCouponActive(session);
   const selectedSlot = adapted.slots.find((slot) => slot.key === selectedKey)
     ?? adapted.slots.find((slot) => !slot.sold)
     ?? adapted.slots[0]
@@ -24,7 +27,7 @@ export function MerchantMarket({ session, shelf }: { session: ExploreState; shel
   const selectedReason = selectedSlot ? getBuyReason(selectedSlot) : "当前无法交换";
   const availableCount = adapted.slots.filter((slot) => !slot.sold).length;
   const note = selectedReason
-    ?? `剩余 ${availableCount} 件商品，货商不会补货；打开与交换不消耗净化粒子。`;
+    ?? `剩余 ${availableCount} 件商品，货商不会补货；打开与交换不消耗净化粒子。${free ? "试吃券：下一件商品免费。" : ""}`;
 
   return (
     <div className={marketStyles.panel}>
@@ -38,11 +41,12 @@ export function MerchantMarket({ session, shelf }: { session: ExploreState; shel
           getBuyReason={getBuyReason}
           priceIcon={(slot) => {
             const payment = adapted.paymentByKey[slot.key];
-            return payment ? <MerchantFoodIcon itemId={payment.itemId} size={26} /> : null;
+            return payment && !free ? <MerchantFoodIcon itemId={payment.itemId} size={26} /> : null;
           }}
           priceText={(slot) => {
             const payment = adapted.paymentByKey[slot.key];
-            return payment ? `${getItemDef(payment.itemId).name} ×${payment.count}` : "当前无法交换";
+            if (!payment) return "当前无法交换";
+            return free ? "免费" : `${getItemDef(payment.itemId).name} ×${payment.count}`;
           }}
         />
         <MarketDetail slot={selectedSlot} />
@@ -58,7 +62,7 @@ export function MerchantMarket({ session, shelf }: { session: ExploreState; shel
             tone="gold"
             icon="⇄"
             label="交换"
-            meta={selectedPayment ? <span className={s.payment}><MerchantFoodIcon itemId={selectedPayment.itemId} size={26} /> ×{selectedPayment.count}</span> : "—"}
+            meta={free ? "免费" : selectedPayment ? <span className={s.payment}><MerchantFoodIcon itemId={selectedPayment.itemId} size={26} /> ×{selectedPayment.count}</span> : "—"}
             disabled={!selectedSlot || selectedReason !== null}
             onClick={() => { if (selectedIndex !== null) buyMerchantSlot(selectedIndex); }}
           />

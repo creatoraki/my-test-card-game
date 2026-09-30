@@ -8,6 +8,7 @@ import { registerPollutedCardDraw } from "../combat/pollution";
 import { cultivateOverripe, resetCultivate } from "./cultivate";
 import { makeCard } from "@/data";
 import { runRelicHook } from "../relics/types";
+import { exhaustCard } from "./exhaust";
 
 // 抽 n 张(受小队手牌上限限制)。抽牌堆空则把弃牌堆洗回。
 export function drawCards(state: BattleState, n: number): void {
@@ -90,7 +91,7 @@ export function rotOverripeCards(state: BattleState): void {
     if (!card || !cultivateOverripe(card)) continue;
     const replacementUid = replaceHandCard(state, uid, "rotten-fruit", card.ownerCharId);
     if (!replacementUid) continue;
-    if (!state.exhaust.includes(uid)) state.exhaust.push(uid);
+    exhaustCard(state, uid);
     log(state, `${card.name} 过熟腐烂，变为腐烂的果实`);
   }
 }

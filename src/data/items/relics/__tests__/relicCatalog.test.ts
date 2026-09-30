@@ -6,7 +6,8 @@ import { EXPLORE_RELIC_BEHAVIORS } from "@/explore/relics/relicBehaviors";
 import { EXPLORE_MODIFIER_RELIC_IDS } from "@/explore/relics/relicModifiers";
 import type { ItemDef } from "@/items/types";
 import { relicChannelOf } from "@/items/types";
-import { RANDOM_RELIC_POOL, RELIC_ITEM_DEFS } from "..";
+import { PICNIC_RECIPES } from "@/data/facilities/picnicRecipes";
+import { PICNIC_RELIC_IDS, RANDOM_RELIC_POOL, RELIC_ITEM_DEFS, TEMPORARY_RELIC_POOL } from "..";
 
 // 说明文字里不允许出现的获取途径 / 生命周期措辞 —— 这些信息由 channel 与实例标记表达。
 const FORBIDDEN_DESC = /所得|获得途径|来源|仅本趟|本趟远征有效|一次性物品/;
@@ -46,6 +47,25 @@ describe("遗物目录", () => {
       expect(def.relic?.polarity, def.id).toBe("blessing");
       expect(def.relic && relicChannelOf(def.relic), def.id).toBe("normal");
     }
+  });
+
+  it("临时遗物池只含普通档随机池遗物与祝福匣限定遗物, 不含野餐限定", () => {
+    for (const def of TEMPORARY_RELIC_POOL) {
+      const channel = def.relic && relicChannelOf(def.relic);
+      expect(channel === "blessingBox" || (channel === "normal" && def.rarity === "common"), def.id).toBe(true);
+    }
+    for (const def of RELIC_ITEM_DEFS) {
+      if (def.relic && relicChannelOf(def.relic) === "blessingBox")
+        expect(TEMPORARY_RELIC_POOL.includes(def), def.id).toBe(true);
+    }
+  });
+
+  it("野餐食谱只指名野餐限定遗物, 且每件野餐限定遗物都有食谱", () => {
+    const recipeRelicIds = PICNIC_RECIPES.flatMap((recipe) =>
+      recipe.reward.kind === "relic" ? [recipe.reward.relicId] : [],
+    );
+    for (const id of recipeRelicIds) expect(PICNIC_RELIC_IDS.includes(id), id).toBe(true);
+    for (const id of PICNIC_RELIC_IDS) expect(recipeRelicIds.includes(id), id).toBe(true);
   });
 
   it("首领掉落限定的遗物必须出现在首领掉落表里", () => {

@@ -3,6 +3,7 @@ import { rngPick } from "@/engine/core/rng";
 import { addPendingLoot } from "../session";
 import type { ExploreState } from "../types";
 
+/** 临时祝福匣: 从临时遗物池(普通档随机池 + 祝福匣限定, 不含野餐限定)抽一件一次性遗物。 */
 export function grantTemporaryRelic(s: ExploreState): string {
   // 只排除本趟已携带或待领取的同款，不因据点收藏齐全而让起始房失去奖励。
   const held = new Set([...s.backpack, ...s.pendingLoot, ...s.pendingPickup].map(stack => stack.itemId));

@@ -19,7 +19,7 @@
 // ============================================================================
 
 import type { ItemDef, ItemRarity } from "@/items/types";
-import { relicChannelOf } from "@/items/types";
+import { isDisposableChannel, relicChannelOf } from "@/items/types";
 
 export const EQUIP_BUY_BY_RARITY: Record<ItemRarity, number> = {
   common: 200,
@@ -74,10 +74,10 @@ export const RELIC_SELL_BY_RARITY: Record<ItemRarity, number> = {
   legendary: 800,
 };
 
-// 可回收 = 祝福遗物, 且不是一次性限定(一次性遗物永远到不了仓库)。
+// 可回收 = 祝福遗物, 且不是一次性渠道(野餐 / 祝福匣限定的遗物永远到不了仓库)。
 function isRelicSellable(def: ItemDef): boolean {
   const spec = def.relic;
-  return spec?.polarity === "blessing" && relicChannelOf(spec) !== "disposable";
+  return spec?.polarity === "blessing" && !isDisposableChannel(relicChannelOf(spec));
 }
 
 export function withRelicSellValue(defs: ItemDef[]): ItemDef[] {

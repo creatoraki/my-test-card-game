@@ -5,7 +5,7 @@ import { RULES } from "@/engine/core/battleRules";
 import { rollEquipCrate } from "../core/boons";
 import { backpackFree, dropContext, randomRelicId } from "../session";
 import { fireExploreRelic } from "../relics/relics";
-import { merchantExtraSlots } from "../relics/relicModifiers";
+import { consumeMerchantCoupon, merchantCouponActive, merchantExtraSlots } from "../relics/relicModifiers";
 import type { CardOfferCandidate, ExploreState } from "../types";
 import { MERCHANT_FOOD_POOL, merchantPriceCount } from "@/data/curios/rules/merchantPricing";
 import type { MerchantPayment, MerchantShelf, MerchantSlot } from "@/data/curios/types";
@@ -89,7 +89,7 @@ export function merchantBuyReason(s: ExploreState, index: number): string | null
   const slot = merchantSlot(s, index);
   if (!slot) return "当前无法交换";
   if (slot.sold) return "已售出";
-  if (countByItemId(s.backpack, slot.price.itemId) < slot.price.count) {
+  if (!merchantCouponActive(s) && countByItemId(s.backpack, slot.price.itemId) < slot.price.count) {
     return `缺少${getItemDef(slot.price.itemId).name}`;
   }
   if (slot.kind === "item" && stackSlots(slot.stack, getItemDef(slot.stack.itemId)) > backpackFree(s)) {
@@ -102,7 +102,9 @@ export function canBuyMerchantSlot(s: ExploreState, index: number): boolean {
   return merchantBuyReason(s, index) === null;
 }
 
+/** 付款。试吃券可用时本件免费并用掉券。 */
 export function payMerchant(s: ExploreState, price: MerchantPayment): void {
+  if (merchantCouponActive(s)) return consumeMerchantCoupon(s);
   s.backpack = consumeItems(s.backpack, price.itemId, price.count);
 }
 
@@ -120,8 +122,9 @@ export function buyFromMerchant(s: ExploreState, index: number): boolean {
   if (!slot || slot.kind !== "item" || !canBuyMerchantSlot(s, index)) return false;
   const result = addToContainer(s.backpack, [slot.stack], (itemId) => getItemDef(itemId), RULES.burden.backpackSlots);
   if (result.overflow.length) return false;
-  payMerchant(s, slot.price);
+  // ★ 先落袋再付款: 反过来的话付款结果会被 result.next(基于付款前的背包)覆盖掉。
   s.backpack = result.next;
+  payMerchant(s, slot.price);
   s.stats.pickups += result.taken.length;
   if (getItemDef(slot.stack.itemId).category === "relic" && !s.ownedRelicIds.includes(slot.stack.itemId)) {
     s.ownedRelicIds.push(slot.stack.itemId);

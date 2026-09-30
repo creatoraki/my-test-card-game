@@ -36,6 +36,7 @@ import { withHitRecorder } from "../core/animHits";
 import { runEnemyFlee } from "./flee";
 import { createBattleState } from "./battleSetup";
 import type { BattleSetup as BattleSetupInput } from "./battleSetup";
+import { exhaustCard } from "../deck/exhaust";
 
 export { canPlay, playBlockReason, playCard } from "./playCard";
 export type { PlayBlock, PlayRecorder } from "./playCard";
@@ -234,7 +235,7 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
       const card = state.cards[uid];
       if (!card?.voidCard) continue;
       state.hand = state.hand.filter((handUid) => handUid !== uid);
-      if (!state.exhaust.includes(uid)) state.exhaust.push(uid);
+      exhaustCard(state, uid);
       log(state, `${card.name} 因虚无进入消耗堆`);
     }
     flushAutoPlays(state, rec);

@@ -27,6 +27,15 @@ export interface RelicBehavior {
   // 纯计算, 预览也会调用: 只能往 mods 里登记。一次性加成的消耗放到 afterDamageModified。
   modifyOutgoingDamage?: (ctx: RelicBehaviorContext, dmg: Readonly<DamageCtx>, mods: DamageModifierSink) => void;
   afterDamageModified?: (ctx: RelicBehaviorContext, dmg: DamageCtx) => void; // 乘区结算完毕、命中判定前(不论最终是否命中)
+  modifyCritChance?: (ctx: RelicBehaviorContext, info: CritChanceInfo) => void; // 掷暴击前: 只往 info.bonus 里加减百分点
+  beforeHpLoss?: (ctx: RelicBehaviorContext, dmg: DamageCtx) => void; // 扣血前(护盾已吸收): 可改 dmg.amount
+  onCardExhausted?: (ctx: RelicBehaviorContext, cardUid: string) => void; // 任意卡牌进入消耗堆
+}
+
+export interface CritChanceInfo {
+  sourceId: string;
+  targetId: string;
+  bonus: number; // 百分点
 }
 
 export interface HealResultInfo {
@@ -58,6 +67,9 @@ type HookArgs = {
   onAllyDeath: [string];
   modifyOutgoingDamage: [DamageCtx, DamageModifierSink];
   afterDamageModified: [DamageCtx];
+  modifyCritChance: [CritChanceInfo];
+  beforeHpLoss: [DamageCtx];
+  onCardExhausted: [string];
 };
 
 type RelicHook = keyof HookArgs;

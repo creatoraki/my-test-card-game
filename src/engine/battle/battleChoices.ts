@@ -17,6 +17,7 @@ import { partyHandLimit } from "../combat/stats";
 import { transferableMarks } from "../cards/cardMarks";
 import { grantStarPact, starPactCandidates } from "../prophet/starPact";
 import { applyGraft, canGraft, graftCandidates } from "../deck/graft";
+import { exhaustCard } from "../deck/exhaust";
 
 export function resolvePendingChoice(state: BattleState, uid: string): boolean {
   const choice = state.pendingChoice;
@@ -103,7 +104,7 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
       state.chosenCardCost = cardCost(state, card);
       dominoMarkConsumed = card.marks?.includes("domino") ?? false;
       state.hand = state.hand.filter((handUid) => handUid !== uid);
-      if (!state.exhaust.includes(uid)) state.exhaust.push(uid);
+      exhaustCard(state, uid);
       card.marks = [];
       card.resonanceStacks = 0;
       resetCultivate(card);

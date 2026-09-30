@@ -4,7 +4,7 @@
 import { bondPool, getItemDef } from "@/data";
 import { rngInt } from "@/engine/core/rng";
 import { findByUid } from "@/items/inventory";
-import type { ExploreState, PendingAction } from "../../types";
+import type { ExploreState, PendingAction, PendingPollution } from "../../types";
 import { addPendingLoot } from "../loot/backpack";
 import { restoreLimit } from "./party";
 
@@ -20,7 +20,7 @@ export function takePendingContamination(s: ExploreState): PendingContamination 
   return result;
 }
 
-export function takePendingPollution(s: ExploreState): { charId: string; amount: number }[] {
+export function takePendingPollution(s: ExploreState): PendingPollution[] {
   const pending = s.pendingPollution.map((entry) => ({ ...entry }));
   s.pendingPollution = [];
   return pending;

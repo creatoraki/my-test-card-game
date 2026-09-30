@@ -1,6 +1,6 @@
 // ============================================================================
 // 交互失败 —— 概率完全对玩家隐藏, 只在结算文案里体现结果。
-// 最终失败率 = 决策基础失败率 + 等级加值 + Σ生效门槛的修正, 夹在 [0, CURIO_FAIL_CAP]。
+// 最终失败率 = 决策基础失败率 + 等级加值 + Σ生效门槛的修正 + 遗物修正(手电筒), 夹在 [0, CURIO_FAIL_CAP]。
 // 门槛: 执行者职业, 或背包里的指定物品(生效时自动消耗 1 个)。
 // · 修正失败率 / 追加奖励的物品门槛: 满足即生效, 立即消耗;
 // · 只负责「失败转正面」的物品门槛: 只有失败真的发生并被它转化时才消耗。
@@ -12,6 +12,7 @@ import type { CurioEffect, CurioFailure, CurioLevel, CurioMitigation } from "@/d
 import { rngFloat } from "@/engine/core/rng";
 import type { ItemStack } from "@/items/types";
 import type { ExploreState } from "../types";
+import { relicCurioFailDelta } from "../relics/relicModifiers";
 import { partCanMatch } from "./offering";
 
 export interface FailureOutcome {
@@ -56,7 +57,7 @@ export function resolveFailure(
 ): FailureOutcome {
   if (!failure || disabled) return SAFE;
   const active = (failure.mitigations ?? []).filter((mitigation) => applies(s, mitigation, executorId));
-  const delta = active.reduce((sum, mitigation) => sum + (mitigation.chanceDelta ?? 0), 0);
+  const delta = active.reduce((sum, mitigation) => sum + (mitigation.chanceDelta ?? 0), 0) + relicCurioFailDelta(s);
   const chance = Math.max(0, Math.min(CURIO_FAIL_CAP, failure.chance + CURIO_LEVEL_RULES[level].failAdd + delta));
   const failed = chance > 0 && rngFloat(s) < chance;
   const converter = failed ? active.find((mitigation) => mitigation.convert) ?? null : null;

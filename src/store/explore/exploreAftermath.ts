@@ -19,15 +19,29 @@ export function applyPendingPollution(): void {
   const pending = takePendingPollution(draft);
   useExploreStore.setState({ session: draft });
   const town = useTownStore.getState();
+  const aliveIds = draft.party.filter((member) => member.alive).map((member) => member.charId);
   for (const entry of pending) {
-    if (entry.amount > 0) town.addPollution(entry.charId, entry.amount);
-    if (entry.amount < 0) town.reducePollution(entry.charId, -entry.amount);
-    const character = town.characters[entry.charId];
+    const charId = "charId" in entry ? entry.charId : highestPollutionId(aliveIds);
+    if (!charId) continue;
+    if (entry.amount > 0) town.addPollution(charId, entry.amount);
+    if (entry.amount < 0) town.reducePollution(charId, -entry.amount);
+    const character = useTownStore.getState().characters[charId];
     if (character) {
       const stats = deriveStats(character);
-      useExploreStore.getState().syncPartyVitals(entry.charId, stats.maxHp, stats.burdenAdapt);
+      useExploreStore.getState().syncPartyVitals(charId, stats.maxHp, stats.burdenAdapt);
     }
   }
+}
+
+// 当前污染最高的存活队员; 同分取队伍中靠前的一名。
+function highestPollutionId(charIds: string[]): string | undefined {
+  const { characters } = useTownStore.getState();
+  let best: string | undefined;
+  for (const id of charIds) {
+    const pollution = characters[id]?.pollution ?? 0;
+    if (best === undefined || pollution > (characters[best]?.pollution ?? 0)) best = id;
+  }
+  return best;
 }
 
 export function settleFallenGear(): void {

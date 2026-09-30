@@ -14,6 +14,7 @@ import { isPassive, playableHandUids } from "../cards/passiveCards";
 import { advanceCultivate, cultivateCanAdvance, resetCultivate } from "../deck/cultivate";
 import { graftCandidates } from "../deck/graft";
 import { makeCard } from "@/data";
+import { exhaustCard } from "../deck/exhaust";
 
 function emptyResolution(): EffectResolution {
   return { missed: [], hit: [] };
@@ -272,7 +273,7 @@ function applyExhaustHandCards(state: BattleState, effect: EffectDescriptor): vo
     if (card?.id !== effect.cardId) continue;
     cardName = card.name;
     state.hand = state.hand.filter((handUid) => handUid !== uid);
-    if (!state.exhaust.includes(uid)) state.exhaust.push(uid);
+    exhaustCard(state, uid);
     resetCultivate(card);
     state.lastExhaustedHandCards += 1;
   }
