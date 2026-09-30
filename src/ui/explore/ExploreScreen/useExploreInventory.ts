@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getItemDef } from "@/data";
 import { canOpenBackpack, canUseItem } from "@/explore/session";
 import type { ExploreState } from "@/explore/types";
-import { TARGETED_ITEM_USE_KINDS, SLOT_LABEL, type ItemStack, type EquipSlot } from "@/items/types";
+import { TARGETED_ITEM_USE_KINDS, type ItemStack, type EquipSlot } from "@/items/types";
 import { useExploreStore } from "@/store/explore/exploreStore";
 import { useRunStore } from "@/store/run/runStore";
 
@@ -13,17 +13,19 @@ export function useExploreInventory(session: ExploreState | null) {
   const [atlasOpen, setAtlasOpen] = useState(false);
   const [detailCharId, setDetailCharId] = useState<string | null>(null);
   const [target, setTarget] = useState<ItemStack | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  // 选人使用物品被拒(目标不适用)时, 在该队员框上闪一下红框 —— seq 让连续点同一人也能重播。
+  const [rejected, setRejected] = useState<{ charId: string; seq: number } | null>(null);
   const allowed = Boolean(session && canOpenBackpack(session));
 
   useEffect(() => {
     if (!allowed) { setBagOpen(false); setPicnicOpen(false); setBeaconPicking(false); setAtlasOpen(false); setDetailCharId(null); setTarget(null); }
   }, [allowed]);
   useEffect(() => {
-    if (!message) return;
-    const timer = window.setTimeout(() => setMessage(null), 3000);
+    if (!rejected) return;
+    const timer = window.setTimeout(() => setRejected(null), 520);
     return () => window.clearTimeout(timer);
-  }, [message]);
+  }, [rejected]);
+  useEffect(() => { if (!target) setRejected(null); }, [target]);
   useEffect(() => {
     const escape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
@@ -40,27 +42,26 @@ export function useExploreInventory(session: ExploreState | null) {
     if (!def.use) return;
     setBagOpen(false);
     if ((TARGETED_ITEM_USE_KINDS as readonly string[]).includes(def.use.kind)) { setTarget(stack); return; }
-    setMessage(useExploreStore.getState().useItem(stack.uid));
+    useExploreStore.getState().useItem(stack.uid);
   }, []);
 
   const chooseMember = (charId: string) => {
     if (target) {
-      const result = useExploreStore.getState().useItem(target.uid, charId);
-      setMessage(result ?? "该队员当前无法使用这件物品");
-      if (result) setTarget(null);
+      if (useExploreStore.getState().useItem(target.uid, charId)) setTarget(null);
+      else setRejected((prev) => ({ charId, seq: (prev?.seq ?? 0) + 1 }));
     } else setDetailCharId(charId);
   };
   const equip = (uid: string) => {
     if (!detailCharId) return;
-    setMessage(useRunStore.getState().equipFromBackpack(detailCharId, uid) ? "装备已更换" : "无法更换装备，请检查背包空间");
+    useRunStore.getState().equipFromBackpack(detailCharId, uid);
   };
   const unequip = (slot: EquipSlot) => {
     if (!detailCharId) return;
-    setMessage(useRunStore.getState().unequipToBackpack(detailCharId, slot) ? `已卸下${SLOT_LABEL[slot]}` : "背包空间不足，无法卸下装备");
+    useRunStore.getState().unequipToBackpack(detailCharId, slot);
   };
   const mustReplace = Boolean(session?.pendingPickup.length);
   return {
-    allowed, bagOpen: bagOpen || mustReplace, picnicOpen, beaconPicking, atlasOpen, detailCharId, target, message,
+    allowed, bagOpen: bagOpen || mustReplace, picnicOpen, beaconPicking, atlasOpen, detailCharId, target, rejected,
     blocked: bagOpen || mustReplace || picnicOpen || atlasOpen || beaconPicking || Boolean(detailCharId || target),
     setBagOpen, setPicnicOpen, setBeaconPicking, setAtlasOpen, setDetailCharId, setTarget, useItem, chooseMember, equip, unequip,
   };

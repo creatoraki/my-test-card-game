@@ -35,11 +35,8 @@ export function ExploreInventory({ session, inventory }: { session: ExploreState
       onPick={(roomId) => { travelByBeacon(roomId); inventory.setBeaconPicking(false); inventory.setAtlasOpen(false); }}
       onClose={() => { inventory.setAtlasOpen(false); inventory.setBeaconPicking(false); }}
     />}
-    {inventory.target && <div className={s.targetBanner} role="status">
-      <span>选择队员使用「{getItemDef(inventory.target.itemId).name}」</span>
-      <button type="button" onClick={() => inventory.setTarget(null)}>取消</button>
-    </div>}
-    {inventory.message && <div className={s.toast} role="status">{inventory.message}</div>}
+    {/* 选人使用物品: 压暗场景让底栏立绘成为唯一焦点, 点空白处取消; 提示文字与取消按钮挂在立绘段上(见 PartyPicker)。 */}
+    {inventory.target && <div className={s.pickScrim} aria-hidden onClick={() => inventory.setTarget(null)} />}
     {inventory.bagOpen && inventory.allowed && <BackpackPanel onClose={() => inventory.setBagOpen(false)} onUse={inventory.useItem} />}
     {inventory.picnicOpen && <PicnicPanel onClose={() => inventory.setPicnicOpen(false)} />}
     {inventory.detailCharId && character && member && <CharacterModal

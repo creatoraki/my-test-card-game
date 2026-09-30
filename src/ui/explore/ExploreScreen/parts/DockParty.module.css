@@ -1,0 +1,133 @@
+/* 底栏立绘段。几何见 ExploreDock.module.css 顶部注释(500×316，与战斗侧同规格)。
+   每个队员槽 = 立绘卡 + 外框层(.frame，四角括号 + 描边，画在卡外 6px) + 选错闪红层(.reject)。
+   外框层是卡的兄弟节点，不受卡自身 clip-path 裁切。 */
+.party {
+  --pick-cyan: #7ff0ff;
+  --pick-gold: #ffd98a;
+  position: relative;
+  width: 500px;
+  align-self: end;
+}
+.members { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.slot { position: relative; min-width: 0; }
+
+/* 卡高/取景高/取景基准宽刻意不覆盖 —— PartyMemberCard 的默认值(316/268/160)
+   就是战斗侧的规格，留空即为「与战斗相同」。 */
+.member {
+  width: 100%;
+  cursor: pointer;
+  background: #101b20c9;
+  border-color: #a8926033;
+  transition: transform 160ms ease-out, filter 160ms ease-out, border-color 160ms ease-out;
+}
+.member span, .member b, .member strong { font-size: max(18px, 1em); }
+.slot[data-disabled] .member { cursor: default; }
+
+/* ---------- 外框层 ---------- */
+.frame {
+  --c: var(--pick-gold);
+  position: absolute;
+  inset: -6px;
+  pointer-events: none;
+  border: 1px solid transparent;
+  opacity: 0;
+  transition: opacity 160ms ease-out, inset 160ms ease-out, border-color 160ms ease-out, box-shadow 160ms ease-out;
+}
+/* 四角括号：每个 <i> 是一个 L 形角，靠两条边框画出。 */
+.frame i {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 0 solid var(--c);
+  filter: drop-shadow(0 0 6px var(--c));
+}
+.frame i:nth-child(1) { left: -1px; top: -1px; border-left-width: 3px; border-top-width: 3px; }
+.frame i:nth-child(2) { right: -1px; top: -1px; border-right-width: 3px; border-top-width: 3px; }
+.frame i:nth-child(3) { left: -1px; bottom: -1px; border-left-width: 3px; border-bottom-width: 3px; }
+.frame i:nth-child(4) { right: -1px; bottom: -1px; border-right-width: 3px; border-bottom-width: 3px; }
+
+/* 平时悬浮：淡金括号，提示「可以点开看详情」。 */
+.slot:not([data-disabled]):hover .frame { opacity: 0.7; }
+.slot:not([data-disabled]):hover .member { border-color: #d3b67c99; }
+
+/* ---------- 选人态 ---------- */
+.party[data-picking] .frame {
+  --c: var(--pick-cyan);
+  opacity: 1;
+  border-color: #7ff0ff55;
+  animation: pick-breathe 1.4s ease-in-out infinite;
+}
+.party[data-picking] .frame i { width: 16px; height: 16px; }
+.party[data-picking] .slot[data-disabled] .frame { opacity: 0; animation: none; }
+.party[data-picking] .slot[data-disabled] .member { filter: grayscale(1) brightness(0.45); }
+
+/* 选人态悬浮：括号外扩并转金、描边实化、外发光 —— 「就是它」的选中外框。 */
+.party[data-picking] .slot:not([data-disabled]):hover .frame {
+  --c: var(--pick-gold);
+  inset: -9px;
+  border-color: #ffd98acc;
+  box-shadow: 0 0 0 1px #00000099, 0 0 22px #ffd98a66, inset 0 0 18px #ffd98a33;
+  animation: none;
+}
+.party[data-picking] .slot:not([data-disabled]):hover .frame i { width: 26px; height: 26px; }
+.party[data-picking] .slot:not([data-disabled]):hover .member {
+  transform: translateY(-4px);
+  filter: brightness(1.12);
+  border-color: #ffd98a;
+}
+
+@keyframes pick-breathe {
+  0%, 100% { border-color: #7ff0ff33; box-shadow: 0 0 8px #7ff0ff1f; }
+  50% { border-color: #7ff0ffaa; box-shadow: 0 0 18px #7ff0ff55; }
+}
+
+/* 选错对象：闪一下红框并左右抖动。 */
+.reject {
+  position: absolute;
+  inset: -6px;
+  pointer-events: none;
+  border: 2px solid #ff5a5a;
+  box-shadow: 0 0 20px #ff5a5a88, inset 0 0 24px #ff5a5a55;
+  animation: pick-reject 480ms ease-out both;
+}
+@keyframes pick-reject {
+  0% { opacity: 1; transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-3px); }
+  80% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; }
+}
+
+/* ---------- 段顶标签：骑在底栏上沿之上，贴着立绘段 ---------- */
+.pickHead {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 22px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 8px 16px;
+  background: linear-gradient(90deg, #0b1a1ff2, #0b1a1fcc);
+  border: 1px solid #7ff0ff66;
+  border-left: 3px solid var(--pick-cyan);
+  box-shadow: 0 0 20px #7ff0ff26, 0 12px 30px #000000b3;
+  white-space: nowrap;
+  animation: pick-head-in 220ms ease-out both;
+}
+.pickLabel { font-size: 18px; color: #9fc6cc; letter-spacing: 0.1em; }
+.pickItem { font-size: 20px; color: var(--pick-gold); font-weight: 600; }
+.pickCancel {
+  margin-left: 8px;
+  padding: 4px 14px;
+  font-size: 18px;
+  color: #d9e6e8;
+  background: #ffffff0f;
+  border: 1px solid #ffffff33;
+  cursor: pointer;
+  transition: background 140ms ease-out, border-color 140ms ease-out;
+}
+.pickCancel:hover { background: #ffffff1f; border-color: #ffffff80; }
+@keyframes pick-head-in {
+  from { opacity: 0; transform: translateY(8px); }
+}

@@ -11,7 +11,7 @@
 /* 右上角：净化粒子读数卡（样式见 EnergyReadout），这里只管定位。 */
 .readout { position: absolute; top: 0; right: 0; z-index: 30; }
 /* 底部 HUD 容器顶边落在 y=736(见 parts/ExploreDock.module.css)，浮层一律压在它之上。 */
-.targetBanner { position: absolute; left: 30px; bottom: 348px; z-index: 45; padding: 17px 22px; background: #192c2dee; border: 1px solid #b0caba70; font-size: 21px; }
-.targetBanner button { margin-left: 25px; font-size: 18px; }
-.toast { position: absolute; left: 580px; top: 325px; width: 760px; z-index: 90; padding: 20px; text-align: center; background: #142425ef; color: #e1d5b9; border: 1px solid #af987452; font-size: 22px; pointer-events: none; }
+/* 选人使用物品时的场景压暗层: 盖在场景、小地图与能量读数(z 30)之上, 底栏选人时抬到 z 32 压在它上面。 */
+.pickScrim { position: absolute; inset: 0; z-index: 31; background: radial-gradient(ellipse 70% 60% at 22% 100%, #00000033, #000000a6 70%); cursor: pointer; animation: pick-scrim-in 220ms ease-out both; }
+@keyframes pick-scrim-in { from { opacity: 0; } }
 .characterModal { z-index: 46; }

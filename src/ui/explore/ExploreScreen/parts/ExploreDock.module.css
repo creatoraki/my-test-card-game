@@ -48,14 +48,10 @@
 }
 .backpack::before { left: calc(var(--dock-gap) / -2); }
 
-.party { width: 500px; align-self: end; }
-.partyMembers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.memberSlot { position: relative; min-width: 0; }
-/* 卡高/取景高/取景基准宽刻意不覆盖 —— PartyMemberCard 的默认值(316/268/160)
-   就是战斗侧的规格，留空即为「与战斗相同」。 */
-.member { width: 100%; cursor: pointer; background: #101b20c9; border-color: #a8926033; }
-.member:hover { border-color: #d3b67c99; }
-.member span, .member b, .member strong { font-size: max(18px, 1em); }
+/* 立绘段(含选人态)见 DockParty。选人时底栏抬到场景压暗层(z 31)之上，背包段退暗不可点，焦点只留立绘。 */
+.dock[data-picking] { z-index: 32; }
+.backpack { transition: opacity 200ms ease-out, filter 200ms ease-out; }
+.dock[data-picking] .backpack { opacity: 0.35; filter: grayscale(0.6); pointer-events: none; }
 
 .backpack { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 /* 表头行吃掉格子以外的全部高度；下沿留 14px 给骑出首格上沿 11px 的分区标签(见 ItemSectionMark)。 */

@@ -2,15 +2,14 @@ import { canRetreat } from "@/explore/session";
 import { relicsInBackpack } from "@/explore/relics/relics";
 import type { ExploreState } from "@/explore/types";
 import { useRunStore } from "@/store/run/runStore";
-import { useTownStore } from "@/store/town/townStore";
 import BackpackBar from "@/ui/explore/BackpackBar";
 import { BurdenGauge } from "@/ui/explore/BurdenGauge";
 import { BeaconButton } from "@/ui/explore/BeaconSkill";
 import { ExploreActionButton, RetreatIcon } from "@/ui/explore/ExploreActionButton";
 import { PicnicButton } from "@/ui/explore/PicnicSkill";
-import { PartyMemberCard } from "@/ui/common/unit/PartyMemberCard";
 import type { ExploreInventoryState } from "../useExploreInventory";
 import { DockFrame } from "./DockFrame";
+import { DockParty } from "./DockParty";
 import { RelicRail } from "./RelicRail";
 import s from "./ExploreDock.module.css";
 
@@ -24,17 +23,9 @@ export function ExploreDock({ session, inventory, locked, pending }: {
   locked: boolean;
   pending: boolean;
 }) {
-  const characters = useTownStore((state) => state.characters);
-  return <div className={s.dock}>
+  return <div className={s.dock} data-picking={inventory.target ? true : undefined}>
     <DockFrame />
-    <div className={s.party} data-guide-anchor="party">
-      <div className={s.partyMembers}>
-        {session.party.map((item) => <div className={s.memberSlot} key={item.charId}><PartyMemberCard charId={item.charId} as="button"
-          name={item.name} emoji={item.emoji} hp={item.hp} hpLimit={item.hpLimit} maxHp={item.maxHp}
-          pollution={characters[item.charId]?.pollution ?? 0} down={!item.alive} className={s.member}
-          onClick={locked || (inventory.target && !item.alive) ? undefined : () => inventory.chooseMember(item.charId)} /></div>)}
-      </div>
-    </div>
+    <DockParty session={session} inventory={inventory} locked={locked} />
     <div className={s.backpack}>
       <div className={s.bagHead}>
         <RelicRail stacks={relicsInBackpack(session)} />
