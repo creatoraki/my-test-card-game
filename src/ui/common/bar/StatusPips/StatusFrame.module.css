@@ -1,8 +1,8 @@
 /* 外层只负责发光(一层黑色细描托轮廓 + 一层金色柔光): mask 会裁掉自身的 filter, 所以发光挂在未被遮罩的父层上。 */
 .frame {
-  /* 小型厚角: 臂长约图标 1/5, 线宽随图标尺寸缩放但不低于 3px。 */
+  /* 小型细角: 臂长约图标 1/5, 线宽随图标尺寸缩放但不低于 1.5px。 */
   --fc-len: calc(var(--pip-box, 30px) * 0.2);
-  --fc-w: max(3px, calc(var(--pip-box, 30px) * 0.1));
+  --fc-w: max(1.5px, calc(var(--pip-box, 30px) * 0.05));
   position: absolute;
   inset: 0;
   z-index: 0;

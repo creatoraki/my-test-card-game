@@ -8,7 +8,6 @@ export const COMMON_BASE: DropEntry[] = [
   { kind: "item", itemId: "green-crystal", chance: 0.2 },
   { kind: "item", itemId: regionalMaterial(DEFAULT_REGION_ID, "low").id, chance: 0.25 },
   { kind: "item", itemId: "copper-coin", chance: 0.46 },
-  { kind: "item", itemId: "module-crate-t1", chance: 0.05 },
   { kind: "item", itemId: "relic-broken-compass", chance: 0.02 },
 ];
 

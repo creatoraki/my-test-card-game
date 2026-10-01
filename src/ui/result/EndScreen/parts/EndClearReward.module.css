@@ -1,39 +1,148 @@
 .reward {
+  --gold: #f0c860;
+  --gold-hot: #ffe7a3;
+  --notch: 16px;
+  position: relative;
   display: flex;
   width: 100%;
   height: 100%;
   align-items: center;
-  gap: 10px;
-  padding: 4px 10px;
-  border-left: 2px solid #e2bd62;
-  background: linear-gradient(90deg, #201a0dbf, #091014a6 88%, transparent);
-  box-shadow: 0 10px 24px -18px #000000d9;
-  color: #f3e2ae;
+  gap: 18px;
+  padding: 10px 18px 10px 22px;
+  overflow: hidden;
+  color: #f8e8b8;
+  background:
+    radial-gradient(ellipse 60% 120% at 0% 50%, #f0c86040, transparent 70%),
+    linear-gradient(100deg, #2e230ef7 0%, #17130bf5 46%, #0b0e10f2 100%);
+  box-shadow:
+    inset 0 0 0 1px #f0c86080,
+    inset 0 1px 0 #ffe7a399,
+    0 18px 40px -16px #000000f0,
+    0 0 46px -14px #f0c86099;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+}
+
+/* 左缘金色立柱: 一眼区分「奖励」与普通面板。 */
+.reward::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 5px;
+  background: linear-gradient(180deg, var(--gold-hot), var(--gold) 60%, #a97d2a);
+  box-shadow: 0 0 16px var(--gold);
+  content: "";
+}
+
+/* 入场后一道金光扫过, 之后每隔几秒再扫一次。 */
+.shine {
+  position: absolute;
+  inset: -40% auto -40% 0;
+  width: 26%;
+  background: linear-gradient(105deg, transparent, #ffe7a347, transparent);
+  pointer-events: none;
+  transform: skewX(-20deg) translateX(-160%);
+  animation: rewardShine 3600ms cubic-bezier(0.3, 0.6, 0.2, 1) calc(var(--end-haul-delay, 2050ms) + 500ms) infinite;
+}
+
+.head {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kicker {
+  color: #d9b86c;
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
 }
 
 .heading {
-  flex: 0 0 auto;
+  color: var(--gold-hot);
+  font-size: 32px;
+  letter-spacing: 0.1em;
+  line-height: 1.15;
+  text-shadow:
+    0 0 14px #f0c860b3,
+    0 2px 0 #5a3f10;
+}
+
+.note {
+  color: #c9b48a;
   font-size: 18px;
-  letter-spacing: 0.08em;
-  text-shadow: 0 0 12px #e2bd6255;
+  line-height: 1.2;
 }
 
 .items {
+  position: relative;
   display: flex;
   min-width: 0;
+  flex: 1 1 auto;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  display: flex;
+  width: 84px;
+  min-width: 0;
+  flex-direction: column;
   align-items: center;
   gap: 4px;
-  overflow: hidden;
+  animation: rewardPop 460ms cubic-bezier(0.34, 1.56, 0.64, 1)
+    calc(var(--end-haul-delay, 2050ms) + 260ms + var(--i, 0) * 130ms) both;
 }
 
 .slot {
-  --item-slot-icon-size: 52%;
-  --item-slot-pad: 2px;
-  flex: 0 0 40px;
-  width: 40px;
-  min-height: 40px;
+  --item-slot-icon-size: 66%;
+  --item-slot-pad: 4px;
+  width: 72px;
+  height: 72px;
+  min-height: 72px;
+  flex: 0 0 72px;
+  box-shadow: 0 0 18px -4px #f0c860b3;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.entry:hover .slot {
+  box-shadow: 0 0 24px 0 #f0c860e6;
+  transform: translateY(-2px);
 }
 
 .slot :global([class*="item-slot-count"]) {
   font-size: 18px;
+}
+
+.name {
+  max-width: 100%;
+  overflow: hidden;
+  color: #f8e8b8;
+  font-size: 18px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes rewardPop {
+  from { opacity: 0; transform: translateY(14px) scale(0.6); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes rewardShine {
+  0% { transform: skewX(-20deg) translateX(-160%); }
+  40%, 100% { transform: skewX(-20deg) translateX(560%); }
 }

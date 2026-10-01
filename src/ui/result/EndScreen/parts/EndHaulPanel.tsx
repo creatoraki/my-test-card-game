@@ -4,6 +4,16 @@ import ItemInventoryPanel from "@/ui/common/item/ItemInventoryPanel";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import s from "./EndHaulPanel.module.css";
 
+// 结算页背景是整张场景图, 探索背包那套半透明底在这里会被背景吃掉 —— 换成近乎不透明的深底。
+const END_HAUL_COLORS = {
+  ...EXPLORE_BACKPACK_COLORS,
+  panel: "#0c181cf7",
+  panelDeep: "#05090bfc",
+  tray: "#00000066",
+  slot: "#ffffff17",
+  emptySlot: "#ffffff0d",
+};
+
 interface Props {
   haul: ItemStack[];
   salvageValue: number;
@@ -38,7 +48,7 @@ export function EndHaulPanel({ haul, salvageValue, wiped, levels, relicBonus }: 
       capacityLabel="占用"
       gridLabel="带回据点的物资"
       panelId="end-haul-panel"
-      colorMap={EXPLORE_BACKPACK_COLORS}
+      colorMap={END_HAUL_COLORS}
       renderSelectedInfo={(stack) => {
         if (!stack) {
           return (
