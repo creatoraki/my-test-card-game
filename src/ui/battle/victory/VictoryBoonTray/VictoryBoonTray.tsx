@@ -25,8 +25,12 @@ const BOON_META: Record<BattleBoonKind, { name: string; desc: string }> = {
     desc: "拾取后，所有存活队员恢复 5 点生命，不会复活阵亡队员。",
   },
   cardOffer: {
-    name: "卡牌奖励",
+    name: "卡牌奖励 · 抽牌",
     desc: "为每名存活队员生成 1 张候选卡牌，选择其中 1 张加入对应角色卡组。",
+  },
+  cardReplace: {
+    name: "卡牌奖励 · 换牌",
+    desc: "选择一名存活队员卡组中的 1 张卡牌，免费替换为随机普通卡，原卡及其模组一并移除。",
   },
   equipCrate: {
     name: "随机装备箱",
@@ -41,6 +45,7 @@ const BOON_META: Record<BattleBoonKind, { name: string; desc: string }> = {
 const BOON_ART: Record<BattleBoonKind, string> = {
   healDew: healDewArt,
   cardOffer: cardOfferArt,
+  cardReplace: cardOfferArt,
   equipCrate: equipCrateArt,
   moduleCrate: moduleCrateArt,
 };

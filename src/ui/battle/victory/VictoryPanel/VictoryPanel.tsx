@@ -14,6 +14,7 @@ import { VictoryDropSection } from "@/ui/battle/victory/VictoryDropSection";
 import { VictoryLootTray, type VictoryLootTrayHandle } from "@/ui/battle/victory/VictoryLootTray";
 import { VictoryBoonTray } from "@/ui/battle/victory/VictoryBoonTray/VictoryBoonTray";
 import { VictoryCardOffer } from "@/ui/battle/victory/VictoryCardOffer/VictoryCardOffer";
+import { VictoryCardReplace } from "@/ui/battle/victory/VictoryCardReplace/VictoryCardReplace";
 import { VictoryBackpack } from "@/ui/battle/victory/VictoryBackpack";
 import { VictoryPlaque } from "@/ui/battle/victory/VictoryPlaque";
 import { VictoryButton } from "@/ui/battle/victory/VictoryButton";
@@ -47,7 +48,8 @@ export function VictoryPanel() {
   const pendingLoot = session?.pendingLoot ?? [];
   const pendingBoons = session?.pendingBoons ?? [];
   const pendingCardOffer = session?.pendingCardOffer ?? null;
-  const pendingRewardCount = pendingLoot.length + pendingBoons.length + (pendingCardOffer ? 1 : 0);
+  const pendingCardReplace = session?.pendingCardReplace ?? null;
+  const pendingRewardCount = pendingLoot.length + pendingBoons.length + (pendingCardOffer ? 1 : 0) + (pendingCardReplace ? 1 : 0);
   const timing = victoryTiming();
   const pulseSignature = Object.fromEntries(backpack.map((stack) => [stack.uid, stack.count]));
   const pulsedUids = useChangePulse(pulseSignature);
@@ -198,6 +200,7 @@ export function VictoryPanel() {
 
           </div>
           <VictoryCardOffer />
+          <VictoryCardReplace />
           <footer className={s["panel-footer"]}>
             <div className={s["footer-switch"]}>
               {confirmingAbandon ? (

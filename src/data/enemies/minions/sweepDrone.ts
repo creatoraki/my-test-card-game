@@ -6,7 +6,7 @@ export const SWEEP_DRONE: EnemyDef = {
   name: "清扫无人机",
   emoji: "🛸",
   maxHp: 72,
-  exp: 12,
+  exp: 16,
   stats: { attack: 60, defense: 2, dodgeRate: 0, initiative: 20, critDamage: 150 },
   moves: [
     {

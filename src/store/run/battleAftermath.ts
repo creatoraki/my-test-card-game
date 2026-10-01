@@ -170,7 +170,7 @@ export function retreatFromBattle(get: () => RunState, set: RunSet): void {
 export function confirmExpReport(set: RunSet): void {
   const session = useExploreStore.getState().session;
   if (!session) return set({ screen: "town" });
-  if (session.pendingLoot.length || session.pendingBoons.length || session.pendingCardOffer) return;
+  if (session.pendingLoot.length || session.pendingBoons.length || session.pendingCardOffer || session.pendingCardReplace) return;
 
   if (session.phase === "cleared") {
     const reward = settleClear(set);

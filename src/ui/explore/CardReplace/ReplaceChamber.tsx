@@ -1,5 +1,5 @@
 // 置换弹窗右侧的「置换舱」: 放大展示已放入的卡, 并把这次置换会发生什么逐条讲清楚 ——
-// 换出范围(随机普通卡、几种可能)、原卡模组去向、食品费用是否够。
+// 换出范围(随机普通卡、几种可能)、原卡模组去向。
 import { cardDisplayName, type Card } from "@/engine";
 import { HandCard } from "@/ui/common/card/HandCard";
 import s from "./ReplaceChamber.module.css";
@@ -7,12 +7,9 @@ import s from "./ReplaceChamber.module.css";
 interface Props {
   card: Card | null;
   candidates: number;
-  foodCost: number;
-  foodHave: number;
 }
 
-export function ReplaceChamber({ card, candidates, foodCost, foodHave }: Props) {
-  const short = foodHave < foodCost;
+export function ReplaceChamber({ card, candidates }: Props) {
   return (
     <aside className={s.chamber}>
       <header className={s.head}>
@@ -56,10 +53,6 @@ export function ReplaceChamber({ card, candidates, foodCost, foodHave }: Props) 
         <div className={s.fact} data-tone={card?.cardModule ? "warn" : undefined}>
           <dt>原卡模组</dt>
           <dd>{card ? (card.cardModule ? "将随原卡一并移除" : "无模组") : "—"}</dd>
-        </div>
-        <div className={s.fact} data-tone={short ? "danger" : undefined}>
-          <dt>服务费用</dt>
-          <dd>{foodCost ? `临期食品 ×${foodCost}（持有 ${foodHave}）` : "免费"}</dd>
         </div>
       </dl>
     </aside>

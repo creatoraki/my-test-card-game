@@ -3,7 +3,7 @@ import { arkDrops, ARK_ELITE_BOONS } from "./shared";
 
 export const ARK_ELITES: EnemyDef[] = [
   {
-    id: "ark-canopy-stag", name: "冠层巡猎鹿", emoji: "🦌", maxHp: 110, exp: 36,
+    id: "ark-canopy-stag", name: "冠层巡猎鹿", emoji: "🦌", maxHp: 110, exp: 47,
     stats: { attack: 94, defense: 4, initiative: 20, critDamage: 150 },
     moves: [
       { id: "ark-stag-charge", name: "枝角冲锋", emoji: "🦌", cost: 4, delay: 3, kind: "attack", targeting: "foe", weight: 3, anim: "smash",
@@ -19,7 +19,7 @@ export const ARK_ELITES: EnemyDef[] = [
     dropTable: arkDrops("elite", "coil-spring"), boonTable: ARK_ELITE_BOONS,
   },
   {
-    id: "ark-nursery-keeper", name: "温室监护者", emoji: "🤖", maxHp: 115, exp: 38,
+    id: "ark-nursery-keeper", name: "温室监护者", emoji: "🤖", maxHp: 115, exp: 49,
     stats: { attack: 99, defense: 4, initiative: 20, critDamage: 150 },
     moves: [
       { id: "ark-keeper-cut", name: "清除入侵株", emoji: "✂️", cost: 4, delay: 3, kind: "attack", targeting: "foe", weight: 3, anim: "slash",

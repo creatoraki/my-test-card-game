@@ -28,7 +28,7 @@ export type CurioEffect =
   | { type: "FUSE_EQUIPMENT" }
   | { type: "UPGRADE_RELIC" }
   | { type: "FORGE_DRAW_TAINTED"; contaminate: number }
-  | { type: "REPLACE_CARD_COMMON"; foodCost?: number }
+  | { type: "REPLACE_CARD_COMMON" }
   | { type: "TUNE_EQUIPMENT"; mode: "bond" | "perfectness"; foodCost: number }
   | { type: "GRANT_DISPOSABLE_RELIC" }
   | { type: "CONSUME_ITEM"; itemId: string; count: number }

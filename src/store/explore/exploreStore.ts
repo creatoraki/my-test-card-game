@@ -46,8 +46,10 @@ import {
 } from "@/explore/session";
 import {
   abandonBoons,
+  clearCardReplace,
   healPartyFlat,
   openCardOffer,
+  openCardReplace,
   rollEquipCrate,
   rollModuleCrate,
   takeBoon,
@@ -55,6 +57,7 @@ import {
 } from "@/explore/core/boons";
 import { EXPLORE_RULES } from "@/explore/core/exploreRules";
 import { useTownStore } from "../town/townStore";
+import { commonReplaceCandidates } from "../town/deckCards";
 
 interface ExploreStore {
   session: ExploreState | null;
@@ -109,6 +112,8 @@ interface ExploreStore {
   takeBoonAction: (uid: string) => string | null;
   openCardOffer: (offers: CardOfferCandidate[]) => void;
   clearCardOffer: () => void;
+  /** 战斗奖励「换牌」: 置换演出结束(或放弃)后清掉置换机会。 */
+  clearCardReplace: () => void;
   abandonBoons: () => void;
   grantExpTo: (charId: string) => void;
   recordExpGain: (amount: number) => void;
@@ -345,6 +350,21 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
         return true;
       }
 
+      if (kind === "cardReplace") {
+        const characters = useTownStore.getState().characters;
+        const replaceable = d.party.some((member) => {
+          const character = member.alive ? characters[member.charId] : undefined;
+          return character?.deck.some((card) => commonReplaceCandidates(character, card.uid).length > 0);
+        });
+        if (!replaceable) {
+          summary = "换牌奖励已拾取 · 当前没有可以替换的卡牌";
+          return true;
+        }
+        openCardReplace(d);
+        summary = "换牌奖励已拾取 · 选择一张卡牌替换为随机普通卡";
+        return true;
+      }
+
       const offers = useTownStore.getState().rollPartyDrawOffers(
         d.party.filter((member) => member.alive).map((member) => member.charId),
       );
@@ -367,6 +387,10 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   clearCardOffer: () => {
     mutate(get, set, (d) => takeCardOffer(d) != null);
+  },
+
+  clearCardReplace: () => {
+    mutate(get, set, (d) => clearCardReplace(d));
   },
 
   abandonBoons: () => {

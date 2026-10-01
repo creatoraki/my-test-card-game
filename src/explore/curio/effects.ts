@@ -96,7 +96,7 @@ export function applyCurioEffect(
         ? `获得一次免费卡组锻造，完成后污染 ${effect.contaminate} 张卡牌`
         : "获得一次免费卡组锻造";
     case "REPLACE_CARD_COMMON":
-      s.pendingActions.push({ kind: "replaceCard", foodCost: effect.foodCost });
+      s.pendingActions.push({ kind: "replaceCard" });
       return "获得一次将卡牌替换为普通卡的机会";
     case "TUNE_EQUIPMENT":
       s.pendingActions.push({ kind: "equipmentTune", mode: effect.mode, foodCost: effect.foodCost });

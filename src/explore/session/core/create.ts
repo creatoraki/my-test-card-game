@@ -52,6 +52,7 @@ export function createSession(
     pendingLoot: [],
     pendingBoons: [],
     pendingCardOffer: null,
+    pendingCardReplace: null,
     pendingExp: {},
     pendingActions: [],
     pendingStory: [],

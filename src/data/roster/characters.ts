@@ -1,10 +1,11 @@
 // ★ 角色数据 ★ —— 角色**不设等级**, 每人一份固定基础面板(《角色养成设计.md》第一/三章)。
 // 长期成长全部来自装备与卡组锻造, 这里的数字进游戏后不会再变。
 // startingCardIds / pools 引用 cards/ 目录注册的卡牌 id(可重复, 表示多张)。
+// 初始卡组固定 6 张: 基础攻击 / 治疗 / 防护各 1 + 3 张职业卡。
 
 import type { Rarity, StatBlock } from "@/engine/types";
 import { makeStats } from "@/engine/combat/stats";
-import { basicCardId, basicStartingCardIds } from "../cards/neutral/basicCards";
+import { basicStartingCardIds } from "../cards/neutral/basicCards";
 
 export interface CharacterDef {
   id: string;
@@ -38,11 +39,10 @@ export const CHARACTERS: CharacterDef[] = [
       critDamage: 150,
     }),
     startingCardIds: [
-      basicCardId("swordsman", "attack"),
-      basicCardId("swordsman", "attack"),
-      basicCardId("swordsman", "guard"),
+      ...basicStartingCardIds("swordsman"),
       "snowflake",
       "fallen-leaf",
+      "gale",
     ],
     pools: {
       common: [
@@ -93,11 +93,10 @@ export const CHARACTERS: CharacterDef[] = [
       critDamage: 150,
     }),
     startingCardIds: [
-      basicCardId("prophet", "attack"),
-      basicCardId("prophet", "attack"),
-      basicCardId("prophet", "heal"),
+      ...basicStartingCardIds("prophet"),
       "countercurrent",
       "emergency-care",
+      "starfall",
     ],
     pools: {
       common: [
@@ -149,9 +148,11 @@ export const CHARACTERS: CharacterDef[] = [
       critDamage: 160,
     }),
     startingCardIds: [
-      ...basicStartingCardIds("botanist").slice(0, 3),
+      ...basicStartingCardIds("botanist"),
+      // 毒箭引导: 毒刺箭先上毒 → 连续射击 / 藤蔓缠绕的毒箭每段额外穿孔 → 叠到满弓。
+      "venom-dart",
       "continuous-shot",
-      "poison-mushroom",
+      "vine-entangle",
     ],
     pools: {
       common: [
@@ -203,11 +204,10 @@ export const CHARACTERS: CharacterDef[] = [
       critDamage: 150,
     }),
     startingCardIds: [
-      basicCardId("alchemist", "attack"),
-      basicCardId("alchemist", "heal"),
-      basicCardId("alchemist", "heal"),
+      ...basicStartingCardIds("alchemist"),
       "ignition-reagent",
       "jade-plating",
+      "biphasic-draught",
     ],
     pools: {
       common: [
@@ -259,11 +259,10 @@ export const CHARACTERS: CharacterDef[] = [
       critDamage: 150,
     }),
     startingCardIds: [
-      basicCardId("actuary", "attack"),
-      basicCardId("actuary", "heal"),
-      basicCardId("actuary", "guard"),
+      ...basicStartingCardIds("actuary"),
       "initial-premium",
       "emergency-disbursement",
+      "early-claim",
     ],
     pools: {
       common: [

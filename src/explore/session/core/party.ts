@@ -76,6 +76,7 @@ export function loseEverything(s: ExploreState): void {
   s.pendingLoot = [];
   s.pendingBoons = [];
   s.pendingCardOffer = null;
+  s.pendingCardReplace = null;
   s.pendingExp = {};
   s.pendingActions = [];
   s.chuteOpen = false;

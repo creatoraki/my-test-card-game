@@ -11,7 +11,8 @@ import type { DropEntry, EquipSlot, ItemRarity, ItemStack } from "@/items/types"
 import type { MapDifficulty } from "@/data/maps/mapDifficulty";
 import type { Card } from "@/engine";
 
-export type BattleBoonKind = "healDew" | "cardOffer" | "equipCrate" | "moduleCrate";
+// cardReplace 不进 boonTable: 它是 cardOffer 掷中后的内部分支(见 core/boons.ts), 不另占掉率。
+export type BattleBoonKind = "healDew" | "cardOffer" | "cardReplace" | "equipCrate" | "moduleCrate";
 
 export interface BoonEntry {
   kind: BattleBoonKind;
@@ -22,6 +23,18 @@ export interface PendingBoon {
   uid: string;
   kind: BattleBoonKind;
   dropK: number;
+}
+
+/** 一次普通卡替换的前后两张卡; 置换弹窗据此播放演出。 */
+export interface CardReplaceResult {
+  charId: string;
+  before: Card;
+  after: Card;
+}
+
+/** 战斗奖励「换牌」打开的置换机会; result 写入后等玩家点「完成」才清掉。 */
+export interface PendingCardReplace {
+  result?: CardReplaceResult;
 }
 
 export interface CardOfferCandidate {
@@ -110,7 +123,7 @@ export interface EventChoice {
 type PendingActionBody =
   | { kind: "expOne"; amount: number }
   | { kind: "forgeDraw"; contaminate?: number }
-  | { kind: "replaceCard"; foodCost?: number; result?: { charId: string; before: Card; after: Card } }
+  | { kind: "replaceCard"; result?: CardReplaceResult }
   | { kind: "equipmentTune"; mode: "bond" | "perfectness"; foodCost: number; result?: { before: ItemStack; after: ItemStack } }
   | { kind: "forgeRemove" }
   | { kind: "equipOffer"; offers: ItemStack[] }
@@ -268,6 +281,7 @@ export interface ExploreState {
   lootReturnedUids?: string[];
   pendingBoons: PendingBoon[];
   pendingCardOffer: CardOfferCandidate[] | null;
+  pendingCardReplace: PendingCardReplace | null;
   pendingExp: Record<string, number>;
   pendingActions: PendingAction[];
   pendingStory: string[];

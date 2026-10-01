@@ -193,10 +193,6 @@
   color: #f0c46a;
 }
 
-.fact[data-tone="danger"] dd {
-  color: #ff7b6e;
-}
-
 @keyframes bayCardIn {
   from {
     opacity: 0;

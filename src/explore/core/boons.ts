@@ -1,5 +1,5 @@
 import { newUid, pickModuleFromCrate } from "@/data";
-import { rngInt } from "@/engine/core/rng";
+import { rngFloat, rngInt } from "@/engine/core/rng";
 import { rollEquipment } from "@/items/equipRoll";
 import { pickByQuality, rollAffinity, rollCount, type DropContext } from "@/items/drops";
 import type { ItemStack } from "@/items/types";
@@ -28,11 +28,13 @@ export function rollBoons(
   }
 
   // 装备箱完全按掉率产出，不做保底与上限；产出节奏靠各敌人 boonTable 的 chance 调节。
+  // ★ 卡牌奖励先按上限截断, 再对留下的那张做内部分支(抽牌 / 换牌) —— 总掉率与上限都不受换牌影响。
   let cardOfferCount = 0;
   return rolled.filter((boon) => {
     if (boon.kind !== "cardOffer") return true;
     if (cardOfferCount >= EXPLORE_RULES.boons.cardOfferCap) return false;
     cardOfferCount += 1;
+    if (rngFloat(s) < EXPLORE_RULES.boons.cardReplaceShare) boon.kind = "cardReplace";
     return true;
   });
 }
@@ -87,9 +89,20 @@ export function takeCardOffer(s: ExploreState): CardOfferCandidate[] | null {
   return offers?.map((offer) => ({ ...offer })) ?? null;
 }
 
+export function openCardReplace(s: ExploreState): void {
+  s.pendingCardReplace = {};
+}
+
+export function clearCardReplace(s: ExploreState): boolean {
+  if (!s.pendingCardReplace) return false;
+  s.pendingCardReplace = null;
+  return true;
+}
+
 export function abandonBoons(s: ExploreState): boolean {
-  if (!s.pendingBoons.length && !s.pendingCardOffer) return false;
+  if (!s.pendingBoons.length && !s.pendingCardOffer && !s.pendingCardReplace) return false;
   s.pendingBoons = [];
   s.pendingCardOffer = null;
+  s.pendingCardReplace = null;
   return true;
 }

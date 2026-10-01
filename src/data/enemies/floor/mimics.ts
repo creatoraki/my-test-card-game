@@ -24,7 +24,7 @@ export const MIMIC_ENEMIES: EnemyDef[] = [
     name: "械匣宝箱怪",
     emoji: "🧰",
     maxHp: 100,
-    exp: 26,
+    exp: 34,
     fleeAfterRound: 2,
     stats: { attack: 0, defense: 8, dodgeRate: 0, initiative: 20, critDamage: 150 },
     moves: [
@@ -79,7 +79,7 @@ export const MIMIC_ENEMIES: EnemyDef[] = [
     name: "牌匣宝箱怪",
     emoji: "🃏",
     maxHp: 36,
-    exp: 22,
+    exp: 29,
     fleeAfterRound: 2,
     stats: { attack: 0, defense: 0, dodgeRate: 35, initiative: 20, critDamage: 150 },
     moves: [

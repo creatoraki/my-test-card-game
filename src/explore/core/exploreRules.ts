@@ -164,6 +164,8 @@ export const EXPLORE_RULES = {
   boons: {
     healDewAmount: 5,
     cardOfferCap: 1,
+    // 卡牌奖励掷中后的内部分支: 这一比例改为「换牌」(普通卡替换), 其余仍是「抽牌」。不改卡牌奖励总掉率。
+    cardReplaceShare: 0.4,
   },
 
   picnic: {

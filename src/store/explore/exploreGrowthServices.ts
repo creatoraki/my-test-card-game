@@ -4,6 +4,7 @@ import { rngInt } from "@/engine/core/rng";
 import { payServiceFood } from "@/explore/curio/foodPayment";
 import { syncPartyVitals } from "@/explore/session";
 import { resetPerfectness } from "@/items/equipRoll";
+import type { CardReplaceResult, ExploreState } from "@/explore/types";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { deriveStats, shiftVitals } from "../town/characterStats";
 import { useExploreStore } from "./exploreStore";
@@ -50,25 +51,42 @@ export function tuneExploreEquipment(target: ExploreEquipmentTarget): boolean {
   return true;
 }
 
+// 免费换卡的公共部分: 校验存活 → 换卡, 返回前后两张卡; 调用方负责把结果写回各自的待办。
+function swapForCommon(session: ExploreState, charId: string, uid: string): CardReplaceResult | null {
+  if (!session.party.some(member => member.charId === charId && member.alive)) return null;
+  const before = useTownStore.getState().characters[charId]?.deck.find(card => card.uid === uid);
+  if (!before) return null;
+  const after = useTownStore.getState().replaceCardWithCommon(charId, uid);
+  return after ? { charId, before: structuredClone(before), after: structuredClone(after) } : null;
+}
+
+const replaceNote = (result: CardReplaceResult) =>
+  `「${cardDisplayName(result.before)}」已替换为「${cardDisplayName(result.after)}」`;
+
 /**
- * 普通卡替换: 扣食品 → 换卡 → 把前后两张卡写进待办的 result, 待办**不出队**。
+ * 普通卡替换(物件服务, 免费): 换卡 → 把前后两张卡写进待办的 result, 待办**不出队**。
  * 奖励弹窗读 result 播放置换演出并展示结果, 玩家点「完成」后才由浮层结算出队。
  */
 export function replaceExploreCard(charId: string, uid: string): boolean {
   const session = useExploreStore.getState().session;
   const action = session?.pendingActions[0];
   if (!session || action?.kind !== "replaceCard" || action.result) return false;
-  if (!session.party.some(member => member.charId === charId && member.alive)) return false;
-  const before = useTownStore.getState().characters[charId]?.deck.find(card => card.uid === uid);
-  if (!before) return false;
+  const result = swapForCommon(session, charId, uid);
+  if (!result) return false;
   const draft = structuredClone(session);
-  const foodCost = action.foodCost ?? 0;
-  if (!payServiceFood(draft, foodCost)) return false;
-  const after = useTownStore.getState().replaceCardWithCommon(charId, uid);
-  if (!after) return false;
   const pending = draft.pendingActions[0];
-  if (pending.kind === "replaceCard") pending.result = { charId, before: structuredClone(before), after: structuredClone(after) };
-  draft.pendingNotes.push(`「${cardDisplayName(before)}」已替换为「${cardDisplayName(after)}」${foodCost ? `，消耗食品 ×${foodCost}` : ""}`);
+  if (pending.kind === "replaceCard") pending.result = result;
+  draft.pendingNotes.push(replaceNote(result));
   useExploreStore.setState({ session: draft });
+  return true;
+}
+
+/** 战斗奖励「换牌」: 同上, 结果写进 pendingCardReplace, 胜利面板的置换弹窗点「完成」后清掉。 */
+export function replaceBattleCard(charId: string, uid: string): boolean {
+  const session = useExploreStore.getState().session;
+  if (!session?.pendingCardReplace || session.pendingCardReplace.result) return false;
+  const result = swapForCommon(session, charId, uid);
+  if (!result) return false;
+  useExploreStore.setState({ session: { ...session, pendingCardReplace: { result } } });
   return true;
 }

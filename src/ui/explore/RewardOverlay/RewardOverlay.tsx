@@ -22,6 +22,7 @@ import { DOSSIER_ACCENT } from "@/ui/explore/EventDossier";
 import RelicOffers from "./RelicOffers";
 import { EquipmentTuneReward } from "./EquipmentTuneReward";
 import { CardReplaceModal } from "@/ui/explore/CardReplace";
+import { replaceExploreCard } from "@/store/explore/exploreGrowthServices";
 import { CharacterPicker, PartyReward, QuirkReward, PurifyReward } from "./RewardCharacters";
 import { FreeDraw, FreeRemove } from "./RewardCards";
 import { EquipOffers, ReforgePicker } from "./RewardEquipment";
@@ -146,7 +147,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   return (
     <>
       {drawPicker}
-      <CardReplaceModal action={replaceAction} members={selectableCharacters} lockedCharId={lockedCharId} onFinish={finish} />
+      <CardReplaceModal action={replaceAction} members={selectableCharacters} lockedCharId={lockedCharId} onReplace={replaceExploreCard} onFinish={finish} />
       {!hidePanel && (
         <div className={s["reward-layer"]} data-closing={presence.closing || undefined}>
           <section

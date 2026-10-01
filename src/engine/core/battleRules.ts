@@ -53,7 +53,7 @@ export const RULES = {
 
   // 敌人行动点数: 每回合回复, 剩余跨回合保留; 招式按 cost 扣点。
   enemy: {
-    apPerRound: 5, // 每回合回复的行动点(EnemyDef.apPerRound 可覆盖)
+    apPerRound: 4, // 每回合回复的行动点(EnemyDef.apPerRound 可覆盖)
     ultimateForceRatio: 1.5, // 当前点数 ≥ 大招消耗 × 该倍率时固定放大招
   },
 

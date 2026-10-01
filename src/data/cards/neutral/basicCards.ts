@@ -49,12 +49,7 @@ export function makeBasicCardDefs(charId: string): CardDef[] {
   ];
 }
 
+// 初始卡组的基础卡部分: 攻击 / 治疗 / 防护各 1 张。
 export function basicStartingCardIds(charId: string): string[] {
-  return [
-    basicCardId(charId, "attack"),
-    basicCardId(charId, "attack"),
-    basicCardId(charId, "heal"),
-    basicCardId(charId, "heal"),
-    basicCardId(charId, "guard"),
-  ];
+  return [basicCardId(charId, "attack"), basicCardId(charId, "heal"), basicCardId(charId, "guard")];
 }

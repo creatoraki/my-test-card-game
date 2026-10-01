@@ -30,7 +30,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
     name: "废品机器人",
     emoji: "🤖",
     maxHp: 95,
-    exp: 30,
+    exp: 39,
     stats: { attack: 85, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
     moves: [
       {
@@ -93,7 +93,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
     name: "电线杆机器人",
     emoji: "🤖",
     maxHp: 100,
-    exp: 32,
+    exp: 42,
     stats: { attack: 90, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
     moves: [
       {

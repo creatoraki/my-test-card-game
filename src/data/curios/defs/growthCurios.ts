@@ -39,9 +39,9 @@ export const GROWTH_CURIOS = {
   },
   cardExchange: {
     name: "卡牌置换终端", role: "service", verb: "置换", size: 210,
-    description: `消耗任意临期食品共 ${balance.replaceFood} 份，将指定角色的一张卡换为随机普通卡。确认卡牌后才扣款，替换会移除原卡及其模组。`,
+    description: "免费将指定角色的一张卡换为随机普通卡，替换会移除原卡及其模组。",
     decisions: [{ id: "exchange", label: "选择换卡目标", story: "终端开放了本次置换协议，请选择角色和要替换的卡牌。",
-      effects: [{ type: "REPLACE_CARD_COMMON", foodCost: balance.replaceFood }] }],
+      effects: [{ type: "REPLACE_CARD_COMMON" }] }],
   },
   bondWorkbench: {
     name: "羁绊重铸台", role: "service", verb: "重铸", size: 210,

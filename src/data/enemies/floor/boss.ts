@@ -19,7 +19,7 @@ export const BOSS_ENEMIES: EnemyDef[] = [
     name: "垃圾山的守护者",
     emoji: "🤖",
     maxHp: 200,
-    exp: 80,
+    exp: 104,
     apPerRound: 8,
     stats: { attack: 100, defense: 8, dodgeRate: 0, initiative: 20, critDamage: 150 },
     ai: {

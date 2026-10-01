@@ -6,7 +6,7 @@ export const RADIO_BOT: EnemyDef = {
   name: "收音机机器人",
   emoji: "📻",
   maxHp: 45,
-  exp: 11,
+  exp: 14,
   stats: { attack: 45, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
   moves: [
     {

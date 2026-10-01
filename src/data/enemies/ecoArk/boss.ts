@@ -3,7 +3,7 @@ import { arkDrops } from "./shared";
 
 /** 每回合 8 行动点(约两招)，攻击间穿插培育与修复窗口；中毒协作不附带硬控。 */
 export const ARK_BOSSES: EnemyDef[] = [{
-  id: "ark-mother-core", name: "母树中枢", emoji: "🌳", maxHp: 230, exp: 95, apPerRound: 8,
+  id: "ark-mother-core", name: "母树中枢", emoji: "🌳", maxHp: 230, exp: 124, apPerRound: 8,
   stats: { attack: 110, defense: 8, initiative: 20, critDamage: 150 },
   moves: [
     { id: "ark-mother-root", name: "根脉贯穿", emoji: "🌿", cost: 3, delay: 2, kind: "attack", targeting: "foe", weight: 3, anim: "slash",

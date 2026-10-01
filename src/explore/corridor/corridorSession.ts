@@ -93,7 +93,7 @@ export function clampCorridorX(corridor: CorridorState, x: number): number {
 }
 
 export function hasCorridorRewards(s: ExploreState): boolean {
-  return Boolean(s.pendingLoot.length || s.pendingPickup.length || s.pendingActions.length || s.pendingBoons.length || s.pendingCardOffer);
+  return Boolean(s.pendingLoot.length || s.pendingPickup.length || s.pendingActions.length || s.pendingBoons.length || s.pendingCardOffer || s.pendingCardReplace);
 }
 
 export function canWalkCorridor(s: ExploreState): boolean {

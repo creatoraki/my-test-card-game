@@ -6,7 +6,7 @@ export const TRAFFIC_LIGHT_BOT: EnemyDef = {
   name: "红绿灯机器人",
   emoji: "🚦",
   maxHp: 70,
-  exp: 14,
+  exp: 18,
   stats: { attack: 55, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
   moves: [
     {

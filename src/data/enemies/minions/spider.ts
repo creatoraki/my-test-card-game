@@ -6,7 +6,7 @@ export const MAINTENANCE_SPIDER: EnemyDef = {
   name: "维修蜘蛛",
   emoji: "🕷️",
   maxHp: 62,
-  exp: 12,
+  exp: 16,
   stats: { attack: 60, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
   moves: [
     {

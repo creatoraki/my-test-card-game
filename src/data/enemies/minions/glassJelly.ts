@@ -6,7 +6,7 @@ export const GLASS_JELLY: EnemyDef = {
   name: "玻璃水母",
   emoji: "🎐",
   maxHp: 46,
-  exp: 13,
+  exp: 17,
   stats: { attack: 50, defense: 0, dodgeRate: 15, initiative: 20, critDamage: 150 },
   moves: [
     {

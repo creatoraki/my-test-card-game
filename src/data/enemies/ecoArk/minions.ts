@@ -3,7 +3,7 @@ import { arkDrops, ARK_MINION_BOONS } from "./shared";
 
 export const ARK_MINIONS: EnemyDef[] = [
   {
-    id: "ark-moss-crab", name: "苔甲搬运蟹", emoji: "🦀", maxHp: 80, exp: 14,
+    id: "ark-moss-crab", name: "苔甲搬运蟹", emoji: "🦀", maxHp: 80, exp: 18,
     stats: { attack: 66, defense: 2, initiative: 20, critDamage: 150 },
     moves: [
       { id: "ark-crab-clamp", name: "液压钳击", emoji: "🦀", cost: 3, delay: 2, kind: "attack", targeting: "foe", weight: 3, anim: "smash",
@@ -16,7 +16,7 @@ export const ARK_MINIONS: EnemyDef[] = [
     dropTable: arkDrops("minion", "standard-gear"), boonTable: ARK_MINION_BOONS,
   },
   {
-    id: "ark-spore-moth", name: "孢灯浮蛾", emoji: "🦋", maxHp: 52, exp: 15,
+    id: "ark-spore-moth", name: "孢灯浮蛾", emoji: "🦋", maxHp: 52, exp: 20,
     stats: { attack: 55, defense: 0, dodgeRate: 12, initiative: 20, critDamage: 150 },
     moves: [
       { id: "ark-moth-dust", name: "孢粉点射", emoji: "☠️", cost: 3, delay: 2, kind: "attack", targeting: "foe", weight: 3, anim: "poison",
@@ -30,7 +30,7 @@ export const ARK_MINIONS: EnemyDef[] = [
     dropTable: arkDrops("minion", "magnet"), boonTable: ARK_MINION_BOONS,
   },
   {
-    id: "ark-thorn-mantis", name: "棘刃园丁", emoji: "🌿", maxHp: 69, exp: 15,
+    id: "ark-thorn-mantis", name: "棘刃园丁", emoji: "🌿", maxHp: 69, exp: 20,
     stats: { attack: 67, defense: 0, initiative: 20, critDamage: 150 },
     moves: [
       { id: "ark-mantis-prune", name: "交错修枝", emoji: "✂️", cost: 3, delay: 2, kind: "attack", targeting: "foe", weight: 3, anim: "slash",
@@ -44,7 +44,7 @@ export const ARK_MINIONS: EnemyDef[] = [
     dropTable: arkDrops("minion", "coil-spring"), boonTable: ARK_MINION_BOONS,
   },
   {
-    id: "ark-irrigation-snail", name: "灌流蜗牛", emoji: "🐌", maxHp: 77, exp: 16,
+    id: "ark-irrigation-snail", name: "灌流蜗牛", emoji: "🐌", maxHp: 77, exp: 21,
     stats: { attack: 61, defense: 3, initiative: 20, critDamage: 150 },
     moves: [
       { id: "ark-snail-jet", name: "高压灌流", emoji: "💧", cost: 3, delay: 2, kind: "attack", targeting: "foe", weight: 3, anim: "shot",
@@ -58,7 +58,7 @@ export const ARK_MINIONS: EnemyDef[] = [
     dropTable: arkDrops("minion", "standard-battery"), boonTable: ARK_MINION_BOONS,
   },
   {
-    id: "ark-seed-sentry", name: "种荚哨兵", emoji: "🌰", maxHp: 45, exp: 13,
+    id: "ark-seed-sentry", name: "种荚哨兵", emoji: "🌰", maxHp: 45, exp: 17,
     stats: { attack: 50, defense: 0, initiative: 20, critDamage: 150 },
     moves: [
       { id: "ark-seed-burst", name: "种荚齐射", emoji: "🌰", cost: 3, delay: 2, kind: "attack", targeting: "foe", weight: 3, anim: "shot",
