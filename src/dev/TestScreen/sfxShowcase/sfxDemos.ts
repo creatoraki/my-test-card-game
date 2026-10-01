@@ -1,4 +1,4 @@
-// 攻击音效试听: 两种生成模式 × 三个特效。每个 demo 拆成「施放」(特效挂载起播)与
+// 攻击音效试听: 两种生成模式 × 两个特效。每个 demo 拆成「施放」(特效挂载起播)与
 // 「爆点」(impactMs 起播)两段, 正式接入战斗时分别对应 animSfx 的 attack / impact 两条 cue。
 
 import { playSfxRecipe, playSfxSample, preloadSfxSample } from "@/ui/audio";
@@ -14,7 +14,6 @@ export const DEMO_MODES: readonly { mode: DemoMode; name: string; note: string }
 ];
 
 export const DEMO_ANIMS: readonly { anim: DemoAnim; name: string; note: string }[] = [
-  { anim: "tri-slash", name: "三段斩击", note: "V 形两刀 · 十连斩 · 静默后爆裂" },
   { anim: "neon-cross", name: "霓虹交叉斩", note: "扫描锁定 · 双刃交叉 · 像素崩解" },
   { anim: "fire", name: "灼烧", note: "火星旋聚 · 爆燃 · 余烬噼啪" },
 ];

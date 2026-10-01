@@ -167,9 +167,13 @@
 .vfx-blade-slash.vfx-attack::after {
   content: none;
 }
-/* 三段斩击组件自带折返闪光与爆闪星芒, 且爆点远晚于挂载(1.85s) —— 默认冲击环挂载即
-   扩散, 与延迟爆点对不上, 同刀光斩处理为 content:none。 */
-.vfx-tri-slash.vfx-attack::after {
+/* 青岚横断是全场级特效: 刀痕与爆裂都由 ScreenFxLayer 的画布在 640ms 统一落下,
+   默认冲击环挂载即扩散, 既提前穿帮又会让每个目标各炸一圈(读成 n 份单体)。 */
+.vfx-gale-sweep.vfx-attack::after {
+  content: none;
+}
+/* 瞬斩自带十字闪与裂线, 爆点在 110ms; 默认圆环挂载即扩散会抢在刃光之前。 */
+.vfx-swift-slash.vfx-attack::after {
   content: none;
 }
 /* 血色刀光自带延迟到 1900ms 的血花爆裂与刀痕, 默认冲击环挂载即扩散会提前出现。 */

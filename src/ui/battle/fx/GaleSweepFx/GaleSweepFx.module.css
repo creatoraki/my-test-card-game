@@ -1,0 +1,10 @@
+/* 青岚横断: 全场级画布, 铺满战斗画布(.battle)。时序与视觉全在 rAF 循环里,
+   本文件只管铺放; 位图尺寸由 GaleSweepFx.tsx 按实际成像分辨率下发。 */
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}

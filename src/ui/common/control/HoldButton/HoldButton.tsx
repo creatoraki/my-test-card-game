@@ -1,4 +1,5 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { startChargeSfx, type ChargeSfxHandle } from "@/ui/audio";
 import { cx } from "@/ui/common/shared/cx";
 import s from "./HoldButton.module.css";
 
@@ -25,6 +26,7 @@ export function HoldButton({
   const startedAtRef = useRef(0);
   const holdingRef = useRef(false);
   const firedRef = useRef(false);
+  const chargeSfxRef = useRef<ChargeSfxHandle | null>(null);
 
   function setProgress(progress: number) {
     buttonRef.current?.style.setProperty("--hold-progress", String(progress));
@@ -46,6 +48,8 @@ export function HoldButton({
 
   function cancelHold() {
     stopFrame();
+    chargeSfxRef.current?.cancel();
+    chargeSfxRef.current = null;
     holdingRef.current = false;
     setProgress(0);
     buttonRef.current?.removeAttribute("data-holding");
@@ -54,6 +58,8 @@ export function HoldButton({
 
   function fire() {
     stopFrame();
+    chargeSfxRef.current?.complete();
+    chargeSfxRef.current = null;
     holdingRef.current = false;
     firedRef.current = true;
     setProgress(1);
@@ -87,6 +93,7 @@ export function HoldButton({
     startedAtRef.current = performance.now();
     setProgress(0);
     buttonRef.current?.setAttribute("data-holding", "true");
+    chargeSfxRef.current = startChargeSfx(holdMs);
     frameRef.current = window.requestAnimationFrame(tick);
   }
 
@@ -106,6 +113,7 @@ export function HoldButton({
     return () => {
       stopFrame();
       stopFiredFrame();
+      chargeSfxRef.current?.cancel();
     };
   }, []);
 

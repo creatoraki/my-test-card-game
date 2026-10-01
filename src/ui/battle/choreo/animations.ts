@@ -30,6 +30,9 @@ export interface AnimPreset {
   kind: "attack" | "support"; // attack: 目标受击特效; support: 目标柔和光效
   emoji?: string; // 首击特效图形(无 proc 时使用)
   proc?: ProcFxPreset; // 程序化特效(CSS / Canvas / GLSL)
+  // 全场级特效: 整次出牌只由 ScreenFxLayer 挂一份(覆盖全部目标), 各单位的 HitFxLayer
+  // 不再各放一份 proc, 只保留受击反应与飘字。全体攻击用, 避免 n 个目标演成 n 份单体动画。
+  stage?: boolean;
   screenFx?: "dim" | "flash" | "blood" | "glitch" | "twin"; // 可选的场景外全屏层
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
   windup: number; // ms: 施法者前冲蓄力 → 命中时刻(伤害/特效在此刻触发)
@@ -149,19 +152,19 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     hold: 1750,
     shake: 1,
   },
-  // 三段斩击(Canvas 2D): 2.6s 三幕 —— V形折返两刀(0~0.9s) → 折返十连斩(0.9~1.4s) →
-  // 静默 0.45s 后伤口延迟裂开 + 粒子爆裂(1.85s 爆点)。几何表在
-  // fx/TriSlashFx/triSlashGeometry.ts(爆点固定 1.85s), 时间轴按 proc.impactMs 与
-  // 1850ms 的比例整体缩放, 故以后调节奏只改这里; 震屏归相机 SHOTS.tri、白闪归
-  // screenFx: "flash", 组件不做画布内震屏/白闪(与 blade-slash 分工一致)。
-  // floatMs 600 把飘字压缩到 1.85s 爆点后收尾: impactMs + floatMs = 2450 < hold。
-  "tri-slash": {
+  // 青岚横断(Canvas 2D, 全场级): 1.5s 三拍 —— 疾风线从两侧收拢到斩线、左端风眼蓄势(0~420ms) →
+  // 巨型月牙风刃横贯整排敌人、身后拖出风痕(420~600ms) → 静默一拍后整条风痕同时迸裂(640ms 爆点)。
+  // stage: 全体攻击只在 ScreenFxLayer 挂一份 GaleSweepFx, 各目标的 HitFxLayer 不再各放一份,
+  // 只演受击抖动与飘字; 所有目标共用同一个爆点, 不会变成 n 份单体动画。
+  // 640 与 fx/GaleSweepFx/galeSweepTimeline.ts 的 GALE_TIMELINE.impact 同源; 白闪在画布内自带,
+  // 不配 screenFx; 震屏/顿帧归相机 SHOTS.gale。
+  "gale-sweep": {
     kind: "attack",
-    color: "#78c8ff",
-    proc: { impactMs: 1850, floatMs: 600, damageAtImpact: true },
-    screenFx: "flash",
+    color: "#7df5c8", // 青岚翠, 与画布主色同源
+    proc: { impactMs: 640, floatMs: 650, damageAtImpact: true },
+    stage: true,
     windup: 190,
-    hold: 2500, // impactMs + floatMs = 2450 < hold, 飘字不被卸载截断
+    hold: 1600, // impactMs + floatMs = 1290 < hold, 也盖住画布 total 1500
     shake: 2,
   },
   // 血色刀光(程序化 CSS): 2.8s 三幕 —— 刀身下劈 → 刀痕张开 → 血花蓄压爆裂。
@@ -211,6 +214,17 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     proc: { impactMs: 200, floatMs: 380, damageAtImpact: true },
     windup: 190,
     hold: 700, // impactMs + floatMs = 580 < hold, 也盖住 total 560, 飘字与末尾帧都不被截断
+    shake: 1,
+  },
+  // 瞬斩(程序化 CSS): 420ms —— 刃光一闪(40~110ms 斜劈) → 斩线裂成两道 + 十字闪 → 火花顺着刀势前冲。
+  // 基础攻击专用: 比 basic-slash 更短更干脆, 不铺陈。110ms 爆点与
+  // fx/SwiftSlashFx/swiftSlashGeometry.ts 的 SWIFT_TIMELINE.impact 同源; 不配 screenFx。
+  "swift-slash": {
+    kind: "attack",
+    color: "#e6f0ff",
+    proc: { impactMs: 110, floatMs: 380, damageAtImpact: true },
+    windup: 160,
+    hold: 560, // impactMs + floatMs = 490 < hold, 也盖住 total 420
     shake: 1,
   },
   // 锐利刀锋斩(程序化 CSS): 1.75s 六拍 —— 聚光起势 → 刀光横扫 → 爆点 → 金属余鸣 → 缓降 → 消散。

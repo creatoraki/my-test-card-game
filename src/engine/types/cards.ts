@@ -14,10 +14,11 @@ export type CardRarity = "basic" | Rarity;
 //   攻击系: slash 斩击 / shot 箭击 / fire 火爆 / ice 冰霜 / lightning 电击 / poison 剧毒
 //           iai-slash 居合拔刀斩(程序化 CSS)
 //           blade-slash 刀光斩(程序化 CSS, 三拍)
-//           tri-slash 三段斩击(Canvas 2D: V形折返 → 折返十连斩 → 延迟受击)
+//           gale-sweep 青岚横断(Canvas 2D 全场级: 疾风收拢 → 巨型风刃横贯整排 → 整线同时迸裂, 全体攻击只播一份)
 //           blood-slash 血色刀光(程序化 CSS: 下劈 → 刀痕 → 血花爆裂)
 //           neon-cross 霓虹数据·交叉斩(程序化 CSS: 双刀交叉 → 白核坏帧 → 像素崩解)
 //           triple-strike 流光·三段斩(程序化 CSS: 起手一刀顿住 → 崩断转场 → 六连乱舞 → 斩痕爆点)
+//           swift-slash 瞬斩(程序化 CSS: 刃光一闪 → 斩线裂开 → 火花顺势前冲，总长 420ms，基础攻击专用)
 //           basic-slash 快斩·单刀弧斩(程序化 CSS: 预兆 → 刃出 → 60ms 停顿 → 爆点，总长 560ms，普通攻击底特效)
 //           keen-edge 锐利刀锋斩(程序化 CSS: 聚光起势 → 横扫爆点 → 金属余鸣 → 光尘衰减，总长 1750ms，按锐利刀锋.wav 包络编排)
 //   辅助系(柔和光效): heal 治疗 / shield 护盾 / buff 增益
@@ -32,11 +33,12 @@ export type CardAnim =
   | "poison"
   | "iai-slash"
   | "blade-slash"
-  | "tri-slash"
+  | "gale-sweep"
   | "blood-slash"
   | "neon-cross"
   | "triple-strike"
   | "basic-slash"
+  | "swift-slash"
   | "keen-edge"
   | "lunar-ring"
   | "sakura-flurry"

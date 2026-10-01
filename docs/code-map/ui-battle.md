@@ -51,8 +51,9 @@
 | 目录 | 作用 |
 | --- | --- |
 | [HitFxLayer/](../../src/ui/battle/fx/HitFxLayer/HitFxLayer.tsx) | 敌我共用的命中表现（着色、时序、飘字）。 |
-| `BasicSlashFx` / `BladeSlashFx` / `BloodSlashFx` / `IaiSlashFx` / `KeenEdgeFx` / `NeonCrossFx` / `TripleSlashFx` / `TriSlashFx` | 各类斩击特效，用 CSS 关键帧或几何生成。演示页直接引用这里的正式件，不另存副本。 |
+| `BasicSlashFx` / `BladeSlashFx` / `BloodSlashFx` / `IaiSlashFx` / `KeenEdgeFx` / `NeonCrossFx` / `TripleSlashFx` / `SwiftSlashFx` | 各类斩击特效，用 CSS 关键帧或几何生成。演示页直接引用这里的正式件，不另存副本。 |
 | `TwinArrowFx` | 双箭特效（Canvas 绘制）。 |
+| `GaleSweepFx` | 青岚横断：全体攻击的全场级特效（Canvas 绘制），由 `ScreenFxLayer` 只挂一份，各目标只演受击与飘字。 |
 | [AttackArtsFx/](../code-notes/ui-battle-AttackArtsFx.md) | 十种攻击特效：斩击、箭、火、毒、神谕各两种，按 `art.id` 分发。详见目录内的 README。 |
 | `DeathVanishFx` / `HurtVignette` | 死亡消散；我方受伤时的屏幕暗角。 |
 

@@ -148,6 +148,12 @@ export function playSfx(id: SfxId, options: PlaySfxOptions = {}): void {
   if (started) lastPlayedAt.set(id, now);
 }
 
+// 持续型音效(长按充能等)自己管理节点生命周期, 只借用总线; 音效关闭时返回 null。
+export function acquireSfxBus(): { context: AudioContext; destination: GainNode } | null {
+  if (!enabledPref.get()) return null;
+  return ensureAudioBus();
+}
+
 // 直接播放一份不在 SFX_IDS 注册表里的配方/采样(调试页试听、候选音效对比)。不做节流。
 export function playSfxRecipe(recipe: SfxRecipe, options: PlaySfxOptions = {}): void {
   if (!enabledPref.get()) return;

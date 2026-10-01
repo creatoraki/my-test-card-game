@@ -18,6 +18,8 @@ interface AnimSfxOverride {
 
 const ANIM_SFX_OVERRIDES: Partial<Record<CardAnim, AnimSfxOverride>> = {
   "basic-slash": { attack: { id: "cardPlay", leadMs: 80 } },
+  // 瞬斩爆点只有 110ms: 出刀声贴着刃光起, 提前量压到 60ms。
+  "swift-slash": { attack: { id: "cardPlay", leadMs: 60, pitch: 1.15 } },
   // 锐利刀锋斩整段就是这条采样: 挂载瞬间起播, 采样自带的 470ms 撞击峰经 pitch 1.4 后
   // 恰好落在 336ms 的视觉爆点上(leadMs = KEEN_PLAY.impact ⇒ BattleScreen 排到 hitAt + 0)。
   // 采样已含撞击峰与金属余鸣, 故不再叠 cardPlay(出刀) 与 hit(受击)。

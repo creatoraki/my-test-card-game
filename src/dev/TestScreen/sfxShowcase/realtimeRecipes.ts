@@ -2,51 +2,7 @@
 // Web Audio 引擎现有的层(噪声/扫频/音调/音簇/碎响)表达, 不做混响、饱和与比特破碎。
 // 「施放」从特效挂载起播(层 delayMs 即动画时间轴), 「爆点」在 impactMs 起播。
 
-import type { SfxLayer, SfxRecipe } from "@/ui/audio";
-
-// ── 三段斩击: 0~400 V 形两刀 → 余鸣 → 900~1400 十连斩 → 静默吸气 → 1850 爆点 ──
-
-const TRI_FLURRY = [60, 58, 54, 52, 50, 48, 46, 44, 44, 44];
-
-function triFlurry(): SfxLayer[] {
-  let at = 900;
-  return TRI_FLURRY.flatMap((dur, index) => {
-    const side = index % 2 === 0 ? 1 : -1;
-    const layers: SfxLayer[] = [
-      { kind: "noise", delayMs: at, durationMs: dur + 40, gain: 0.34, attackMs: dur * 0.6, releaseMs: 30, pan: 0.5 * side, filter: { type: "bandpass", frequency: 2400 + index * 180, endFrequency: 8200, q: 1.6 } },
-    ];
-    if (index % 2 === 1) {
-      layers.push({ kind: "tone", waveform: "sine", frequency: 6200, endFrequency: 5200, delayMs: at + dur - 8, durationMs: 34, gain: 0.018, attackMs: 1, releaseMs: 26, pan: 0.5 * side });
-    }
-    at += dur;
-    return layers;
-  });
-}
-
-const TRI_CAST: SfxRecipe = {
-  layers: [
-    { kind: "noise", delayMs: 0, durationMs: 210, gain: 0.42, attackMs: 120, releaseMs: 70, pan: -0.4, filter: { type: "bandpass", frequency: 1200, endFrequency: 5200, q: 1.2 } },
-    { kind: "sweep", waveform: "sine", from: 5200, to: 3400, delayMs: 60, durationMs: 160, gain: 0.025, attackMs: 2, releaseMs: 120 },
-    { kind: "noise", delayMs: 200, durationMs: 210, gain: 0.48, attackMs: 110, releaseMs: 80, pan: 0.3, filter: { type: "bandpass", frequency: 1600, endFrequency: 6400, q: 1.2 } },
-    { kind: "tone", waveform: "sine", frequency: 3150, delayMs: 390, durationMs: 700, gain: 0.03, attackMs: 1, releaseMs: 620 },
-    { kind: "tone", waveform: "sine", frequency: 4730, delayMs: 390, durationMs: 520, gain: 0.016, attackMs: 1, releaseMs: 460 },
-    ...triFlurry(),
-    { kind: "noise", delayMs: 1430, durationMs: 420, gain: 0.2, attackMs: 405, releaseMs: 8, filter: { type: "lowpass", frequency: 250, endFrequency: 3000, q: 0.9 } },
-    { kind: "sweep", waveform: "sine", from: 180, to: 360, delayMs: 1430, durationMs: 420, gain: 0.05, attackMs: 405, releaseMs: 8 },
-  ],
-};
-
-const TRI_HIT: SfxRecipe = {
-  layers: [
-    { kind: "noise", durationMs: 70, gain: 0.6, attackMs: 1, releaseMs: 60, filter: { type: "highpass", frequency: 1500 } },
-    { kind: "noise", durationMs: 480, gain: 0.5, attackMs: 1, releaseMs: 420, filter: { type: "lowpass", frequency: 3200, endFrequency: 260, q: 0.9 } },
-    { kind: "sweep", waveform: "sine", from: 160, to: 38, durationMs: 360, gain: 0.55, attackMs: 1, releaseMs: 300 },
-    { kind: "noise", delayMs: 8, durationMs: 140, gain: 0.3, attackMs: 3, releaseMs: 100, filter: { type: "bandpass", frequency: 2800, endFrequency: 9500, q: 2 } },
-    { kind: "tone", waveform: "sine", frequency: 1870, durationMs: 900, gain: 0.05, attackMs: 1, releaseMs: 820 },
-    { kind: "tone", waveform: "triangle", frequency: 2810, durationMs: 700, gain: 0.03, attackMs: 1, releaseMs: 640 },
-    { kind: "crackle", delayMs: 30, countMin: 10, countMax: 12, spreadMs: 420, durationMs: 14, gain: 0.3, frequencyMin: 2200, frequencyMax: 7800, q: 2.2 },
-  ],
-};
+import type { SfxRecipe } from "@/ui/audio";
 
 // ── 霓虹交叉斩: 0 扫描锁定 → 550 青刃 ↘ → 750 品红刃 ↗ → 950 白核坏帧 → 1400 裂痕 → 1700 崩解 ──
 
@@ -99,7 +55,6 @@ const FIRE_HIT: SfxRecipe = {
 };
 
 export const REALTIME_RECIPES = {
-  "tri-slash": { cast: TRI_CAST, hit: TRI_HIT },
   "neon-cross": { cast: NEON_CAST, hit: NEON_HIT },
   fire: { cast: FIRE_CAST, hit: FIRE_HIT },
 } as const;

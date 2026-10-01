@@ -103,7 +103,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "allFoes",
     rarity: "common",
-    anim: "tri-slash",
+    anim: "gale-sweep",
     effects: [
       {
         type: "DAMAGE",

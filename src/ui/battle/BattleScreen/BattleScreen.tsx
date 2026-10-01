@@ -279,7 +279,7 @@ export function BattleScreen() {
         />
 
         <AmbienceGrade mapId={mapId} />
-        <ScreenFxLayer hits={choreo.hits} playerIds={battle.playerIds} />
+        <ScreenFxLayer hits={choreo.hits} playerIds={battle.playerIds} fxRate={playback.fxRate} />
 
         {battle && <ChallengeRail challenges={battle.challenges} />}
         <TurnTicker round={battle.round} tick={battle.tick} />

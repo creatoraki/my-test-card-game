@@ -1,4 +1,5 @@
 export { installSfxDelegate } from "./sfxDelegate";
+export { startChargeSfx, type ChargeSfxHandle } from "./chargeSfx";
 export {
   getSfxEnabled,
   getSfxVolume,

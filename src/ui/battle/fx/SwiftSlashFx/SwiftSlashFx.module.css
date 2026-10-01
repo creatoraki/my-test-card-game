@@ -1,0 +1,228 @@
+/* ============================================================================
+   瞬斩 —— 质感层。时序与几何在 swiftSlashGeometry.ts / SwiftSlashFx.tsx,
+   这里只管「长什么样」: 冷钢白配色、锥形刃光、以及那几条决定速度感的曲线。
+
+   坐标约定: .wrap 是 0×0 锚点(目标受击点), 整层旋转 --swift-angle 后,
+   子元素一律在「刀路坐标」里摆放: +X = 刀势去向, Y = 法线。
+
+   ⚠ 多段动画的第二段一律只填 forwards: 若写 both, 第二段在延迟期会用 0% 帧
+     覆盖第一段(刃光会在划出前就整条亮着)。单段动画的 0% 帧一律不可见。
+   ============================================================================ */
+
+.wrap {
+  --tone: #e6f0ff;
+  --tone-deep: #8fb0e8;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform: rotate(var(--swift-angle, 148deg));
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.wrap [data-tone="white"] {
+  --tone: #ffffff;
+  --tone-deep: #cfdcf5;
+}
+
+.wrap > * {
+  position: absolute;
+  display: block;
+  opacity: 0;
+}
+
+/* ── 起点闪光: 唯一的预兆 ───────────────────────────────────────────── */
+
+.glint {
+  left: calc(var(--swift-len) / -2 - 14px);
+  top: -14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #dbe8ffcc 30%, transparent 70%);
+  animation-name: swiftGlint;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+@keyframes swiftGlint {
+  0% { transform: scale(0.2); opacity: 0; }
+  35% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+/* ── 速度线: 平行刀路的细线, 跟着刃光往前掠走 ─────────────────────────── */
+
+.speed {
+  left: calc(var(--speed-len) / -2 - 60px);
+  top: var(--speed-offset);
+  width: var(--speed-len);
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #dce8ffcc 60%, transparent 100%);
+  animation-name: swiftSpeed;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes swiftSpeed {
+  0% { transform: translateX(-80px) scaleX(0.3); opacity: 0; }
+  25% { opacity: 0.85; }
+  100% { transform: translateX(150px) scaleX(1); opacity: 0; }
+}
+
+/* ── 刃光: 尾细头粗的锥形, 从刀路起点一口气划到底 ───────────────────── */
+
+.streakGlow,
+.streakCore,
+.ghost {
+  left: calc(var(--swift-len) / -2);
+  width: var(--swift-len);
+  transform-origin: left center;
+  animation-name: swiftDraw, swiftStreakFade;
+  animation-fill-mode: both, forwards;
+  animation-timing-function: cubic-bezier(0.15, 0.85, 0.2, 1), cubic-bezier(0.3, 0, 0.6, 1);
+}
+
+.streakGlow {
+  top: -11px;
+  height: 22px;
+  clip-path: polygon(0% 50%, 72% 18%, 100% 50%, 72% 82%);
+  background: linear-gradient(90deg, transparent 0%, #8fb0e88c 35%, #dce8ffe6 90%, transparent 100%);
+  filter: blur(3px);
+}
+
+.streakCore {
+  top: -2.5px;
+  height: 5px;
+  clip-path: polygon(0% 50%, 86% 0%, 100% 50%, 86% 100%);
+  background: linear-gradient(90deg, transparent 0%, #ffffff 30%, #ffffff 100%);
+}
+
+.ghost {
+  top: -5px;
+  height: 10px;
+  translate: 0 16px;
+  clip-path: polygon(0% 50%, 80% 10%, 100% 50%, 80% 90%);
+  background: linear-gradient(90deg, transparent 0%, #8fb0e866 50%, #dce8ff99 100%);
+  filter: blur(1.5px);
+}
+
+@keyframes swiftDraw {
+  0% { transform: scaleX(0); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+
+/* 爆点: 刀身先加粗一档(冲击回传到刀上), 再收细沿刀路略微前送着消散。 */
+@keyframes swiftStreakFade {
+  0% { transform: scaleX(1) scaleY(1); opacity: 1; }
+  16% { transform: scaleX(1.02) scaleY(1.9); opacity: 1; }
+  100% { transform: scaleX(1.08) scaleY(0.15); opacity: 0; }
+}
+
+/* ── 斩线裂开: 两道细线沿法线张开、沿刀路错位, 读作「被切开」 ─────────── */
+
+.splitA,
+.splitB {
+  left: calc(var(--swift-len) * -0.4);
+  top: -1px;
+  width: calc(var(--swift-len) * 0.8);
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #ffffff 22%, var(--tone) 78%, transparent 100%);
+  box-shadow: 0 0 6px var(--tone-deep);
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.1, 0.7, 0.3, 1);
+}
+
+.splitA { animation-name: swiftSplitA; }
+.splitB { animation-name: swiftSplitB; }
+
+@keyframes swiftSplitA {
+  0% { translate: 0 0; scale: 1 1; opacity: 0; }
+  6% { opacity: 1; }
+  100% { translate: 14px -13px; scale: 1.06 0.5; opacity: 0; }
+}
+
+@keyframes swiftSplitB {
+  0% { translate: 0 0; scale: 1 1; opacity: 0; }
+  6% { opacity: 1; }
+  100% { translate: -14px 13px; scale: 1.06 0.5; opacity: 0; }
+}
+
+/* ── 十字闪 + 白核: 过冲后急收, 尺度落差就是「闪断」 ───────────────────── */
+
+.core {
+  left: -30px;
+  top: -30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #e6f0ffcc 35%, transparent 70%);
+  animation-name: swiftCore;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes swiftCore {
+  0% { transform: scale(0.2); opacity: 0; }
+  14% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.4); opacity: 0; }
+}
+
+.starLong {
+  left: -160px;
+  top: -2px;
+  width: 320px;
+  height: 4px;
+  background: linear-gradient(90deg, transparent 0%, #ffffff 50%, transparent 100%);
+  box-shadow: 0 0 10px #dce8ffaa;
+  animation-name: swiftStarLong;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes swiftStarLong {
+  0% { transform: scaleX(0.1); opacity: 0; }
+  16% { transform: scaleX(1.2); opacity: 1; }
+  100% { transform: scaleX(0.3) scaleY(0.4); opacity: 0; }
+}
+
+.starShort {
+  left: -2px;
+  top: -56px;
+  width: 4px;
+  height: 112px;
+  background: linear-gradient(180deg, transparent 0%, #ffffff 50%, transparent 100%);
+  box-shadow: 0 0 8px #dce8ffaa;
+  animation-name: swiftStarShort;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes swiftStarShort {
+  0% { transform: scaleY(0.1); opacity: 0; }
+  18% { transform: scaleY(1.15); opacity: 1; }
+  100% { transform: scaleY(0.2) scaleX(0.4); opacity: 0; }
+}
+
+/* ── 火花: 只往刀势前方的窄扇区冲, 越飞越短 ───────────────────────────── */
+
+.spark {
+  left: 0;
+  top: -1px;
+  width: var(--spark-len);
+  height: 2px;
+  transform-origin: left center;
+  background: linear-gradient(90deg, transparent 0%, var(--tone) 100%);
+  box-shadow: 0 0 6px var(--tone-deep);
+  animation-name: swiftSpark;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.1, 0.7, 0.2, 1);
+}
+
+@keyframes swiftSpark {
+  0% { transform: rotate(var(--spark-angle)) translateX(0) scaleX(1.4); opacity: 0; }
+  8% { opacity: 1; }
+  100% { transform: rotate(var(--spark-angle)) translateX(var(--spark-distance)) scaleX(0.2); opacity: 0; }
+}

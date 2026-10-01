@@ -3,7 +3,7 @@ import { ANIM } from "@/ui/battle/choreo/animations";
 import { DEATH } from "@/ui/battle/choreo/deathChoreo";
 import type { SpringTuning } from "./spring";
 
-export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "tri" | "blood" | "neon" | "triple" | "keen" | "lunar" | "sakura" | "twin" | "foe" | "foeCast";
+export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "gale" | "blood" | "neon" | "triple" | "keen" | "lunar" | "sakura" | "twin" | "foe" | "foeCast";
 
 export interface ShotPreset {
   kind: ShotKind;
@@ -60,9 +60,9 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
   iai: { kind: "iai", scale: 1.65, fit: 0.72, yaw: 5, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 210, damping: 15 } }, lead: 260, hold: 960, punch: 0.075, shake: 24, creep: 0, hitstop: 110 },
   // 刀光视觉时间轴约 1600ms; hold 1800ms 给刀痕消散尾段留 170ms 卸载余量。
   blade: { kind: "blade", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 1800, punch: 0.06, shake: 20, creep: 0, hitstop: 90 },
-  // 三段斩击视觉时间轴约 2600ms; hold 2550ms 盖住演出的尾段(命中特效 hold 2500ms 后
-  // 镜头多停 50ms 再弹回)。爆点 1.85s 延迟受击, 顿帧(hitstop 110)与重震(shake 22)都在那一刻。
-  tri: { kind: "tri", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 2550, punch: 0.06, shake: 22, creep: 0, hitstop: 110 },
+  // 青岚横断(全场级群攻): 比 aoe 更宽的取景(fit 0.66)把整排敌人连同风刃路径都框进来,
+  // 640ms 整线迸裂那一拍给重震 + 顿帧。hold 1650 覆盖命中特效 1600ms。
+  gale: { kind: "gale", scale: 1.08, fit: 0.66, yaw: 6, pitch: 1, roll: 4, rig: { s: SOFT, yaw: SOFT }, lead: 240, hold: 1650, punch: 0.05, shake: 22, creep: 0, hitstop: 100 },
   // 血色刀光视觉时间轴 2800ms; 比三段斩击多停 300ms 覆盖疤痕消散, 血花爆点的重震更强。
   blood: { kind: "blood", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 2850, punch: 0.06, shake: 24, creep: 0, hitstop: 110 },
   // 霓虹交叉斩视觉 2200ms; hold 2350 覆盖像素碎片收尾, 爆点 1700ms 对齐重震与顿帧。
@@ -97,11 +97,12 @@ export function pickShot(ctx: ShotContext): ShotPreset {
   if (ANIM[ctx.anim].kind === "support") return ctx.actorIsEnemy ? SHOTS.foeCast : SHOTS.none;
   if (!ctx.targetInStage) return SHOTS.foe;
   const base =
-    ctx.targetCount >= 2 ? SHOTS.aoe
+    // 全场级特效不论剩几个目标都用自己的取景: 风刃横贯整排, 单体镜头会把它裁掉。
+    ctx.anim === "gale-sweep" ? SHOTS.gale
+      : ctx.targetCount >= 2 ? SHOTS.aoe
       : ctx.anim === "iai-slash" ? SHOTS.iai
         : ctx.anim === "blade-slash" ? SHOTS.blade
-          : ctx.anim === "tri-slash" ? SHOTS.tri
-            : ctx.anim === "blood-slash" ? SHOTS.blood
+          : ctx.anim === "blood-slash" ? SHOTS.blood
               : ctx.anim === "neon-cross" ? SHOTS.neon
               : ctx.anim === "triple-strike" ? SHOTS.triple
               : ctx.anim === "keen-edge" ? SHOTS.keen

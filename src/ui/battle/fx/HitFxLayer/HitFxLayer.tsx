@@ -5,11 +5,11 @@ import type { UnitReact } from "@/ui/battle/choreo/unitShell";
 import { cx } from "@/ui/common/shared/cx";
 import { IaiSlashFx } from "@/ui/battle/fx/IaiSlashFx";
 import { BladeSlashFx } from "@/ui/battle/fx/BladeSlashFx";
-import { TriSlashFx } from "@/ui/battle/fx/TriSlashFx";
 import { BloodSlashFx } from "@/ui/battle/fx/BloodSlashFx";
 import { NeonCrossFx } from "@/ui/battle/fx/NeonCrossFx";
 import { TripleSlashFx } from "@/ui/battle/fx/TripleSlashFx";
 import { BasicSlashFx } from "@/ui/battle/fx/BasicSlashFx";
+import { SwiftSlashFx } from "@/ui/battle/fx/SwiftSlashFx";
 import { KeenEdgeFx } from "@/ui/battle/fx/KeenEdgeFx";
 import { LunarRingFx } from "@/ui/battle/fx/LunarRingFx";
 import { SakuraFlurryFx } from "@/ui/battle/fx/SakuraFlurryFx";
@@ -21,18 +21,18 @@ import s from "./HitFxLayer.module.css";
 // 命中表现的共用件: 敌人(CombatantView)与我方头像栏(AllyBar)都靠这两个导出, 保证两边的
 // 特效着色、命中时序、飘字完全一致 —— 只有承载它们的外壳不同(场上立绘 vs 玻璃头像卡)。
 
-// 签名允许返回 null: reduced-motion 下 proc 特效整层不挂载(如 TriSlashFx 的外壳直返 null)。
+// 签名允许返回 null: 个别 proc 特效可以选择整层不挂载。
 // color = ANIM[*].color, 只有着色器类(GLSL_HIT_FX)需要, 其余组件忽略。
 const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset; color: string }) => JSX.Element | null>> = {
   // 基础档位(攻击系元素 + 治疗/增益/减益/护盾): GLSL 着色器特效, 取代原 emoji 与护盾图标。
   ...GLSL_HIT_FX,
   "iai-slash": IaiSlashFx,
   "blade-slash": BladeSlashFx,
-  "tri-slash": TriSlashFx,
   "blood-slash": BloodSlashFx,
   "neon-cross": NeonCrossFx,
   "triple-strike": TripleSlashFx,
   "basic-slash": BasicSlashFx,
+  "swift-slash": SwiftSlashFx,
   "keen-edge": KeenEdgeFx,
   "lunar-ring": LunarRingFx,
   "sakura-flurry": SakuraFlurryFx,
@@ -94,9 +94,12 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
         <div
           className={cx(s["vfx"], s[`vfx-${hit.anim}`], s[`vfx-${preset.kind}`])}
           key={hit.seq}
+          data-vfx-anchor=""
           aria-hidden
         >
-          {Proc && proc ? (
+          {/* 全场级特效(preset.stage)由 ScreenFxLayer 只挂一份, 这里只留空锚点: 它按
+              data-vfx-anchor 回查各目标的受击点, 在同一爆点给每个目标落刀痕。 */}
+          {preset.stage ? null : Proc && proc ? (
             <Proc preset={proc} color={preset.color} />
           ) : (
             <span className={s["vfx-emoji"]}>{preset.emoji}</span>

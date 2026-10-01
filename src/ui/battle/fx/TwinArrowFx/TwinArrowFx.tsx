@@ -32,11 +32,11 @@ import s from "./TwinArrowFx.module.css";
 // ============================================================================
 // 二连箭(twin-arrow)攻击特效: 单张 Canvas 2D, rAF 驱动, 不循环。
 //
-// 与 TriSlashFx 同级的 canvas 特效(挂载即播、卸载即停, 换 key 重挂载即重播),
+// 与 GaleSweepFx 同类的 canvas 特效(挂载即播、卸载即停, 换 key 重挂载即重播),
 // 但坐标系不同: 它使用**画布中心锚点** —— 弓位与目标都以目标中心为原点的设计 px
 // 作图，画布尺寸由正式战斗或 demo 显式传入。
 //
-// 职责边界(与 KeenEdgeFx / TriSlashFx 一致):
+// 职责边界(与 KeenEdgeFx 一致):
 //   · 本组件只画 弓 / 蓄力 / 双箭 / 拖尾 / 冲击环 / 火花 / 命中光爆
 //   · 震屏 → 相机; 全屏闪 → screenFx; 目标受击抖动 → 受击反馈类
 //   · 背景与立绘属于舞台, 不在特效层里
@@ -95,7 +95,7 @@ export function TwinArrowFx({
     ctx.setTransform(res, 0, 0, res, 0, 0);
     ctx.translate(CANVAS_W / 2, CANVAS_H / 2); // 此后一律以画布中心为原点作图
 
-    // 播放倍速: 挂载时读一次 --fx-rate(与 TriSlashFx / KeenEdgeFx 同一语义, 下限 0.25)。
+    // 播放倍速: 挂载时读一次 --fx-rate(与 KeenEdgeFx 同一语义, 下限 0.25)。
     const cssRate = parseFloat(getComputedStyle(canvas).getPropertyValue("--fx-rate"));
     const rate = Math.max(0.25, Number.isFinite(cssRate) && cssRate > 0 ? cssRate : 1);
 

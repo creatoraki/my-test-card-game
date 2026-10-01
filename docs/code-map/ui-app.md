@@ -37,7 +37,7 @@
 | --- | --- |
 | [bgmTracks.ts](../../src/ui/audio/bgm/bgmTracks.ts) / [bgmPlayer.ts](../../src/ui/audio/bgm/bgmPlayer.ts) | BGM 曲目表（据点、探索、战斗、电梯）；播放器负责淡入淡出和音量。 |
 | [audioPref.ts](../../src/ui/audio/shared/audioPref.ts) | 音频偏好的存取：内存值 + localStorage + 订阅通知。只负责存储，不直接操作音频。 |
-| [sfx/](../../src/ui/audio/sfx/index.ts) | 音效：`sfxSamples` 采样、`sfxSynth` 合成、`sfxRecipes` 合成配方、`sfxPlayer` 播放、`sfxDelegate` 给按钮和链接统一挂点击音效。 |
+| [sfx/](../../src/ui/audio/sfx/index.ts) | 音效：`sfxSamples` 采样、`sfxSynth` 合成、`sfxRecipes` 合成配方、`sfxPlayer` 播放、`sfxDelegate` 给按钮和链接统一挂点击音效、`chargeSfx` 长按充能持续音效（HoldButton / useHoldCharge 共用）。 |
 
 动画和音效的对齐表在 [battle/animSfx.ts](../../src/ui/battle/choreo/animSfx.ts)。
 
