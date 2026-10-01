@@ -78,9 +78,8 @@ export function CharacterDetailView({
   const { activeSlot, candidates, previewStats } = equipPreview;
   const canNavigate = !morphing && !leaving && !closingOverlays && !forgeView && !activeSlot;
 
-  // 换人: 一切工作区状态归零。
+  // 换人: 浮层与悬停态归零, 但页签保持 —— 在卡组页切人就继续看下一位的卡组。
   useEffect(() => {
-    setTab("profile");
     equipPreview.clear();
     setForgeView(false);
     setHoveredCardUid(null);

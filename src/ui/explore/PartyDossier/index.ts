@@ -1,0 +1,1 @@
+export { PartyDossier } from "./PartyDossier";

@@ -14,4 +14,3 @@
 /* 选人使用物品时的场景压暗层: 盖在场景、小地图与能量读数(z 30)之上, 底栏选人时抬到 z 32 压在它上面。 */
 .pickScrim { position: absolute; inset: 0; z-index: 31; background: radial-gradient(ellipse 70% 60% at 22% 100%, #00000033, #000000a6 70%); cursor: pointer; animation: pick-scrim-in 220ms ease-out both; }
 @keyframes pick-scrim-in { from { opacity: 0; } }
-.characterModal { z-index: 46; }

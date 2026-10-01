@@ -1,21 +1,16 @@
 import { useCallback } from "react";
-import { getItemDef } from "@/data";
 import type { ExploreState } from "@/explore/types";
-import { deriveStats, useTownStore } from "@/store/town/townStore";
 import { travelByBeacon } from "@/store/explore/exploreCorridor";
 import BackpackPanel from "@/ui/explore/BackpackPanel";
 import { PicnicPanel } from "@/ui/explore/PicnicSkill";
 import Minimap from "@/ui/explore/Minimap";
 import MinimapAtlas from "@/ui/explore/Minimap/parts/MinimapAtlas";
-import { CharacterModal, MODAL_ACCENT } from "@/ui/common/unit/CharacterModal";
+import { PartyDossier } from "@/ui/explore/PartyDossier";
 import type { ExploreInventoryState } from "../useExploreInventory";
 import s from "../CorridorScreen.module.css";
 
 /** 立绘、随身背包、负重读数与随身遗物已并入底部 ExploreDock；这里只留左上角小地图与各类浮层。 */
 export function ExploreInventory({ session, inventory }: { session: ExploreState; inventory: ExploreInventoryState }) {
-  const characters = useTownStore((state) => state.characters);
-  const member = session.party.find((item) => item.charId === inventory.detailCharId);
-  const character = inventory.detailCharId ? characters[inventory.detailCharId] : undefined;
   const { setAtlasOpen } = inventory;
   // 稳定引用, 让 memo 过的小地图在无关提交时跳过渲染。
   const expandAtlas = useCallback(() => setAtlasOpen(true), [setAtlasOpen]);
@@ -39,14 +34,10 @@ export function ExploreInventory({ session, inventory }: { session: ExploreState
     {inventory.target && <div className={s.pickScrim} aria-hidden onClick={() => inventory.setTarget(null)} />}
     {inventory.bagOpen && inventory.allowed && <BackpackPanel onClose={() => inventory.setBagOpen(false)} onUse={inventory.useItem} />}
     {inventory.picnicOpen && <PicnicPanel onClose={() => inventory.setPicnicOpen(false)} />}
-    {inventory.detailCharId && character && member && <CharacterModal
-      charId={inventory.detailCharId} stats={deriveStats(character)} vitals={{ hp: member.hp, hpLimit: member.hpLimit, maxHp: member.maxHp }}
-      pollution={character.pollution} sick={character.sick} quirks={character.quirks} down={!member.alive}
-      deck={character.deck} equipped={character.equipped} accent={MODAL_ACCENT.explore} closing={false}
-      className={s.characterModal}
-      onClose={() => inventory.setDetailCharId(null)}
-      swap={{ candidates: session.backpack.filter((item) => getItemDef(item.itemId).category === "equipment"),
-        disabledReason: !inventory.allowed ? "此时无法换装" : !member.alive ? "阵亡队员无法换装" : undefined,
-        onEquip: inventory.equip, onUnequip: inventory.unequip }} />}
+    {/* 队员档案: 页签与浮层状态挂在 PartyDossier 自身, 换队员只换 charId, 不重新挂载。 */}
+    {inventory.detailCharId && <PartyDossier
+      session={session} charId={inventory.detailCharId} pendingUid={inventory.equipPendingUid} allowed={inventory.allowed}
+      onSelect={inventory.setDetailCharId} onEquip={inventory.equip} onUnequip={inventory.unequip}
+      onCancelPending={() => inventory.setEquipPendingUid(null)} onClose={inventory.closeDetail} />}
   </>;
 }
