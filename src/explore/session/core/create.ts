@@ -4,12 +4,14 @@ import { difficultyMapConfig, getItemDef } from "@/data";
 import type { MapDifficulty } from "@/data/maps/mapDifficulty";
 import type { ItemStack } from "@/items/types";
 import { generateDungeon } from "../../dungeon/generate";
+import { dungeonLayoutSeed } from "../../dungeonLayout";
 import { enterRoom } from "../../dungeon/dungeonSession";
 import type { ExploreState, PartySnapshot } from "../../types";
 import { logLine } from "./log";
 
 // ★ initialBackpack 排在 seed 之后, 不是「更重要」的第三参 —— 单测按位置传 seed 的调用点
 //   有好几处, 插在中间会把它们全部改坏。出发时装填的物资由出击准备界面(ui/sortie)备好。
+// layoutDay = 游戏日: 给出时房间图结构按「日 + 地图 + 难度」固定; 缺省(单测)时跟随 seed。
 export function createSession(
   mapId: string,
   party: PartySnapshot[],
@@ -17,6 +19,7 @@ export function createSession(
   initialBackpack: ItemStack[] = [],
   ownedRelicIds: string[] = [],
   difficulty: MapDifficulty = "normal",
+  layoutDay?: number,
 ): ExploreState {
   const map = difficultyMapConfig(mapId, difficulty);
   const s: ExploreState = {
@@ -76,13 +79,16 @@ export function createSession(
   };
 
   logLine(s, `接入 ${map.name}（共 ${s.roomCount} 个房间）`);
-  generateDungeonRun(s);
+  const layoutSeed = layoutDay === undefined
+    ? (s.rngState ^ 0x9e3779b9) >>> 0
+    : dungeonLayoutSeed(layoutDay, mapId, difficulty);
+  generateDungeonRun(s, layoutSeed);
   return s;
 }
 
 /** 建局时生成整张房间图并落到起始房间。一趟远征只调一次 —— 房间制没有「下一层」。 */
-export function generateDungeonRun(s: ExploreState): void {
-  s.dungeon = generateDungeon(s);
+export function generateDungeonRun(s: ExploreState, layoutSeed: number): void {
+  s.dungeon = generateDungeon(s, layoutSeed);
   s.roundBattleTier = "t1";
   enterRoom(s, s.dungeon.startRoomId);
 }

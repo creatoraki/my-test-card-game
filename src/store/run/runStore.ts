@@ -114,7 +114,8 @@ export const useRunStore = create<RunStore>((set, get) => ({
     const ownedRelicIds = [...town.storage, ...backpack]
       .filter((stack) => getItemDef(stack.itemId).category === "relic")
       .map((stack) => stack.itemId);
-    useExploreStore.getState().start(mapId, partySnapshot(), undefined, backpack, ownedRelicIds, difficulty);
+    // 房间图结构按游戏日固定(同日同图同难度一致), 房间内容仍每局随机。
+    useExploreStore.getState().start(mapId, partySnapshot(), undefined, backpack, ownedRelicIds, difficulty, town.day);
     set({ ...CLEARED_RUN, mapId, difficulty, screen: "explore" });
   },
 

@@ -35,8 +35,10 @@ export const EXPLORE_RULES = {
     energyPerRoomMove: { fresh: 5, revisit: 3 },
     // 非起点、非 BOSS 房中埋伏黑影的比例(至少 1 间)。
     battleRoomRatio: 0.22,
-    // 生成树之外额外接通的相邻房间数比例 —— 制造回环与近路。
+    // 骨架之外额外接通的相邻房间数比例上限(每日实际在 0 ~ 上限间随机) —— 制造回环与近路。
     loopEdgeRatio: 0.2,
+    // 房间图轮廓上限(列 × 行); 骨架原型在此范围内摆放, 实在放不下时兜底生长会越界。
+    layout: { maxCols: 7, maxRows: 5 },
     // 每间房交互物总数下限/上限(含货商、治疗、陷阱)；起始房只固定一个临时祝福匣。
     curiosPerRoom: [1, 2] as const,
     // 治疗交互: 每间非起点房独立掷骰, 命中投放 1 个。

@@ -70,6 +70,7 @@ interface ExploreStore {
     initialBackpack?: ItemStack[],
     ownedRelicIds?: string[],
     difficulty?: MapDifficulty,
+    layoutDay?: number,
   ) => void;
   confirmNode: () => void; // 结算浮层「确认」→ 回到场景自由行走
   consumePendingContamination: () => { total: number; each: number };
@@ -143,8 +144,8 @@ function mutate(
 export const useExploreStore = create<ExploreStore>((set, get) => ({
   session: null,
 
-  start: (mapId, party, seed, initialBackpack, ownedRelicIds, difficulty) => {
-    set({ session: createSession(mapId, party, seed, initialBackpack, ownedRelicIds, difficulty) });
+  start: (mapId, party, seed, initialBackpack, ownedRelicIds, difficulty, layoutDay) => {
+    set({ session: createSession(mapId, party, seed, initialBackpack, ownedRelicIds, difficulty, layoutDay) });
   },
 
   confirmNode: () => {

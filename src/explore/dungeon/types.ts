@@ -112,7 +112,4 @@ export interface DungeonState {
   bounds: { minX: number; maxX: number; minY: number; maxY: number };
 }
 
-/** 已占用纵向出口(上或下)的房间不能再打通第二条纵向路。 */
-export const hasVerticalExit = (room: RoomNode): boolean => Boolean(room.exits.up || room.exits.down);
-
 export const roomIdAt = (gx: number, gy: number): string => `room-${gx}-${gy}`;

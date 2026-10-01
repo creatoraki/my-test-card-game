@@ -1,9 +1,10 @@
 // ============================================================================
-// 房间图生成 —— 一趟远征只跑一次, 全程用会话 RNG, 同种子必然生成同一张图。
+// 房间图生成 —— 一趟远征只跑一次。
 //
-// ① 从起始房间开始随机长出一棵生成树, 直到房间数达到地图的 roomCount;
-// ② 追加少量环路边, 让路线出现取舍而不是一条死路走到底;
-// ③ BFS 算 depth, 最深的死胡同当 BOSS 房, 其余非起点房按比例投放战斗房与陷阱房;
+// ① 骨架(房间位置、连通、环路、起点与 BOSS)由 dungeonLayout 按「每日布局种子」生成:
+//    同一游戏日、同一地图、同一难度的结构恒定, 换日即换; 原型多样, 起点不再固定居中;
+// ② 以下房间内容全部用会话 RNG, 每局都不同;
+// ③ BFS 算 depth, 非起点非 BOSS 房按比例投放战斗房与陷阱房;
 // ④ 物件清单由 curioPlan.ts 决定: 每房 1-2 个, 陷阱房固定一个陷阱, 治疗按每房概率投放, 其余按权重偏向物品奖励;
 //    物件等级由 curioLevel.ts 按地图等级区间与房间深度决定;
 // ⑤ 传送门落在固定门位: 左门通左邻、右门通右邻、中门通纵向邻房; BOSS 红门与可交互物避开门附近槽位。
@@ -43,17 +44,6 @@ function markDepth(rooms: Record<string, RoomNode>, startId: string): void {
   }
   // 生成树保证连通; 万一出现孤岛(不应发生)按 0 兜底, 避免负深度污染战斗档位。
   for (const room of Object.values(rooms)) if (room.depth < 0) room.depth = 0;
-}
-
-/** BOSS 房: 最深的房间, 同深度优先取只有一个出口的死胡同。 */
-function pickBossRoom(s: ExploreState, rooms: Record<string, RoomNode>, startId: string): string {
-  const candidates = Object.values(rooms).filter((room) => room.id !== startId);
-  if (!candidates.length) return startId;
-  const maxDepth = Math.max(...candidates.map((room) => room.depth));
-  const deepest = candidates.filter((room) => room.depth === maxDepth);
-  const deadEnds = deepest.filter((room) => Object.keys(room.exits).length === 1);
-  const pool = deadEnds.length ? deadEnds : deepest;
-  return shuffle(s, pool.map((room) => room.id))[0];
 }
 
 /** 传送门按方向落到固定门位, 并让红门与可交互物避开传送门附近的中段槽位。 */
@@ -104,19 +94,17 @@ function layoutRoom(
   }));
 }
 
-export function generateDungeon(s: ExploreState): DungeonState {
+export function generateDungeon(s: ExploreState, layoutSeed: number): DungeonState {
   const map = difficultyMapConfig(s.mapId, s.difficulty);
   if (map.dungeonPlan) return generatePlannedDungeon(s, map.dungeonPlan);
   const roomCount = Math.max(2, map.roomCount);
-  const { rooms, order } = growRooms(s, roomCount);
+  const { rooms, order, startId, bossId } = growRooms(layoutSeed, roomCount);
   if (map.nearMapVariants) {
     assignNearMapVariants(s, rooms, order, map.nearMapVariants);
   } else if (map.nearMapVariant) {
     for (const room of Object.values(rooms)) room.nearMapVariant = map.nearMapVariant;
   }
-  const startId = order[0];
   markDepth(rooms, startId);
-  const bossId = pickBossRoom(s, rooms, startId);
   rooms[startId].kind = "start";
   rooms[bossId].kind = "boss";
 
