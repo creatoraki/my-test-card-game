@@ -54,7 +54,7 @@ export const RELIC_BUY_BY_RARITY: Record<ItemRarity, number> = {
 };
 
 // 通用模组的据点商店挂牌价(阶 = 稀有度)。角色模组只能在装配舱制造, 不上架。
-// ⚠ 只标 buyValue、不标 sellValue: 模组不进回收台(《通用模组设计.md》§1)。
+// 回收价不走这张表, 见 MODULE_SELL_VALUE。
 export const MODULE_BUY_BY_RARITY: Record<ItemRarity, number> = {
   common: 150,
   fine: 150,
@@ -62,6 +62,13 @@ export const MODULE_BUY_BY_RARITY: Record<ItemRarity, number> = {
   epic: 560,
   legendary: 900,
 };
+
+// 模组回收价: 通用模组与角色模组一律一口价, 不吃稀有度阶梯。
+export const MODULE_SELL_VALUE = 80;
+
+export function withModuleSellValue(defs: ItemDef[]): ItemDef[] {
+  return defs.map((d) => (d.category === "module" ? { ...d, sellValue: d.sellValue ?? MODULE_SELL_VALUE } : d));
+}
 
 export const relicBuyValue = (def: ItemDef): number => RELIC_BUY_BY_RARITY[def.rarity];
 

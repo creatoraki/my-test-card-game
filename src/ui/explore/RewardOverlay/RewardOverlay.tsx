@@ -14,6 +14,7 @@ import { useTownStore } from "@/store/town/townStore";
 import { useExploreStore } from "@/store/explore/exploreStore";
 import { useRunStore } from "@/store/run/runStore";
 import { cx } from "@/ui/common/shared/cx";
+import { playSfx } from "@/ui/audio";
 import { useRevealPresence } from "@/ui/common/frame/ModalReveal";
 import { EventPanelFrame } from "@/ui/common/widget/EventPanel";
 import { CardRewardPicker, type CardPickOption } from "@/ui/common/card/CardRewardPicker";
@@ -209,6 +210,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
                   onRemove={(uid) => {
                     if (!chosenCharId) return;
                     removeCardFree(chosenCharId, uid);
+                    playSfx("cardRemove");
                     finish();
                   }}
                 />

@@ -21,6 +21,9 @@ export const SFX_IDS = [
   "death",
   "pickup",
   "pickupAll",
+  "deckUpgrade",
+  "deckDraw",
+  "cardRemove",
 ] as const;
 
 export type SfxId = (typeof SFX_IDS)[number];

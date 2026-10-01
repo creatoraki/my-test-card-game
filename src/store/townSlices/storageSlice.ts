@@ -50,7 +50,7 @@ export function createStorageSlice(set: TownSet, get: TownGet): StorageSlice {
       return { ...st };
     },
 
-    // 回收台。⚠ 只有填了 sellValue 的废料、装备与祝福遗物能卖; 模组材料留给制造和装备养成使用。
+    // 回收台。⚠ 只有填了 sellValue 的废料、装备、模组与祝福遗物能卖; 模组材料留给制造和装备养成使用。
     sellItem: (uid) => {
       const { storage, loot, techTree } = get();
       const st = storage.find((s) => s.uid === uid);

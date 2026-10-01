@@ -1,5 +1,5 @@
 import type { ItemDef } from "@/items/types";
-import { MODULE_BUY_BY_RARITY } from "../rules/pricing";
+import { MODULE_BUY_BY_RARITY, withModuleSellValue } from "../rules/pricing";
 
 /** 1 阶通用模组的族 id。掉落表写 family 时按稀有度右移, 阶 = 稀有度(《通用模组设计.md》§2)。 */
 export const GENERIC_MODULE_FAMILY = "generic-module";
@@ -27,7 +27,7 @@ function assembleModuleDef(letter: AssembleModuleLetter): ItemDef {
 }
 
 // 角色关键词模组 —— 装配舱制造产出。
-export const MODULE_ITEM_DEFS: ItemDef[] = [
+export const MODULE_ITEM_DEFS: ItemDef[] = withModuleSellValue([
   {
     id: "rush-module",
     name: "速攻模组",
@@ -110,10 +110,10 @@ export const MODULE_ITEM_DEFS: ItemDef[] = [
     maxStack: 1,
     icon: "module",
   },
-];
+]);
 
 // ---------------------------------------------------------------------------
-// 1 阶通用模组 —— 战斗掉落 / 探索投放 / 据点商店上架, 不可制造, 不进回收台(只填 buyValue)。
+// 1 阶通用模组 —— 战斗掉落 / 探索投放 / 据点商店上架, 不可制造, 可在回收台按一口价出售。
 // ★ 阶 = 稀有度: 1 阶统一 fine, 名称直接带阶数字, 玩家不用读稀有度色就能比强弱。
 // ---------------------------------------------------------------------------
 function genericModuleT1(id: string, name: string, desc: string): ItemDef {
@@ -130,7 +130,7 @@ function genericModuleT1(id: string, name: string, desc: string): ItemDef {
   };
 }
 
-export const GENERIC_MODULE_ITEM_DEFS: ItemDef[] = [
+export const GENERIC_MODULE_ITEM_DEFS: ItemDef[] = withModuleSellValue([
   genericModuleT1(
     "attack-module-t1",
     "攻击力模组1",
@@ -166,7 +166,7 @@ export const GENERIC_MODULE_ITEM_DEFS: ItemDef[] = [
     "燃烧模组1",
     "装配后，打出该卡牌后对目标施加攻击力 15% 层数的灼烧，持续 2 回合。",
   ),
-];
+]);
 
 /** 1 阶模组箱 —— 背包里打开, 随机开出一件 1 阶通用模组。开出的模组进待拾取框。 */
 export const MODULE_CRATE_ITEM_DEFS: ItemDef[] = [

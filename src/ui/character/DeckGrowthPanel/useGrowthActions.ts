@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { makeCard } from "@/data";
 import { deckRarityChances } from "@/engine";
 import { useTownStore } from "@/store/town/townStore";
+import { playSfx } from "@/ui/audio";
 import { forgeViewModel } from "@/ui/character/DeckForge/forgeViewModel";
 
 export type GrowthPage = "hub" | "draw" | "remove";
@@ -37,7 +38,8 @@ export function useGrowthActions(charId: string) {
 
   function openDraw() {
     if (!cs || !model || timer.current != null) return;
-    if (!cs.pendingDraw) {
+    const fresh = !cs.pendingDraw;
+    if (fresh) {
       if (!model.canDraw) return;
       useTownStore.getState().forgeDraw(charId);
     }
@@ -45,6 +47,8 @@ export function useGrowthActions(charId: string) {
       setNotice("当前没有可抽取的卡牌");
       return;
     }
+    // 只有新抽出候选才播翻牌音效；回到已保留的候选不重复演出。
+    if (fresh) playSfx("deckDraw");
     setSelectedUid(null);
     setPage("draw");
     setNotice("");
@@ -53,6 +57,7 @@ export function useGrowthActions(charId: string) {
   function discardDraw() {
     if (!cs?.pendingDraw || timer.current != null) return;
     useTownStore.getState().cancelDraw(charId);
+    playSfx("back");
     setPage("hub");
     setSelectedUid(null);
     feedback("已放弃本次候选，经验不退还");
@@ -69,7 +74,10 @@ export function useGrowthActions(charId: string) {
     if (!cs || !model?.canUpgrade || timer.current != null) return;
     useTownStore.getState().upgradeDeck(charId);
     const after = useTownStore.getState().characters[charId];
-    if (after && after.deckLevel > cs.deckLevel) feedback(`卡组已升至 ${after.deckLevel} 级`);
+    if (after && after.deckLevel > cs.deckLevel) {
+      playSfx("deckUpgrade");
+      feedback(`卡组已升至 ${after.deckLevel} 级`);
+    }
   }
 
   function confirmSelection() {
@@ -80,7 +88,9 @@ export function useGrowthActions(charId: string) {
       if (!card || !cs.pendingDraw?.includes(card.id)) return;
       store.pickDraw(charId, card.id);
       const after = useTownStore.getState().characters[charId];
-      feedback(after && after.deck.length > cs.deck.length ? `「${card.name}」已加入卡组` : "该卡已达到携带上限，本次候选已失效");
+      const added = Boolean(after && after.deck.length > cs.deck.length);
+      playSfx(added ? "confirm" : "back");
+      feedback(added ? `「${card.name}」已加入卡组` : "该卡已达到携带上限，本次候选已失效");
     } else if (page === "remove") {
       const card = cs.deck.find((candidate) => candidate.uid === selectedUid);
       if (!card || !model.canRemove) return;
@@ -89,6 +99,7 @@ export function useGrowthActions(charId: string) {
         setNotice("当前无法移除这张卡牌");
         return;
       }
+      playSfx("cardRemove");
       feedback(`已移除「${card.name}」`);
     } else return;
     setPage("hub");
