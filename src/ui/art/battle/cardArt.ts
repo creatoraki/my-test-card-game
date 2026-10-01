@@ -4,21 +4,7 @@ import placeholderArt from "@/assets/占位素材.webp";
 import basicAttackArt from "@/assets/skills/basic/基础攻击.webp";
 import basicHealArt from "@/assets/skills/basic/基础治疗.webp";
 import basicGuardArt from "@/assets/skills/basic/基础护盾.webp";
-import swordsmanSnowflakeArt from "@/assets/skills/swordsman/雪花.webp";
-import swordsmanFallenLeafArt from "@/assets/skills/swordsman/落叶.webp";
-import swordsmanKagutsuchiArt from "@/assets/skills/swordsman/迦具土.webp";
-import swordsmanBloodRuinArt from "@/assets/skills/swordsman/血坏.webp";
-import swordsmanPhantomMoonArt from "@/assets/skills/swordsman/幻月.webp";
-import swordsmanDeclutterArt from "@/assets/skills/swordsman/断舍离.webp";
-import swordsmanRashomonArt from "@/assets/skills/swordsman/罗生门.webp";
-import swordsmanCraneDanceArt from "@/assets/skills/swordsman/鹤舞.webp";
-import swordsmanWhetstoneArt from "@/assets/skills/swordsman/武器研磨.webp";
-import swordsmanCrowArt from "@/assets/skills/swordsman/鸦.webp";
-import swordsmanGaleArt from "@/assets/skills/swordsman/岚.webp";
-import swordsmanRiftLightArt from "@/assets/skills/swordsman/天隙流光.webp";
-import swordsmanSpringSproutArt from "@/assets/skills/swordsman/春芽.webp";
-import swordsmanFallingSakuraArt from "@/assets/skills/swordsman/落樱.webp";
-import swordsmanWolfSparrowArt from "@/assets/skills/swordsman/狼雀.webp";
+import { SWORDSMAN_CARD_ART } from "./swordsmanCardArt";
 import prophetAndromedaArt from "@/assets/skills/prophet/仙女座.webp";
 import prophetSpectralDecompositionArt from "@/assets/skills/prophet/光谱分解.webp";
 import prophetSpectralShardArt from "@/assets/skills/prophet/光谱碎片.webp";
@@ -140,21 +126,7 @@ export const CARD_ART: Record<string, string> = {
   "actuary-basic-attack": basicAttackArt,
   "actuary-basic-heal": basicHealArt,
   "actuary-basic-guard": basicGuardArt,
-  "snowflake": swordsmanSnowflakeArt,
-  "fallen-leaf": swordsmanFallenLeafArt,
-  "kagutsuchi": swordsmanKagutsuchiArt,
-  "blood-ruin": swordsmanBloodRuinArt,
-  "phantom-moon": swordsmanPhantomMoonArt,
-  "declutter": swordsmanDeclutterArt,
-  "rashomon": swordsmanRashomonArt,
-  "crane-dance": swordsmanCraneDanceArt,
-  "whetstone": swordsmanWhetstoneArt,
-  "crow": swordsmanCrowArt,
-  "gale": swordsmanGaleArt,
-  "rift-light": swordsmanRiftLightArt,
-  "spring-sprout": swordsmanSpringSproutArt,
-  "falling-sakura": swordsmanFallingSakuraArt,
-  "wolf-sparrow": swordsmanWolfSparrowArt,
+  ...SWORDSMAN_CARD_ART,
   "star-shatter": prophetStarShatterArt,
   "countercurrent": prophetCountercurrentArt,
   "moon-landing": prophetMoonLandingArt,
