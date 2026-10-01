@@ -159,12 +159,12 @@ export const GENERIC_MODULE_ITEM_DEFS: ItemDef[] = withModuleSellValue([
   genericModuleT1(
     "poison-module-t1",
     "淬毒模组1",
-    "装配后，打出该卡牌后对目标施加攻击力 15% 层数的中毒，持续 2 回合。",
+    "装配后，打出该卡牌后对攻击目标（全体攻击时为所有敌人）施加攻击力 15% 层数的中毒，持续 2 回合。",
   ),
   genericModuleT1(
     "burn-module-t1",
     "燃烧模组1",
-    "装配后，打出该卡牌后对目标施加攻击力 15% 层数的灼烧，持续 2 回合。",
+    "装配后，打出该卡牌后对攻击目标（全体攻击时为所有敌人）施加攻击力 15% 层数的灼烧，持续 2 回合。",
   ),
 ]);
 

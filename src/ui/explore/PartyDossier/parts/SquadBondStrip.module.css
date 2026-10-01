@@ -1,0 +1,192 @@
+/* 羁绊条: 左侧编号标签 + 右侧横排羁绊芯片。外形与 DossierSection 同一套切角暗板, 但不占页眉行。 */
+.strip {
+  --cut: 12px;
+  position: relative;
+  display: grid;
+  flex: none;
+  grid-template-columns: 196px minmax(0, 1fr);
+  align-items: center;
+  min-height: 104px;
+  padding: 10px 16px 10px 20px;
+  border: 1px solid color-mix(in srgb, var(--k) 22%, #ffffff14);
+  background:
+    radial-gradient(ellipse 30% 80% at 0% 50%, color-mix(in srgb, var(--k) 10%, transparent), transparent 72%),
+    linear-gradient(180deg, #0c1519f2, #060b0ef2);
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+}
+
+/* 左上切角处的主题色斜线 + 顶边短亮条。 */
+.strip::before {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(var(--k), var(--k)) var(--cut) 0 / 24px 2px no-repeat,
+    linear-gradient(135deg, transparent calc(50% - 1.4px), var(--k) calc(50% - 1.4px) calc(50% + 1.4px), transparent calc(50% + 1.4px)) 0 0 / var(--cut) var(--cut) no-repeat;
+  content: "";
+  pointer-events: none;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 16px;
+  border-right: 1px solid #ffffff1a;
+}
+
+.index {
+  color: var(--k);
+  font-family: var(--font-family);
+  font-size: 32px;
+  line-height: 1;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--k) 50%, transparent);
+}
+
+.labelText {
+  display: grid;
+  gap: 6px;
+}
+
+.title {
+  margin: 0;
+  color: #eef6f7;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.summary {
+  color: #8fa6ac;
+  font-size: 18px;
+}
+
+.summary b {
+  color: var(--k);
+  font-weight: 700;
+}
+
+.empty {
+  margin: 0 0 0 20px;
+  color: #7d9399;
+  font-size: 18px;
+}
+
+.list {
+  display: flex;
+  min-width: 0;
+  gap: 10px;
+  padding: 4px 0 4px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.bond {
+  position: relative;
+  display: grid;
+  flex: none;
+  grid-template-columns: 50px auto;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  row-gap: 4px;
+  align-items: center;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--bond) 34%, #2a3a3f);
+  background:
+    radial-gradient(circle at 18% 40%, color-mix(in srgb, var(--bond) 14%, transparent), transparent 64%),
+    linear-gradient(160deg, #111c1f, #090f12 76%);
+  outline: none;
+  cursor: var(--cursor-help, default);
+  transition: border-color 160ms ease, translate 160ms ease;
+}
+
+.bond:hover,
+.bond:focus-visible {
+  border-color: var(--bond);
+  translate: 0 -2px;
+}
+
+.bond[data-inactive] {
+  opacity: 0.66;
+}
+
+/* 当前队员贡献了点数的羁绊: 顶边亮条 + 外发光。 */
+.bond.mine {
+  border-color: color-mix(in srgb, var(--bond) 70%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--bond) 30%, transparent);
+}
+
+.bond.mine::before {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  left: -1px;
+  height: 2px;
+  background: var(--bond);
+  content: "";
+}
+
+.icon {
+  grid-row: 1 / span 2;
+}
+
+.info {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.name {
+  color: #eef6f7;
+  font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.count {
+  color: #8fa6ac;
+  font-family: var(--font-num);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.count b {
+  color: var(--bond);
+  font-size: 20px;
+}
+
+.count i {
+  font-style: normal;
+}
+
+.pips {
+  display: flex;
+  gap: 4px;
+}
+
+.pips i {
+  width: 18px;
+  height: 4px;
+  background: #ffffff22;
+}
+
+.pips i[data-on] {
+  background: var(--bond);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--bond) 60%, transparent);
+}
+
+.mineTag {
+  position: absolute;
+  top: -11px;
+  right: 8px;
+  padding: 0 6px;
+  background: #061014;
+  color: var(--bond);
+  font-size: 18px;
+  line-height: 20px;
+  white-space: nowrap;
+}

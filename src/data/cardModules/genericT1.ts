@@ -65,12 +65,13 @@ export const GENERIC_T1_CARD_MODULES: CardModuleDef[] = [
     textSuffix: "（精准模组1：使用该卡牌时，计算结果时额外获得 10% 命中率与 5 点精准）",
   },
 
-  // ---- 异常组: 打出后对目标施加 DOT。费用 ≥2 是把单次价值压回 1 阶的稀释器 ----
+  // ---- 异常组: 打出后对攻击目标施加 DOT(全体攻击卡对所有敌人施加)。费用 ≥2 是把单次价值压回 1 阶的稀释器 ----
   {
     itemId: "poison-module-t1",
     canEquip: (def) => hasDamageEffect(def) && def.cost >= 2,
     equipText: "攻击卡，且费用 2 及以上",
     patch: {},
+    appendFollowsDamageTarget: true,
     appendEffects: [
       {
         type: "APPLY_STATUS",
@@ -80,13 +81,14 @@ export const GENERIC_T1_CARD_MODULES: CardModuleDef[] = [
         target: "primary",
       },
     ],
-    textSuffix: "（淬毒模组1：打出后对目标施加攻击力 15% 层数的中毒，持续 2 回合）",
+    textSuffix: "（淬毒模组1：打出后对攻击目标（全体攻击时为所有敌人）施加攻击力 15% 层数的中毒，持续 2 回合）",
   },
   {
     itemId: "burn-module-t1",
     canEquip: (def) => hasDamageEffect(def) && def.cost >= 2,
     equipText: "攻击卡，且费用 2 及以上",
     patch: {},
+    appendFollowsDamageTarget: true,
     appendEffects: [
       {
         type: "APPLY_STATUS",
@@ -96,7 +98,7 @@ export const GENERIC_T1_CARD_MODULES: CardModuleDef[] = [
         target: "primary",
       },
     ],
-    textSuffix: "（燃烧模组1：打出后对目标施加攻击力 15% 层数的灼烧，持续 2 回合）",
+    textSuffix: "（燃烧模组1：打出后对攻击目标（全体攻击时为所有敌人）施加攻击力 15% 层数的灼烧，持续 2 回合）",
   },
 ];
 

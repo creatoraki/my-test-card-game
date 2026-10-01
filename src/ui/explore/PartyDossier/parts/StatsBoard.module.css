@@ -1,0 +1,102 @@
+/* 三组属性并排: 前两组 6 行, 第三组 9 行; 整块超高时纵向滚动兜底。 */
+.board {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.group {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px 10px;
+  border: 1px solid #ffffff14;
+  background: linear-gradient(180deg, #0b1417cc, #060b0dcc);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0 0 6px 10px;
+  border-bottom: 1px solid #ffffff14;
+  border-left: 3px solid var(--k);
+}
+
+.title {
+  margin: 0;
+  color: #eef6f7;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.sub {
+  color: #6f878d;
+  font-size: 18px;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 行底一条微条: 宽度 = --pct, 只作长短对比, 不代表上限。 */
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  height: 27px;
+  padding: 0 4px;
+}
+
+.row::after {
+  position: absolute;
+  bottom: 1px;
+  left: 36px;
+  width: calc((100% - 40px) * var(--pct, 0));
+  height: 2px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--k) 55%, transparent), transparent);
+  content: "";
+  transition: width 240ms ease;
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+  color: color-mix(in srgb, var(--k) 70%, #ffffff);
+}
+
+.label {
+  overflow: hidden;
+  color: #a9bec3;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.value {
+  color: #f1f8f9;
+  font-family: var(--font-num);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.delta {
+  min-width: 36px;
+  color: #7ff0a8;
+  font-family: var(--font-num);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.delta[data-down] {
+  color: #ff8a8a;
+}

@@ -1,0 +1,63 @@
+.tabs {
+  display: flex;
+  gap: 6px;
+}
+
+/* 斜切页签: 选中态主题色底 + 底边亮条; 未选中只留细描边。 */
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 22px;
+  border: 1px solid #ffffff24;
+  background: #0a1215cc;
+  color: #a9bec3;
+  font-size: 20px;
+  letter-spacing: 2px;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  cursor: var(--cursor-pointer);
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.tab:hover:not(.active),
+.tab:focus-visible {
+  border-color: color-mix(in srgb, var(--k) 50%, transparent);
+  color: #e6eef0;
+}
+
+.tab.active {
+  border-color: var(--k);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 26%, #061014), color-mix(in srgb, var(--k) 10%, #061014));
+  color: #f4feff;
+  font-weight: 700;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--k) 60%, transparent);
+}
+
+.tab.active::after {
+  position: absolute;
+  right: 12px;
+  bottom: 0;
+  left: 6px;
+  height: 2px;
+  background: var(--k);
+  box-shadow: 0 0 8px var(--k);
+  content: "";
+}
+
+.count {
+  min-width: 26px;
+  padding: 0 6px;
+  background: #ffffff14;
+  color: inherit;
+  font-family: var(--font-num);
+  font-size: 18px;
+  font-style: normal;
+  line-height: 24px;
+  text-align: center;
+}
+
+.tab.active .count {
+  background: color-mix(in srgb, var(--k) 30%, transparent);
+}

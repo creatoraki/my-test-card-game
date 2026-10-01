@@ -12,13 +12,15 @@ export function useExploreInventory(session: ExploreState | null) {
   const [beaconPicking, setBeaconPicking] = useState(false);
   const [atlasOpen, setAtlasOpen] = useState(false);
   const [detailCharId, setDetailCharId] = useState<string | null>(null);
+  // 背包里点「装备」带进队员档案的那件装备(背包 uid)。穿上后它离开背包, 档案自然不再提示。
+  const [equipPendingUid, setEquipPendingUid] = useState<string | null>(null);
   const [target, setTarget] = useState<ItemStack | null>(null);
   // 选人使用物品被拒(目标不适用)时, 在该队员框上闪一下红框 —— seq 让连续点同一人也能重播。
   const [rejected, setRejected] = useState<{ charId: string; seq: number } | null>(null);
   const allowed = Boolean(session && canOpenBackpack(session));
 
   useEffect(() => {
-    if (!allowed) { setBagOpen(false); setPicnicOpen(false); setBeaconPicking(false); setAtlasOpen(false); setDetailCharId(null); setTarget(null); }
+    if (!allowed) { setBagOpen(false); setPicnicOpen(false); setBeaconPicking(false); setAtlasOpen(false); setDetailCharId(null); setEquipPendingUid(null); setTarget(null); }
   }, [allowed]);
   useEffect(() => {
     if (!rejected) return;
@@ -29,7 +31,7 @@ export function useExploreInventory(session: ExploreState | null) {
   useEffect(() => {
     const escape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      setTarget(null); setDetailCharId(null); setPicnicOpen(false); setBeaconPicking(false); setAtlasOpen(false); setBagOpen(false);
+      setTarget(null); setDetailCharId(null); setEquipPendingUid(null); setPicnicOpen(false); setBeaconPicking(false); setAtlasOpen(false); setBagOpen(false);
     };
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
@@ -51,6 +53,15 @@ export function useExploreInventory(session: ExploreState | null) {
       else setRejected((prev) => ({ charId, seq: (prev?.seq ?? 0) + 1 }));
     } else setDetailCharId(charId);
   };
+  // 背包「装备」: 打开队员档案并带上这件装备。档案已开着就留在当前队员, 否则落在第一名存活队员上。
+  const openEquip = useCallback((stack: ItemStack) => {
+    const party = useExploreStore.getState().session?.party ?? [];
+    const first = party.find((member) => member.alive) ?? party[0];
+    if (!first) return;
+    setEquipPendingUid(stack.uid);
+    setDetailCharId((current) => current ?? first.charId);
+  }, []);
+  const closeDetail = () => { setDetailCharId(null); setEquipPendingUid(null); };
   const equip = (uid: string) => {
     if (!detailCharId) return;
     useRunStore.getState().equipFromBackpack(detailCharId, uid);
@@ -61,9 +72,10 @@ export function useExploreInventory(session: ExploreState | null) {
   };
   const mustReplace = Boolean(session?.pendingPickup.length);
   return {
-    allowed, bagOpen: bagOpen || mustReplace, picnicOpen, beaconPicking, atlasOpen, detailCharId, target, rejected,
+    allowed, bagOpen: bagOpen || mustReplace, picnicOpen, beaconPicking, atlasOpen, detailCharId, equipPendingUid, target, rejected,
     blocked: bagOpen || mustReplace || picnicOpen || atlasOpen || beaconPicking || Boolean(detailCharId || target),
-    setBagOpen, setPicnicOpen, setBeaconPicking, setAtlasOpen, setDetailCharId, setTarget, useItem, chooseMember, equip, unequip,
+    setBagOpen, setPicnicOpen, setBeaconPicking, setAtlasOpen, setDetailCharId, setEquipPendingUid, setTarget,
+    useItem, chooseMember, openEquip, closeDetail, equip, unequip,
   };
 }
 

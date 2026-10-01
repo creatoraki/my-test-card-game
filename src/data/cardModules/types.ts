@@ -14,6 +14,9 @@ export interface CardModuleDef {
   /** 追加到 card.effects 末尾的效果。⚠ 不能走 patch —— effects 会被 upgradeCard 就地强化,
    *  整字段还原会把强化结果一起抹掉, 所以这里改成带 fromModule 标记的追加/剥离。 */
   appendEffects?: EffectDescriptor[];
+  /** 追加效果里写 primary 的条目跟随本卡伤害目标: 卡牌伤害打全体时改成 allFoes。
+   *  ★ 全体攻击卡(如岚)没有主目标, 不跟随的话 DOT 会落空。 */
+  appendFollowsDamageTarget?: boolean;
   /** 追加的卡牌词条, 同样用 fromModule 保证反复装卸幂等。 */
   appendKeywords?: CardDef["keywords"];
   /** 追加到 card.text 末尾的说明。重算时按登记过的全部后缀做剔除, 同样不碰卡牌自身文案。 */

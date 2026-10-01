@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-export type ActionIconName = "use" | "open" | "install" | "discard" | "take" | "confirm" | "close";
+export type ActionIconName = "use" | "open" | "install" | "equip" | "discard" | "take" | "confirm" | "close";
 
 const PATHS: Record<ActionIconName, ReactNode> = {
   // 使用: 闪电
@@ -22,6 +22,8 @@ const PATHS: Record<ActionIconName, ReactNode> = {
       <path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4" />
     </>
   ),
+  // 装备: 护甲上衣
+  equip: <path d="M8 3 3 6.5V11h3.5v10h11V11H21V6.5L16 3c-.6 1.7-2.1 2.7-4 2.7S8.6 4.7 8 3Z" />,
   // 丢弃: 垃圾桶
   discard: (
     <>

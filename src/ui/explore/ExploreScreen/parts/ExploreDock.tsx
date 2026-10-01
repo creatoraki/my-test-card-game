@@ -39,7 +39,7 @@ export function ExploreDock({ session, inventory, locked, pending }: {
         </div>
       </div>
       <div className={s.bagGrid} data-locked={locked || undefined}>
-        <BackpackBar onUseItem={inventory.useItem} />
+        <BackpackBar onUseItem={inventory.useItem} onEquipItem={inventory.openEquip} />
       </div>
     </div>
   </div>;

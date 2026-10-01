@@ -1,0 +1,151 @@
+.switcher {
+  display: grid;
+  flex: none;
+  grid-template-columns: 24px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px 14px;
+}
+
+.arrow {
+  display: grid;
+  width: 24px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #c9d8dc;
+  cursor: var(--cursor-pointer);
+  transition: color 160ms ease, opacity 160ms ease;
+}
+
+.arrow svg {
+  width: 13px;
+  height: 23px;
+}
+
+.arrow.next svg {
+  scale: -1 1;
+}
+
+.arrow:hover:not(:disabled),
+.arrow:focus-visible {
+  color: var(--k);
+}
+
+.arrow:disabled {
+  opacity: 0.3;
+  cursor: var(--cursor-default);
+}
+
+/* 一排最多 4 格, 队伍再大就横向滚动; 内边距给选中外发光留余量。 */
+.list {
+  display: flex;
+  min-width: 0;
+  justify-content: center;
+  gap: 10px;
+  padding: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.member {
+  position: relative;
+  display: block;
+  flex: 0 0 calc((100% - 30px) / 4);
+  aspect-ratio: 78 / 104;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #ffffff2e;
+  background: linear-gradient(180deg, #13202a, #080d11);
+  cursor: var(--cursor-pointer);
+  transition: border-color 160ms ease, box-shadow 160ms ease, translate 160ms ease;
+}
+
+.member:hover,
+.member:focus-visible {
+  border-color: color-mix(in srgb, var(--k) 60%, #ffffff40);
+  translate: 0 -2px;
+}
+
+/* 选中: 主题色描边 + 四角加粗括号 + 外发光(与研究中心角色选择同一手法)。 */
+.member.active {
+  --mk-bar: linear-gradient(var(--k), var(--k));
+  border-color: color-mix(in srgb, var(--k) 70%, transparent);
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--k) 60%, transparent),
+    inset 0 0 14px color-mix(in srgb, var(--k) 22%, transparent);
+}
+
+.member.active::after {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background:
+    var(--mk-bar) 0 0 / 14px 3px no-repeat,
+    var(--mk-bar) 0 0 / 3px 14px no-repeat,
+    var(--mk-bar) 100% 0 / 14px 3px no-repeat,
+    var(--mk-bar) 100% 0 / 3px 14px no-repeat,
+    var(--mk-bar) 100% 100% / 14px 3px no-repeat,
+    var(--mk-bar) 100% 100% / 3px 14px no-repeat,
+    var(--mk-bar) 0 100% / 14px 3px no-repeat,
+    var(--mk-bar) 0 100% / 3px 14px no-repeat;
+  content: "";
+  pointer-events: none;
+}
+
+.thumb {
+  --slot-base-w: 47%;
+  --bust-zoom: 2.15;
+  --frame-k: 0.24;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: calc(var(--slot-base-w) * var(--bust-zoom) * var(--bust-scale, 1));
+  height: auto;
+  max-width: none;
+  translate:
+    calc(-50% + var(--portrait-dx, 0px) * var(--frame-k))
+    calc(var(--portrait-dy, 0px) * var(--frame-k));
+  opacity: 0.8;
+}
+
+.member.active .thumb {
+  opacity: 1;
+}
+
+.member[data-down] .thumb {
+  filter: grayscale(1) brightness(0.5);
+}
+
+.hp {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  height: 5px;
+  background: #000000b3;
+}
+
+.hp i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #3fd47a, #8ff0a8);
+}
+
+.downTag {
+  position: absolute;
+  inset: auto 0 7px;
+  z-index: 2;
+  color: #ff9a9a;
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-align: center;
+  text-shadow: 0 1px 4px #000;
+}

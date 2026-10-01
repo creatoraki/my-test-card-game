@@ -52,8 +52,11 @@ export function recomputeCardModule(card: Card): void {
   card.effects.unshift(
     ...(module?.prependEffects ?? []).map((effect) => ({ ...effect, fromModule: module!.itemId })),
   );
+  const hitsAllFoes = base.effects.some((effect) => effect.type === "DAMAGE" && effect.target === "allFoes");
   for (const effect of module?.appendEffects ?? []) {
-    card.effects.push({ ...effect, fromModule: module!.itemId });
+    const followTarget =
+      module!.appendFollowsDamageTarget && hitsAllFoes && (effect.target ?? "primary") === "primary";
+    card.effects.push({ ...effect, ...(followTarget ? { target: "allFoes" as const } : {}), fromModule: module!.itemId });
   }
 
   const keywords = (card.keywords ?? []).filter((keyword) => !keyword.fromModule);

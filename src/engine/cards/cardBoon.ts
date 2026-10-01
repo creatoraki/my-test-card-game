@@ -19,12 +19,14 @@ export type CardBoonId =
 
 // 回合开始时天然成立 ⇒ 全场手牌一起闪, 激活态会贬值; waterfall 另走专项判定
 // (state.waterfallPlay 只在 playCard 里写, 手牌阶段读到的是上一张牌的残留);
-// eventTargetHasStatus 只在被动结算窗口内有意义。
+// eventTargetHasStatus 只在被动结算窗口内有意义;
+// lacksSquadBuff 是「未持有组装 BUFF」的默认分支, 没 BUFF 时天然成立, 不算激活。
 const IDLE_CONDITIONS: readonly string[] = [
   "waterfall",
   "noPlaysThisRound",
   "noFastPlaysThisRound",
   "counterBelow",
+  "lacksSquadBuff",
   "eventTargetHasStatus",
   "targetNotAttackedThisRound",
 ] as const;
