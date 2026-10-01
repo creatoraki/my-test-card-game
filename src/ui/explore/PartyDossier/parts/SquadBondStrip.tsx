@@ -1,5 +1,5 @@
-// 右栏顶部常驻的「小队羁绊」条: 全队装备槽上的羁绊词条计数 + 档位刻度,
-// 并把**当前队员**装备贡献的那几条点亮出来(「本队员 +N」), 换装时一眼看出动了哪条羁绊。
+// 右栏顶部常驻的「小队羁绊」条: 只排羁绊图标, 点数 / 档位 / 本队员贡献全部收进悬浮详情。
+// 图标本身只带两种状态: 未激活压暗; **当前队员**贡献了点数的那几枚亮起顶边 + 外发光。
 // ★ 计数口径与开战快照同一份(townStore.bondCountsOf + 城镇 party), 这里只画结论。
 import { useMemo, type CSSProperties } from "react";
 import { activeBonds, BOND_DEFS, nextTier } from "@/data/roster/bonds";
@@ -60,22 +60,15 @@ export function SquadBondStrip({ characters, party, charId }: Props) {
                 role="group"
                 aria-label={`${def.name}，${count} 点${inactive ? "，未激活" : `，第 ${tierIndex + 1} 档`}`}
               >
-                <ArcanaIcon id={def.id} size={50} bare inactive={inactive} accent={accent} className={s.icon} />
-                <div className={s.info}>
-                  <span className={s.name}>{def.name}</span>
-                  <span className={s.count}>
-                    <b>{count}</b>
-                    {next ? <i> / {next.count}</i> : <i> 满档</i>}
-                  </span>
-                </div>
-                <span className={s.pips} aria-hidden="true">
-                  {def.tiers.map((tier, index) => (
-                    <i key={tier.count} data-on={index <= tierIndex || undefined} />
-                  ))}
-                </span>
-                {mine > 0 && <span className={s.mineTag}>本队员 +{mine}</span>}
+                <ArcanaIcon id={def.id} size={56} bare inactive={inactive} accent={accent} />
                 <RailPopover side="bottom">
-                  <BondTooltip def={def} count={count} tierIndex={tierIndex} next={next} />
+                  <BondTooltip
+                    def={def}
+                    count={count}
+                    tierIndex={tierIndex}
+                    next={next}
+                    extraNote={mine > 0 ? `本队员贡献 ${mine} 点` : undefined}
+                  />
                 </RailPopover>
               </div>
             );

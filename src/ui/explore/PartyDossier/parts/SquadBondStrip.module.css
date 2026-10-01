@@ -1,4 +1,4 @@
-/* 羁绊条: 左侧编号标签 + 右侧横排羁绊芯片。外形与 DossierSection 同一套切角暗板, 但不占页眉行。 */
+/* 羁绊条: 左侧编号标签 + 右侧横排羁绊图标(详情全在悬浮层)。外形与 DossierSection 同一套切角暗板, 但不占页眉行。 */
 .strip {
   --cut: 12px;
   position: relative;
@@ -6,7 +6,7 @@
   flex: none;
   grid-template-columns: 196px minmax(0, 1fr);
   align-items: center;
-  min-height: 104px;
+  min-height: 96px;
   padding: 10px 16px 10px 20px;
   border: 1px solid color-mix(in srgb, var(--k) 22%, #ffffff14);
   background:
@@ -74,8 +74,8 @@
 .list {
   display: flex;
   min-width: 0;
-  gap: 10px;
-  padding: 4px 0 4px 16px;
+  gap: 8px;
+  padding: 6px 0 4px 16px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -84,23 +84,21 @@
   display: none;
 }
 
+/* 单枚羁绊: 方形切角小框 + 居中图标。 */
 .bond {
   position: relative;
   display: grid;
+  width: 70px;
+  height: 70px;
   flex: none;
-  grid-template-columns: 50px auto;
-  grid-template-rows: auto auto;
-  column-gap: 10px;
-  row-gap: 4px;
-  align-items: center;
-  padding: 8px 14px 8px 10px;
+  place-items: center;
   border: 1px solid color-mix(in srgb, var(--bond) 34%, #2a3a3f);
   background:
-    radial-gradient(circle at 18% 40%, color-mix(in srgb, var(--bond) 14%, transparent), transparent 64%),
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--bond) 18%, transparent), transparent 66%),
     linear-gradient(160deg, #111c1f, #090f12 76%);
   outline: none;
   cursor: var(--cursor-help, default);
-  transition: border-color 160ms ease, translate 160ms ease;
+  transition: border-color 160ms ease, translate 160ms ease, box-shadow 160ms ease;
 }
 
 .bond:hover,
@@ -110,13 +108,13 @@
 }
 
 .bond[data-inactive] {
-  opacity: 0.66;
+  opacity: 0.6;
 }
 
 /* 当前队员贡献了点数的羁绊: 顶边亮条 + 外发光。 */
 .bond.mine {
   border-color: color-mix(in srgb, var(--bond) 70%, transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--bond) 30%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--bond) 34%, transparent);
 }
 
 .bond.mine::before {
@@ -124,69 +122,7 @@
   top: -1px;
   right: -1px;
   left: -1px;
-  height: 2px;
+  height: 3px;
   background: var(--bond);
   content: "";
-}
-
-.icon {
-  grid-row: 1 / span 2;
-}
-
-.info {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.name {
-  color: #eef6f7;
-  font-size: 20px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.count {
-  color: #8fa6ac;
-  font-family: var(--font-num);
-  font-size: 18px;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.count b {
-  color: var(--bond);
-  font-size: 20px;
-}
-
-.count i {
-  font-style: normal;
-}
-
-.pips {
-  display: flex;
-  gap: 4px;
-}
-
-.pips i {
-  width: 18px;
-  height: 4px;
-  background: #ffffff22;
-}
-
-.pips i[data-on] {
-  background: var(--bond);
-  box-shadow: 0 0 6px color-mix(in srgb, var(--bond) 60%, transparent);
-}
-
-.mineTag {
-  position: absolute;
-  top: -11px;
-  right: 8px;
-  padding: 0 6px;
-  background: #061014;
-  color: var(--bond);
-  font-size: 18px;
-  line-height: 20px;
-  white-space: nowrap;
 }

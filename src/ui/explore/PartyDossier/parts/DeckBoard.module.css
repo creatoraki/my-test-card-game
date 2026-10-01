@@ -1,29 +1,42 @@
-/* HandCard 是 220×308 的固定像素卡面, 外层按 0.8 缩放成 176×246 平铺。 */
+/* 一行 3 张: 列宽走 1fr, --scale 由 DeckBoard 量出列宽后写入(列宽 / 220)。
+   gutter 常驻, 出不出滚动条列宽都不跳。 */
 .grid {
-  --scale: 0.8;
+  --scale: 1;
   display: grid;
   min-height: 0;
   flex: 1;
   align-content: start;
-  grid-template-columns: repeat(auto-fill, calc(220px * var(--scale)));
-  justify-content: space-between;
-  gap: 16px 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  overflow-x: hidden;
   overflow-y: auto;
-  padding: 4px 4px 8px;
+  padding: 3px 4px 6px 3px;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
 }
 
 .cell {
-  width: calc(220px * var(--scale));
-  height: calc(308px * var(--scale));
+  position: relative;
+  aspect-ratio: 220 / 308;
   animation: deckIn 320ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(var(--i) * 30ms);
+  cursor: var(--cursor-help, default);
 }
 
-.cell:nth-child(n + 2) { animation-delay: 30ms; }
-.cell:nth-child(n + 3) { animation-delay: 60ms; }
-.cell:nth-child(n + 4) { animation-delay: 90ms; }
-.cell:nth-child(n + 5) { animation-delay: 120ms; }
-.cell:nth-child(n + 6) { animation-delay: 150ms; }
+/* 悬停中的那张: 主题色描边, 对应左栏正在展示它的详情。 */
+.cell::after {
+  position: absolute;
+  inset: -3px;
+  border: 2px solid transparent;
+  content: "";
+  pointer-events: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.cell[data-hovered]::after {
+  border-color: var(--k);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--k) 45%, transparent);
+}
 
 .card {
   display: block;

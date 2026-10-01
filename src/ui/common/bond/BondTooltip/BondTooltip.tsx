@@ -12,14 +12,21 @@ export function BondTooltip({
   count,
   tierIndex,
   next = null,
+  extraNote,
 }: {
   def: BondDef;
   count: number;
   tierIndex: number;
   next?: BondTier | null;
+  /** 追加在提示条里的一句话, 如队员档案的「本队员贡献 N 点」。 */
+  extraNote?: string;
 }) {
   const inactive = tierIndex < 0;
   const accent = getArcanaAccent(def.id) ?? def.color;
+  const notes = [
+    ...(extraNote ? [{ text: extraNote }] : []),
+    ...(inactive && next ? [{ text: `还差 ${next.count - count} 点` }] : []),
+  ];
 
   return (
     <TooltipCard
@@ -28,7 +35,7 @@ export function BondTooltip({
       meta={`${count} 点 · ${inactive ? "未激活" : `Lv.${tierIndex + 1}`}`}
       desc={def.desc}
       accent={accent}
-      notes={inactive && next ? [{ text: `还差 ${next.count - count} 点` }] : undefined}
+      notes={notes.length > 0 ? notes : undefined}
     >
       <div className={s.tiers}>
         {def.tiers.map((tier, index) => (

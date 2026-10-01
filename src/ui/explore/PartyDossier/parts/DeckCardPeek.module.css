@@ -1,0 +1,21 @@
+/* 铺满左栏分区主体, 压暗立绘后居中摆大卡; 卡面放大到 1.5 倍(330 宽), 给词条释义留出高度。 */
+.peek {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  display: grid;
+  overflow: hidden;
+  place-items: center;
+  padding: 16px;
+  background: radial-gradient(ellipse 80% 70% at 50% 45%, #050b0eee, #03080bf5);
+  pointer-events: none;
+}
+
+.peek .preview {
+  --deck-card-scale: 1.5;
+  animation: peekIn 160ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+@keyframes peekIn {
+  from { opacity: 0; transform: scale(0.96); }
+}

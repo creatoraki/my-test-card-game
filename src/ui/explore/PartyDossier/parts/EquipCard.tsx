@@ -1,15 +1,13 @@
-// 单个部位的大装备卡: 部位 + 稀有度页眉、大图标 + 名称 + 羁绊词条、属性词条。
+// 单个部位的大装备卡: 部位 + 稀有度页眉、居中大图 + 名称 + 羁绊词条。
+// ★ 不在卡面列具体属性 —— 悬停大图看物品详情, 整体数值看下方属性面板。
 // 背包里点「装备」带进来的同部位装备会在卡底部长出「待换上」条, 一键换上。
 import type { CSSProperties } from "react";
 import { getBondDef, getItemDef } from "@/data";
 import { RARITY_LABEL, SLOT_LABEL, type EquipSlot, type ItemStack } from "@/items/types";
 import { ArcanaIcon, getArcanaAccent } from "@/ui/common/icon/ArcanaIcon";
-import { itemStatRows } from "@/ui/common/item/ItemDetail/itemDetailData";
 import ItemIconFrame from "@/ui/common/item/ItemIconFrame";
 import { cx } from "@/ui/common/shared/cx";
 import s from "./EquipCard.module.css";
-
-const MAX_STAT_ROWS = 6;
 
 interface Props {
   slot: EquipSlot;
@@ -43,7 +41,6 @@ export function EquipCard({
   onHideTooltip,
 }: Props) {
   const def = stack ? getItemDef(stack.itemId) : null;
-  const rows = stack && def ? itemStatRows(stack, def) : [];
   const bonds = stack ? bondsOf(stack) : [];
   const pendingDef = pending ? getItemDef(pending.itemId) : null;
   const style = { "--rr": def ? `var(--rarity-${def.rarity})` : "#5d7177" } as CSSProperties;
@@ -76,7 +73,7 @@ export function EquipCard({
             onMouseEnter={(event) => !active && onShowTooltip(event.currentTarget, stack)}
             onMouseLeave={onHideTooltip}
           >
-            <ItemIconFrame itemId={stack.itemId} size="lg" />
+            <ItemIconFrame itemId={stack.itemId} size="xl" />
           </span>
         ) : (
           <span className={s.emptyIcon} aria-hidden="true">空</span>
@@ -102,7 +99,7 @@ export function EquipCard({
         <span className={s.swap} aria-hidden="true">更换</span>
       </button>
 
-      {pending && pendingDef ? (
+      {pending && pendingDef && (
         <div className={s.pending} style={{ "--pr": `var(--rarity-${pendingDef.rarity})` } as CSSProperties}>
           <span className={s.pendingLabel}>待换上</span>
           <span
@@ -125,16 +122,6 @@ export function EquipCard({
             {lockedReason ?? "换上"}
           </button>
         </div>
-      ) : (
-        <ul className={s.stats}>
-          {rows.slice(0, MAX_STAT_ROWS).map((row, index) => (
-            <li key={`${row.label}-${index}`} data-bad={row.good ? undefined : ""}>
-              <span>{row.label}</span>
-              <b>{row.value}</b>
-            </li>
-          ))}
-          {stack && rows.length === 0 && <li className={s.statEmpty}>无属性词条</li>}
-        </ul>
       )}
     </article>
   );

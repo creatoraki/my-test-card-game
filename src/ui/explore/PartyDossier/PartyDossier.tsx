@@ -4,6 +4,7 @@
 //   + 「03 队员配置」主分区(页签: 属性装备 / 卡组)。
 // 视觉: 外壳沿用探索浮层的折角外框与展开动画(explorePanel.panel-box), 分区用研究中心式编号面板,
 //   主题色统一走 --k。
+// ★ 卡组页悬停卡牌时, 大卡详情(DeckCardPeek)盖在左栏立绘舞台上, 与城镇角色详情同一套。
 // ★ 页签、悬停预览等状态都挂在本组件上, 切换队员只换 charId —— 页签不会被重置回属性页。
 // ★ 换装规则不在这里: 能不能换由 allowed + 队员存活给出理由, 换装回调直达 runStore。
 
@@ -20,6 +21,7 @@ import { DOSSIER_ACCENT } from "@/ui/explore/EventDossier";
 import { useDialogFocus } from "@/ui/explore/ExploreScreen/useDialogFocus";
 import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import { DeckBoard } from "./parts/DeckBoard";
+import { DeckCardPeek } from "./parts/DeckCardPeek";
 import { DossierSection } from "./parts/DossierSection";
 import { DossierTabs, type DossierTab } from "./parts/DossierTabs";
 import { EquipRow } from "./parts/EquipRow";
@@ -65,6 +67,7 @@ export function PartyDossier({
   const [tab, setTab] = useState<DossierTab>("loadout");
   const [hoverPreview, setHoverPreview] = useState<{ slot: EquipSlot; stack: ItemStack } | null>(null);
   const [tooltip, setTooltip] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
+  const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
   const { panel, onKeyDown: onDialogKeyDown } = useDialogFocus({ active: true, onEscape: onClose });
 
   const member = session.party.find((item) => item.charId === charId);
@@ -89,7 +92,12 @@ export function PartyDossier({
   useEffect(() => {
     setHoverPreview(null);
     setTooltip(null);
+    setHoveredCardUid(null);
   }, [charId]);
+
+  useEffect(() => {
+    if (tab !== "deck") setHoveredCardUid(null);
+  }, [tab]);
 
   const stats = useMemo(() => (character ? deriveStats(character) : null), [character]);
   const preview = useMemo(() => {
@@ -103,6 +111,7 @@ export function PartyDossier({
 
   const def = getCharacter(charId);
   const index = session.party.findIndex((item) => item.charId === charId);
+  const hoveredCard = tab === "deck" ? character.deck.find((card) => card.uid === hoveredCardUid) ?? null : null;
   const lockedReason = !allowed ? "此时无法换装" : !member.alive ? "阵亡队员无法换装" : undefined;
 
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
@@ -169,6 +178,7 @@ export function PartyDossier({
               down={!member.alive}
             />
             <MemberSwitcher members={session.party} selected={charId} onSelect={onSelect} />
+            {hoveredCard && <DeckCardPeek card={hoveredCard} />}
           </DossierSection>
 
           <div className={s.right}>
@@ -204,7 +214,7 @@ export function PartyDossier({
                     <StatsBoard stats={stats} preview={preview} />
                   </>
                 ) : (
-                  <DeckBoard deck={character.deck} />
+                  <DeckBoard deck={character.deck} hoveredUid={hoveredCardUid} onHoverCard={setHoveredCardUid} />
                 )}
               </div>
             </DossierSection>
