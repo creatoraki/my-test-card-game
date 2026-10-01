@@ -172,6 +172,10 @@
 .vfx-gale-sweep.vfx-attack::after {
   content: none;
 }
+/* 雷走自带电光冲击环, 爆点在 200ms; 默认圆环挂载即扩散会抢在第二刀之前。 */
+.vfx-thunder-run.vfx-attack::after {
+  content: none;
+}
 /* 瞬斩自带十字闪与裂线, 爆点在 110ms; 默认圆环挂载即扩散会抢在刃光之前。 */
 .vfx-swift-slash.vfx-attack::after {
   content: none;

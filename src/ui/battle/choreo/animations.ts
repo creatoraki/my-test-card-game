@@ -6,6 +6,7 @@
 
 import type { Card, CardAnim } from "@/engine";
 import { CARD_DEFS, type EnemyMove } from "@/data";
+import { THUNDER_TIMELINE } from "@/ui/battle/fx/ThunderRunFx/thunderRunTimeline";
 
 // 卡牌定义表的 anim 索引: 卡实例随城镇档案持久化(localStorage), 实例上固化的 anim
 // 副本会在改数据后过期 —— 旧档的卡永远放老特效。anim 是纯表现字段, 故按定义表实时
@@ -33,7 +34,7 @@ export interface AnimPreset {
   // 全场级特效: 整次出牌只由 ScreenFxLayer 挂一份(覆盖全部目标), 各单位的 HitFxLayer
   // 不再各放一份 proc, 只保留受击反应与飘字。全体攻击用, 避免 n 个目标演成 n 份单体动画。
   stage?: boolean;
-  screenFx?: "dim" | "flash" | "blood" | "glitch" | "twin"; // 可选的场景外全屏层
+  screenFx?: "dim" | "flash" | "blood" | "glitch" | "twin" | "thunder"; // 可选的场景外全屏层
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
   windup: number; // ms: 施法者前冲蓄力 → 命中时刻(伤害/特效在此刻触发)
   hold: number; // ms: 命中后特效(含飘字)完整播放所需时长
@@ -139,6 +140,19 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     screenFx: "dim",
     windup: 210, // 现时序不消费, 按语义填写
     hold: 1000,
+    shake: 2,
+  },
+  // 雷走·迅雷斩(GLSL): 780ms —— 蓄电压暗 → 两记疾斩交成 X(斩痕缠绕频闪电弧) →
+  // 200ms 爆点双斩痕充能爆亮 + 白核星芒 + 电光环 → 300ms 雷鸣复闪 → 余电消散。
+  // impactMs 与 fx/ThunderRunFx/thunderRunTimeline.ts 同源; 掉血/飘字锚在爆点。
+  // 全屏压暗与两次闪白归 screenFx "thunder", 震屏/顿帧归相机 SHOTS.thunder。
+  "thunder-run": {
+    kind: "attack",
+    color: "#8ad8ff", // 电光青蓝(刃光/电弧/受击着色/飘字), 着色器内大光晕再往冷紫偏
+    proc: { impactMs: THUNDER_TIMELINE.impact, floatMs: 480, damageAtImpact: true },
+    screenFx: "thunder",
+    windup: 160,
+    hold: 900, // impactMs + floatMs = 680 < hold, 也盖住 total 780
     shake: 2,
   },
   // 刀光斩(程序化 CSS): 1.6s 三拍, 目标中心斜贯、粒子收敛、八点爆裂与刀痕消散。

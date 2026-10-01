@@ -3,7 +3,7 @@ import { ANIM } from "@/ui/battle/choreo/animations";
 import { DEATH } from "@/ui/battle/choreo/deathChoreo";
 import type { SpringTuning } from "./spring";
 
-export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "gale" | "blood" | "neon" | "triple" | "keen" | "lunar" | "sakura" | "twin" | "foe" | "foeCast";
+export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "thunder" | "blade" | "gale" | "blood" | "neon" | "triple" | "keen" | "lunar" | "sakura" | "twin" | "foe" | "foeCast";
 
 export interface ShotPreset {
   kind: ShotKind;
@@ -58,6 +58,9 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
   // hold = 掉血 + 消散(余烬焚解) + 40ms, 击杀镜头盖住完整死亡演出; 分镜侧另按 impactMs 再兜底。
   kill: { kind: "kill", scale: 1.85, fit: 0.68, yaw: 6, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 190, damping: 16 } }, lead: 320, hold: DEATH.drain + DEATH.vanish + 40, punch: 0.08, shake: 28, creep: 20, hitstop: 140, slowmo: { scale: 0.25, ms: 320 } },
   iai: { kind: "iai", scale: 1.65, fit: 0.72, yaw: 5, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 210, damping: 15 } }, lead: 260, hold: 960, punch: 0.075, shake: 24, creep: 0, hitstop: 110 },
+  // 雷走·迅雷斩视觉 780ms: 比居合更快更利 —— 推近略小、roll 弹簧更硬(甩镜头感), 顿帧短一档
+  // 保住"快"; hold 920 覆盖命中特效 900ms, 200ms 爆点对齐重震与顿帧。
+  thunder: { kind: "thunder", scale: 1.6, fit: 0.73, yaw: 5, pitch: 3, roll: 7, rig: { s: QUICK, roll: { stiffness: 240, damping: 15 } }, lead: 220, hold: 920, punch: 0.07, shake: 24, creep: 0, hitstop: 80 },
   // 刀光视觉时间轴约 1600ms; hold 1800ms 给刀痕消散尾段留 170ms 卸载余量。
   blade: { kind: "blade", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 1800, punch: 0.06, shake: 20, creep: 0, hitstop: 90 },
   // 青岚横断(全场级群攻): 比 aoe 更宽的取景(fit 0.66)把整排敌人连同风刃路径都框进来,
@@ -101,6 +104,7 @@ export function pickShot(ctx: ShotContext): ShotPreset {
     ctx.anim === "gale-sweep" ? SHOTS.gale
       : ctx.targetCount >= 2 ? SHOTS.aoe
       : ctx.anim === "iai-slash" ? SHOTS.iai
+      : ctx.anim === "thunder-run" ? SHOTS.thunder
         : ctx.anim === "blade-slash" ? SHOTS.blade
           : ctx.anim === "blood-slash" ? SHOTS.blood
               : ctx.anim === "neon-cross" ? SHOTS.neon

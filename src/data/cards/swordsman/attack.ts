@@ -241,7 +241,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cardType: "fast",
     targeting: "foe",
     rarity: "common",
-    anim: "iai-slash",
+    anim: "thunder-run",
     playReturn: { when: "fastPlaysThisRound", atLeast: 1, costDelta: 1 },
     effects: [{ type: "DAMAGE", multiplier: 0.7, target: "primary", hitBonus: 10 }],
     text: "造成 {0} 点伤害，命中 +10%。本回合已打出其他速攻牌时，打出后回到手牌且费用 +1。",

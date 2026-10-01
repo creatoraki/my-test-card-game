@@ -27,6 +27,7 @@ export function ScreenFxLayer({ hits, playerIds, fxRate }: Props) {
   const bloodHit = Object.values(hits).find((hit) => ANIM[hit.anim].screenFx === "blood");
   const glitchHit = Object.values(hits).find((hit) => ANIM[hit.anim].screenFx === "glitch");
   const twinHit = Object.values(hits).find((hit) => ANIM[hit.anim].screenFx === "twin");
+  const thunderHit = Object.values(hits).find((hit) => ANIM[hit.anim].screenFx === "thunder");
   const hurtHit = Object.entries(hits).find(
     ([id, hit]) => playerIds.includes(id) && hit.floats.some((float) => float.tone === "dmg"),
   )?.[1];
@@ -39,6 +40,7 @@ export function ScreenFxLayer({ hits, playerIds, fxRate }: Props) {
       {bloodHit && <div key={bloodHit.seq} className={s["battle-blood"]} aria-hidden />}
       {glitchHit && <div key={glitchHit.seq} className={s["battle-glitch"]} aria-hidden />}
       {twinHit && <div key={twinHit.seq} className={s["battle-twin"]} aria-hidden />}
+      {thunderHit && <div key={thunderHit.seq} className={s["battle-thunder"]} aria-hidden />}
       {stage?.hit.anim === "gale-sweep" && (
         <GaleSweepFx
           key={stage.hit.seq}

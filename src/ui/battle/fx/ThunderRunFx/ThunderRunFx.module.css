@@ -1,0 +1,12 @@
+/* 雷走 · 迅雷斩: 画布中心对齐 .vfx 锚点(HitFxLayer 的 0×0 定位点)。 */
+.thunder-run {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+/* GlslSprite 的画布默认可点(传送门需要), 命中特效必须穿透。 */
+.thunder-run canvas {
+  pointer-events: none;
+}

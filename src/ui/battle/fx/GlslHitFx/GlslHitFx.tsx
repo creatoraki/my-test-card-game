@@ -11,10 +11,12 @@
 // 无 WebGL 时不渲染, 受击抖动/闪白/飘字照常。
 // ============================================================================
 
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { ProcFxPreset } from "@/ui/battle/choreo/animations";
 import { GlslSprite, glslAvailable, type GlslUniforms } from "@/ui/common/fx/GlslSprite";
 import { GLSL_HIT_SPECS, type GlslHitKind } from "./glslHitPrograms";
+import { hexToRgb } from "./glslColor";
+import { useFxRate } from "./useFxRate";
 import s from "./GlslHitFx.module.css";
 
 export interface GlslHitFxProps {
@@ -23,28 +25,12 @@ export interface GlslHitFxProps {
   color: string;
 }
 
-function hexToRgb(hex: string): [number, number, number] {
-  let h = hex.replace("#", "").trim();
-  if (h.length === 3) h = h.split("").map((ch) => ch + ch).join("");
-  const n = parseInt(h.slice(0, 6), 16);
-  if (!Number.isFinite(n)) return [1, 1, 1];
-  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
-}
-
 export function GlslHitFx({ kind, preset, color }: GlslHitFxProps & { kind: GlslHitKind }) {
   const spec = GLSL_HIT_SPECS[kind];
   const wrapRef = useRef<HTMLDivElement>(null);
   const [supported] = useState(glslAvailable);
   const [seed] = useState(Math.random);
-  const [rate, setRate] = useState(1);
-
-  // 布局阶段读倍速: 早于宿主的第一帧推进, 爆点不会因倍速而错位。
-  useLayoutEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const cssRate = parseFloat(getComputedStyle(el).getPropertyValue("--fx-rate"));
-    setRate(Math.max(0.25, Number.isFinite(cssRate) && cssRate > 0 ? cssRate : 1));
-  }, []);
+  const rate = useFxRate(wrapRef);
 
   const uniforms = useMemo<GlslUniforms>(() => ({
     uColor: hexToRgb(color),

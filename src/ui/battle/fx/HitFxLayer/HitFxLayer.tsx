@@ -15,6 +15,7 @@ import { LunarRingFx } from "@/ui/battle/fx/LunarRingFx";
 import { SakuraFlurryFx } from "@/ui/battle/fx/SakuraFlurryFx";
 import { TwinArrowFx } from "@/ui/battle/fx/TwinArrowFx";
 import { GLSL_HIT_FX } from "@/ui/battle/fx/GlslHitFx";
+import { ThunderRunFx } from "@/ui/battle/fx/ThunderRunFx";
 import { ShieldIcon } from "@/ui/common/bar/StatusPips/icons";
 import s from "./HitFxLayer.module.css";
 
@@ -27,6 +28,7 @@ const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset; color: strin
   // 基础档位(攻击系元素 + 治疗/增益/减益/护盾): GLSL 着色器特效, 取代原 emoji 与护盾图标。
   ...GLSL_HIT_FX,
   "iai-slash": IaiSlashFx,
+  "thunder-run": ThunderRunFx,
   "blade-slash": BladeSlashFx,
   "blood-slash": BloodSlashFx,
   "neon-cross": NeonCrossFx,

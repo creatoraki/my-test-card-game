@@ -2,7 +2,8 @@
 .battle-flash,
 .battle-blood,
 .battle-glitch,
-.battle-twin {
+.battle-twin,
+.battle-thunder {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -89,6 +90,27 @@
   42.1% { opacity: 0.62; }
   47% { opacity: 0; }
   100% { opacity: 0; }
+}
+
+/* 雷走·迅雷斩(780ms): 蓄电时整屏沉入深蓝 → 25%(200ms 爆点)青白闪 → 一明一暗频闪 →
+   37.5%(300ms 雷鸣复闪)再亮一次 → 余暗退去。百分比按 THUNDER_TIMELINE.total 换算。 */
+.battle-thunder {
+  background: #020a18;
+  opacity: 0;
+  animation: thunderScreen 780ms linear both;
+}
+
+@keyframes thunderScreen {
+  0% { opacity: 0; background-color: #020a18; }
+  13% { opacity: 0.4; background-color: #020a18; }
+  24.5% { opacity: 0.46; background-color: #020a18; }
+  25.6% { opacity: 0.5; background-color: #dff4ff; }
+  29% { opacity: 0.1; background-color: #bfe6ff; }
+  32% { opacity: 0.3; background-color: #050e22; }
+  37.2% { opacity: 0.3; background-color: #050e22; }
+  38.4% { opacity: 0.34; background-color: #e8f6ff; }
+  42% { opacity: 0.16; background-color: #0a1630; }
+  72%, 100% { opacity: 0; background-color: #0a1630; }
 }
 
 @media (prefers-reduced-motion: reduce) {
