@@ -1,13 +1,10 @@
-// 右栏顶部常驻的「小队羁绊」条: 只排羁绊图标, 点数 / 档位 / 本队员贡献全部收进悬浮详情。
-// 图标本身只带两种状态: 未激活压暗; **当前队员**贡献了点数的那几枚亮起顶边 + 外发光。
+// 右栏顶部常驻的「小队羁绊」条: 只排羁绊图标(复用战斗羁绊栏的 BondSlot compact),
+// 档位 / 本队员贡献全部收进悬浮详情; **当前队员**贡献了点数的那几枚额外亮起顶边 + 外发光。
 // ★ 计数口径与开战快照同一份(townStore.bondCountsOf + 城镇 party), 这里只画结论。
-import { useMemo, type CSSProperties } from "react";
+import { useMemo } from "react";
 import { activeBonds, BOND_DEFS, nextTier } from "@/data/roster/bonds";
 import { bondCountsOf, type CharacterState } from "@/store/town/townStore";
-import { BondTooltip } from "@/ui/common/bond/BondTooltip";
-import { ArcanaIcon, getArcanaAccent } from "@/ui/common/icon/ArcanaIcon";
-import { RailPopover } from "@/ui/common/tooltip/RailPopover";
-import { cx } from "@/ui/common/shared/cx";
+import { BondSlot } from "@/ui/common/bond/BondSlot";
 import s from "./SquadBondStrip.module.css";
 
 interface Props {
@@ -46,33 +43,20 @@ export function SquadBondStrip({ characters, party, charId }: Props) {
         <p className={s.empty}>小队装备上暂无羁绊词条</p>
       ) : (
         <div className={s.list}>
-          {bonds.map(({ def, count, mine, tierIndex, next }) => {
-            const accent = getArcanaAccent(def.id) ?? def.color;
-            const inactive = tierIndex < 0;
-            return (
-              <div
-                key={def.id}
-                className={cx(s.bond, mine > 0 && s.mine)}
-                style={{ "--bond": accent } as CSSProperties}
-                data-inactive={inactive || undefined}
-                data-rail-item
-                tabIndex={0}
-                role="group"
-                aria-label={`${def.name}，${count} 点${inactive ? "，未激活" : `，第 ${tierIndex + 1} 档`}`}
-              >
-                <ArcanaIcon id={def.id} size={56} bare inactive={inactive} accent={accent} />
-                <RailPopover side="bottom">
-                  <BondTooltip
-                    def={def}
-                    count={count}
-                    tierIndex={tierIndex}
-                    next={next}
-                    extraNote={mine > 0 ? `本队员贡献 ${mine} 点` : undefined}
-                  />
-                </RailPopover>
-              </div>
-            );
-          })}
+          {bonds.map(({ def, count, mine, tierIndex, next }) => (
+            <BondSlot
+              key={def.id}
+              def={def}
+              count={count}
+              tierIndex={tierIndex}
+              next={next}
+              iconSize={58}
+              variant="compact"
+              popoverSide="bottom"
+              tooltipNote={mine > 0 ? `本队员贡献 ${mine} 点` : undefined}
+              className={mine > 0 ? s.mine : undefined}
+            />
+          ))}
         </div>
       )}
     </section>

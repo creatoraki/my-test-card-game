@@ -1,5 +1,5 @@
-/* 大装备卡: 稀有度色(--rr)驱动顶边亮条、描边、大图光晕与名称; 空槽压成虚线暗卡。
-   卡面只放大图 + 名称 + 羁绊, 不列属性词条。 */
+/* 大装备卡: 稀有度色(--rr)驱动顶边亮条、描边与大图光晕; 空槽压成虚线暗卡。
+   卡面只放大图 + 羁绊 + 「更换」按钮, 不写装备名、不列属性词条。 */
 .card {
   position: relative;
   display: flex;
@@ -38,7 +38,8 @@
 }
 
 .card.active,
-.card:has(.main:hover) {
+.card:has(.main:hover),
+.card:has(.swap:hover) {
   border-color: var(--k);
   box-shadow: inset 0 0 24px #0009, 0 0 16px color-mix(in srgb, var(--k) 28%, transparent);
 }
@@ -77,77 +78,67 @@
 
 .main {
   position: relative;
-  display: flex;
+  display: grid;
+  min-height: 0;
   flex: 1;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  padding: 4px 0 2px;
+  place-items: center;
+  padding: 6px 0;
   border: 0;
   background: none;
   color: inherit;
-  text-align: center;
   cursor: var(--cursor-pointer);
 }
 
-/* 大图: 背后垫一圈稀有度色光晕, 让主角是图而不是字。 */
+/* 大图: 背后垫一圈稀有度色光晕; 悬停主区时微微放大。 */
 .icon {
   position: relative;
   display: flex;
   flex: none;
+  transition: scale 180ms ease;
+}
+
+.main:hover .icon {
+  scale: 1.04;
 }
 
 .icon::before {
   position: absolute;
   z-index: -1;
-  inset: -18px;
+  inset: -22px;
   background: radial-gradient(circle, color-mix(in srgb, var(--rr) 30%, transparent), transparent 68%);
   content: "";
   pointer-events: none;
 }
 
+/* 两段类名压过 ItemIconFrame 自带的 .size-xl(132px)。 */
+.icon .iconFrame {
+  --icon-frame-size: 168px;
+}
+
 .emptyIcon {
   display: grid;
-  width: 132px;
-  height: 132px;
+  width: 168px;
+  height: 168px;
   flex: none;
   place-items: center;
   border: 1px dashed #ffffff33;
   color: #5d7177;
-  font-size: 30px;
+  font-size: 32px;
 }
 
-.meta {
+/* 底栏: 左羁绊词条, 右「更换」按钮。 */
+.foot {
   display: flex;
-  width: 100%;
   min-width: 0;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-}
-
-.name {
-  max-width: 100%;
-  overflow: hidden;
-  color: color-mix(in srgb, var(--rr) 45%, #ffffff);
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.card[data-empty] .name {
-  color: #7d9399;
-  font-size: 20px;
-  font-weight: 400;
+  gap: 10px;
 }
 
 .bonds {
   display: flex;
+  min-width: 0;
+  flex: 1;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 6px;
 }
 
@@ -161,27 +152,38 @@
   color: var(--bond);
   font-size: 18px;
   line-height: 28px;
+  white-space: nowrap;
 }
 
 .noBond {
+  min-width: 0;
+  flex: 1;
   color: #6f878d;
   font-size: 18px;
 }
 
-/* 右上「更换」小字: 悬停整块主区时亮起, 告诉玩家这里点得动。 */
+/* 「更换」按钮: 切角描边小按钮, 悬停 / 候选打开时填主题色。 */
 .swap {
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: #6f878d;
+  flex: none;
+  padding: 2px 16px;
+  border: 1px solid color-mix(in srgb, var(--k) 55%, #ffffff1f);
+  background: color-mix(in srgb, var(--k) 10%, #061014);
+  color: #d9f6fa;
   font-size: 18px;
-  transition: color 160ms ease;
+  font-weight: 700;
+  line-height: 28px;
+  letter-spacing: 2px;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  cursor: var(--cursor-pointer);
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
-.main:hover .swap,
-.main:focus-visible .swap,
-.card.active .swap {
-  color: var(--k);
+.swap:hover,
+.swap:focus-visible,
+.swap[data-on] {
+  border-color: var(--k);
+  background: color-mix(in srgb, var(--k) 32%, #061014);
+  color: #ffffff;
 }
 
 .pending {

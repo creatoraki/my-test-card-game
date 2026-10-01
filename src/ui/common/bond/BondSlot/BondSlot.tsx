@@ -27,6 +27,8 @@ export interface BondSlotProps {
   iconSize?: number;
   popoverSide?: RailPopoverSide;
   variant?: BondSlotVariant;
+  /** 追加到详情浮层提示条里的一句话(见 BondTooltip.extraNote)。 */
+  tooltipNote?: string;
   className?: string;
 }
 
@@ -38,6 +40,7 @@ export function BondSlot({
   iconSize = 48,
   popoverSide = "bottom",
   variant = "detail",
+  tooltipNote,
   className,
 }: BondSlotProps) {
   const inactive = tierIndex < 0;
@@ -83,7 +86,7 @@ export function BondSlot({
         </div>
       )}
       <RailPopover side={popoverSide}>
-        <BondTooltip def={def} count={count} tierIndex={tierIndex} next={next} />
+        <BondTooltip def={def} count={count} tierIndex={tierIndex} next={next} extraNote={tooltipNote} />
       </RailPopover>
     </div>
   );

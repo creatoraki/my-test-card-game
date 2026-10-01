@@ -74,8 +74,8 @@
 .list {
   display: flex;
   min-width: 0;
-  gap: 8px;
-  padding: 6px 0 4px 16px;
+  gap: 10px;
+  padding: 10px 0 4px 16px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -84,45 +84,10 @@
   display: none;
 }
 
-/* 单枚羁绊: 方形切角小框 + 居中图标。 */
-.bond {
-  position: relative;
-  display: grid;
-  width: 70px;
-  height: 70px;
-  flex: none;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, var(--bond) 34%, #2a3a3f);
-  background:
-    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--bond) 18%, transparent), transparent 66%),
-    linear-gradient(160deg, #111c1f, #090f12 76%);
-  outline: none;
-  cursor: var(--cursor-help, default);
-  transition: border-color 160ms ease, translate 160ms ease, box-shadow 160ms ease;
-}
-
-.bond:hover,
-.bond:focus-visible {
-  border-color: var(--bond);
-  translate: 0 -2px;
-}
-
-.bond[data-inactive] {
-  opacity: 0.6;
-}
-
-/* 当前队员贡献了点数的羁绊: 顶边亮条 + 外发光。 */
-.bond.mine {
-  border-color: color-mix(in srgb, var(--bond) 70%, transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--bond) 34%, transparent);
-}
-
-.bond.mine::before {
-  position: absolute;
-  top: -1px;
-  right: -1px;
-  left: -1px;
-  height: 3px;
-  background: var(--bond);
-  content: "";
+/* 当前队员贡献了点数的羁绊: 在 BondSlot 外观上加亮描边 + 外发光(.list 前缀压过 BondSlot 自身的描边)。 */
+.list .mine {
+  border-color: var(--slot-accent);
+  box-shadow:
+    inset 0 0 calc(var(--slot-icon) * 0.3) color-mix(in srgb, var(--slot-accent) 18%, transparent),
+    0 0 14px color-mix(in srgb, var(--slot-accent) 45%, transparent);
 }

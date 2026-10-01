@@ -1,5 +1,6 @@
-// 单个部位的大装备卡: 部位 + 稀有度页眉、居中大图 + 名称 + 羁绊词条。
-// ★ 不在卡面列具体属性 —— 悬停大图看物品详情, 整体数值看下方属性面板。
+// 单个部位的大装备卡: 部位 + 稀有度页眉、居中大图、底栏羁绊词条 + 「更换」按钮。
+// ★ 卡面不写装备名、不列具体属性 —— 悬停大图看物品详情, 整体数值看下方属性面板。
+// ★ 点大图或「更换」都会打开背包候选, 候选浮层锚在整张卡上。
 // 背包里点「装备」带进来的同部位装备会在卡底部长出「待换上」条, 一键换上。
 import type { CSSProperties } from "react";
 import { getBondDef, getItemDef } from "@/data";
@@ -45,6 +46,11 @@ export function EquipCard({
   const pendingDef = pending ? getItemDef(pending.itemId) : null;
   const style = { "--rr": def ? `var(--rarity-${def.rarity})` : "#5d7177" } as CSSProperties;
 
+  const open = (trigger: HTMLElement) => {
+    onHideTooltip();
+    onOpen(trigger.closest("article") ?? trigger);
+  };
+
   return (
     <article
       className={cx(s.card, active && s.active)}
@@ -62,10 +68,7 @@ export function EquipCard({
         type="button"
         className={s.main}
         aria-label={`更换${SLOT_LABEL[slot]}`}
-        onClick={(event) => {
-          onHideTooltip();
-          onOpen(event.currentTarget);
-        }}
+        onClick={(event) => open(event.currentTarget)}
       >
         {stack ? (
           <span
@@ -73,31 +76,38 @@ export function EquipCard({
             onMouseEnter={(event) => !active && onShowTooltip(event.currentTarget, stack)}
             onMouseLeave={onHideTooltip}
           >
-            <ItemIconFrame itemId={stack.itemId} size="xl" />
+            <ItemIconFrame itemId={stack.itemId} size="xl" className={s.iconFrame} />
           </span>
         ) : (
           <span className={s.emptyIcon} aria-hidden="true">空</span>
         )}
-        <span className={s.meta}>
-          <strong className={s.name}>{def?.name ?? `未装备${SLOT_LABEL[slot]}`}</strong>
-          {bonds.length > 0 ? (
-            <span className={s.bonds}>
-              {bonds.map((bond, index) => {
-                const accent = getArcanaAccent(bond.id) ?? bond.color;
-                return (
-                  <span key={`${bond.id}-${index}`} className={s.bond} style={{ "--bond": accent } as CSSProperties}>
-                    <ArcanaIcon id={bond.id} size={26} bare accent={accent} />
-                    {bond.name}
-                  </span>
-                );
-              })}
-            </span>
-          ) : (
-            <span className={s.noBond}>{stack ? "无羁绊词条" : "点击从背包挑选"}</span>
-          )}
-        </span>
-        <span className={s.swap} aria-hidden="true">更换</span>
       </button>
+
+      <footer className={s.foot}>
+        {bonds.length > 0 ? (
+          <span className={s.bonds}>
+            {bonds.map((bond, index) => {
+              const accent = getArcanaAccent(bond.id) ?? bond.color;
+              return (
+                <span key={`${bond.id}-${index}`} className={s.bond} style={{ "--bond": accent } as CSSProperties}>
+                  <ArcanaIcon id={bond.id} size={26} bare accent={accent} />
+                  {bond.name}
+                </span>
+              );
+            })}
+          </span>
+        ) : (
+          <span className={s.noBond}>{stack ? "无羁绊词条" : `未装备${SLOT_LABEL[slot]}`}</span>
+        )}
+        <button
+          type="button"
+          className={s.swap}
+          data-on={active || undefined}
+          onClick={(event) => open(event.currentTarget)}
+        >
+          {stack ? "更换" : "装备"}
+        </button>
+      </footer>
 
       {pending && pendingDef && (
         <div className={s.pending} style={{ "--pr": `var(--rarity-${pendingDef.rarity})` } as CSSProperties}>
