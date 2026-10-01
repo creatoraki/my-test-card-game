@@ -30,7 +30,8 @@ export const RULES = {
 
   discard: {
     reasons: {
-      manual: { trigger: true, count: true },
+      // 玩家主动丢弃手牌: 计入弃牌数, 但不触发卡牌自身的「被丢弃」效果。
+      manual: { trigger: false, count: true },
       effect: { trigger: true, count: true },
       cost: { trigger: true, count: true },
       redraw: { trigger: false, count: false },
