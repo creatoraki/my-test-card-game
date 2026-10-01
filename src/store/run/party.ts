@@ -6,8 +6,8 @@ import { useExploreStore } from "../explore/exploreStore";
 import { deriveStats, useTownStore, vitalsOf } from "../town/townStore";
 
 // 上阵角色 → 探索层的队伍快照。血量在整趟远征里由 exploreStore 持有并跨战斗继承。
-// ★ 出发时**不回满**: 当前 HP 与体力极限直接读城镇存档(vitalsOf) —— 上一趟远征留下的
-//   是永久损伤, 跨日传承。据点暂无治疗手段, 唯一的恢复途径是远征途中的消耗品与生存事件。
+// ★ 出发时**不回满**: 当前 HP 与体力极限直接读城镇存档(vitalsOf)。回城时 HP 已补满到
+//   体力极限, 但体力极限损伤是永久的, 跨日传承; 修复它要靠据点设施或远征途中的消耗品与事件。
 // ⚠ 这里的 maxHp **不含羁绊加成** —— 羁绊在 launchBattle 才叠。本期实装的羁绊都不改 maxHp,
 //   所以两处口径一致; 日后一旦有加 maxHp 的羁绊, 这里必须一并叠, 否则出发时的血量会对不上。
 export function partySnapshot(): PartySnapshot[] {

@@ -14,12 +14,38 @@
 }
 
 .loot-grid {
-  --victory-cols: 8;
   --victory-empty-tint: #2b1d1080;
   --victory-empty-line: #ffb86b55;
   --victory-empty-glow: #ffb86b12;
+  min-width: 0;
   min-height: 0;
   flex: 1;
+}
+
+/* 战利品单行横排, 数量不限; 排不下就横向滚动(不换行, 也不撑高面板)。
+   双类名提权, 压过 victoryCell.grid 的列模板。 */
+.loot-grid.loot-grid {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--victory-cell-size, 84px);
+  padding: 4px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #ffb86b66 transparent;
+}
+
+.loot-grid::-webkit-scrollbar {
+  height: 5px;
+}
+
+.loot-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.loot-grid::-webkit-scrollbar-thumb {
+  background: #ffb86b66;
+  border-radius: 3px;
 }
 
 /* 提权解除 victoryCell.cell 的斜切裁剪 —— 否则交互遮罩的圆角会被斜切切掉。

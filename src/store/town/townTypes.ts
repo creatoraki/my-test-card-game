@@ -10,9 +10,9 @@ import type { ShopState } from "../townSlices/shopSlice";
 
 export interface CharacterState {
   charId: string;
-  // ★ 生命三段中的前两段是**持久资产**: 远征打掉的血与体力极限都是永久损伤, 跨日传承。
+  // ★ 生命三段中的前两段是**持久资产**: 体力极限损伤是永久的, 跨日传承; 当前 HP 回城即补满到体力极限。
   //   第三段 maxHp 不存 —— 它由 deriveStats(角色基础 + 装备)现算, 存两份必然对不上。
-  hp: number; // 上次远征回城时记录的当前 HP
+  hp: number; // 当前 HP(回城时补满到体力极限, 之后可被据点内效果改动)
   hpLimit: number; // 上次远征回城时记录的体力极限(hp ≤ hpLimit ≤ deriveStats().maxHp)
   exp: number; // ★ 可用经验池(不再有等级, 也不再回落); 锻造直接从这里扣
   expEarned: number; // 累计获得的经验(纯展示用)
@@ -143,8 +143,8 @@ export interface TownStore extends CurioTownSlice {
     conditions: { charId: string; pollution: number; sick: boolean; quirks: string[] }[],
   ) => void; // 战斗结束回填污染、疾病和怪癖
   syncExpeditionStatus: (
-    conditions: { charId: string; hp: number; hpLimit: number; pollution: number }[],
-  ) => void; // 回城时回填本趟远征最终 HP、体力极限与污染值(三者都是永久损伤)
+    conditions: { charId: string; hpLimit: number; pollution: number }[],
+  ) => void; // 回城时回填本趟远征的体力极限与污染值(永久损伤); 当前 HP 一律补满到体力极限
 
   // ---- 天数与商店 ----
   advanceDay: () => void; // 推进一日 + 重摇货架(由 runStore.backToTown 调用)

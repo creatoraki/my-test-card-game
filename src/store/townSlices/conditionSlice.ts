@@ -152,9 +152,9 @@ export function createConditionSlice(set: TownSet, get: TownGet): ConditionSlice
       if (changed) set({ characters });
     },
 
-    // 回城落档 —— 生命三段里的前两段在这里变成永久损伤。
+    // 回城落档 —— 体力极限损伤在这里变成永久损伤; 当前 HP 不论以何种方式回城都补满到体力极限。
     // ★ 阵亡成员不再走这里, 见 markFallen; 这里只回填存活成员的最终状态。
-    // ⚠ 夹取顺序是 hpLimit ≤ maxHp, 再 hp ≤ hpLimit —— 三段的不变式只在这一处维护。
+    // ⚠ 夹取顺序是 hpLimit ≤ maxHp, 再 hp = hpLimit —— 三段的不变式只在这一处维护。
     syncExpeditionStatus: (conditions) => {
       const characters = { ...get().characters };
       let changed = false;
@@ -163,7 +163,7 @@ export function createConditionSlice(set: TownSet, get: TownGet): ConditionSlice
         if (!cs) continue;
         const maxHp = Math.max(1, Math.round(deriveStats(cs).maxHp));
         const hpLimit = Math.max(1, Math.min(maxHp, Math.round(condition.hpLimit)));
-        const hp = Math.max(1, Math.min(hpLimit, Math.round(condition.hp)));
+        const hp = hpLimit;
         const pollution = clampPollution(condition.pollution);
         if (cs.hp === hp && cs.hpLimit === hpLimit && cs.pollution === pollution) continue;
         characters[condition.charId] = { ...cs, hp, hpLimit, pollution };

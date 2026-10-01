@@ -44,6 +44,9 @@ export function impactSfxCue(anim: CardAnim): AnimSfxCue | null {
   if (anim === "shield") {
     return { id: "shield", leadMs: 0 };
   }
+  if (anim === "buff") {
+    return { id: "buff", leadMs: 0 };
+  }
   if (ANIM[anim].kind !== "attack") return null;
   const override = ANIM_SFX_OVERRIDES[anim];
   if (override && "impact" in override) return override.impact ?? null;

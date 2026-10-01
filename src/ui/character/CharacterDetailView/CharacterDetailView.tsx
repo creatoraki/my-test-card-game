@@ -148,7 +148,7 @@ export function CharacterDetailView({
 
   const def = getCharacter(charId);
   const stats = deriveStats(cs);
-  // ★ 血条读**存档**里的三段值, 不是面板上限: 上一趟远征打掉的血与体力极限是永久损伤,
+  // ★ 血条读**存档**里的三段值, 不是面板上限: 上一趟远征打掉的体力极限是永久损伤,
   //   据点里看到的就该是伤后的样子(vitalsOf 顺带把装备变动导致的越界夹回来)。
   const vitals = vitalsOf(cs);
   const hoveredCard = cs.deck.find((card) => card.uid === hoveredCardUid) ?? null;

@@ -18,7 +18,6 @@ export function InstallMemberPanel({ members, selected, onSelect }: Props) {
       index="01"
       title="角色选择"
       deco="OPERATOR"
-      extra={`${members.length} 人`}
       ariaLabel="选择装配角色"
       bodyClassName={s.body}
     >

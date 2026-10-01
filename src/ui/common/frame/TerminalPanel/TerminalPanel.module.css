@@ -138,7 +138,11 @@
 }
 
 .deco {
-  flex: none;
+  /* 窄栏里装饰字先让位, 不把页眉右侧读数挤出面板。 */
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
   margin: 6px 0 0 20px;
   color: #8f8b8c;
   font-family: var(--font-family);

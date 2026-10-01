@@ -12,6 +12,7 @@ export const SFX_IDS = [
   "cardSelect",
   "heal",
   "shield",
+  "buff",
   "hit",
   "slash",
   "keenEdge",

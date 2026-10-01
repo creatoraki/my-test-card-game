@@ -43,8 +43,7 @@ export function StatusPips({
 
   const durationUnit = team === "enemy" ? "次行动" : "回合";
 
-  const statsOf = (shieldPip: boolean, stacks: number, duration?: number, extra: BuffStat[] = []): BuffStat[] => {
-    if (shieldPip) return [{ label: "护盾值", value: stacks }];
+  const statsOf = (stacks: number, duration?: number, extra: BuffStat[] = []): BuffStat[] => {
     const stats: BuffStat[] = [{ label: "当前层数", value: stacks }];
     if (duration != null) stats.push({ label: "剩余", value: duration, suffix: durationUnit });
     return [...stats, ...extra];
@@ -90,13 +89,14 @@ export function StatusPips({
       tabIndex={detail ? 0 : undefined}
       aria-label={
         shieldPip
-          ? `护盾，当前 ${stacks}`
+          ? `护盾，当前层数 ${stacks}`
           : `${name}，当前层数 ${stacks}${duration != null ? `，剩余 ${duration} ${durationUnit}` : ""}`
       }
     >
       {frame && <StatusFrame />}
       {icon ?? emoji}
-      {!shieldPip && stacks > 1 && <b>{stacks}</b>}
+      {/* 护盾值即层数, 哪怕只剩 1 点也要标出来。 */}
+      {(shieldPip || stacks > 1) && <b>{stacks}</b>}
       {!shieldPip && stacks === 1 && duration != null && <b>{duration}</b>}
       {detail && (
         <RailPopover side={popoverSide ?? "top"}>
@@ -105,7 +105,7 @@ export function StatusPips({
             title={name}
             desc={desc}
             accent={accent}
-            stats={statsOf(shieldPip, stacks, duration, extraStats)}
+            stats={statsOf(stacks, duration, extraStats)}
           />
         </RailPopover>
       )}
@@ -119,7 +119,7 @@ export function StatusPips({
         icon: <ShieldIcon className={s["shield-icon"]} />,
         detailIcon: <ShieldIcon />,
         name: "护盾",
-        desc: "吸收伤害的护盾值。",
+        desc: "每层吸收 1 点伤害，受到伤害时优先扣除层数。",
         stacks: shield,
         kind: "buff",
         shieldPip: true,

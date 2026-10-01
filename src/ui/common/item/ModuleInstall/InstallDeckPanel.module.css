@@ -9,10 +9,10 @@
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-columns: repeat(auto-fill, minmax(190px, max-content));
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-w), 1fr));
   justify-content: center;
   align-content: start;
-  gap: 14px;
+  gap: 22px 18px;
   /* 内边距要吃得下选中框的外扩和发光, 否则边缘那列会被 overflow 裁掉。 */
   padding: 12px;
   overflow-x: hidden;
@@ -28,7 +28,7 @@
   position: relative;
   min-width: 0;
   justify-self: center;
-  --deck-card-scale: 0.74;
+  --deck-card-scale: 1;
   transition: opacity 180ms ease;
 }
 

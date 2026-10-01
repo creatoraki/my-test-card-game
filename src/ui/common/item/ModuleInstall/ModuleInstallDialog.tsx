@@ -64,25 +64,29 @@ export function ModuleInstallDialog({ stack, members, kicker, returnTo, onConfir
   return createPortal(
     <div className={cx(theme.theme, s.layer)} role="dialog" aria-modal="true" aria-label="装配模组">
       <div className={s.backdrop} onClick={onClose} aria-hidden />
-      <div className={s.body}>
-        <InstallMemberPanel
-          members={members}
-          selected={charId}
-          onSelect={(id) => {
-            setCharId(id);
-            setCardUid(null);
-          }}
-        />
-        <InstallDeckPanel deck={deck} equippable={equippable} selectedUid={cardUid} onSelect={setCardUid} />
-        <InstallDetailPanel
-          stack={stack}
-          kicker={kicker}
-          returnTo={returnTo}
-          selectedCard={selectedCard}
-          confirmDisabled={confirmDisabled}
-          onConfirm={confirm}
-          onClose={onClose}
-        />
+      <div className={s.shell}>
+        <span className={s.shellFrame} aria-hidden="true" />
+        <span className={s.shellCorners} aria-hidden="true" />
+        <div className={s.body}>
+          <InstallMemberPanel
+            members={members}
+            selected={charId}
+            onSelect={(id) => {
+              setCharId(id);
+              setCardUid(null);
+            }}
+          />
+          <InstallDeckPanel deck={deck} equippable={equippable} selectedUid={cardUid} onSelect={setCardUid} />
+          <InstallDetailPanel
+            stack={stack}
+            kicker={kicker}
+            returnTo={returnTo}
+            selectedCard={selectedCard}
+            confirmDisabled={confirmDisabled}
+            onConfirm={confirm}
+            onClose={onClose}
+          />
+        </div>
       </div>
     </div>,
     document.body,

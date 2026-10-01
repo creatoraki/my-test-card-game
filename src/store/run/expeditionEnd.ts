@@ -16,16 +16,15 @@ import { CLEARED_BATTLE_REPORT, type RunSet, type RunState } from "./types";
 // ★ 团灭时 session.backpack 与 session.loot 已被 explore/session loseEverything 清零,
 //   所以这里**无条件**调用即可: 惩罚的真相点只在 EXPLORE_RULES.wipe 一处, 不在这里再判一次。
 //   投递口寄回的 shipped 不受团灭影响, 因此照样入仓 —— 那是背包玩法唯一的保险手段(§6.5)。
-// ★ 生命三段的前两段一并落档: 撤离/通关/团灭都走这里, 所以「打掉的血与体力极限跨日传承」
-//   这条规则只有这一个出口。阵亡成员不再回填, 由 markFallen 接管。
+// ★ 体力极限一并落档: 撤离/通关/团灭/战中撤退都走这里, 所以「体力极限跨日传承、
+//   当前 HP 回城即补满到体力极限」这条规则只有这一个出口。阵亡成员不再回填, 由 markFallen 接管。
 export function bankEverything(session: ExploreState, set: RunSet): void {
   const town = useTownStore.getState();
   town.syncExpeditionStatus(
     session.party.filter((member) => member.alive).map((member) => ({
       charId: member.charId,
-      hp: member.hp,
       hpLimit: member.hpLimit,
-      // 污染值始终由城镇侧即时维护，这里在回城时和最终 HP 一起明确落档。
+      // 污染值始终由城镇侧即时维护，这里在回城时和体力极限一起明确落档。
       pollution: town.characters[member.charId]?.pollution ?? 0,
     })),
   );

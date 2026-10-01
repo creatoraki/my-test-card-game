@@ -113,9 +113,16 @@ function clearPendingBattle(s: ExploreState): void {
 // ★ 与 retreat() 的差别只在「它从 inBattle 出发, 且要先把战斗里打掉的血回填给会话」——
 //   之后的落袋、结算与回城都由 store 层走和撤离完全相同的那条路。
 // ⚠ 刻意不发经验、不掉落、不扣能量、不写 history 的 battleResult: 这一场没打完, 什么都不算。
+// ★ 代价: 存活成员各损失当前体力极限的 EXPLORE_RULES.battleRetreat 比例(探索页撤离 retreat() 不罚)。
 export function retreatFromBattle(s: ExploreState, survivors: BattleSurvivor[]): boolean {
   if (s.phase !== "inBattle") return false;
   applySurvivors(s, survivors);
+  const lossRatio = EXPLORE_RULES.battleRetreat.hpLimitLossRatio;
+  for (const member of s.party) {
+    if (!member.alive) continue;
+    member.hpLimit = Math.max(1, member.hpLimit - Math.round(member.hpLimit * lossRatio));
+    member.hp = Math.min(member.hp, member.hpLimit);
+  }
   clearPendingBattle(s);
   s.pendingChallengeBonus = 0;
   s.phase = "retreated";

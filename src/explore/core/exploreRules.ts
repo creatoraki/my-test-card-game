@@ -142,6 +142,12 @@ export const EXPLORE_RULES = {
     lootKept: 0,
   },
 
+  // ── 战斗中主动撤退的代价: 存活成员各损失当前体力极限的这一比例(四舍五入, 极限至少留 1)。
+  //   探索地图里主动撤离不受此惩罚。──
+  battleRetreat: {
+    hpLimitLossRatio: 0.3,
+  },
+
   // ── 投递口: 把背包里选中的物品提前寄回据点, 安全落袋(设计文档 §6.5) ──
   chute: {
     energyCost: 5,

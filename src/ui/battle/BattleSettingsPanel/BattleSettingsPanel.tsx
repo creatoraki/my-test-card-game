@@ -1,4 +1,5 @@
 import type { BattleState } from "@/engine";
+import { EXPLORE_RULES } from "@/explore/core/exploreRules";
 import { confirm } from "@/ui/common/control/ConfirmDialog";
 import {
   AudioSettingsRows,
@@ -48,7 +49,7 @@ export function BattleSettingsPanel({
     confirm({
       title: "撤退？",
       text: "本场战斗立即结束，整趟远征就此收尾并返回据点。",
-      detail: "已获得的居民积分与背包物资照常带回，队员的当前伤势也会跨日保留。",
+      detail: `战中撤退代价：全员损失 ${Math.round(EXPLORE_RULES.battleRetreat.hpLimitLossRatio * 100)}% 当前体力极限。已获得的居民积分与背包物资照常带回，回城后队员生命补满至体力极限，体力极限损伤会跨日保留。`,
       confirmLabel: "撤退",
       danger: true,
       onConfirm: () => {

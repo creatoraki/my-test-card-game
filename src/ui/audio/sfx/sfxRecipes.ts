@@ -38,6 +38,17 @@ export const SFX_RECIPES: Partial<Record<SfxId, SfxRecipe>> = {
     ],
     throttleMs: 90,
   },
+  // 增益: 上扬的能量扫频托底, G5 → D6 → G6 三连上行钟音, 尾部撒一簇上滑的高频亮点与气声。
+  buff: {
+    layers: [
+      { kind: "sweep", waveform: "sine", from: 520, to: 1560, durationMs: 360, gain: 0.06, attackMs: 40, releaseMs: 200 },
+      { kind: "tone", waveform: "sine", frequency: 784, durationMs: 220, gain: 0.09, delayMs: 60, releaseMs: 140 },
+      { kind: "tone", waveform: "sine", frequency: 1175, durationMs: 320, gain: 0.08, delayMs: 150, releaseMs: 220 },
+      { kind: "tone", waveform: "triangle", frequency: 1568, durationMs: 420, gain: 0.05, delayMs: 230, releaseMs: 300 },
+      { kind: "burst", countMin: 4, countMax: 6, frequencyMin: 2600, frequencyMax: 4200, spreadMs: 260, durationMs: 90, gain: 0.03, delayMs: 120, endRatio: 1.15 },
+      { kind: "noise", durationMs: 420, gain: 0.012, delayMs: 80, attackMs: 60, releaseMs: 300, filter: { type: "highpass", frequency: 5200, q: 0.5 } },
+    ],
+  },
   victory: {
     layers: [
       { kind: "tone", waveform: "sine", frequency: 523, durationMs: 180, gain: 0.12, releaseMs: 100 },

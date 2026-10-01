@@ -64,7 +64,16 @@ const VictoryLootTray = forwardRef<VictoryLootTrayHandle, Props>(function Victor
 
   return (
     <div className={s["loot-tray"]}>
-      <div className={cx(victoryCell.grid, s["loot-grid"])} aria-label="待拾取战利品">
+      <div
+        className={cx(victoryCell.grid, s["loot-grid"])}
+        aria-label="待拾取战利品"
+        onWheel={(event) => {
+          // 单行横排: 竖向滚轮转成横向滚动, 普通鼠标也能翻看。
+          if (event.deltaY === 0 || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+          event.currentTarget.scrollLeft += event.deltaY;
+        }}
+        onScroll={() => setHovered(null)}
+      >
         {cells.map((stack, index) => (
           stack ? (
             <div

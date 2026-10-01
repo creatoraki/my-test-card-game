@@ -215,7 +215,7 @@ export const HandCard = memo(function HandCard({
         <span className={s["hc-frame"]} aria-hidden />
 
         {/* 描边环: 跟着 14px 斜切角走的金属斜面(上/左受光 + 下/右背光, 见 HandCard.module.css .hc-edge) */}
-        <span className={s["hc-edge"]} aria-hidden />
+        <span className={s["hc-edge"]} data-hand-edge aria-hidden />
         {activated && <span data-hand-activate-scan aria-hidden />}
         {card.contaminated && <CardCorruption />}
         {card.contaminated && <PollutionVirusMark />}
