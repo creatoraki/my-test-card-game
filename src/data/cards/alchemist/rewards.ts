@@ -69,6 +69,7 @@ export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
     ...rewardBase,
     id: "resonance-catalyst",
     name: "共鸣催化剂",
+    cost: 0,
     targeting: "none",
     anim: "buff",
     effects: [
