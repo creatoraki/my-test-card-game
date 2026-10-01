@@ -2,7 +2,7 @@ import type { DamageCtx, StatusCtx, StatusDef } from "../types";
 import { recordHitPart } from "../core/animHits";
 
 // 静电叠到该层数时清空并眩晕 1 拍。
-const STATIC_STUN_STACKS = 2;
+const STATIC_STUN_STACKS = 3;
 
 function playerAttacker(c: StatusCtx, dmg: DamageCtx): boolean {
   const source = dmg.sourceId ? c.state.combatants[dmg.sourceId] : undefined;
