@@ -16,9 +16,9 @@ export const BOTANIST_BOW_CARDS: CardDef[] = [
     volley: { threshold: 2 },
     effects: [
       { type: "DRAW", amount: 1, fullDraw: "hit" },
-      { type: "DAMAGE", multiplier: 0.4, hits: 2, pierceOnHit: 1, pierceOnPoisonedHit: 1, target: "primary" },
+      { type: "DAMAGE", multiplier: 0.3, hits: 3, pierceOnHit: 1, target: "primary" },
     ],
-    text: "造成 2 段各 {1} 点伤害；每段命中附加穿孔 1；毒箭 1。满弓 2：抽 1 张牌。",
+    text: "造成 3 段各 {1} 点伤害；每段命中附加穿孔 1。满弓 2：抽 1 张牌。",
   },
   {
     id: "thorn-lash",
@@ -133,15 +133,17 @@ export const BOTANIST_BOW_CARDS: CardDef[] = [
     ownerCharId: "botanist",
     cost: 2,
     cardType: "normal",
-    targeting: "foe",
+    targeting: "allFoes",
     rarity: "uncommon",
     anim: "slash",
     volley: { threshold: 4 },
+    // 群体控制: 满弓逐个敌人判定, 只眩晕自身满弓的敌人。
     effects: [
-      { type: "APPLY_STATUS", status: "stun", stacks: 1, duration: 1, target: "primary", fullDraw: "hit" },
-      { type: "DAMAGE", multiplier: 1.1, pierceOnHit: 2, pierceOnPoisonedHit: 2, target: "primary" },
+      { type: "APPLY_STATUS", status: "stun", stacks: 1, duration: 1, target: "allFoes", fullDrawTargets: "hit" },
+      { type: "DAMAGE", multiplier: 0.45, target: "allFoes" },
+      { type: "APPLY_STATUS", status: "slow", stacks: 1, target: "allFoes" },
     ],
-    text: "造成 {1} 点伤害，命中附加穿孔 2；毒箭 2。满弓 4：眩晕目标 1 回合。",
+    text: "对所有敌人造成 {1} 点伤害，并附加迟滞 1。满弓 4：使该敌人眩晕 1 回合。",
   },
   {
     id: "chaotic-spike",

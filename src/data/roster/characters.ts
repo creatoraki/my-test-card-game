@@ -100,13 +100,13 @@ export const CHARACTERS: CharacterDef[] = [
     ],
     pools: {
       common: [
+        "countercurrent",
         "star-shatter",
         "moon-landing",
         "starfall",
         "twin-stars",
         "ring-shot",
         "celestial-verdict",
-        "emergency-care",
         "andromeda",
         "solar-wind",
         "drift",
@@ -117,7 +117,7 @@ export const CHARACTERS: CharacterDef[] = [
         "good-omen",
       ],
       uncommon: [
-        "countercurrent",
+        "emergency-care",
         "zenith-star",
         "gravity-lens",
         "gravity-tow",
@@ -149,9 +149,9 @@ export const CHARACTERS: CharacterDef[] = [
     }),
     startingCardIds: [
       ...basicStartingCardIds("botanist"),
-      // 毒箭引导: 毒刺箭先上毒 → 连续射击 / 藤蔓缠绕的毒箭每段额外穿孔 → 叠到满弓。
+      // 毒 + 弓引导: 毒刺箭先上毒 → 毒蘑菇孢子附穿孔并在满弓时扩散中毒 → 藤蔓缠绕群体控制。
       "venom-dart",
-      "continuous-shot",
+      "poison-mushroom",
       "vine-entangle",
     ],
     pools: {

@@ -12,14 +12,14 @@ function hasWaterfallEffect(card: Card): boolean {
   return baseEffectsOf(card).some((effect) => effect.condition === "waterfall");
 }
 
+// 费用比较至少要有 1 张其他可打出的手牌作对照 —— 手里只剩这一张时不算满足瀑布。
 export function waterfallHolds(state: BattleState, card: Card): boolean {
   const cost = cardCost(state, card);
-  return playableHandUids(state)
-    .filter((uid) => uid !== card.uid)
-    .every((uid) => {
-      const other = state.cards[uid];
-      return other != null && cost > cardCost(state, other);
-    });
+  const others = playableHandUids(state).filter((uid) => uid !== card.uid);
+  return others.length > 0 && others.every((uid) => {
+    const other = state.cards[uid];
+    return other != null && cost > cardCost(state, other);
+  });
 }
 
 function cascadeStatus(state: BattleState) {

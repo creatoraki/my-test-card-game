@@ -9,7 +9,7 @@ export const PROPHET_SUPPORT_CARDS: CardDef[] = [
     cost: 1,
     cardType: "fast",
     targeting: "ally",
-    rarity: "common",
+    rarity: "uncommon",
     anim: "heal",
     effects: [
       { type: "HEAL", multiplier: 0.35, target: "primary" },

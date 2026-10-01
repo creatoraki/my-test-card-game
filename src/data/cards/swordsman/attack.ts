@@ -82,24 +82,24 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     anim: "lunar-ring",
     effects: [
       { type: "DISCARD", amount: 1, discardPick: "handTop" },
-      // 基础倍率 0，全部伤害来自「被丢弃牌的费用 × 60%」。
+      // 保底 60%，再加「被丢弃牌的费用 × 60%」。
       {
         type: "DAMAGE",
-        multiplier: 0,
+        multiplier: 0.6,
         bonusMultiplierFrom: "lastDiscardBatchCost",
         bonusMultiplierPer: 0.6,
         target: "primary",
       },
     ],
-    text: "丢弃手牌第一张，造成等同于该牌费用 ×60% 攻击力的伤害。",
+    text: "丢弃手牌第一张，造成 {1} 点伤害；被丢弃的牌每有 1 点费用，额外造成 60% 攻击力的伤害。",
   },
   {
     id: "gale",
     name: "岚",
     ownerCharId: "swordsman",
     cost: 2,
-    // 被丢弃回手累计满 5 层后费用 -2（见 engine/cards/cost.ts stackCostRule）。
-    stackCostRule: { atLeast: 5, delta: -2 },
+    // 被丢弃回手累计满 3 层后费用 -2（见 engine/cards/cost.ts stackCostRule）。
+    stackCostRule: { atLeast: 3, delta: -2 },
     cardType: "normal",
     targeting: "allFoes",
     rarity: "common",
@@ -107,14 +107,14 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     effects: [
       {
         type: "DAMAGE",
-        multiplier: 0.65,
-        bonusMultiplierPerSelfStack: 0.2,
+        multiplier: 0.7,
+        bonusMultiplierPerSelfStack: 0.3,
         target: "allFoes",
         hitBonus: -10,
       },
     ],
-    onDiscard: { mode: "returnToHand", maxStacks: 5 },
-    text: "对所有敌人造成 {0} 点伤害，命中 -10%。被丢弃时回到手牌，伤害倍率 +20%，最多累计 5 层；满 5 层时费用 -2。打出后累计清零。",
+    onDiscard: { mode: "returnToHand", maxStacks: 3 },
+    text: "对所有敌人造成 {0} 点伤害，命中 -10%。被丢弃时回到手牌，伤害倍率 +30%，最多累计 3 层；满 3 层时费用 -2。打出后累计清零。",
   },
   {
     id: "falling-sakura",

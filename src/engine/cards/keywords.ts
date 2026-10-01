@@ -128,7 +128,7 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
   {
     id: "waterfall",
     name: "瀑布",
-    desc: "该牌的当前费用严格高于其他可打出手牌时，触发额外效果。",
+    desc: "手中还有其他可打出的牌，且该牌的当前费用严格高于它们时，触发额外效果。",
   },
   {
     id: "zenithStar",

@@ -24,7 +24,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     cost: 1,
     cardType: "normal",
     targeting: "foe",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "lightning",
     effects: [
       { type: "DAMAGE", multiplier: 0.7, target: "primary" },
@@ -99,16 +99,17 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     anim: "lightning",
     effects: [
       { type: "DAMAGE", multiplier: 0.4, target: "primary" },
+      // 0 费只能靠星印抬价 / 倒泻 / 天顶星触发瀑布, 额外伤害完全按当前费用缩放, 无保底。
       {
         type: "DAMAGE",
-        multiplier: 1,
+        multiplier: 0,
         bonusMultiplierFrom: "activeCardCost",
-        bonusMultiplierPer: 0.5,
+        bonusMultiplierPer: 0.8,
         target: "primary",
         condition: "waterfall",
       },
     ],
-    text: "造成 {0} 点伤害。瀑布：额外造成 100% + 当前费用 ×50% 攻击力的伤害。",
+    text: "造成 {0} 点伤害。瀑布：额外造成当前费用 ×80% 攻击力的伤害。",
   },
   {
     id: "celestial-verdict",
