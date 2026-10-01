@@ -9,6 +9,7 @@
 // ============================================================================
 
 import type { ItemRarity } from "@/items/types";
+import type { MapDifficulty } from "@/data/maps/mapDifficulty";
 import type { BattleTier, EnergyTier } from "../types";
 
 export const EXPLORE_RULES = {
@@ -64,30 +65,72 @@ export const EXPLORE_RULES = {
   },
 
   // ── 推进战斗档位权重(设计文档 §3.1) ──
-  // index = **当前房间的深度**(距起始房间的步数)。越深越难; 深度超出表长时取最后一档。
-  // BOSS 房不读这张表 —— 那一场固定 t5。
-  battleTierWeights: [
-    [{ tier: "t1", weight: 100 }],
-    [
-      { tier: "t1", weight: 30 },
-      { tier: "t2", weight: 70 },
+  // 按地图难度各一张; index = **当前房间的深度**(距起始房间的步数)。越深越难; 深度超出表长时取最后一档。
+  // 普通以难度1-2为主、少量难度3; 困难抬到难度2-4; 深渊以难度3-4为主。
+  // BOSS 房不读这张表 —— 那一场固定 t5(普通难度的 t5 由地图 normalOverride 换成精英战)。
+  battleTierWeights: {
+    normal: [
+      [{ tier: "t1", weight: 100 }],
+      [
+        { tier: "t1", weight: 60 },
+        { tier: "t2", weight: 40 },
+      ],
+      [
+        { tier: "t1", weight: 30 },
+        { tier: "t2", weight: 60 },
+        { tier: "t3", weight: 10 },
+      ],
+      [
+        { tier: "t1", weight: 15 },
+        { tier: "t2", weight: 65 },
+        { tier: "t3", weight: 20 },
+      ],
+      [
+        { tier: "t2", weight: 75 },
+        { tier: "t3", weight: 25 },
+      ],
     ],
-    [
-      { tier: "t2", weight: 40 },
-      { tier: "t3", weight: 60 },
+    hard: [
+      [{ tier: "t2", weight: 100 }],
+      [
+        { tier: "t2", weight: 70 },
+        { tier: "t3", weight: 30 },
+      ],
+      [
+        { tier: "t2", weight: 40 },
+        { tier: "t3", weight: 50 },
+        { tier: "t4", weight: 10 },
+      ],
+      [
+        { tier: "t2", weight: 20 },
+        { tier: "t3", weight: 50 },
+        { tier: "t4", weight: 30 },
+      ],
+      [
+        { tier: "t3", weight: 50 },
+        { tier: "t4", weight: 50 },
+      ],
     ],
-    [
-      { tier: "t2", weight: 30 },
-      { tier: "t3", weight: 30 },
-      { tier: "t4", weight: 40 },
+    abyss: [
+      [{ tier: "t3", weight: 100 }],
+      [
+        { tier: "t3", weight: 80 },
+        { tier: "t4", weight: 20 },
+      ],
+      [
+        { tier: "t3", weight: 60 },
+        { tier: "t4", weight: 40 },
+      ],
+      [
+        { tier: "t3", weight: 40 },
+        { tier: "t4", weight: 60 },
+      ],
+      [
+        { tier: "t3", weight: 30 },
+        { tier: "t4", weight: 70 },
+      ],
     ],
-    [
-      { tier: "t2", weight: 50 },
-      { tier: "t3", weight: 30 },
-      { tier: "t4", weight: 20 },
-    ],
-    [{ tier: "t5", weight: 100 }],
-  ] as readonly { tier: BattleTier; weight: number }[][],
+  } as Record<MapDifficulty, readonly (readonly { tier: BattleTier; weight: number }[])[]>,
   treasureEncounter: {
     chance: 0.15,
     tiers: ["t1", "t2", "t3"] as readonly BattleTier[],

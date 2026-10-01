@@ -76,6 +76,21 @@ const T1_DRIFT = placeRow(
   ground("maintenance-spider", { x: 238, dy: SPIDER_DY, scale: 1.1, flip: true }),
 );
 
+const T1_SIGNAL = placeRow(
+  ground("traffic-light-bot", { x: -238 }),
+  ground("radio-bot", { x: 238, dy: GROUND_DY + 30, scale: 0.7, flip: true }),
+);
+
+const T1_RADIO_DRIFT = placeRow(
+  flyer("glass-jelly", { x: -238, scale: 1.2 }),
+  ground("radio-bot", { x: 238, dy: GROUND_DY + 30, scale: 0.7, flip: true }),
+);
+
+const T1_TWIN_WELD = placeRow(
+  ground("maintenance-spider", { x: -238, dy: SPIDER_DY, scale: 1.1 }),
+  ground("maintenance-spider", { x: 238, dy: SPIDER_DY, scale: 1.1, flip: true }),
+);
+
 const T2_CREW = placeRow(
   ground("maintenance-spider", { x: -426, dy: SPIDER_DY, scale: 1.1 }),
   ground("sweep-drone"),
@@ -102,6 +117,21 @@ const T2_DUO_CRUSH = placeRow(
 const T2_DUO_TORCH = placeRow(
   ground("maintenance-spider", { x: -238, dy: SPIDER_DY, scale: 1.1 }),
   ground("traffic-light-bot", { x: 238, flip: true }),
+);
+
+const T2_DUO_SIGNAL = placeRow(
+  ground("traffic-light-bot", { x: -238 }),
+  ground("traffic-light-bot", { x: 238, flip: true }),
+);
+
+const T2_DUO_SURGE = placeRow(
+  flyer("glass-jelly", { x: -238, scale: 1.2 }),
+  ground("sweep-drone", { x: 238, scale: 1.1, flip: true }),
+);
+
+const T2_DUO_WELD = placeRow(
+  ground("maintenance-spider", { x: -238, dy: SPIDER_DY, scale: 1.1 }),
+  ground("sweep-drone", { x: 238, scale: 1.1, flip: true }),
 );
 
 const T3_PATROL = placeRow(
@@ -231,11 +261,17 @@ export const ENCOUNTERS: EncounterDef[] = [
   { id: "n-t1-scout", name: "初遇侦察", enemies: T1_SCOUT },
   { id: "n-t1-sweep", name: "双机清扫", enemies: T1_SWEEP },
   { id: "n-t1-drift", name: "浮游巡检", enemies: T1_DRIFT },
+  { id: "n-t1-signal", name: "信号岗哨", enemies: T1_SIGNAL },
+  { id: "n-t1-radio-drift", name: "浮游电台", enemies: T1_RADIO_DRIFT },
+  { id: "n-t1-twin-weld", name: "双蛛焊修", enemies: T1_TWIN_WELD },
   { id: "n-t2-crew", name: "清运班组", enemies: T2_CREW },
   { id: "n-t2-beacon", name: "巡回信标", enemies: T2_BEACON },
   { id: "n-t2-current", name: "电涌信标", enemies: T2_CURRENT },
   { id: "n-t2-duo-crush", name: "双机压实", enemies: T2_DUO_CRUSH },
   { id: "n-t2-duo-torch", name: "焊修路障", enemies: T2_DUO_TORCH },
+  { id: "n-t2-duo-signal", name: "双灯管制", enemies: T2_DUO_SIGNAL },
+  { id: "n-t2-duo-surge", name: "电涌清扫", enemies: T2_DUO_SURGE },
+  { id: "n-t2-duo-weld", name: "焊接清运", enemies: T2_DUO_WELD },
   { id: "n-t3-patrol", name: "维修巡线", enemies: T3_PATROL },
   { id: "n-t3-blockade", name: "路口封锁", enemies: T3_BLOCKADE },
   { id: "n-t3-swarm", name: "群浮拦截", enemies: T3_SWARM },

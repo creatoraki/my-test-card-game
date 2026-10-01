@@ -29,9 +29,9 @@ function pickWeighted<T extends { weight: number }>(s: ExploreState, options: re
   return options[options.length - 1];
 }
 
-// 战斗房的档位: 按**当前房间的深度**在权重表里抽。越深越难, 深度超表长取最后一档。
+// 战斗房的档位: 按**地图难度 + 当前房间的深度**在权重表里抽。越深越难, 深度超表长取最后一档。
 export function pickRoomBattleTier(s: ExploreState): BattleTier {
-  const rows = EXPLORE_RULES.battleTierWeights;
+  const rows = EXPLORE_RULES.battleTierWeights[s.difficulty];
   const depth = currentRoom(s)?.depth ?? 0;
   return pickWeighted(s, rows[Math.min(Math.max(depth, 0), rows.length - 1)]).tier;
 }

@@ -12,8 +12,11 @@ export const ECO_ARK_MAP: MapDef = {
   nearMapVariants: ["ecoArk1", "ecoArk2", "ecoArk3", "ecoArk4"],
   curioLevelRange: [1, 3],
   battleEncounters: {
-    t1: ["a-t1-cargo", "a-t1-seeds", "a-t1-water"],
-    t2: ["a-t2-pruning", "a-t2-pollen", "a-t2-pods", "a-t2-shell"],
+    t1: ["a-t1-cargo", "a-t1-seeds", "a-t1-water", "a-t1-spore-post", "a-t1-moss-lamp"],
+    t2: [
+      "a-t2-pruning", "a-t2-pollen", "a-t2-pods", "a-t2-shell",
+      "a-t2-twin-blades", "a-t2-thorn-flow", "a-t2-guarded-blade",
+    ],
     t3: ["a-t3-canopy", "a-t3-irrigation", "a-t3-nursery"],
     t4: ["a-t4-stag", "a-t4-keeper", "a-t4-symbiosis", "a-t4-overgrowth"],
     t5: ["a-t5-mother"],

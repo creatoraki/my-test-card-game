@@ -71,7 +71,7 @@ describe("战斗接缝", () => {
   it("战斗档位随房间深度爬升 —— 档位必须落在该深度的权重表里", () => {
     const s = newSession(44);
     intoBattle(s);
-    const rows = EXPLORE_RULES.battleTierWeights;
+    const rows = EXPLORE_RULES.battleTierWeights[s.difficulty];
     const depth = roomNow(s).depth;
     const allowed = rows[Math.min(depth, rows.length - 1)].map((row) => row.tier);
     expect(allowed).toContain(s.pendingBattleTier);
