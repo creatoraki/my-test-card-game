@@ -167,3 +167,11 @@
     opacity: 0;
   }
 }
+
+.detail { width: 100%; height: 100%; }
+.card .body .bust {
+  max-width: var(--figure-art-width, none);
+  margin-inline: auto;
+}
+.open { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; padding: 0; border: 0; clip-path: none; background: transparent; }
+.card .body .open:hover, .card .body .open:active { background: transparent; border: 0; transform: none; }

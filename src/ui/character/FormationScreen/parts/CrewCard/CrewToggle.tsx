@@ -9,6 +9,8 @@ import { cx } from "@/ui/common/shared/cx";
 import s from "./CrewToggle.module.css";
 
 interface Props {
+  upgrade?: boolean;
+  upgradeDisabled?: boolean;
   onField: boolean;
   resting: boolean;
   blocked: boolean;
@@ -17,26 +19,26 @@ interface Props {
   onToggle: () => void;
 }
 
-export function CrewToggle({ onField, resting, blocked, tooltipTitle, tooltipReason, onToggle }: Props) {
+export function CrewToggle({ upgrade = false, upgradeDisabled = false, onField, resting, blocked, tooltipTitle, tooltipReason, onToggle }: Props) {
   const { point, bind } = useHoverTooltip();
 
   return (
     <span className={s.slot} {...bind}>
-      {resting ? (
+      {resting && !upgrade ? (
         <span className={s.banner}>疗养中</span>
       ) : (
         <button
           className={cx(s.toggle, onField && s["is-on"])}
           type="button"
-          disabled={blocked}
+          disabled={upgrade ? upgradeDisabled : blocked}
           onClick={onToggle}
         >
           {onField && <Chevrons side="left" />}
-          <span className={s.label}>{onField ? "下阵" : "上阵"}</span>
+          <span className={s.label}>{upgrade ? "升级" : onField ? "下阵" : "上阵"}</span>
           {onField && <Chevrons side="right" />}
         </button>
       )}
-      {(resting || blocked) && point && (
+      {!upgrade && (resting || blocked) && point && (
         <HoverTooltip point={point}>
           <TooltipCard title={tooltipTitle} desc={tooltipReason} />
         </HoverTooltip>

@@ -37,13 +37,13 @@
   justify-content: center;
   height: 100%;
   color: var(--ui-value);
-  font-family: var(--font-num);
+  font-family: var(--exp-text-font, var(--font-num));
   font-size: var(--exp-text-fs, 18px);
   line-height: 1;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  font-variant-numeric: tabular-nums;
+  font-weight: var(--exp-text-weight, var(--ui-weight));
+  letter-spacing: var(--exp-text-tracking, var(--ui-tracking));
+  font-variant-numeric: var(--exp-text-numeric, tabular-nums);
   paint-order: stroke fill;
-  -webkit-text-stroke: 2px #05080a;
-  text-shadow: var(--ui-glow), 0 1px 0 #000;
+  -webkit-text-stroke: var(--exp-text-stroke, 2px) #05080a;
+  text-shadow: var(--exp-text-shadow, var(--ui-glow), 0 1px 0 #000);
 }

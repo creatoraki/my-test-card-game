@@ -2,15 +2,9 @@
 // 取景沿用飞行层的 cover / 50% 6%，交接期间由 hidden 让位。
 import type { CSSProperties } from "react";
 import type { QuirkId } from "@/engine";
-import { FORMATION_BG_ART } from "@/ui/art/explore/sceneArt";
-import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
-import { portraitFraming } from "@/ui/character/styles/portraitFraming";
-import { HpBar } from "@/ui/common/bar/HpBar/HpBar";
-import { PollutionMeter } from "@/ui/common/bar/PollutionMeter/PollutionMeter";
-import { QuirkPips } from "@/ui/common/bar/QuirkPips/QuirkPips";
+import { useTownStore } from "@/store/town/townStore";
+import { CrewCard } from "@/ui/character/FormationScreen/parts/CrewCard/CrewCard";
 import { cx } from "@/ui/common/shared/cx";
-import { FigureFrame } from "./FigureFrame";
-import { FigureProgress } from "./FigureProgress";
 import { FIGURE_ART_WIDTH } from "@/ui/character/CharacterDetailView/detailLayout";
 import s from "./FigureStage.module.css";
 
@@ -33,40 +27,19 @@ interface Props {
   style?: CSSProperties;
 }
 
-export function FigureStage({
-  characterId, emoji, name, deckLevel, exp, upgradeCost,
-  upgradeDisabled, onUpgrade, vitals, pollution, sick, quirks,
-  dimmed, hidden, style,
-}: Props) {
+export function FigureStage({ characterId, name, upgradeDisabled, onUpgrade, dimmed, hidden, style }: Props) {
+  const cs = useTownStore((state) => state.characters[characterId]);
+  const onField = useTownStore((state) => state.party.includes(characterId));
+  const resting = useTownStore((state) => state.nutrition.occupants.some((occupant) => occupant.charId === characterId));
+  if (!cs) return null;
   return (
-    <section
-      className={cx(s.stage, hidden && s["is-hidden"], dimmed && s["is-dimmed"])}
-      style={{ "--figure-art-width": `${FIGURE_ART_WIDTH}px`, ...style } as CSSProperties}
-      aria-label={`${name}角色档案`}
-    >
-      <div className={s.scenery} aria-hidden="true">
-        <img className={s.background} src={FORMATION_BG_ART} alt="" />
-        <div className={s.light} />
-      </div>
-      <div className={s.art}>
-        <CharacterPortrait characterId={characterId} framing={portraitFraming(characterId)} emoji={emoji} alt={name} className={s.portrait} />
-      </div>
-      <div className={s.identity}>
-        <h2 className={s.name}>{name}</h2>
-        <FigureProgress
-          level={deckLevel}
-          exp={exp}
-          cost={upgradeCost}
-          disabled={upgradeDisabled || hidden || dimmed}
-          onUpgrade={onUpgrade}
-        />
-        <div className={s.vitals}>
-          <HpBar hp={vitals.hp} hpLimit={vitals.hpLimit} maxHp={vitals.maxHp} flush animated={false} />
-          <PollutionMeter value={pollution} />
-        </div>
-        <QuirkPips sick={sick} quirks={quirks} className={s.quirks} />
-      </div>
-      <FigureFrame />
+    <section className={cx(s.stage, hidden && s["is-hidden"], dimmed && s["is-dimmed"])}
+      style={{ "--figure-art-width": FIGURE_ART_WIDTH + "px", ...style } as CSSProperties}
+      aria-label={name + "角色档案"}>
+      <CrewCard cs={cs} detail index={0} onField={onField} resting={resting}
+        lastOne={false} full={false} size={0} hidden={false} offsetX={0} offsetY={0}
+        scatter={null} entrance={false} onOpen={() => {}} onToggle={() => {}}
+        upgradeDisabled={upgradeDisabled || hidden || dimmed} onUpgrade={onUpgrade} />
       <div className={s.dimmer} aria-hidden="true" />
     </section>
   );

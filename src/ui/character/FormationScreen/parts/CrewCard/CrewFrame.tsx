@@ -14,7 +14,7 @@ export function CrewFrame({ level, onField }: Props) {
   return (
     <span className={cx(s.frame, onField && s["is-on"])}>
       {/* 上阵外框: 画在卡外 10px, 296×792 */}
-      <svg className={s.outer} viewBox="0 0 296 792" fill="none" aria-hidden="true">
+      <svg className={s.outer} preserveAspectRatio="none" viewBox="0 0 296 792" fill="none" aria-hidden="true">
         <path className={s["outer-line"]} d="M2 2 H272 L294 24 V790 H24 L2 768 Z" />
         <path className={s["outer-corner"]} d="M2 78 V2 H78" />
         <path className={s["outer-corner"]} d="M294 714 V790 H218" />
@@ -22,7 +22,7 @@ export function CrewFrame({ level, onField }: Props) {
       </svg>
 
       {/* 常驻内框: 内缩 8px, 右上 / 左下斜切 */}
-      <svg className={s.inner} viewBox="0 0 276 772" fill="none" aria-hidden="true">
+      <svg className={s.inner} preserveAspectRatio="none" viewBox="0 0 276 772" fill="none" aria-hidden="true">
         <path className={s["inner-line"]} d="M8 8 H250 L268 26 V764 H26 L8 746 Z" />
         <path className={s["inner-corner"]} d="M8 58 V8 H58" />
         <path className={s["inner-corner"]} d="M268 714 V764 H218" />

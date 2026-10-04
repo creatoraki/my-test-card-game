@@ -282,16 +282,16 @@
   z-index: 2;
   flex: 0 0 auto;
   margin-left: auto;
-  font-family: var(--font-num);
+  font-family: var(--hp-text-font, var(--font-num));
   font-size: var(--hp-text-fs, 18px);
   color: var(--ui-value);
   line-height: var(--hp-text-lh, normal);
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  font-variant-numeric: tabular-nums;
+  font-weight: var(--hp-text-weight, var(--ui-weight));
+  letter-spacing: var(--hp-text-tracking, var(--ui-tracking));
+  font-variant-numeric: var(--hp-text-numeric, tabular-nums);
   paint-order: stroke fill;
-  -webkit-text-stroke: 2px #05080a;
-  text-shadow: var(--ui-glow), 0 1px 0 #000;
+  -webkit-text-stroke: var(--hp-text-stroke, 2px) #05080a;
+  text-shadow: var(--hp-text-shadow, var(--ui-glow), 0 1px 0 #000);
 }
 /* 减少动态效果: 血条的装饰性动感全停 —— 流光带 / 端头光点 / 掉血火花。
    ⚠ 光点与火花靠关键帧从 opacity:0 起步, 单停动画会让它们**永久停在起始态**并留下

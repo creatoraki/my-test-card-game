@@ -10,8 +10,8 @@
 //   用 scale 会把人物放大或拉扁。整个过场只有这一个元素在动, 逐帧重排代价可以接受。
 
 import { useLayoutEffect, useRef, type CSSProperties } from "react";
-import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
-import { portraitFraming } from "@/ui/character/styles/portraitFraming";
+import { useTownStore } from "@/store/town/townStore";
+import { CrewCard } from "../CrewCard/CrewCard";
 import { FIGURE_ART_WIDTH } from "@/ui/character/CharacterDetailView/detailLayout";
 import { MORPH_EASE, MORPH_SLIDE_SPLIT, type Rect } from "./morphChoreo";
 import s from "./MorphFlyer.module.css";
@@ -48,15 +48,9 @@ const box = (rect: Rect): Record<string, string> => ({
 
 export function MorphFlyer({
   characterId,
-  emoji,
-  name,
   color,
   from,
   to,
-  fromFontSize,
-  toFontSize,
-  fromNameBottom,
-  toNameBottom,
   fromRadius,
   toRadius,
   reverse,
@@ -65,7 +59,9 @@ export function MorphFlyer({
   onDone,
 }: Props) {
   const shellRef = useRef<HTMLDivElement>(null);
-  const nameRef = useRef<HTMLSpanElement>(null);
+  const cs = useTownStore((state) => state.characters[characterId]);
+  const onField = useTownStore((state) => state.party.includes(characterId));
+  const resting = useTownStore((state) => state.nutrition.occupants.some((occupant) => occupant.charId === characterId));
   // onDone 放进 ref: 它每次渲染都是新函数, 进依赖数组会让动画被反复重建。
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
@@ -97,13 +93,6 @@ export function MorphFlyer({
       ],
       options,
     );
-    const nameAnim = nameRef.current?.animate(
-      [
-        { fontSize: `${fromFontSize}px`, bottom: `${fromNameBottom}px` },
-        { fontSize: `${toFontSize}px`, bottom: `${toNameBottom}px` },
-      ],
-      options,
-    );
     let done = false;
     const finish = () => {
       if (done) return;
@@ -117,9 +106,8 @@ export function MorphFlyer({
     return () => {
       window.clearTimeout(guard);
       shellAnim.cancel();
-      nameAnim?.cancel();
     };
-  }, [from, to, fromFontSize, toFontSize, fromNameBottom, toNameBottom, fromRadius, toRadius, reverse, delay, ms]);
+  }, [from, to, fromRadius, toRadius, reverse, delay, ms]);
 
   return (
     <div
@@ -128,11 +116,10 @@ export function MorphFlyer({
       style={{ ...box(from), borderRadius: `${fromRadius}px`, "--gc-color": color, "--figure-art-width": `${FIGURE_ART_WIDTH}px` } as CSSProperties}
       aria-hidden
     >
-      <CharacterPortrait characterId={characterId} framing={portraitFraming(characterId)} emoji={emoji} alt={name} className={s.portrait} />
-      <span className={s.scrim} />
-      <span className={s.name} ref={nameRef} style={{ fontSize: `${fromFontSize}px`, bottom: `${fromNameBottom}px` }}>
-        {name}
-      </span>
+      {cs && <CrewCard cs={cs} detail={reverse} index={0} onField={onField} resting={resting}
+        lastOne={false} full={false} size={0} hidden={false} offsetX={0} offsetY={0}
+        scatter={null} entrance={false} onOpen={() => {}} onToggle={() => {}}
+        style={{ width: "100%", height: "100%" }} />}
     </div>
   );
 }

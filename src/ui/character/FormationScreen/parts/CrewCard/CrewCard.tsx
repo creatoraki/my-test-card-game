@@ -25,6 +25,10 @@ import s from "./CrewCard.module.css";
 
 interface Props {
   cs: CharacterState;
+  detail?: boolean;
+  style?: CSSProperties;
+  upgradeDisabled?: boolean;
+  onUpgrade?: () => void;
   /** 网格序号: 用于错峰入场。 */
   index: number;
   onField: boolean;
@@ -51,6 +55,10 @@ interface Props {
 
 function CrewCardView({
   cs,
+  detail = false,
+  style,
+  upgradeDisabled = false,
+  onUpgrade,
   index,
   onField,
   resting,
@@ -84,6 +92,7 @@ function CrewCardView({
     <div
       className={cx(
         s.card,
+        detail && s.detail,
         onField && s["is-on"],
         resting && s["is-resting"],
         !entrance && s["is-instant"],
@@ -97,9 +106,10 @@ function CrewCardView({
           "--dx": offsetX,
           "--dy": offsetY,
           "--gc-color": def.color,
+          ...style,
         } as CSSProperties
       }
-      data-crew-card={cs.charId}
+      data-crew-card={detail ? undefined : cs.charId}
     >
       {/* ★ 上阵态的表达: 常亮边缘光 + 上阵外框(CrewFrame) + 角色色名字 + 更浓的填充(0.3 vs 0.2)。
           ★ 底色必须保持半透明: BorderGlow 的 ::after 会以它作为 soft-light 混合基底,
@@ -119,7 +129,8 @@ function CrewCardView({
         fillOpacity={onField ? 0.3 : 0.2}
       >
         <div className={s.body}>
-          <button className={s.main} type="button" onClick={open}>
+          <div className={s.main}>
+            {!detail && <button className={s.open} type="button" onClick={open} aria-label={"查看" + def.name + "详情"} />}
             <CharacterPortrait
               characterId={def.id}
               framing={portraitFraming(def.id)}
@@ -132,17 +143,19 @@ function CrewCardView({
             />
             <span className={s.scrim} aria-hidden="true" />
             <CrewNameplate charId={def.id} name={def.name} onField={onField} />
-            <CrewVitals cs={cs} />
-          </button>
+            <CrewVitals cs={cs} detail={detail} />
+          </div>
 
           <CrewEquipment equipped={cs.equipped} />
           <CrewToggle
+            upgrade={detail}
+            upgradeDisabled={upgradeDisabled}
             onField={onField}
             resting={resting}
             blocked={blocked}
             tooltipTitle={tooltipTitle}
             tooltipReason={tooltipReason}
-            onToggle={() => onToggle(cs.charId)}
+            onToggle={() => detail ? onUpgrade?.() : onToggle(cs.charId)}
           />
         </div>
       </BorderGlow>
