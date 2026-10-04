@@ -283,7 +283,7 @@ export const CHARACTERS: CharacterDef[] = [
     id: "hexer",
     name: "咒术师",
     emoji: "🎭",
-    color: "#e6c27a",
+    color: "#59cbbb",
     // 脆皮输出: 攻击力高于剑士, 生命与闪避偏低, 暴击率配合厄运(《咒术师 · 机制与状态》6.2)。
     base: makeStats({
       maxHp: 60,

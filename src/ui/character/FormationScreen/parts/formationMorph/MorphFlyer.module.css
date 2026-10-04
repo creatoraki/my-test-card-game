@@ -16,6 +16,10 @@
 
 /* ⚠ 取景规则必须是 (0,2,0): CharacterPortrait.module.css 的基础 .portrait-image 是 (0,1,0),
    而 CSS Modules 的注入顺序不保证 —— 单个类选择器可能被它覆盖(见 glowCard.module.css 同款说明)。 */
+.portrait {
+  composes: portrait from "../../../styles/portraitFraming.module.css";
+}
+
 .flyer .portrait {
   position: absolute;
   inset: 0;

@@ -1,0 +1,5 @@
+/* 编队卡、重组过场和详情立绘共用角色构图修正，以编队卡的视觉为准。 */
+.portrait[data-character-id="hexer"] {
+  transform: translateY(-28px) scale(1.05);
+  transform-origin: 50% 6%;
+}

@@ -87,6 +87,7 @@
 
 .bust {
   composes: glow-card-portrait from "../../../styles/glowCard.module.css";
+  composes: portrait from "../../../styles/portraitFraming.module.css";
 }
 
 /* 疗养中的立绘降饱和，并覆一层冷蓝玻璃色。 */

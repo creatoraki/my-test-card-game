@@ -5,6 +5,7 @@ import basicAttackArt from "@/assets/skills/basic/基础攻击.webp";
 import basicHealArt from "@/assets/skills/basic/基础治疗.webp";
 import basicGuardArt from "@/assets/skills/basic/基础护盾.webp";
 import { SWORDSMAN_CARD_ART } from "./swordsmanCardArt";
+import { HEXER_CARD_ART } from "./hexerCardArt";
 import prophetAndromedaArt from "@/assets/skills/prophet/仙女座.webp";
 import prophetSpectralDecompositionArt from "@/assets/skills/prophet/光谱分解.webp";
 import prophetSpectralShardArt from "@/assets/skills/prophet/光谱碎片.webp";
@@ -130,6 +131,7 @@ export const CARD_ART: Record<string, string> = {
   "hexer-basic-heal": basicHealArt,
   "hexer-basic-guard": basicGuardArt,
   ...SWORDSMAN_CARD_ART,
+  ...HEXER_CARD_ART,
   "star-shatter": prophetStarShatterArt,
   "countercurrent": prophetCountercurrentArt,
   "moon-landing": prophetMoonLandingArt,

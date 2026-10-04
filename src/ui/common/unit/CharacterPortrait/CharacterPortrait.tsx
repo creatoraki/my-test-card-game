@@ -76,6 +76,7 @@ export function CharacterPortrait({ characterId, emoji, alt, className, decoding
     return (
       <img
         className={cx(s["portrait-image"], className)}
+        data-character-id={characterId}
         src={art.src}
         alt={alt}
         decoding={decoding}
