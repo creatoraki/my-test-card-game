@@ -143,11 +143,11 @@
 }
 
 .hint.is-active .is-bl {
-  bottom: -6px;
+  bottom: var(--ihint-active-bottom, -6px);
 }
 
 .hint.is-active .is-br {
-  bottom: -6px;
+  bottom: var(--ihint-active-bottom, -6px);
 }
 
 @keyframes interactiveHintBreath {

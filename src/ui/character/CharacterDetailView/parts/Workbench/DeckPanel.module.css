@@ -105,6 +105,12 @@
 
 /* 每张卡外面套一格: 这层**只**负责错峰翻入, 悬浮表现(上浮 / 投影 / 四角边框)全在 DeckCard 里。
    ⚠ 错峰间隔比别处密(28ms): 卡组动辄十几张, 用 55ms 会拖到两秒开外。 */
+/* 详情卡组使用细线角标；下角与上角保持相同外扩距离。 */
+.panel .selectionHint {
+  --ihint-thickness: 2px;
+  --ihint-active-bottom: 0px;
+}
+
 .cell {
   position: relative;
   display: grid;

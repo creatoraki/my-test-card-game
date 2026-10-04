@@ -49,6 +49,7 @@ export function DeckPanel({ deck, deckLevel, minDeckSize, hoveredUid, onHoverCar
               card={card}
               index={i}
               focusStyle="none"
+              hintClassName={s.selectionHint}
               selected={card.uid === hoveredUid}
               onMouseEnter={() => onHoverCard(card.uid)}
               onMouseLeave={() => onHoverCard(null)}
