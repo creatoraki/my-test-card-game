@@ -73,31 +73,3 @@
   pointer-events: none;
 }
 
-.experience {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #d6e5ff;
-  font-size: 18px;
-  line-height: 1.2;
-}
-
-.track {
-  position: relative;
-  flex: 1;
-  min-width: 24px;
-  height: 14px;
-  overflow: hidden;
-  border: 1px solid #528fb5;
-  background: #040d1e;
-}
-
-.fill {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, #b5efff, #49c9ff 48%, #1686cb);
-  transform-origin: left center;
-  transition: transform 220ms ease;
-}
-
-.amount { flex-shrink: 0; font-variant-numeric: tabular-nums; white-space: nowrap; }

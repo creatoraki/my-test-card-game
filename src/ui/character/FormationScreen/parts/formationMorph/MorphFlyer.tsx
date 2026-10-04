@@ -11,6 +11,7 @@
 
 import { useLayoutEffect, useRef, type CSSProperties } from "react";
 import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
+import { portraitFraming } from "@/ui/character/styles/portraitFraming";
 import { FIGURE_ART_WIDTH } from "@/ui/character/CharacterDetailView/detailLayout";
 import { MORPH_EASE, MORPH_SLIDE_SPLIT, type Rect } from "./morphChoreo";
 import s from "./MorphFlyer.module.css";
@@ -127,7 +128,7 @@ export function MorphFlyer({
       style={{ ...box(from), borderRadius: `${fromRadius}px`, "--gc-color": color, "--figure-art-width": `${FIGURE_ART_WIDTH}px` } as CSSProperties}
       aria-hidden
     >
-      <CharacterPortrait characterId={characterId} emoji={emoji} alt={name} className={s.portrait} />
+      <CharacterPortrait characterId={characterId} framing={portraitFraming(characterId)} emoji={emoji} alt={name} className={s.portrait} />
       <span className={s.scrim} />
       <span className={s.name} ref={nameRef} style={{ fontSize: `${fromFontSize}px`, bottom: `${fromNameBottom}px` }}>
         {name}

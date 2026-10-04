@@ -53,7 +53,7 @@ import s from "./FormationScreen.module.css";
 //   28px / 102px / 16px = 卡面(CrewCard/CrewNameplate.module.css 的 .name 与 CHARACTER_CARD_GLOW.borderRadius)
 //   44px / 70px / 16px = 详情态立绘取景窗(FigureStage.module.css 的 .name 与 .stage)
 const CARD_FONT = 28;
-const CARD_NAME_BOTTOM = 102;
+const CARD_NAME_BOTTOM = 158;
 const CARD_RADIUS = 16;
 const FIGURE_FONT = 44;
 const FIGURE_NAME_BOTTOM = 70;

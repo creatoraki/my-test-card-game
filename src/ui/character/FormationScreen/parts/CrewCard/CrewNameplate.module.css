@@ -1,4 +1,4 @@
-/* 编队卡名牌。⚠ 设计 px; 自底向上: 动作条(16..62) → 英文名 → 中文名 → 徽记。
+/* 编队卡名牌。⚠ 设计 px; 自底向上: 经验与血量 → 动作条 → 英文装饰名 → 中文名 → 徽记。
    .name 的 bottom / font-size 与 FormationScreen 的 CARD_NAME_BOTTOM / CARD_FONT 是同一个事实。 */
 
 .plate {
@@ -11,7 +11,7 @@
 
 .glyph {
   position: absolute;
-  bottom: 142px;
+  bottom: 198px;
   left: 50%;
   width: 40px;
   height: 40px;
@@ -24,7 +24,7 @@
 .name {
   position: absolute;
   right: 12px;
-  bottom: 102px;
+  bottom: 158px;
   left: 12px;
   font-size: 28px;
   font-weight: 700;
@@ -39,7 +39,7 @@
 .en {
   position: absolute;
   right: 0;
-  bottom: 74px;
+  bottom: 130px;
   left: 0;
   display: flex;
   align-items: center;

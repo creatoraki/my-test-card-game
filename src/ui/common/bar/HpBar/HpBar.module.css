@@ -285,6 +285,7 @@
   font-family: var(--font-num);
   font-size: var(--hp-text-fs, 18px);
   color: var(--ui-value);
+  line-height: var(--hp-text-lh, normal);
   font-weight: var(--ui-weight);
   letter-spacing: var(--ui-tracking);
   font-variant-numeric: tabular-nums;

@@ -40,10 +40,6 @@
 }
 
 /* 与 MorphFlyer 保持相同取景，覆盖公共立绘的基础特异性。 */
-.portrait {
-  composes: portrait from "../../../styles/portraitFraming.module.css";
-}
-
 .art .portrait {
   position: absolute;
   inset: 0;

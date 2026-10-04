@@ -13,8 +13,3 @@ const CREW_EN_NAMES: Record<string, string> = {
 export function crewEnName(charId: string): string {
   return CREW_EN_NAMES[charId] ?? charId.toUpperCase();
 }
-
-/** 卡阵序号: 01、02 …… */
-export function crewSerial(index: number): string {
-  return String(index + 1).padStart(2, "0");
-}

@@ -3,7 +3,7 @@
 // ⚠⚠ 卡面主体是 button 而外壳不是: 卡面要能点(进详情), 底部动作条也要能点, 而
 //   button 里嵌 button 是非法 HTML(浏览器会把内层拆出去, 点击行为随之乱掉)。
 //   故做成「div 外壳 + 两个同级 button」。
-// ★ 卡面文字只有编号牌与名牌(徽记 + 中英文名) —— 数值一律去详情态看, 高楼型卡的体量全给立绘与上阵状态。
+// ★ 左上角显示等级，底部显示经验与血量，名牌和编队操作位于信息条上方。
 // ★ data-crew-card 挂在最外层 div 上: 回程飞行的落点靠它认领(见 formationMorph/useFormationMorph.ts)。
 //   ⚠ 不能挂在 BorderGlow 上 —— 它只认自己 props 里的那几项, 不透传任意 DOM 属性。
 //   data 属性不参与 CSS Modules 哈希, 是跨模块能命中的唯一通道。
@@ -14,15 +14,18 @@ import type { CharacterState } from "@/store/town/townStore";
 import { CHARACTER_CARD_GLOW, characterGlow } from "@/ui/character/FormationScreen/parts/CrewCard/characterGlow";
 import { BorderGlow } from "@/ui/common/frame/BorderGlow";
 import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
+import { portraitFraming } from "@/ui/character/styles/portraitFraming";
 import { cx } from "@/ui/common/shared/cx";
 import { CrewFrame } from "./CrewFrame";
 import { CrewNameplate } from "./CrewNameplate";
 import { CrewToggle } from "./CrewToggle";
+import { CrewVitals } from "./CrewVitals";
+import { CrewEquipment } from "./CrewEquipment";
 import s from "./CrewCard.module.css";
 
 interface Props {
   cs: CharacterState;
-  /** 网格序号: 错峰入场与左上角编号牌用。 */
+  /** 网格序号: 用于错峰入场。 */
   index: number;
   onField: boolean;
   /** 来自 nutrition.occupants，只影响编队卡外观与状态提示。 */
@@ -119,6 +122,7 @@ function CrewCardView({
           <button className={s.main} type="button" onClick={open}>
             <CharacterPortrait
               characterId={def.id}
+              framing={portraitFraming(def.id)}
               emoji={def.emoji}
               alt={def.name}
               className={s.bust}
@@ -128,8 +132,10 @@ function CrewCardView({
             />
             <span className={s.scrim} aria-hidden="true" />
             <CrewNameplate charId={def.id} name={def.name} onField={onField} />
+            <CrewVitals cs={cs} />
           </button>
 
+          <CrewEquipment equipped={cs.equipped} />
           <CrewToggle
             onField={onField}
             resting={resting}
@@ -140,7 +146,7 @@ function CrewCardView({
           />
         </div>
       </BorderGlow>
-      <CrewFrame index={index} onField={onField} />
+      <CrewFrame level={cs.deckLevel} onField={onField} />
     </div>
   );
 }

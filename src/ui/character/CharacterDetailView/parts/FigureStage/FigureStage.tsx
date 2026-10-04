@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import type { QuirkId } from "@/engine";
 import { FORMATION_BG_ART } from "@/ui/art/explore/sceneArt";
 import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
+import { portraitFraming } from "@/ui/character/styles/portraitFraming";
 import { HpBar } from "@/ui/common/bar/HpBar/HpBar";
 import { PollutionMeter } from "@/ui/common/bar/PollutionMeter/PollutionMeter";
 import { QuirkPips } from "@/ui/common/bar/QuirkPips/QuirkPips";
@@ -48,7 +49,7 @@ export function FigureStage({
         <div className={s.light} />
       </div>
       <div className={s.art}>
-        <CharacterPortrait characterId={characterId} emoji={emoji} alt={name} className={s.portrait} />
+        <CharacterPortrait characterId={characterId} framing={portraitFraming(characterId)} emoji={emoji} alt={name} className={s.portrait} />
       </div>
       <div className={s.identity}>
         <h2 className={s.name}>{name}</h2>

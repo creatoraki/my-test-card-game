@@ -54,6 +54,8 @@ interface Props {
   emoji: string;
   alt: string;
   className?: string;
+  /** 使用方指定的构图修正，直接应用于图片，避免与页面取景类的组合关系耦合。 */
+  framing?: { offsetY: number; scale: number };
   /**
    * 立绘解码时机。1152×2048 的立绘同步解码会把所在那一帧整个拖住;
    * 首帧本来就看不见立绘的场合(如编队卡还在入场淡入前的等待期)传 "async", 让解码不阻塞上屏。
@@ -61,7 +63,7 @@ interface Props {
   decoding?: "async" | "sync" | "auto";
 }
 
-export function CharacterPortrait({ characterId, emoji, alt, className, decoding }: Props) {
+export function CharacterPortrait({ characterId, emoji, alt, className, decoding, framing }: Props) {
   const art = characterId ? CHARACTER_ART[characterId] : undefined;
 
   if (art) {
@@ -82,6 +84,10 @@ export function CharacterPortrait({ characterId, emoji, alt, className, decoding
         decoding={decoding}
         style={
           {
+            ...(framing && {
+              transform: `translateY(${framing.offsetY}px) scale(${framing.scale})`,
+              transformOrigin: "50% 6%",
+            }),
             "--portrait-dx": `${art.dx ?? 0}px`,
             "--portrait-dy": `${art.dy ?? 0}px`,
             "--bust-scale": `${art.bustScale ?? 1}`,
