@@ -110,6 +110,24 @@ export const MODULE_ITEM_DEFS: ItemDef[] = withModuleSellValue([
     maxStack: 1,
     icon: "module",
   },
+  {
+    id: "venom-module",
+    name: "恶毒模组",
+    category: "module",
+    rarity: "fine",
+    desc: "装配后，目标减益种类不少于 3 种时，该卡牌的攻击无法被闪避与格挡。",
+    maxStack: 1,
+    icon: "module",
+  },
+  {
+    id: "late-module",
+    name: "后发模组",
+    category: "module",
+    rarity: "fine",
+    desc: "装配后，该卡牌推进 2 个时刻，结算时攻击力 +20。",
+    maxStack: 1,
+    icon: "module",
+  },
 ]);
 
 // ---------------------------------------------------------------------------

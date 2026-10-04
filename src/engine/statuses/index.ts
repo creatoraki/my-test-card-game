@@ -12,6 +12,7 @@ import { PROPHET_STATUS_DEFS } from "./prophet";
 import { PROPHECY_STATUS_DEFS } from "./prophecy";
 import { ABANDONED_FLOOR_STATUS_DEFS } from "./abandonedFloor";
 import { ALCHEMIST_STATUS_DEFS } from "./alchemist";
+import { HEXER_STATUS_DEFS } from "../hexer/hexStatuses";
 
 export const STATUS_DEFS: Record<string, StatusDef> = {
   ...DOT_STATUS_DEFS,
@@ -26,6 +27,7 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
   ...PROPHECY_STATUS_DEFS,
   ...ABANDONED_FLOOR_STATUS_DEFS,
   ...ALCHEMIST_STATUS_DEFS,
+  ...HEXER_STATUS_DEFS,
 };
 
 // 填入钩子注册表 —— 引擎原语查的是那张表, 不直接 import 本文件(否则成环)。

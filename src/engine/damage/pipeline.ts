@@ -12,7 +12,8 @@ import { critChance, defenseMultiplier, hitChance, statOf } from "../combat/stat
 import { noteChallengeDamage } from "../challenges";
 import { recordHitPart } from "../core/animHits";
 import { runRelicHook } from "../relics/types";
-import { cleanup, log, markDead, ops } from "../core/ops";
+import { cleanup, ctxFor, log, markDead, ops } from "../core/ops";
+import { STATUS_DEFS } from "../core/hookRegistry";
 import { runGuardHooks, runStatusHooks } from "./hooks";
 import { applyDamageModifiers, collectDamageModifiers, createDamageCtx } from "./modifiers";
 
@@ -48,6 +49,9 @@ function rollHitAndCrit(state: BattleState, dmg: DamageCtx, src: Combatant | und
   }
   const critInfo = { sourceId: src.id, targetId: target.id, bonus: 0 };
   runRelicHook(state, "modifyCritChance", critInfo);
+  // 目标身上的状态(厄运)给攻击者的暴击率加成。
+  for (const inst of target.statuses)
+    critInfo.bonus += STATUS_DEFS[inst.id]?.hooks?.modifyIncomingCrit?.(ctxFor(state, target.id, inst), src.id) ?? 0;
   const crit = capProb(critChance(state, src) + critInfo.bonus);
   if (roll(state, crit)) {
     dmg.crit = true;
@@ -58,9 +62,10 @@ function rollHitAndCrit(state: BattleState, dmg: DamageCtx, src: Combatant | und
 }
 
 function applyDefenseAndBlock(state: BattleState, dmg: DamageCtx, src: Combatant | undefined, target: Combatant): void {
-  if (dmg.fixed) return;
+  // ignoreDefense: 无视防御与格挡(万咒归宗); noBlock: 只跳过格挡(恶毒模组)。
+  if (dmg.fixed || dmg.flags.includes("ignoreDefense")) return;
   dmg.amount *= defenseMultiplier(target, src);
-  if (roll(state, statOf(target, "blockRate"))) {
+  if (!dmg.flags.includes("noBlock") && roll(state, statOf(target, "blockRate"))) {
     dmg.blockRolled = true;
     dmg.amount *= RULES.combat.blockReduction;
   }

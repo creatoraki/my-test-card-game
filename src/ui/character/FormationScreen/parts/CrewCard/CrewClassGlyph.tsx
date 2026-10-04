@@ -49,6 +49,15 @@ const GLYPHS: Record<string, ReactNode> = {
       <circle cx="19" cy="25" r="1.6" />
     </>
   ),
+  // 咒术师: 仪式半面具 + 咒眼 + 垂穗
+  hexer: (
+    <>
+      <path d="M8 10 Q20 4 32 10 Q32 22 20 27 Q8 22 8 10 Z" />
+      <path d="M13 14 Q16 11 19 14 Q16 17 13 14 Z" />
+      <circle cx="16" cy="14" r="1.2" />
+      <path d="M20 27 V33 M17 36 L20 33 L23 36" />
+    </>
+  ),
 };
 
 const FALLBACK = (

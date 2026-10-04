@@ -42,6 +42,19 @@
 | [cultivate.ts](../../src/engine/deck/cultivate.ts) / [waterfall.ts](../../src/engine/battle/waterfall.ts) / [fullDraw.ts](../../src/engine/deck/fullDraw.ts) / [handChoice.ts](../../src/engine/deck/handChoice.ts) | 角色专属机制：培育阶段、瀑布再演、`fullDraw` 效果的命中结算（与穿刺层数联动）、弃牌选择的数量计算。 |
 | [counters.ts](../../src/engine/combat/counters.ts) / [pierce.ts](../../src/engine/combat/pierce.ts) / [insurance.ts](../../src/engine/combat/insurance.ts) | 计数器、穿刺层数、精算师的保险层数。 |
 
+## 咒术师机制
+
+| 文件 | 作用 |
+| --- | --- |
+| [hexer/hexGate.ts](../../src/engine/hexer/hexGate.ts) | 恶毒 / 后发词条门控(`EffectDescriptor.keywordGate`)：减益种类计数(标记不计)、咒誓 +1、本回合推进时刻数；手牌高亮判定。 |
+| [hexer/hexEffects.ts](../../src/engine/hexer/hexEffects.ts) | 咒术师效果分发：回手、视为速攻、额外推进、出牌期伤害 flags 写入 `state.hexPlay`；其余转下面两个文件。 |
+| [hexer/hexEffectsEnemy.ts](../../src/engine/hexer/hexEffectsEnemy.ts) / [hexer/hexEffectsStatus.ts](../../src/engine/hexer/hexEffectsStatus.ts) | 敌人行动点(喂 / 抽 / 换)、操纵攻击、即死；夺取增益、继承 / 汇集 / 复制减益、随机专属咒。 |
+| [hexer/hexStatuses.ts](../../src/engine/hexer/hexStatuses.ts) | 厄运、怨咒、封印、停摆、附骨、锁魂、疫病、咒丝、反咒、咒誓、逢魔。由 `statuses/index` 汇总。 |
+| [battle/playAdvance.ts](../../src/engine/battle/playAdvance.ts) | 出牌推进时刻数：沉吟 / 后发模组 / 逢魔加推进，停摆攻击牌推进 0。 |
+| [enemy/grudgeDoll.ts](../../src/engine/enemy/grudgeDoll.ts) | 咒怨人偶：敌人出攻击招式前拦截，反转目标或(首领)伤害减半。锁魂的抽招限制在 `enemy/apPick.ts`。 |
+
+「本回合」状态(`StatusDef.expiresOnRoundEnd`)在下回合开始时由 `statusLifecycle.purgeRoundStatuses` 统一移除。
+
 ## 伤害与状态
 
 | 文件 | 作用 |

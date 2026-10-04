@@ -13,6 +13,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { ACTUARY_MODULE_ART, ACTUARY_MODULE_THEMES } from "./moduleGlyphsActuary";
+import { HEXER_MODULE_ART, HEXER_MODULE_THEMES } from "./moduleGlyphsHexer";
 import { ALCHEMIST_MODULE_ART, ALCHEMIST_MODULE_THEMES } from "./moduleGlyphsAlchemist";
 import { GENERIC_T1_MODULE_ART, GENERIC_T1_MODULE_THEMES } from "./moduleGlyphsGenericT1";
 import s from "./moduleGlyphs.module.css";
@@ -40,6 +41,8 @@ export const MODULE_THEMES: Record<string, ModuleTheme> = {
   ...ALCHEMIST_MODULE_THEMES,
   // 精算师模组: 急诊红与回响紫, 清单在 moduleGlyphsActuary.tsx。
   ...ACTUARY_MODULE_THEMES,
+  // 咒术师模组: 恶毒紫红与后发琥珀, 清单在 moduleGlyphsHexer.tsx。
+  ...HEXER_MODULE_THEMES,
   // 通用模组按「改的是哪一项」分色, 清单在 moduleGlyphsGenericT1.tsx。
   ...GENERIC_T1_MODULE_THEMES,
 };
@@ -125,6 +128,7 @@ const ART: Record<string, (props: ArtProps) => ReactNode> = {
   ),
   ...ALCHEMIST_MODULE_ART,
   ...ACTUARY_MODULE_ART,
+  ...HEXER_MODULE_ART,
   ...GENERIC_T1_MODULE_ART,
 };
 

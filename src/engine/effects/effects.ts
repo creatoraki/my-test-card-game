@@ -23,6 +23,8 @@ import { applyAssembleEffect } from "./effectsAssemble";
 import { applyDotEffect } from "./effectsDot";
 import { filterFullDrawTargets, fullDrawGateMatches } from "../deck/fullDraw";
 import { conditionMet } from "./effectConditions";
+import { filterByKeywordGate } from "../hexer/hexGate";
+import { applyHexEffect, HEX_EFFECT_TYPES } from "../hexer/hexEffects";
 export { conditionMet } from "./effectConditions";
 export { resolveTargets } from "./effectTargets";
 
@@ -78,6 +80,13 @@ function applyEffect(
   )) return resolution;
   if (effect.fullDraw && !fullDrawGateMatches(state, effect.fullDraw)) return resolution;
   if (!conditionMet(state, effect, contextCard, targetIds, primaryId)) return resolution;
+  const gatedTargets = filterByKeywordGate(state, effect, sourceId, targetIds, primaryId);
+  if (!gatedTargets) return resolution;
+  targetIds = gatedTargets;
+  if (HEX_EFFECT_TYPES.has(effect.type)) {
+    applyHexEffect(state, effect, sourceId, targetIds, primaryId);
+    return resolution;
+  }
   const amount = effect.amount ?? 0;
   const src = state.combatants[sourceId];
   switch (effect.type) {

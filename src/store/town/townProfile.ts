@@ -17,7 +17,7 @@ import type { CharacterState, CodexState, SquadTalentState, TownStore } from "./
 // ★ 开局在编队的是 INITIAL_AWAKENED 上的人, 其余角色在复苏舱等待复苏。
 //   characters 仍然**全量**建档 —— 复苏时直接用 freshCharacter 重置为初始档案。
 // 开局就已唤醒并直接上阵的角色 id(按顺序)。
-const INITIAL_AWAKENED = ["swordsman", "prophet", "botanist", "alchemist", "actuary"];
+const INITIAL_AWAKENED = ["swordsman", "prophet", "botanist", "alchemist", "actuary", "hexer"];
 const INITIAL_TEST_EXP = 2000;
 const INITIAL_POLLUTION = 30;
 

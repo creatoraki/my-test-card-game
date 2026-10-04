@@ -13,6 +13,7 @@
 | [cards/botanist/](../../src/data/cards/botanist/index.ts) | 植物学家：攻击、辅助、被动、临时卡。 |
 | [cards/alchemist/](../../src/data/cards/alchemist/index.ts) | 炼金术士：攻击、防御、辅助、被动，另有组装奖励卡与 `ASSEMBLE_REWARD_POOLS`。 |
 | [cards/actuary/](../../src/data/cards/actuary/index.ts) | 精算师：攻击、治疗、辅助、被动。 |
+| [cards/hexer/](../../src/data/cards/hexer/index.ts) | 咒术师：普通攻击、普通功能 / 防御、罕见、罕见被动、稀有五张分表；`gates.ts` 提供恶毒 / 后发门控简写。 |
 | [cards/neutral/](../../src/data/cards/neutral/index.ts) | 不属于任何角色的中立卡（废料弹片、眩晕锤）。 |
 
 卡牌说明文字里用 `{0}` 这类占位符引用效果数值，由 `engine/cards/cardText.ts` 渲染。被动卡没有费用、不能打出，持在手中时按事件自动生效。
@@ -21,7 +22,7 @@
 
 | 文件 | 作用 |
 | --- | --- |
-| [characters.ts](../../src/data/roster/characters.ts) | 5 名角色：主题色、固定的基础属性面板（没有等级）、初始卡组、按稀有度分档的个人抽卡池。长期成长只来自装备和卡组锻造。 |
+| [characters.ts](../../src/data/roster/characters.ts) | 6 名角色：主题色、固定的基础属性面板（没有等级）、初始卡组、按稀有度分档的个人抽卡池。长期成长只来自装备和卡组锻造。 |
 
 ## 敌人与遭遇战
 

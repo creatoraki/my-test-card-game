@@ -20,6 +20,13 @@ export interface BattleRelic {
   data?: Record<string, number>;
 }
 
+export interface HexPlayState {
+  returnToHand: boolean;
+  asFast: boolean;
+  extraAdvance: number;
+  damageFlags: string[];
+}
+
 export interface BattleState {
   encounterId: string;
   round: number;
@@ -76,6 +83,9 @@ export interface BattleState {
   fullDraw: { hitIds: string[]; removed: Record<string, number> };
   activeCardUid: string | null;
   activeCardPrimaryId: string | null;
+  // 咒术师效果对本次出牌的改写(回手 / 视为速攻 / 额外推进 / 伤害 flags), 只在一次出牌内有效。
+  hexPlay: HexPlayState;
+  lastDrainedAp: number;
   markTransferSourceUid: string | null;
   chosenCardCost: number;
   lastStrippedMarks: number;

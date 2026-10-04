@@ -50,7 +50,22 @@ export type EffectType =
   | "CHOOSE_HAND_CARD"
   | "REVEAL_CARDS"
   | "START_PROPHECY" // 预言家打出预言(见 engine/prophecy)
-  | "DELAY_ENEMY_ACT"; // 目标敌人当前蓄力招式的发动时刻推迟 amount
+  | "DELAY_ENEMY_ACT" // 目标敌人当前蓄力招式的发动时刻推迟 amount
+  // ---- 咒术师(见 engine/hexer) ----
+  | "GAIN_ENEMY_AP" // 目标敌人获得 amount 点行动点(饲咒)
+  | "DRAIN_ENEMY_AP" // 移除目标至多 amount 点行动点, 实际移除数写入 lastDrainedAp
+  | "SWAP_ENEMY_AP" // 主目标与解析出的另一名敌人交换行动点
+  | "RETURN_SELF_TO_HAND" // 本卡结算后返回手牌
+  | "EXTRA_TICK_ADVANCE" // 本卡额外推进 amount 时刻(仅普通牌)
+  | "PLAY_AS_FAST" // 本次出牌视为速攻
+  | "PLAY_DAMAGE_FLAGS" // 本次出牌的伤害追加 flags
+  | "STEAL_BUFF" // 夺取主目标层数最高的 1 个增益给施放者
+  | "INHERIT_DEBUFFS" // 主目标的全部减益转移给解析出的目标
+  | "GATHER_DEBUFFS" // 其他敌人的全部减益转移到主目标
+  | "COPY_DEBUFF" // 随机复制主目标的 1 种减益给解析出的目标
+  | "RANDOM_HEX" // 每名目标获得 1 种尚未持有的随机专属咒(厄运 / 怨咒 / 封印)
+  | "PUPPET_STRIKE" // 主目标按自身攻击力 × multiplier 攻击解析出的目标(无其他目标时打自己)
+  | "EXECUTE"; // 目标生命不高于阈值时直接击杀
 
 export interface EffectDescriptor {
   type: EffectType;
@@ -152,7 +167,14 @@ export interface EffectDescriptor {
     | "primaryReacting" // 主目标同时带有灼烧与中毒(反应态)
     | "hasSquadBuff" // 持有 squadBuff 指定的组装 BUFF
     | "lacksSquadBuff" // 未持有 squadBuff 指定的组装 BUFF
-    | "primaryActsWithin"; // 满足条件时才结算。primaryActsWithin: 主目标敌人的招式将在 conditionValue 时刻内发动
+    | "primaryActsWithin" // 满足条件时才结算。primaryActsWithin: 主目标敌人的招式将在 conditionValue 时刻内发动
+    | "targetHasBuff" // 任一目标持有可驱散的增益
+    | "targetLacksBuff"; // 所有目标都没有可驱散的增益
+  // 咒术师词条门控。venom = 恶毒 N(目标减益种类 ≥ N), late = 后发 N(本回合已推进 ≥ N 时刻)。
+  // invert = 词条未满足时才结算。allFoes 效果的恶毒逐目标判定, 其余效果按主目标判定。
+  keywordGate?: { kind: "venom" | "late"; n: number; invert?: boolean };
+  executePct?: number; // EXECUTE: 普通敌人的斩杀阈值(生命占比)
+  executeBossPct?: number; // EXECUTE: 首领的斩杀阈值(生命占比)
   conditionValue?: number; // handHasCostAtLeast: 手牌中最低牌面费用; fastCardsInHandAtLeast: 手牌中速攻牌数量
   conditionValueMax?: number; // counterAtLeast: 可选闭区间上限
   conditionCounter?: CounterSource;

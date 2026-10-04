@@ -102,6 +102,24 @@ const RAW_RECIPES: ModuleRecipe[] = [
       { itemId: "standard-gear", count: 2 },
     ],
   },
+  {
+    itemId: "venom-module",
+    charId: "hexer",
+    exp: 200,
+    materials: [
+      { itemId: "logic-cube", count: 3 },
+      { itemId: "standard-battery", count: 2 },
+    ],
+  },
+  {
+    itemId: "late-module",
+    charId: "hexer",
+    exp: 200,
+    materials: [
+      { itemId: "standard-gear", count: 3 },
+      { itemId: "logic-cube", count: 2 },
+    ],
+  },
 ];
 
 function getModuleDef(itemId: string) {

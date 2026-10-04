@@ -93,3 +93,12 @@ function runTickLifecycle(state: BattleState, hook: "onTick"): void {
 export function runTick(state: BattleState): void {
   runTickLifecycle(state, "onTick");
 }
+
+// 「本回合」状态(expiresOnRoundEnd)在回合结束后统一移除 —— 敌方回合末的清算仍在本回合内。
+export function purgeRoundStatuses(state: BattleState): void {
+  for (const id of allIds(state)) {
+    const cmb = state.combatants[id];
+    if (!cmb) continue;
+    cmb.statuses = cmb.statuses.filter((inst) => !STATUS_DEFS[inst.id]?.expiresOnRoundEnd);
+  }
+}

@@ -8,6 +8,7 @@ import { PROPHET_CARD_DEFS } from "./prophet";
 import { SWORDSMAN_CARD_DEFS } from "./swordsman";
 import { NEUTRAL_CARD_DEFS } from "./neutral";
 import { ACTUARY_CARD_DEFS } from "./actuary";
+import { HEXER_CARD_DEFS } from "./hexer";
 
 export const CARD_DEFS: CardDef[] = [
   ...makeBasicCardDefs("swordsman"),
@@ -15,10 +16,12 @@ export const CARD_DEFS: CardDef[] = [
   ...makeBasicCardDefs("botanist"),
   ...makeBasicCardDefs("alchemist"),
   ...makeBasicCardDefs("actuary"),
+  ...makeBasicCardDefs("hexer"),
   ...SWORDSMAN_CARD_DEFS,
   ...PROPHET_CARD_DEFS,
   ...BOTANIST_CARD_DEFS,
   ...ALCHEMIST_CARD_DEFS,
   ...ACTUARY_CARD_DEFS,
+  ...HEXER_CARD_DEFS,
   ...NEUTRAL_CARD_DEFS,
 ];

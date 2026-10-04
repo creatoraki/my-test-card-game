@@ -15,6 +15,7 @@ import { shuffle } from "../core/rng";
 import { RULES } from "../core/battleRules";
 import { applyStatus, log } from "../core/ops";
 import { rollChallenges } from "../challenges";
+import { emptyHexPlay } from "../hexer/hexGate";
 import { getEncounter, getEnemyDef, slotDefId } from "@/data";
 
 const isBattleTest = import.meta.env.BattleTest === "true";
@@ -180,6 +181,8 @@ export function createBattleState(
     fullDraw: { hitIds: [], removed: {} },
     activeCardUid: null,
     activeCardPrimaryId: null,
+    hexPlay: emptyHexPlay(),
+    lastDrainedAp: 0,
     markTransferSourceUid: null,
     chosenCardCost: 0,
     lastStrippedMarks: 0,

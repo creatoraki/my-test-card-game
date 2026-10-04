@@ -7,6 +7,7 @@ const CREW_EN_NAMES: Record<string, string> = {
   botanist: "BOTANIST",
   alchemist: "ALCHEMIST",
   actuary: "ACTUARY",
+  hexer: "HEXER",
 };
 
 export function crewEnName(charId: string): string {

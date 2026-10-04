@@ -193,6 +193,12 @@ export function applyStatus(
     return;
   }
 
+  // 封印: 持有者无法获得增益(扣层不受影响)。
+  if (def?.kind === "buff" && stacks > 0 && t.statuses.some((status) => STATUS_DEFS[status.id]?.blocksBuffs && status.stacks > 0)) {
+    log(state, `${t.emoji} ${t.name} 被封印，无法获得 ${def.name}`);
+    return;
+  }
+
   // 异常抗性 —— 每种异常只抵抗"施加概率 / 层数 / 持续拍数"中的一项(见 statuses.resistMode)。
   if (def && def.kind === "debuff" && stacks > 0) {
     const resist = statOf(t, "ailmentResist");
@@ -249,6 +255,34 @@ export function applyStatus(
   if (def && overflow > 0) def.hooks?.onOverflow?.(ctxFor(state, targetId, inst), overflow);
   cleanup(t);
   log(state, `${t.emoji} ${t.name} 获得 ${def?.name ?? statusId} ${stacks > 0 ? "+" : ""}${stacks}`);
+  if (stacks > 0) notifyOwnerStatusApplied(state, targetId, statusId, stacks, duration, data, sourceId);
+}
+
+// 持有者身上的其他状态监听"获得状态"(疫病)。遍历快照, 监听方自己的状态不回调。
+function notifyOwnerStatusApplied(
+  state: BattleState,
+  targetId: string,
+  statusId: string,
+  stacks: number,
+  duration: number | undefined,
+  data: Record<string, number> | undefined,
+  sourceId: string | undefined,
+): void {
+  const t = state.combatants[targetId];
+  if (!t?.alive) return;
+  const def = STATUS_DEFS[statusId];
+  const info = {
+    statusId,
+    stacks,
+    duration,
+    data,
+    sourceId,
+    countsAsDebuff: def?.kind === "debuff" && !def.mark,
+  };
+  for (const inst of [...t.statuses]) {
+    if (inst.id === statusId) continue;
+    STATUS_DEFS[inst.id]?.hooks?.onOwnerStatusApplied?.(ctxFor(state, targetId, inst), info);
+  }
 }
 
 // 战斗内属性修正(卡牌/状态/场景)。只活到本场战斗结束。

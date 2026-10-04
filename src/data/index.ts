@@ -38,7 +38,7 @@ export {
   type BondDef,
   type BondTier,
 } from "./roster/bonds";
-export { ENEMIES, type EnemyDef, type EnemyMove, type MoveBias, type MoveBiasWhen } from "./enemies";
+export { ENEMIES, isBossEnemyDefId, type EnemyDef, type EnemyMove, type MoveBias, type MoveBiasWhen } from "./enemies";
 export {
   ENCOUNTERS,
   slotDefId,

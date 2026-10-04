@@ -4,6 +4,7 @@ import { cardCost } from "../cards/cost";
 import { playableHandUids } from "../cards/passiveCards";
 import { RULES } from "../core/battleRules";
 import { getStatusDef } from "../statuses";
+import { ticksThisRound } from "../hexer/hexGate";
 
 export function counterOf(state: BattleState, source: CounterSource, card?: Card): number {
   if (source === "discardsThisRound") return state.discardsThisRound;
@@ -23,7 +24,7 @@ export function counterOf(state: BattleState, source: CounterSource, card?: Card
   if (source === "primaryDebuffKinds") {
     const target = state.activeCardPrimaryId ? state.combatants[state.activeCardPrimaryId] : undefined;
     return target
-      ? new Set(target.statuses.filter((status) => status.id !== "pierce" && getStatusDef(status.id)?.kind === "debuff" && status.stacks > 0).map((status) => status.id)).size
+      ? new Set(target.statuses.filter((status) => status.id !== "pierce" && getStatusDef(status.id)?.kind === "debuff" && !getStatusDef(status.id)?.mark && status.stacks > 0).map((status) => status.id)).size
       : 0;
   }
   if (source === "primaryPierce" || source === "primaryPierceTriples") {
@@ -67,6 +68,8 @@ export function counterOf(state: BattleState, source: CounterSource, card?: Card
     return target?.statuses.find((status) => status.id === statusId)?.stacks ?? 0;
   }
   if (source === "lastStrippedResonance") return state.lastStrippedResonance;
+  if (source === "lastDrainedAp") return state.lastDrainedAp;
+  if (source === "ticksThisRound") return ticksThisRound(state);
   if (source === "fastPlaysThisRound")
     return state.playedThisRound.filter((played) => played.cardType === "fast").length;
   return state.playedThisRound.length;

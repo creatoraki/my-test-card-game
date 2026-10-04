@@ -6,6 +6,7 @@ import { counterOf } from "../combat/counters";
 import { cultivateOverripe, cultivateReady } from "../deck/cultivate";
 import { isPassive } from "../combat/passive";
 import { waterfallWouldTrigger } from "../battle/waterfall";
+import { keywordGateReady } from "../hexer/hexGate";
 
 export type CardBoonId =
   | "cultivate"
@@ -69,7 +70,10 @@ function hasCounterBoon(state: BattleState, card: Card, effects: EffectDescripto
 
 function hasConditionBoon(state: BattleState, card: Card, effects: EffectDescriptor[]): boolean {
   return effects.some(
-    (effect) => hasCondition(effect) && conditionMet(state, effect, card),
+    (effect) =>
+      (hasCondition(effect) && conditionMet(state, effect, card)) ||
+      // 恶毒 / 后发: 后发已满足, 或场上有敌人已满足恶毒。
+      keywordGateReady(state, effect, card.ownerCharId),
   );
 }
 

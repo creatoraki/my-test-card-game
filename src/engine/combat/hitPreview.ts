@@ -1,4 +1,4 @@
-import type { BattleState, Card, EffectDescriptor } from "../types";
+import type { BattleState, Card, EffectDescriptor, Enemy } from "../types";
 import { cardCost, starlightPayment } from "../cards/cost";
 import { activeEffectsOf } from "../cards/cardEffects";
 import { counterOf } from "./counters";
@@ -11,6 +11,7 @@ import { CARD_MARK_DEFS } from "../cards/cardMarks";
 import { waterfallWouldTrigger } from "../battle/waterfall";
 import { graftBonusPct } from "../battle/cultivatePlay";
 import { pierceOf } from "./pierce";
+import { filterByKeywordGate } from "../hexer/hexGate";
 
 // 本卡自带的「出牌期临时面板」(模组的 PLAY_STAT_BONUS)。
 // ★ 预览必须把它算进去, 否则装了攻击力/穿甲/命中模组后预览数字与实际结果对不上。
@@ -95,14 +96,40 @@ function withPlayStatBonuses<T>(state: BattleState, card: Card, targetId: string
 
 // 带条件的互斥伤害(蒺藜箭 / 汲血蔓)按当前目标判定; 计数源读 activeCardPrimaryId, 预览期间临时写入后原样撤回。
 function previewDamageConditionMet(state: BattleState, effect: EffectDescriptor, card: Card, targetId?: string): boolean {
-  if (!effect.condition) return true;
+  if (!effect.condition && !effect.keywordGate) return true;
   const previousPrimary = state.activeCardPrimaryId;
   state.activeCardPrimaryId = targetId ?? previousPrimary;
   try {
-    return previewConditionMet(state, effect, card, targetId);
+    // 咒术师的恶毒 / 后发分支(万咒归宗、百鬼夜行等)同样按当前目标挑选。
+    if (effect.keywordGate && !filterByKeywordGate(state, effect, card.ownerCharId, targetId ? [targetId] : [], targetId))
+      return false;
+    return !effect.condition || previewConditionMet(state, effect, card, targetId);
   } finally {
     state.activeCardPrimaryId = previousPrimary;
   }
+}
+
+// 本卡前置效果产出的计数(咒爆先移除减益、盈煞先抽行动点)在预览时还没发生, 按目标现状推算。
+function previewBonusCounter(state: BattleState, card: Card, effect: EffectDescriptor, targetId: string): number {
+  const source = effect.bonusMultiplierFrom!;
+  const target = state.combatants[targetId];
+  const effects = activeEffectsOf(card);
+  const before = effects.slice(0, Math.max(0, effects.indexOf(effect)));
+  if (source === "lastRemovedStatusCount" && target) {
+    const remover = before.find((candidate) => candidate.type === "REMOVE_STATUS");
+    if (remover) {
+      const kind = remover.statusKind ?? "debuff";
+      return target.statuses.filter((status) => {
+        const def = getStatusDef(status.id);
+        return status.stacks > 0 && !def?.undispellable && (kind === "all" || def?.kind === kind);
+      }).length;
+    }
+  }
+  if (source === "lastDrainedAp" && target?.team === "enemy") {
+    const drainer = before.find((candidate) => candidate.type === "DRAIN_ENEMY_AP");
+    if (drainer) return Math.min(drainer.amount ?? 0, Math.max(0, (target as Enemy).ap));
+  }
+  return counterOf(state, source);
 }
 
 function firstDamageEffect(state: BattleState, card: Card, targetId?: string): EffectDescriptor | undefined {
@@ -149,7 +176,7 @@ export function cardDamagePreview(state: BattleState, card: Card, targetId: stri
     const fixed = effect.amount != null;
     const rawBonusMult =
       effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
-        ? counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer
+        ? previewBonusCounter(state, card, effect, targetId) * effect.bonusMultiplierPer
         : 0;
     const bonusMult = Math.min(effect.maxBonusMultiplier ?? Infinity, rawBonusMult);
       const valueScale = effect.scaleByCounter

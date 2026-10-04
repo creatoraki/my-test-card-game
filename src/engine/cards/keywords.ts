@@ -7,6 +7,7 @@ import { ops } from "../core/ops";
 import { RULES } from "../core/battleRules";
 import { baseEffectsOf } from "./cardEffects";
 import { resolveEffects } from "../effects/effects";
+import { HEX_CARD_KEYWORD_INFOS } from "./hexKeywords";
 
 export interface KeywordCtx {
   primaryId?: string;
@@ -295,6 +296,7 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
     name: "纳刀",
     desc: "下回合开始从弃牌堆取回手牌并免费打出；攻击牌本次伤害提高 40%。",
   },
+  ...HEX_CARD_KEYWORD_INFOS,
 ];
 
 const CARD_KEYWORD_PATTERN = new RegExp(

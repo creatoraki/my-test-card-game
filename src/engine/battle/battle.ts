@@ -21,7 +21,7 @@ import { STATUS_DEFS } from "../statuses";
 import "../relics/relicBehaviors";
 import "../damage";
 import "../prophecy/prophecy";
-import { allyTempoIds, runAllyTempo, runOwnerTempo } from "../combat/statusLifecycle";
+import { allyTempoIds, purgeRoundStatuses, runAllyTempo, runOwnerTempo } from "../combat/statusLifecycle";
 import { drawCards, rotOverripeCards } from "../deck/deck";
 import { startCharge } from "../enemy/ai";
 import { advanceTick, flushPendingActs } from "./scheduler";
@@ -90,6 +90,7 @@ function recoverNotoCards(state: BattleState): void {
 export function startRound(state: BattleState): void {
   state.round += 1;
   state.tick = RULES.timeline.startTick;
+  purgeRoundStatuses(state);
   tickCultivate(state);
   runEvergreen(state);
   state.redrawsThisRound = 0;

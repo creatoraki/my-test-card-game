@@ -46,15 +46,30 @@ function fallbackMove(state: BattleState, e: Enemy, def: EnemyDef): EnemyMove {
   return rngPickWeighted(state, pool, (move) => enemyMoveWeight(state, e, move));
 }
 
+// 锁魂(咒术师): 本次抽招不强制放大招, 也不会抽到大招(消耗最高的招式); 只有一档消耗时不受影响。
+export const SOUL_LOCK_STATUS = "soulLock";
+
+export function hasSoulLock(e: Enemy): boolean {
+  return e.statuses.some((status) => status.id === SOUL_LOCK_STATUS && status.stacks > 0);
+}
+
+function withoutUltimates(def: EnemyDef): EnemyDef {
+  const maxCost = Math.max(...def.moves.map((move) => move.cost));
+  const moves = def.moves.filter((move) => move.cost < maxCost);
+  return moves.length > 0 ? { ...def, moves } : def;
+}
+
 // mustAct: 本回合第一次出招 —— 每回合至少行动一次, 跳过待机掷骰。
-export function chooseNextMove(state: BattleState, e: Enemy, def: EnemyDef, mustAct = false): EnemyMove | null {
+export function chooseNextMove(state: BattleState, e: Enemy, baseDef: EnemyDef, mustAct = false): EnemyMove | null {
+  const locked = hasSoulLock(e);
+  const def = locked ? withoutUltimates(baseDef) : baseDef;
   if (def.moves.length === 0) return null;
   const costs = def.moves.map((move) => move.cost);
   const maxCost = Math.max(...costs);
   const minCost = Math.min(...costs);
   if (e.ap < minCost) return mustAct ? fallbackMove(state, e, def) : null;
 
-  const ultimate = forcedUltimate(state, e, def, maxCost);
+  const ultimate = locked ? undefined : forcedUltimate(state, e, def, maxCost);
   if (ultimate) return ultimate;
 
   if (!mustAct && e.ap < maxCost) {

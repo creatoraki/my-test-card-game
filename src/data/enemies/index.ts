@@ -14,3 +14,9 @@ export { BOSS_ENEMIES, ELITE_ENEMIES, MIMIC_ENEMIES, MINION_ENEMIES };
 export type { EnemyDef, EnemyMove, MoveBias, MoveBiasWhen } from "./types";
 
 export const ENEMIES = [...MINION_ENEMIES, ...MIMIC_ENEMIES, ...ELITE_ENEMIES, ...BOSS_ENEMIES];
+
+// 首领判定(咒杀阈值、咒怨人偶的首领例外等读取)。
+const BOSS_ENEMY_IDS = new Set(BOSS_ENEMIES.map((def) => def.id));
+export function isBossEnemyDefId(defId: string): boolean {
+  return BOSS_ENEMY_IDS.has(defId);
+}

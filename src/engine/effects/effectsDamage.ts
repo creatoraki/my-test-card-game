@@ -36,8 +36,10 @@ export function applyDamageEffect(
 ): EffectResolution {
   const resolution: EffectResolution = { missed: [], hit: [] };
   const amount = effect.amount ?? 0;
-  const unblockable = effect.flags?.includes("unblockable");
-  const mustHit = effect.flags?.includes("mustHit");
+  // 出牌期追加的 flags(恶毒模组: 必中 + 不可格挡)只作用于本次出牌, 敌人招式结算时为空。
+  const flags = state.hexPlay.damageFlags.length ? [...(effect.flags ?? []), ...state.hexPlay.damageFlags] : effect.flags;
+  const unblockable = flags?.includes("unblockable");
+  const mustHit = flags?.includes("mustHit");
   const src = state.combatants[sourceId];
   const fixed = effect.amount != null;
   const rawBonusMult = effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
@@ -103,7 +105,7 @@ export function applyDamageEffect(
         fixed,
         single: (effect.target ?? "primary") === "primary" || (effect.target === "randomFoe" && hitTargets.length === 1),
         mustHit,
-        flags: effect.flags,
+        flags,
         unblockable,
         hitBonus: effect.hitBonus,
         onDealt: effect.lifesteal != null ? (hpLost) => { lifestealPool += hpLost; } : undefined,

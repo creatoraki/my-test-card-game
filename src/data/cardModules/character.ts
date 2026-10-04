@@ -114,4 +114,25 @@ export const CHARACTER_CARD_MODULES: CardModuleDef[] = [
     appendKeywords: [{ id: "echo", effects: [] }],
     textSuffix: "（回响模组：治愈力 -30；附加回响）",
   },
+  {
+    // 恶毒模组: 把恶毒借给别的角色。flags 必须在伤害之前写入, 所以前置 —— 恶毒按出牌前的减益判定。
+    itemId: "venom-module",
+    canEquip: (def) => def.targeting === "foe" && hasDamageEffect(def) && def.ownerCharId !== "hexer",
+    equipText: "单体攻击卡，且不属于咒术师",
+    patch: {},
+    prependEffects: [
+      { type: "PLAY_DAMAGE_FLAGS", flags: ["mustHit", "noBlock"], keywordGate: { kind: "venom", n: 3 } },
+    ],
+    textSuffix: "（恶毒模组：恶毒 3：本次攻击无法被闪避与格挡）",
+  },
+  {
+    // 后发模组: 不带条件, 让队友的攻击牌替咒术师攒时刻; 多推进的 1 时刻是代价, 攻击力 +20 是补偿。
+    itemId: "late-module",
+    canEquip: (def) => def.cardType === "normal" && hasDamageEffect(def) && def.ownerCharId !== "hexer",
+    equipText: "攻击牌（非速攻），且不属于咒术师",
+    patch: {},
+    prependEffects: [{ type: "PLAY_STAT_BONUS", stat: "attack", amount: 20 }],
+    appendEffects: [{ type: "EXTRA_TICK_ADVANCE", amount: 1 }],
+    textSuffix: "（后发模组：本卡推进 2 个时刻；结算时攻击力 +20）",
+  },
 ];

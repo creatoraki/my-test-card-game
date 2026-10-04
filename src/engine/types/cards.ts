@@ -106,7 +106,9 @@ export type PassiveTriggerId =
   | "assembleSuccess"
   | "allyAttacked"
   | "cardPlayed"
-  | "roundStart";
+  | "roundStart"
+  | "tickAdvanced" // 每推进 1 个时刻(到点敌人行动之前)
+  | "enemyAttack"; // 敌人发动攻击招式时; 只作类型登记, 结算由 enemy/grudgeDoll 直接处理
 
 export interface PassiveDef {
   on: PassiveTriggerId | PassiveTriggerId[];

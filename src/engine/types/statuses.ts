@@ -91,6 +91,19 @@ export interface StatusHooks {
   onFoeDotExpired?: (c: StatusCtx, victimId: string, statusId: string, stacks: number) => void; // 我方持有者: 敌人的灼烧/中毒某一段自然到期
   onBeforeAct?: (c: StatusCtx) => void; // 敌方持有者: 发动招式前(眩晕判定之后、选招之前)
   onOverflow?: (c: StatusCtx, overflow: number) => void; // 施加层数超出上限时, 溢出部分的层数
+  // 目标身上: 攻击者对持有者本次攻击的暴击率加成(百分点)。厄运。
+  modifyIncomingCrit?: (c: StatusCtx, sourceId: string) => number;
+  // 持有者获得**其他**状态之后(合并、限层完成后)。疫病据此复制减益。
+  onOwnerStatusApplied?: (c: StatusCtx, info: OwnerStatusAppliedInfo) => void;
+}
+
+export interface OwnerStatusAppliedInfo {
+  statusId: string;
+  stacks: number;
+  duration?: number;
+  data?: Record<string, number>;
+  sourceId?: string;
+  countsAsDebuff: boolean; // kind = debuff 且不是标记
 }
 
 // 状态详情里额外展示的数值行(预言进度等)。
@@ -119,6 +132,10 @@ export interface StatusDef {
   detailStats?: (inst: StatusInstance) => StatusDetailStat[];
   undispellable?: true; // 不可被驱散 / 剥离 / 转移
   expiresOnAct?: true; // 敌方持有者发动招式后移除
+  expiresOnRoundEnd?: true; // 「本回合」状态: 回合结束(下回合开始前)移除, 不随节拍计时
+  // 标记: 以减益形态挂在敌人身上, 但不计入减益种类(恶毒), 也不会被转移、复制、汇集。
+  mark?: true;
+  blocksBuffs?: true; // 持有者无法获得增益(封印)
   decay?: "one" | "half"; // 每拍层数衰减; 缺省 = 不衰减
   durationStartsImmediately?: boolean; // true = 施加当拍也扣除一次持续时间
   stackMode?: StackMode; // 同种状态再次施加时的层数合并方式

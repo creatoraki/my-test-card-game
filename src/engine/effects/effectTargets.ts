@@ -67,6 +67,11 @@ export function resolveTargets(
       const id = mostPiercedFoe(state, sourceId);
       return id ? [id] : [];
     }
+    case "lowestHpFoe": {
+      const foes = foesOf(state, src).filter((foe) => !effect.excludePrimary || foe.id !== primaryId);
+      if (foes.length === 0) return [];
+      return [foes.reduce((lowest, current) => (current.hp < lowest.hp ? current : lowest)).id];
+    }
       default:
         return [];
     }

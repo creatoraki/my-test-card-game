@@ -3,6 +3,7 @@ import botanistPortrait from "@/assets/人物立绘/植物学家/default.webp";
 import prophetPortrait from "@/assets/人物立绘/预言家/default.webp";
 import alchemistPortrait from "@/assets/人物立绘/炼金术士/idle.webp";
 import actuaryPortrait from "@/assets/人物立绘/精算师/idle.webp";
+import hexerPortrait from "@/assets/人物立绘/咒术师/idle.webp";
 import { cx } from "@/ui/common/shared/cx";
 import s from "./CharacterPortrait.module.css";
 
@@ -41,6 +42,7 @@ const CHARACTER_ART: Record<string, CharacterArtDef> = {
   // ⚠ 立绘文件名是 idle.webp(其余三人是 default.webp), 取景先照统一规格走, 有异常构图再单独覆盖。
   alchemist: { src: alchemistPortrait, ...UNIFORM_FRAMING },
   actuary: { src: actuaryPortrait, ...UNIFORM_FRAMING },
+  hexer: { src: hexerPortrait, ...UNIFORM_FRAMING },
 };
 
 export const CHARACTER_ART_SOURCES: readonly string[] = [...new Set(

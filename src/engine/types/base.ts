@@ -56,7 +56,9 @@ export type CounterSource =
   | "lastStrippedResonance" // 最近一次 STRIP_RESONANCE 移除的共鸣强化次数
   | "primaryPierce" // 主目标当前穿孔层数
   | "primaryPierceTriples" // 主目标穿孔层数 ÷ 3(向下取整)
-  | "primaryPoisonTurns"; // 主目标各段中毒中最长的剩余拍数; 存在无期限分段时为 Infinity
+  | "primaryPoisonTurns" // 主目标各段中毒中最长的剩余拍数; 存在无期限分段时为 Infinity
+  | "lastDrainedAp" // 最近一次 DRAIN_ENEMY_AP 实际移除的行动点
+  | "ticksThisRound"; // 本回合已推进的时刻数(当前时刻 − 回合起始时刻)
 
 export interface ChallengeRun {
   id: ChallengeId;
@@ -100,6 +102,7 @@ export type Targeting = "foe" | "ally" | "self" | "allFoes" | "allAllies" | "non
 //   randomAlly—— 随机一个队友
 //   lowestHpAlly —— 受伤最重的存活队友
 //   mostPiercedFoe —— 穿孔层数最多的敌人
+//   lowestHpFoe —— 当前生命最低的敌人(可配 excludePrimary)
 export type EffectTarget =
   | "primary"
   | "self"
@@ -108,4 +111,5 @@ export type EffectTarget =
   | "randomFoe"
   | "randomAlly"
   | "lowestHpAlly"
-  | "mostPiercedFoe";
+  | "mostPiercedFoe"
+  | "lowestHpFoe";

@@ -17,6 +17,9 @@ export function advanceTick(state: BattleState, n: number, fx?: FxRecorder): voi
     if (state.phase !== "player") return;
     state.tick += 1;
     runTick(state);
+    // 时刻推进被动(漏刻): 排在到点敌人行动之前, 本拍上的咒对随后出手的敌人已生效。
+    ops.firePassive(state, { type: "tickAdvanced" }, fx);
+    if (state.phase !== "player") return;
     resolveDueEnemies(state, fx);
     checkEnd(state);
     if (state.phase !== "player") return;

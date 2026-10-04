@@ -35,6 +35,8 @@ import {
   waterfallHolds,
 } from "./waterfall";
 import { exhaustCard } from "../deck/exhaust";
+import { emptyHexPlay } from "../hexer/hexGate";
+import { cardTickAdvance } from "./playAdvance";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
@@ -116,7 +118,7 @@ export function playCard(
   const starPayment = starlightPayment(state, card);
   const manaPayment = faceCost - starPayment;
   // 流光: 本次出牌视为速攻(不推进时刻, 出牌记录按速攻计入)。
-  const playedType = cardMarksAtPlay.some((markId) => CARD_MARK_DEFS[markId]?.playsAsFast)
+  let playedType: Card["cardType"] = cardMarksAtPlay.some((markId) => CARD_MARK_DEFS[markId]?.playsAsFast)
     ? "fast"
     : card.cardType;
   // 倒泻每次出牌都要判定: 递减则保留, 否则移除 —— 与这张牌有没有瀑布效果无关。
@@ -136,6 +138,7 @@ export function playCard(
   const discardRecorder = rec;
   const cardMissed = new Set<string>();
   const cardHit = new Set<string>();
+  let hexOutcome = emptyHexPlay();
   const mergeCardResolution = (resolution: ReturnType<typeof resolveEffects>) => {
     resolution.missed.forEach((id) => cardMissed.add(id));
     resolution.hit.forEach((id) => cardHit.add(id));
@@ -154,6 +157,8 @@ export function playCard(
       state.activeCardStacks = card.discardStacks ?? 0;
       state.activeCardResonance = card.resonanceStacks ?? 0;
       state.fullDraw = emptyFullDraw();
+      state.hexPlay = emptyHexPlay();
+      state.lastDrainedAp = 0;
       try {
         // 天启计数: 放在本卡效果之前 —— 本卡自己新施加的预言不会吃到这次支付。
         if (starPayment > 0) ops.prophecyEvent(state, { type: "starlightSpent", amount: starPayment });
@@ -191,11 +196,16 @@ export function playCard(
         const returnsToHand = card.playReturn?.when === "fastPlaysThisRound" &&
           fastPlays >= card.playReturn.atLeast &&
           state.hand.length < partyHandLimit(state);
+        // 咒术师回手(咒钉满足恶毒): 不改费用; 手牌已满时照常进弃牌堆。
+        const hexReturns = !returnsToHand && state.hexPlay.returnToHand && state.hand.length < partyHandLimit(state);
         if (card.exhaust) exhaustCard(state, uid);
         else if (returnsToHand) {
           state.hand.push(uid);
           card.costStacks = (card.costStacks ?? 0) + 1;
           log(state, `${card.name} 返回手牌，费用增加 ${card.playReturn?.costDelta ?? 0}`);
+        } else if (hexReturns) {
+          state.hand.push(uid);
+          log(state, `${card.name} 返回手牌`);
         } else moveToDiscard(state, uid, "play");
 
         for (const ref of card.keywords ?? []) {
@@ -235,6 +245,7 @@ export function playCard(
         for (const inst of [...ownerStatuses])
           STATUS_DEFS[inst.id]?.hooks?.onCardPlayed?.(ctxFor(state, card.ownerCharId, inst), card);
         if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
+        hexOutcome = { ...state.hexPlay, damageFlags: [] };
         fireRelic(state, { type: "cardPlayed", targetId: primaryId }, rec);
         // 无明只覆盖本张牌及其卡上标记；弃牌触发的自动出牌不应消费预选队列。
         state.pendingDiscardPicks = [];
@@ -248,9 +259,12 @@ export function playCard(
         state.activeCardUid = null;
         state.activeCardPrimaryId = null;
         state.pendingDiscardPicks = [];
+        state.hexPlay = emptyHexPlay();
       }
     });
   });
+  // 无声咒等: 本次出牌视为速攻 —— 出牌记录与时刻推进都按速攻计。
+  if (hexOutcome.asFast) playedType = "fast";
   // 只吃护盾/状态、没有 HP 变化的目标不在这里补 —— 它们由 UI 侧的 fxTargets 兜底闪特效。
   if (rec) rec.cardHits = cardHits;
 
@@ -270,8 +284,8 @@ export function playCard(
   if (rec) rec.cardSnapshot = takeDiscardSnapshot(state) ?? structuredClone(state);
 
   if (state.phase === "player") {
-    const adv =
-      playedType === "normal" ? RULES.timeline.normalCardAdvance : RULES.timeline.fastCardAdvance;
+    const touchedIds = [...new Set([...cardHit, ...cardMissed, ...(primaryId ? [primaryId] : [])])];
+    const adv = cardTickAdvance(state, card, playedType, hexOutcome, touchedIds);
     // 出牌留下了待选(选手牌 / 弃牌堆 / 抽牌堆等): 先等玩家完成选择再推进, 见 choiceResolve.ts。
     if (state.pendingChoice) state.deferredTickAdvance = adv;
     else if (adv > 0) withDiscardRecorder(rec, () => advanceTick(state, adv, rec));
