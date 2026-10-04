@@ -8,6 +8,8 @@ import { RULES } from "../core/battleRules";
 import { baseEffectsOf } from "./cardEffects";
 import { resolveEffects } from "../effects/effects";
 import { HEX_CARD_KEYWORD_INFOS } from "./hexKeywords";
+import { ACTUARY_CARD_KEYWORD_INFOS } from "../actuary/actuaryKeywords";
+import { echoUncapped } from "../actuary/actuaryRules";
 
 export interface KeywordCtx {
   primaryId?: string;
@@ -45,10 +47,26 @@ export const KEYWORD_DEFS: Record<string, KeywordDef> = {
       const primary = ctx.primaryId ? state.combatants[ctx.primaryId] : undefined;
       if (primary?.alive && primary.team === "player") {
         const alreadyEchoed = primary.statuses.some((status) => status.id === "echo" && status.stacks > 0);
-        if (alreadyEchoed || !state.echoGainedThisRound) {
+        // 共保体: 本场战斗回响新增人数不受限制。
+        if (alreadyEchoed || !state.echoGainedThisRound || echoUncapped(state)) {
           ops.applyStatus(state, primary.id, "echo", 1, 1);
           if (!alreadyEchoed) state.echoGainedThisRound = true;
         }
+      }
+    },
+  },
+  // 团体保单: 排在回响之后, 本卡结算完毕(含回响挂号)再让所有带回响的队友回响持续 +1 回合。
+  // 不是卡面词条(不进 CARD_KEYWORD_INFOS), 只借词条的"出牌结算后"时点。
+  echoExtend: {
+    id: "echoExtend",
+    name: "回响延长",
+    desc: "所有带回响的队友回响持续 +1 回合。",
+    triggers: () => 0,
+    onTriggered: (state) => {
+      for (const id of state.playerIds) {
+        const ally = state.combatants[id];
+        const echo = ally?.alive ? ally.statuses.find((status) => status.id === "echo" && status.stacks > 0) : undefined;
+        if (echo?.duration != null) echo.duration += 1;
       }
     },
   },
@@ -297,6 +315,7 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
     desc: "下回合开始从弃牌堆取回手牌并免费打出；攻击牌本次伤害提高 40%。",
   },
   ...HEX_CARD_KEYWORD_INFOS,
+  ...ACTUARY_CARD_KEYWORD_INFOS,
 ];
 
 const CARD_KEYWORD_PATTERN = new RegExp(

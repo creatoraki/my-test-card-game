@@ -58,7 +58,8 @@ export type CounterSource =
   | "primaryPierceTriples" // 主目标穿孔层数 ÷ 3(向下取整)
   | "primaryPoisonTurns" // 主目标各段中毒中最长的剩余拍数; 存在无期限分段时为 Infinity
   | "lastDrainedAp" // 最近一次 DRAIN_ENEMY_AP 实际移除的行动点
-  | "ticksThisRound"; // 本回合已推进的时刻数(当前时刻 − 回合起始时刻)
+  | "ticksThisRound" // 本回合已推进的时刻数(当前时刻 − 回合起始时刻)
+  | "actuarySurplus"; // 精算师当前的盈余点数
 
 export interface ChallengeRun {
   id: ChallengeId;
@@ -103,6 +104,7 @@ export type Targeting = "foe" | "ally" | "self" | "allFoes" | "allAllies" | "non
 //   lowestHpAlly —— 受伤最重的存活队友
 //   mostPiercedFoe —— 穿孔层数最多的敌人
 //   lowestHpFoe —— 当前生命最低的敌人(可配 excludePrimary)
+//   attackedAllies —— 本回合受到过敌方攻击(或带有假装受伤)的存活队友(可配 excludePrimary)
 export type EffectTarget =
   | "primary"
   | "self"
@@ -112,4 +114,5 @@ export type EffectTarget =
   | "randomAlly"
   | "lowestHpAlly"
   | "mostPiercedFoe"
-  | "lowestHpFoe";
+  | "lowestHpFoe"
+  | "attackedAllies";

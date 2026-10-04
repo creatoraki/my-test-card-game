@@ -123,6 +123,8 @@ export interface BattleState {
   attackedThisRound: string[];
   // 回响网络本回合新增人数上限为 1。
   echoGainedThisRound: boolean;
+  // 本场战斗已触发过寿险的我方单位 id(每名队友每场战斗只能触发 1 次)。
+  lifelineUsed: string[];
   rngState: number;
   log: LogEntry[];
 }

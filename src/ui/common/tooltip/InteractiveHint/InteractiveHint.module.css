@@ -12,6 +12,8 @@
      ③ 自身不能 overflow: hidden     (四角画在容器**外部**, 会被裁掉)
    可调旋钮(由调用方通过 className 覆盖):
      --ihint-offset     外扩距离, 默认 6px
+     --ihint-active-offset  选中外扩距离, 默认在外扩距离上增加 2px
+     --ihint-active-bottom  选中下角偏移, 默认 -6px
      --ihint-size       L 臂长, 默认 18px
     --ihint-thickness  线宽, 默认 6px
      --ihint-neon / --ihint-neon-deep / --ihint-core  配色 */
@@ -134,7 +136,7 @@
 
 /* active: 由调用方直接点亮(卡牌「已选中」), 与宿主 :hover 驱动的那条并列, 效果完全一致。 */
 .hint.is-active {
-  inset: calc(-1 * (var(--ihint-offset, 6px) + 2px));
+  inset: calc(-1 * var(--ihint-active-offset, calc(var(--ihint-offset, 6px) + 2px)));
   opacity: 1;
 }
 

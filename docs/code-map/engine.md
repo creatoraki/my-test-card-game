@@ -40,7 +40,7 @@
 | [cardText.ts](../../src/engine/cards/cardText.ts) | 渲染卡牌说明文字（把 `{0}` 等占位符替换成实际数值）。 |
 | [cost.ts](../../src/engine/cards/cost.ts) | 法力与星光费用的计算和支付。 |
 | [cultivate.ts](../../src/engine/deck/cultivate.ts) / [waterfall.ts](../../src/engine/battle/waterfall.ts) / [fullDraw.ts](../../src/engine/deck/fullDraw.ts) / [handChoice.ts](../../src/engine/deck/handChoice.ts) | 角色专属机制：培育阶段、瀑布再演、`fullDraw` 效果的命中结算（与穿刺层数联动）、弃牌选择的数量计算。 |
-| [counters.ts](../../src/engine/combat/counters.ts) / [pierce.ts](../../src/engine/combat/pierce.ts) / [insurance.ts](../../src/engine/combat/insurance.ts) | 计数器、穿刺层数、精算师的保险层数。 |
+| [counters.ts](../../src/engine/combat/counters.ts) / [pierce.ts](../../src/engine/combat/pierce.ts) / [insurance.ts](../../src/engine/combat/insurance.ts) | 计数器、穿刺层数、精算师的保险层数与受击增值（理赔见下方“精算师机制”）。 |
 
 ## 咒术师机制
 
@@ -52,6 +52,19 @@
 | [hexer/hexStatuses.ts](../../src/engine/hexer/hexStatuses.ts) | 厄运、怨咒、封印、停摆、附骨、锁魂、疫病、咒丝、反咒、咒誓、逢魔。由 `statuses/index` 汇总。 |
 | [battle/playAdvance.ts](../../src/engine/battle/playAdvance.ts) | 出牌推进时刻数：沉吟 / 后发模组 / 逢魔加推进，停摆攻击牌推进 0。 |
 | [enemy/grudgeDoll.ts](../../src/engine/enemy/grudgeDoll.ts) | 咒怨人偶：敌人出攻击招式前拦截，反转目标或(首领)伤害减半。锁魂的抽招限制在 `enemy/apPick.ts`。 |
+
+## 精算师机制
+
+| 文件 | 作用 |
+| --- | --- |
+| [actuary/claims.ts](../../src/engine/actuary/claims.ts) | 理赔统一入口 `claimInsurance`：回复生命 → 佣金抽成 → 溢额（受益人改道 → 按比例计入盈余）；保险自然到期（含无赔优待）；寿险随保险移除。 |
+| [actuary/surplus.ts](../../src/engine/actuary/surplus.ts) | 盈余入账与上限（治愈力 100%，偿付能力翻倍）。出口卡走通用 `CONSUME_STATUS` 与 `actuarySurplus` 计数。 |
+| [actuary/insuranceHits.ts](../../src/engine/actuary/insuranceHits.ts) | 保险的受击联动：增值（高风险 ×1.5）、止损、寿险、共同海损分摊。各状态钩子只转发到这里，同一次伤害只结算一遍。 |
+| [actuary/actuaryEffects.ts](../../src/engine/actuary/actuaryEffects.ts) | 精算师效果分发：`SETTLE_INSURANCE`（全额 / 部分 / 不扣层）、`CONSUME_INSURANCE`、`TRANSFER_INSURANCE`、`TOP_UP_INSURANCE`、`INDEMNITY_HEAL`。 |
+| [actuary/actuaryRules.ts](../../src/engine/actuary/actuaryRules.ts) | 只读规则查询：急诊受击判定（含假装受伤）、应急预案（急诊看全队）、共保体（回响不限新增）、偿付能力、手牌中规则型被动卡的张数。 |
+| [actuary/actuaryKeywords.ts](../../src/engine/actuary/actuaryKeywords.ts) | 精算师卡面词条说明（保险、理赔、溢额、盈余、止损、寿险等），由 `cards/keywords` 汇总。 |
+
+急诊判定读取卡牌的**主目标**（`effectConditions`）；《团体保单》的回响延长借用内部词条 `echoExtend`（排在 `echo` 之后，不进卡面词条表）。
 
 「本回合」状态(`StatusDef.expiresOnRoundEnd`)在下回合开始时由 `statusLifecycle.purgeRoundStatuses` 统一移除。
 

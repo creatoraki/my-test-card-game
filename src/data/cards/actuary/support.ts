@@ -1,5 +1,6 @@
 import type { CardDef } from "@/engine/types";
 
+// 精算师普通卡 · 功能与防护(《精算师改版方案 · 普通卡》)。
 export const ACTUARY_SUPPORT_CARDS: CardDef[] = [
   {
     id: "policy-pledge",
@@ -11,7 +12,7 @@ export const ACTUARY_SUPPORT_CARDS: CardDef[] = [
     rarity: "common",
     anim: "buff",
     effects: [
-      { type: "CONSUME_STATUS", status: "insurance", maxStacks: 30, target: "primary" },
+      { type: "CONSUME_INSURANCE", maxStacks: 30, target: "primary" },
       {
         type: "GAIN_RESOURCE",
         resource: "mana",
@@ -21,5 +22,83 @@ export const ACTUARY_SUPPORT_CARDS: CardDef[] = [
       { type: "DRAW", amount: 1 },
     ],
     text: "消耗目标身上至多 30 层保险，每消耗 10 层获得 1 点法力（上限 3 点）；抽 1 张牌。",
+  },
+  {
+    id: "policy-extension",
+    name: "保单展期",
+    ownerCharId: "actuary",
+    cost: 0,
+    cardType: "fast",
+    targeting: "ally",
+    rarity: "common",
+    anim: "buff",
+    keywords: [{ id: "echo", effects: [] }],
+    effects: [{ type: "EXTEND_STATUS", status: "insurance", amount: 1, maxDuration: 3, target: "primary" }],
+    text: "目标的保险剩余回合 +1（至多 3 回合）；回响。",
+  },
+  {
+    id: "cash-value",
+    name: "现金价值",
+    ownerCharId: "actuary",
+    cost: 1,
+    cardType: "fast",
+    targeting: "ally",
+    rarity: "common",
+    anim: "shield",
+    keywords: [{ id: "echo", effects: [] }],
+    effects: [
+      { type: "CONSUME_INSURANCE", consumePct: 0.5, target: "primary" },
+      {
+        type: "GAIN_SHIELD",
+        amount: 0,
+        amountBonusFrom: "lastConsumedStatusStacks",
+        amountBonusPer: 1,
+        target: "primary",
+      },
+    ],
+    text: "消耗目标一半的保险（向下取整），使其获得等量的护盾；回响。",
+  },
+  {
+    id: "dividend",
+    name: "分红",
+    ownerCharId: "actuary",
+    cost: 1,
+    cardType: "normal",
+    targeting: "allAllies",
+    rarity: "common",
+    anim: "shield",
+    effects: [
+      { type: "GAIN_SHIELD", multiplier: 0.15, target: "allAllies" },
+      // 先按当前盈余结算加成, 再消耗全部盈余。
+      {
+        type: "GAIN_SHIELD",
+        amount: 0,
+        amountBonusFrom: "actuarySurplus",
+        amountBonusPer: 0.4,
+        target: "allAllies",
+      },
+      { type: "CONSUME_STATUS", status: "surplus", target: "self" },
+    ],
+    text: "全体队友获得相当于治愈力 15% 的护盾；消耗全部盈余，每名队友额外获得等同于消耗量 40% 的护盾。",
+  },
+  {
+    id: "policy-transfer",
+    name: "保单转让",
+    ownerCharId: "actuary",
+    cost: 1,
+    cardType: "fast",
+    targeting: "ally",
+    rarity: "common",
+    anim: "buff",
+    effects: [
+      { type: "TRANSFER_INSURANCE", target: "primary", condition: "targetNotAttackedThisRound" },
+      {
+        type: "TRANSFER_INSURANCE",
+        claimTransferred: true,
+        target: "primary",
+        condition: "targetAttackedThisRound",
+      },
+    ],
+    text: "将其他所有队友身上的保险转移到目标身上（层数相加，剩余回合取较大值）；急诊：转入的部分立即理赔，目标原有的保险保留。",
   },
 ];

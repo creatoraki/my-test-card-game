@@ -3,6 +3,7 @@ import { counterOf } from "../combat/counters";
 import { playableHandUids } from "../cards/passiveCards";
 import { isReacting } from "../combat/reaction";
 import { getStatusDef } from "../statuses";
+import { anyAllyCountsAsAttacked, countsAsAttacked, emergencyPartyWide } from "../actuary/actuaryRules";
 
 export function conditionMet(
   state: BattleState,
@@ -69,17 +70,15 @@ export function conditionMet(
     if (!primary?.alive || primary.team !== "enemy" || primary.nextActTick == null) return false;
     return primary.nextActTick - state.tick <= (effect.conditionValue ?? 0);
   }
+  // 急诊: 卡牌的主目标本回合被攻击过(或带有假装受伤); 没有主目标时看本条效果的目标。
+  // ★ 判定对象是主目标而不是本条效果的目标 —— 提前理赔的急诊分支作用于"其他受击队友",
+  //   但开关仍是主目标。应急预案持有期间改为看全队。
   if (effect.condition === "targetAttackedThisRound" || effect.condition === "targetNotAttackedThisRound") {
-    const targetWasAttacked = targetIds == null
-      ? state.attackedThisRound.length > 0 || state.playerIds.some((id) => feignsInjury(state, id))
-      : targetIds.some((id) => state.attackedThisRound.includes(id) || feignsInjury(state, id));
+    const judgedIds = primaryId ? [primaryId] : targetIds;
+    const targetWasAttacked = judgedIds == null || emergencyPartyWide(state)
+      ? anyAllyCountsAsAttacked(state)
+      : judgedIds.some((id) => countsAsAttacked(state, id));
     return effect.condition === "targetAttackedThisRound" ? targetWasAttacked : !targetWasAttacked;
   }
   return true;
-}
-
-function feignsInjury(state: BattleState, id: string): boolean {
-  return Boolean(
-    state.combatants[id]?.statuses.some((status) => status.id === "feignInjury" && status.stacks > 0),
-  );
 }

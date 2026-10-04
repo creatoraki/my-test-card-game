@@ -10,6 +10,7 @@ import type {
   Combatant,
   EngineOps,
   HealCtx,
+  HealOpts,
   StatBlock,
   StatusCtx,
   StatusInstance,
@@ -109,9 +110,10 @@ export function heal(
   sourceId: string | undefined,
   targetId: string,
   amount: number,
-  opts: { scaled?: boolean; single?: boolean; splash?: boolean } = {},
+  opts: HealOpts = {},
 ): number {
   const t = state.combatants[targetId];
+  if (opts.out) opts.out.final = 0;
   if (!t || !t.alive || amount <= 0) return 0;
   const src = sourceId ? state.combatants[sourceId] : undefined;
   let final = amount;
@@ -144,6 +146,7 @@ export function heal(
   // 满血时 t.hp - before = 0: 仍记一段(hpDelta 0), 保证目标照样闪治疗光效, 只是不飘数字。
   recordHitPart(targetId, before - t.hp);
   const healed = t.hp - before;
+  if (opts.out) opts.out.final = Math.round(final);
   runRelicHook(state, "afterHeal", { targetId, hpBefore: before, overflow: Math.max(0, Math.round(final) - healed) });
   if (opts.single && !opts.splash) {
     incomingHeal.amount = final;

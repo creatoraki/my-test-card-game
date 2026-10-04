@@ -12,7 +12,7 @@
 | [cards/prophet/](../../src/data/cards/prophet/index.ts) | 预言家：攻击、辅助、被动、临时卡。 |
 | [cards/botanist/](../../src/data/cards/botanist/index.ts) | 植物学家：攻击、辅助、被动、临时卡。 |
 | [cards/alchemist/](../../src/data/cards/alchemist/index.ts) | 炼金术士：攻击、防御、辅助、被动，另有组装奖励卡与 `ASSEMBLE_REWARD_POOLS`。 |
-| [cards/actuary/](../../src/data/cards/actuary/index.ts) | 精算师：攻击、治疗、辅助、被动。 |
+| [cards/actuary/](../../src/data/cards/actuary/index.ts) | 精算师：普通卡分治疗、功能与防护、被动、攻击四张分表，另有罕见、稀有两张分表（共 30 张）。 |
 | [cards/hexer/](../../src/data/cards/hexer/index.ts) | 咒术师：普通攻击、普通功能 / 防御、罕见、罕见被动、稀有五张分表；`gates.ts` 提供恶毒 / 后发门控简写。 |
 | [cards/neutral/](../../src/data/cards/neutral/index.ts) | 不属于任何角色的中立卡（废料弹片、眩晕锤）。 |
 

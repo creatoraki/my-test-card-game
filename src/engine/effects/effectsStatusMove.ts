@@ -22,13 +22,14 @@ function extendStatuses(state: BattleState, effect: EffectDescriptor, targetIds:
       if (effect.status) {
         if (status.id !== effect.status) continue;
       } else if (!matchesKind(status, effect.statusKind)) continue;
+      const cap = effect.maxDuration ?? Infinity;
       if (status.segments) {
         for (const segment of status.segments) {
-          if (segment.duration != null) segment.duration += amount;
+          if (segment.duration != null) segment.duration = Math.max(segment.duration, Math.min(cap, segment.duration + amount));
         }
         syncSegments(status);
       } else if (status.duration != null) {
-        status.duration += amount;
+        status.duration = Math.max(status.duration, Math.min(cap, status.duration + amount));
       }
     }
   }

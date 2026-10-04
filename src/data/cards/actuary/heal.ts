@@ -1,5 +1,6 @@
 import type { CardDef } from "@/engine/types";
 
+// 精算师普通卡 · 治疗(《精算师改版方案 · 普通卡》)。
 export const ACTUARY_HEAL_CARDS: CardDef[] = [
   {
     id: "initial-premium",
@@ -56,7 +57,28 @@ export const ACTUARY_HEAL_CARDS: CardDef[] = [
       },
       { type: "DRAW", amount: 1, condition: "targetAttackedThisRound" },
     ],
-    text: "为一名队友附加相当于治愈力 40% 的保险，持续 1 回合；急诊：改为回复 40% 治愈力并抽 1 张牌。",
+    text: "为一名队友附加相当于治愈力 40% 的保险，持续 1 回合；急诊：改为立即回复相当于治愈力 40% 的生命，并抽 1 张牌。",
+  },
+  {
+    id: "early-claim",
+    name: "提前理赔",
+    ownerCharId: "actuary",
+    cost: 1,
+    cardType: "fast",
+    targeting: "ally",
+    rarity: "common",
+    anim: "heal",
+    effects: [
+      { type: "SETTLE_INSURANCE", multiplier: 1.5, target: "primary" },
+      {
+        type: "SETTLE_INSURANCE",
+        multiplier: 1,
+        target: "attackedAllies",
+        excludePrimary: true,
+        condition: "targetAttackedThisRound",
+      },
+    ],
+    text: "立即理赔目标的全部保险，回复量提高 50%，随后移除该保险；急诊：同时理赔本回合其他受到攻击的队友的全部保险。",
   },
   {
     id: "echo-consultation",
@@ -99,11 +121,11 @@ export const ACTUARY_HEAL_CARDS: CardDef[] = [
       },
       { type: "APPLY_STATUS", status: "deductible", stacks: 1, duration: 2, target: "primary" },
     ],
-    text: "为一名队友附加相当于治愈力 55% 的保险，持续 2 回合；该保险存续期间，目标受到的伤害降低 20%；回响。",
+    text: "为一名队友附加相当于治愈力 55% 的保险，持续 2 回合，并使其受到的伤害降低 20%，持续 2 回合；回响。",
   },
   {
-    id: "early-claim",
-    name: "提前理赔",
+    id: "installment-claim",
+    name: "分期赔付",
     ownerCharId: "actuary",
     cost: 1,
     cardType: "fast",
@@ -111,15 +133,53 @@ export const ACTUARY_HEAL_CARDS: CardDef[] = [
     rarity: "common",
     anim: "heal",
     effects: [
-      { type: "SETTLE_INSURANCE", multiplier: 1.5, target: "primary" },
       {
-        type: "GAIN_RESOURCE",
-        resource: "mana",
-        amount: 1,
-        target: "self",
+        type: "SETTLE_INSURANCE",
+        settlePct: 0.5,
+        target: "primary",
+        condition: "targetNotAttackedThisRound",
+      },
+      {
+        type: "SETTLE_INSURANCE",
+        settlePct: 0.5,
+        keepStacks: true,
+        target: "primary",
         condition: "targetAttackedThisRound",
       },
     ],
-    text: "立即结算目标身上的全部保险，回复量提高 50%，随后移除该保险；急诊：额外获得 1 点法力。",
+    text: "立即理赔目标保险的一半（向下取整），并扣除对应层数；急诊：本次理赔不扣除层数。",
+  },
+  {
+    id: "risk-exposure",
+    name: "风险敞口",
+    ownerCharId: "actuary",
+    cost: 1,
+    cardType: "normal",
+    targeting: "ally",
+    rarity: "common",
+    anim: "buff",
+    effects: [
+      {
+        type: "APPLY_STATUS",
+        status: "insurance",
+        stacksFromStat: { stat: "healPower", multiplier: 0.3 },
+        duration: 2,
+        target: "primary",
+      },
+      { type: "APPLY_STATUS", status: "taunt", stacks: 1, duration: 1, target: "primary" },
+    ],
+    text: "为一名队友附加相当于治愈力 30% 的保险，持续 2 回合，并使其获得嘲讽，持续 1 回合。",
+  },
+  {
+    id: "full-indemnity",
+    name: "足额赔付",
+    ownerCharId: "actuary",
+    cost: 1,
+    cardType: "normal",
+    targeting: "ally",
+    rarity: "common",
+    anim: "heal",
+    effects: [{ type: "INDEMNITY_HEAL", multiplier: 0.5, duration: 2, target: "primary" }],
+    text: "回复一名队友相当于治愈力 50% 的生命；超出其已损失生命的部分，转为该队友的保险，持续 2 回合。",
   },
 ];

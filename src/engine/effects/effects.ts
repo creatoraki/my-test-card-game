@@ -12,7 +12,6 @@ import { counterOf } from "../combat/counters";
 import { getStatusDef } from "../statuses";
 import { runStatusTickNow } from "../combat/statusLifecycle";
 import { addPollution } from "../combat/pollution";
-import { settleInsurance } from "../combat/insurance";
 import { applyHandEffect } from "./effectsHand";
 import { applyDamageEffect } from "./effectsDamage";
 import { applyStripStatusEffect } from "./effectsStrip";
@@ -25,6 +24,7 @@ import { filterFullDrawTargets, fullDrawGateMatches } from "../deck/fullDraw";
 import { conditionMet } from "./effectConditions";
 import { filterByKeywordGate } from "../hexer/hexGate";
 import { applyHexEffect, HEX_EFFECT_TYPES } from "../hexer/hexEffects";
+import { ACTUARY_EFFECT_TYPES, applyActuaryEffect } from "../actuary/actuaryEffects";
 export { conditionMet } from "./effectConditions";
 export { resolveTargets } from "./effectTargets";
 
@@ -85,6 +85,10 @@ function applyEffect(
   targetIds = gatedTargets;
   if (HEX_EFFECT_TYPES.has(effect.type)) {
     applyHexEffect(state, effect, sourceId, targetIds, primaryId);
+    return resolution;
+  }
+  if (ACTUARY_EFFECT_TYPES.has(effect.type)) {
+    applyActuaryEffect(state, effect, sourceId, targetIds);
     return resolution;
   }
   const amount = effect.amount ?? 0;
@@ -156,9 +160,6 @@ function applyEffect(
         ops.heal(state, sourceId, id, healing, { scaled, single: targetIds.length === 1 });
       break;
     }
-    case "SETTLE_INSURANCE":
-      settleInsurance(state, sourceId, targetIds, effect.multiplier ?? 1);
-      break;
     case "VALUE_BOOST": {
       const boostPct = effect.boostPct ?? 0;
       if (boostPct <= 0) break;

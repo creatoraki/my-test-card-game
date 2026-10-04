@@ -24,6 +24,15 @@ export interface DamageOpts {
   onCrit?: () => void; // 暴击确认后立即回调
 }
 
+// out: 调用方需要"最终回复量"(治愈强度与受疗修正之后、取整之后)时传入, 由 heal 写回。
+//   精算师的溢额 = final − 实际回复的生命。
+export interface HealOpts {
+  scaled?: boolean;
+  single?: boolean;
+  splash?: boolean;
+  out?: { final: number };
+}
+
 export interface EngineOps {
   getStat(state: BattleState, targetId: string, stat: keyof StatBlock): number;
   dealDamage(
@@ -39,7 +48,7 @@ export interface EngineOps {
     sourceId: string | undefined,
     targetId: string,
     amount: number,
-    opts?: { scaled?: boolean; single?: boolean; splash?: boolean },
+    opts?: HealOpts,
   ): number;
   gainShield(
     state: BattleState,

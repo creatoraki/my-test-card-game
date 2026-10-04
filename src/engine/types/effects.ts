@@ -44,7 +44,12 @@ export type EffectType =
   | "TRANSFER_DEBUFFS"
   | "EXHAUST_HAND_CARDS"
   | "RESONATE"
-  | "SETTLE_INSURANCE"
+  // ---- 精算师(见 engine/actuary) ----
+  | "SETTLE_INSURANCE" // 理赔保险: 全额(缺省) / 按 settlePct 部分理赔, keepStacks = 不扣层数
+  | "CONSUME_INSURANCE" // 消耗保险(consumePct / maxStacks), 消耗量写入 lastConsumedStatusStacks; 寿险随之移除
+  | "TRANSFER_INSURANCE" // 其他队友的保险转移到主目标; claimTransferred = 转入部分立即理赔
+  | "TOP_UP_INSURANCE" // 保险补足到目标已损失生命(本次增量上限取 stacksFromStat), 剩余回合设为 duration
+  | "INDEMNITY_HEAL" // 即时治疗; 超出已损失生命的部分转为目标的保险(持续 duration)
   | "TRANSFORM_CARD"
   | "COPY_CARD_TO_HAND"
   | "CHOOSE_HAND_CARD"
@@ -198,5 +203,9 @@ export interface EffectDescriptor {
   repeatFrom?: CounterSource; // 按计数把本条效果重复结算 N 次, 每次重新解析目标
   resonatePick?: "handAll" | "lowerCost";
   fromModule?: string; // 由卡牌模组追加的效果标记(模组 itemId); 纯标记, 引擎结算不读取
+  maxDuration?: number; // EXTEND_STATUS: 延长后的剩余拍数上限
+  settlePct?: number; // SETTLE_INSURANCE: 只理赔当前层数的这一比例(向下取整)
+  keepStacks?: boolean; // SETTLE_INSURANCE: 理赔后不扣除层数
+  claimTransferred?: boolean; // TRANSFER_INSURANCE: 转入的部分立即理赔, 目标原有保险保留
   prophecy?: ProphecyId; // START_PROPHECY: 预言 id
 }

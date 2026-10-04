@@ -6,6 +6,7 @@ import basicHealArt from "@/assets/skills/basic/基础治疗.webp";
 import basicGuardArt from "@/assets/skills/basic/基础护盾.webp";
 import { SWORDSMAN_CARD_ART } from "./swordsmanCardArt";
 import { HEXER_CARD_ART } from "./hexerCardArt";
+import { ACTUARY_CARD_ART } from "./actuaryCardArt";
 import prophetAndromedaArt from "@/assets/skills/prophet/仙女座.webp";
 import prophetSpectralDecompositionArt from "@/assets/skills/prophet/光谱分解.webp";
 import prophetSpectralShardArt from "@/assets/skills/prophet/光谱碎片.webp";
@@ -109,7 +110,6 @@ import alchemistPurificationArt from "@/assets/skills/alchemist/提纯.webp";
 import alchemistEternalFurnaceCoreArt from "@/assets/skills/alchemist/永燃炉芯.webp";
 import alchemistMercuryVaporArt from "@/assets/skills/alchemist/汞蒸气.webp";
 import alchemistQuenchCoatingArt from "@/assets/skills/alchemist/淬火涂层.webp";
-import actuaryInitialPremiumArt from "@/assets/skills/actuary/首期保费.webp";
 
 export const CARD_ART: Record<string, string> = {
   "swordsman-basic-attack": basicAttackArt,
@@ -132,6 +132,7 @@ export const CARD_ART: Record<string, string> = {
   "hexer-basic-guard": basicGuardArt,
   ...SWORDSMAN_CARD_ART,
   ...HEXER_CARD_ART,
+  ...ACTUARY_CARD_ART,
   "star-shatter": prophetStarShatterArt,
   "countercurrent": prophetCountercurrentArt,
   "moon-landing": prophetMoonLandingArt,
@@ -235,7 +236,6 @@ export const CARD_ART: Record<string, string> = {
   "eternal-furnace-core": alchemistEternalFurnaceCoreArt,
   "mercury-vapor": alchemistMercuryVaporArt,
   "quench-coating": alchemistQuenchCoatingArt,
-  "initial-premium": actuaryInitialPremiumArt,
 };
 
 export const CARD_ART_SOURCES: readonly string[] = [...new Set([...Object.values(CARD_ART), placeholderArt])];

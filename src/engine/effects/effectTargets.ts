@@ -4,6 +4,7 @@ import type { BattleState, EffectDescriptor } from "../types";
 import { alliesOf, foesOf } from "../combat/targeting";
 import { rngPick } from "../core/rng";
 import { mostPiercedFoe } from "../combat/pierce";
+import { countsAsAttacked } from "../actuary/actuaryRules";
 
 // 解析单条效果作用到哪些单位(相对施放者)
 export function resolveTargets(
@@ -67,6 +68,10 @@ export function resolveTargets(
       const id = mostPiercedFoe(state, sourceId);
       return id ? [id] : [];
     }
+    case "attackedAllies":
+      return alliesOf(state, src)
+        .filter((ally) => countsAsAttacked(state, ally.id))
+        .map((ally) => ally.id);
     case "lowestHpFoe": {
       const foes = foesOf(state, src).filter((foe) => !effect.excludePrimary || foe.id !== primaryId);
       if (foes.length === 0) return [];

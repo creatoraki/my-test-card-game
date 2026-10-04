@@ -27,6 +27,13 @@ export const STATUS_ACCENT: Record<string, string> = {
   echo: "#8fa8ff",
   feignInjury: "#ff9fb2",
   deductible: "#7ee0d2",
+  surplus: "#f2c66d",
+  stopLoss: "#ff8f6b",
+  lifeline: "#ffd1e8",
+  beneficiary: "#ffd27a",
+  generalAverage: "#6fa8dc",
+  coinsurance: "#8fa8ff",
+  solvency: "#f2c66d",
   salvageArmor: "#b8c4cf",
   escort: "#6fd2ff",
   conductiveFilm: "#7ae8ff",
@@ -67,7 +74,9 @@ export const STATUS_ACCENT: Record<string, string> = {
   attackDown: "#b0a4c8",
   vulnerable: "#ff5d6c",
   armorBreak: "#ff5d6c",
-  etch: "#c8ff5a",  pierce: "#ff8a4a",
+  etch: "#c8ff5a",
+  pierce: "#ff8a4a",
+  highRisk: "#ffb347",
 };
 
 const KIND_ACCENT: Record<StatusKind, string> = {

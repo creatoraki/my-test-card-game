@@ -51,10 +51,12 @@ export function effectDisplayValue(
     case "HEAL":
     case "GAIN_SHIELD":
     case "RESTORE_HP_LIMIT":
+    case "INDEMNITY_HEAL":
       return effect.multiplier != null
         ? Math.round(healValue(stats.healPower, effect.multiplier))
         : effect.amount ?? null;
     case "APPLY_STATUS":
+    case "TOP_UP_INSURANCE":
       if (effect.stacksFromStat)
         return Math.round(statScaledValue(stats, effect.stacksFromStat.stat, effect.stacksFromStat.multiplier));
       if (effect.statusDataFrom)

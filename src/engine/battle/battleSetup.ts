@@ -160,6 +160,7 @@ export function createBattleState(
     challengeEnemyActRound: null,
     attackedThisRound: [],
     echoGainedThisRound: false,
+    lifelineUsed: [],
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
     lastDiscardBatch: 0,

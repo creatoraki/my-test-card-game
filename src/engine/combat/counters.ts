@@ -5,6 +5,7 @@ import { playableHandUids } from "../cards/passiveCards";
 import { RULES } from "../core/battleRules";
 import { getStatusDef } from "../statuses";
 import { ticksThisRound } from "../hexer/hexGate";
+import { ACTUARY_ID } from "../actuary/actuaryRules";
 
 export function counterOf(state: BattleState, source: CounterSource, card?: Card): number {
   if (source === "discardsThisRound") return state.discardsThisRound;
@@ -70,6 +71,8 @@ export function counterOf(state: BattleState, source: CounterSource, card?: Card
   if (source === "lastStrippedResonance") return state.lastStrippedResonance;
   if (source === "lastDrainedAp") return state.lastDrainedAp;
   if (source === "ticksThisRound") return ticksThisRound(state);
+  if (source === "actuarySurplus")
+    return state.combatants[ACTUARY_ID]?.statuses.find((status) => status.id === "surplus")?.stacks ?? 0;
   if (source === "fastPlaysThisRound")
     return state.playedThisRound.filter((played) => played.cardType === "fast").length;
   return state.playedThisRound.length;
