@@ -2,7 +2,7 @@
    ⚠ 本文件里每个 px 都是「设计 px」(1920×1080 画布内), 不要写 vw/vh。
    ★ 取景窗与 scrim 来自 character/styles/glowCard.module.css; 名牌、胶囊按钮、装饰外框
      分别在 CrewNameplate / CrewToggle / CrewFrame 各自的 module.css 里。
-     「出战」由常亮边缘光 + 上阵外框 + 角色色名字 + 点亮的胶囊按钮共同表达。
+     「出战」由常亮边缘光 + 角色色名字 + 点亮的胶囊按钮共同表达。
    ★ 时长旋钮(--fm-*-ms)由 FormationScreen 从 formationMorph/morphChoreo.ts 下发,
      「减少动态效果」时那边已经把数值归零 ⇒ 这里不需要再写一份 @media 兜底。 */
 

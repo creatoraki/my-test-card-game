@@ -8,7 +8,7 @@
 //   飞行编排在 formationMorph/ 里。
 // ⚠ 所有坐标都是「设计 px」(1920×1080 画布内)。
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { getCharacter } from "@/data";
 import { deckUpgradeCost } from "@/engine";
 import { deriveStats, useTownStore, vitalsOf } from "@/store/town/townStore";
@@ -131,10 +131,13 @@ export function CharacterDetailView({
       }
 
       if (!canNavigate) return;
-      if (event.key === "ArrowLeft" && canPrevious) {
+      if (event.ctrlKey || event.altKey || event.metaKey || event.repeat) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && target.closest("input, textarea, select, [contenteditable='true']")) return;
+      if ((event.key === "ArrowLeft" || event.code === "KeyQ") && canPrevious) {
         event.preventDefault();
         onPrevious();
-      } else if (event.key === "ArrowRight" && canNext) {
+      } else if ((event.key === "ArrowRight" || event.code === "KeyE") && canNext) {
         event.preventDefault();
         onNext();
       }
@@ -155,7 +158,7 @@ export function CharacterDetailView({
   const cardDetailOpen = !closingOverlays && !leaving && tab === "deck" && !forgeView && hoveredCard != null;
 
   return (
-    <div className={cx(s.view, forgeView && s["is-forge-open"], leaving && s["is-leaving"])}>
+    <div className={cx(s.view, forgeView && s["is-forge-open"], leaving && s["is-leaving"])} style={{ "--gc-color": def.color } as CSSProperties}>
       <CharacterNavigator
         canPrevious={canPrevious}
         canNext={canNext}

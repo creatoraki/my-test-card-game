@@ -5,7 +5,6 @@
 // ★ 分隔线独立成一行: 稿子上它横跨整个框宽, 不是标题行里的那种"剩余宽度"延伸线。
 // ★ 两种排布: 左栏框内行按「两列 × 三行」铺; 右侧竖栏(side)纵向单列, 行带独立格子底。
 
-import { DetailFrame } from "@/ui/common/frame/DetailFrame";
 import type { CSSProperties, ReactNode } from "react";
 import { cx } from "@/ui/common/shared/cx";
 import s from "./StatGroupCard.module.css";
@@ -26,7 +25,6 @@ export function StatGroupCard({ title, subtitle, index, side = false, children }
       className={cx(s.card, side && s["is-side"])}
       style={{ "--i": index } as CSSProperties}
     >
-      <DetailFrame subtle />
       <span className={s.ordinal} aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
       <header className={s.head}>
         <h4 className={s.title}>{title}</h4>

@@ -37,51 +37,6 @@
   stroke-width: 2;
 }
 
-/* ── 上阵外框: 卡外 10px, 平时隐去, 上阵时亮起并带一圈呼吸光 ── */
-.outer {
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  width: calc(100% + 20px);
-  height: calc(100% + 20px);
-  overflow: visible;
-  opacity: 0;
-  transform: scale(1.015);
-  transition: opacity 240ms ease, transform 320ms cubic-bezier(0.2, 0.72, 0.28, 1);
-}
-
-.outer-line {
-  stroke: var(--gc-color);
-  stroke-width: 1.6;
-}
-
-.outer-corner {
-  stroke: color-mix(in srgb, var(--gc-color) 55%, #ffffff);
-  stroke-width: 4;
-  stroke-linecap: square;
-}
-
-.outer-tick {
-  stroke: color-mix(in srgb, var(--gc-color) 70%, #ffffff);
-  stroke-width: 4;
-}
-
-.is-on .outer {
-  opacity: 1;
-  transform: none;
-  animation: outerBreath 2.8s ease-in-out infinite;
-}
-
-@keyframes outerBreath {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--gc-color) 70%, transparent));
-  }
-  50% {
-    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--gc-color) 85%, transparent));
-  }
-}
-
 .is-on .inner-line {
   stroke: color-mix(in srgb, var(--gc-color) 70%, transparent);
 }

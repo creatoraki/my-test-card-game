@@ -18,6 +18,8 @@
 }
 
 .head {
+  composes: glass from "../../../styles/equipmentGlass.module.css";
+  --equipment-glass-radius: 12px;
   position: relative;
   display: flex;
   flex: 0 0 80px;
@@ -27,18 +29,10 @@
   /* 左侧不留 padding: 首枚页签要贴死框的左缘。 */
   padding: 2px 2px 2px 0;
   isolation: isolate;
-  background: transparent;
   --panel-shape: polygon(19px 0, calc(100% - 19px) 0, 100% 19px, 100% calc(100% - 19px), calc(100% - 19px) 100%, 19px 100%, 0 calc(100% - 19px), 0 19px);
 }
 
-.head::before {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  content: "";
-  background: var(--cd-glass-head);
-  clip-path: var(--panel-shape);
-}
+
 
 /* 一圈 1px 淡蓝描边 —— 稿子上框边就这么一笔, 不发光。 */
 .head-edge {
@@ -46,7 +40,7 @@
   z-index: -1;
   inset: 0;
   pointer-events: none;
-  background: var(--cd-hairline);
+  background: #ffffff26;
   clip-path: polygon(evenodd,
     19px 0, calc(100% - 19px) 0, 100% 19px, 100% calc(100% - 19px),
     calc(100% - 19px) 100%, 19px 100%, 0 calc(100% - 19px), 0 19px, 19px 0,
@@ -69,17 +63,7 @@
 }
 
 /* 右缘的亮白粗边。 */
-.head::after {
-  position: absolute;
-  top: 13px;
-  right: 0;
-  bottom: 13px;
-  width: 4px;
-  content: "";
-  pointer-events: none;
-  background: linear-gradient(#eef4ffb8, #ffffff 22%, #dbe8ff 78%, #eef4ffb8);
-  box-shadow: 0 0 14px #a8cdffb5;
-}
+
 
 .tabs { display: flex; align-self: stretch; }
 .tab {
@@ -93,8 +77,8 @@
   padding: 0 70px;
   border: 0;
   /* 外层只画那条斜边描边, 填充交给 ::before。 */
-  background: #9fb8e04d;
-  color: #9fabd8;
+  background: #c6d0db33;
+  color: #bbc5ce;
   font-size: 26px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -114,7 +98,7 @@
   z-index: -1;
   inset: 1px;
   /* 未选中: 近乎透明的深玻璃。 */
-  background: linear-gradient(120deg, #1a244099, #131c3299);
+  background: linear-gradient(120deg, #81899030, #272d3438);
   clip-path: inherit;
 }
 
@@ -127,28 +111,21 @@
   transition: color 150ms ease;
 }
 
-.bench .tabs .tab:hover { color: #fff; background: #b5c7ff; }
+.bench .tabs .tab:hover { color: #fff; background: #d3dce57a; }
 .bench .tabs .tab:hover .tab-glyph { color: #e6ecff; }
 .bench .tabs .tab.is-active {
   z-index: 1;
   color: #fff;
   /* 斜边描边: 稿子上左上偏白蓝、右下偏蓝白。 */
-  background: linear-gradient(150deg, #f2f6ff, #cfc4ff 45%, #dcebff);
-  text-shadow: 0 0 14px #cbb0ff;
-  box-shadow: 0 0 26px -4px #8b5cffc4, 0 0 60px -14px #7a4dffa8;
+  background: linear-gradient(150deg, #ffffffa6, #d9e0e659);
+  text-shadow: 0 1px 3px #0008;
+  box-shadow: none;
 }
 .tab.is-active .tab-glyph { color: #fff; filter: drop-shadow(0 0 5px #ddd3ff); }
 .tab.is-active::before {
   inset: 2px;
-  /* 稿子实测: 主渐变是**垂直对称**的(上下各一条白边, 42% 处最深),
-     再叠三层横向补光 —— 左端提亮、中偏右压深、右端转蓝。 */
-  background:
-    linear-gradient(90deg, #a9b9ff2e, #a9b9ff00 18%),
-    linear-gradient(90deg, #1a0c6600 38%, #1a0c6626 62%, #1a0c6600 86%),
-    linear-gradient(270deg, #7fb6ff3d, #7fb6ff00 30%),
-    linear-gradient(180deg, #e4e4fb 0, #d8d8f9 3%, #a196fd 7%, #8672fb 16%, #6a54f9 25%, #5339f1 42%, #5c46f5 60%, #6f52fa 79%, #8d6ffb 88%, #ab90fd 93%, #dad2fc 97%, #c9c6f5 100%);
-  /* 上下两条白边等宽 —— 旧版底边用的是 6px 柔和内阴影, 那条高光就糊没了。 */
-  box-shadow: inset 0 2px 0 #e6e8ff, inset 0 -2px 0 #dfe6ff;
+  background: linear-gradient(145deg, rgb(201 210 220 / 0.34), rgb(88 98 109 / 0.46));
+  box-shadow: inset 0 1px 0 #ffffff52, inset 0 -1px 0 #ffffff24;
 }
 .tab:focus-visible { outline: 0; background: #fff; }
 .tab:focus-visible::before { inset: 4px; }
@@ -170,7 +147,7 @@
   align-items: center;
   gap: 26px;
   margin-right: 26px;
-  color: #7d90c2;
+  color: #aeb9c3;
   font-size: var(--fm-fs-l3, 18px);
   letter-spacing: 6px;
   white-space: nowrap;
@@ -181,7 +158,7 @@
   display: block;
   width: 44px;
   height: 22px;
-  color: #8f9fe0;
+  color: #bac6d1;
 }
 
 .content { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; }

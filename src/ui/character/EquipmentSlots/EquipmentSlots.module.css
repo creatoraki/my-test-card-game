@@ -1,234 +1,37 @@
-/* 详情态左栏的装备配置 —— 稿子实测(稿 835px → 设计 px 的换算比 k ≈ 1.6):
-   外框 x 16..196 / y 68..510, 框内左右 padding 16px;
-   槽位是**浅紫白实心卡片**(不是虚线框), 左上/右下切角 16px,
-   左下角直接压深紫标签(无底色块), 右侧一枚浅紫圆形 ＋。 */
 .equipment-slots {
-  position: relative;
-  display: flex;
-  font-size: var(--fm-fs-l3, 18px);
-  flex: 0 0 auto;
-  height: 100%;
-  width: 100%;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 0;
-  padding: 22px 16px 16px;
-  /* DetailFrame 绘制多层描边，背景交给 ::before 单独裁切。 */
-  background: transparent;
-  isolation: isolate;
-  /* 与右侧属性框同一档的四角切角。 */
-  --panel-shape: polygon(19px 0, calc(100% - 19px) 0, 100% 19px, 100% calc(100% - 19px), calc(100% - 19px) 100%, 19px 100%, 0 calc(100% - 19px), 0 19px);
+  composes: glass from "../styles/equipmentGlass.module.css";
+  --equipment-glass-radius: 16px;
+  position: relative; display: flex; flex-direction: column; gap: 16px;
+  width: 100%; height: 100%; min-height: 0; padding: 22px 16px 16px;
+  color: #e8f0ee; font-size: 18px;
 }
-
-.equipment-slots::before {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  content: "";
-  background: linear-gradient(115deg, #30446ce8, #1c2a48f2 65%, #364979df);
-  box-shadow: inset 0 0 24px #638fff3d;
-  clip-path: var(--panel-shape);
-}
-
-.equipment-slots-head {
-  display: flex;
-  align-items: flex-start;
-  padding: 0 4px;
-}
-
-.equipment-slots-label {
-  color: #f7f9ff;
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  line-height: 1;
-}
-
-.equipment-slots-grid {
-  display: grid;
-  flex: 1 1 auto;
-  min-height: 0;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: repeat(3, minmax(0, 1fr));
-  gap: 13px;
-}
-
+.equipment-slots-head { display: flex; align-items: flex-start; padding: 0 4px; }
+.equipment-slots-label { color: #f7f9ff; font-size: 30px; font-weight: 700; letter-spacing: 3px; line-height: 1; }
+.equipment-slots-grid { display: grid; flex: 1 1 auto; min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 13px; }
 .equipment-slot {
-  position: relative;
-  display: grid;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  padding: 0;
-  box-sizing: border-box;
-  isolation: isolate;
-  /* 外层 = 白色亮描边, 填充交给 ::before。 */
-  background: #ffffffc4;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 8px);
-  transition: background 160ms ease;
+  composes: glass from "../styles/equipmentGlass.module.css";
+  --equipment-glass-radius: 12px;
+  position: relative; display: grid; width: 100%; height: 100%; min-width: 0;
+  padding: 0; box-sizing: border-box;
+  transition: border-color 160ms ease, background 160ms ease;
 }
-
-/* 稿子上槽位是一块浅紫白的实心亮片: 左上偏白 → 右下偏灰蓝。 */
-.equipment-slot::before {
-  position: absolute;
-  z-index: -1;
-  inset: 1px;
-  content: "";
-  background: repeating-linear-gradient(130deg, transparent 0 3px, #ffffff14 3px 4px), linear-gradient(135deg, #eeeaff, #d5d8f8 50%, #b9c2ed);
-  box-shadow: inset 0 0 0 2px #b7a1ff, inset 0 0 20px #f6eeffa8;
-  clip-path: inherit;
+.equipment-slot:hover, .equipment-slot:focus-within, .equipment-slot.is-active { border-color: color-mix(in srgb, var(--gc-color) 70%, #fff); background: linear-gradient(145deg, rgb(185 193 201 / 0.24), rgb(42 48 55 / 0.46)); }
+.equipment-slot-item, .equipment-slot-empty { grid-column: 1; grid-row: 1; width: 100%; height: 100%; min-width: 0; padding: 0; border: 0; border-radius: 12px; background: transparent; clip-path: none; }
+.equipment-slot .equipment-slot-item { aspect-ratio: auto; min-height: 0; --item-slot-pad: 0; --item-slot-gap: 0; --item-slot-icon-size: 70%; --item-slot-halo: 0px; --item-slot-halo-core: 0px; background: transparent; border: 0; clip-path: none; }
+.equipment-slot-item {
+  --item-slot-bond-size: 32px;
+  --item-slot-bond-top: 12px;
+  --item-slot-bond-left: auto;
+  --item-slot-bond-right: 12px;
 }
-
-.equipment-slot.is-active { background: #956cff; }
-.equipment-slot.is-active::before {
-  inset: 2px;
-  background: linear-gradient(140deg, #f6ecff 0%, #e8dcff 46%, #d3c8f4 100%);
-}
-
-/* 左上角的浅紫三角角标，箭头 SVG 在角标内居中。 */
-.equipment-slot-mark-badge {
-  position: absolute;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  top: 0;
-  left: 0;
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, #aa9cffd9, #d6ceffad);
-  clip-path: polygon(0 0, 100% 0, 0 100%);
-  pointer-events: none;
-}
-
-.equipment-slot-mark {
-  width: 15px;
-  height: 20px;
-  color: #6a4fd0;
-  transform: translate(-7px, -7px);
-}
-
-.equipment-slot-item,
-.equipment-slot-empty {
-  grid-column: 1;
-  grid-row: 1;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 8px);
-}
-
-.equipment-slot-item.equipment-slot-item {
-  aspect-ratio: auto;
-  min-height: 0;
-  --item-slot-pad: 0;
-  --item-slot-gap: 0;
-  --item-slot-icon-size: 85%;
-}
-
-.equipment-slot-item.equipment-slot-item:hover,
-.equipment-slot-item.equipment-slot-item:focus-visible {
-  background: #ffffff4d;
-  box-shadow: inset 0 0 0 2px var(--cd-glow);
-}
-
-.equipment-slot-unequip {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  z-index: 3;
-  padding: 5px 11px;
-  color: #8e2f47;
-  font-size: var(--fm-fs-l3, 18px);
-  background: #fdeff2f2;
-  border: 1px solid #c25a6e8f;
-  border-radius: 3px;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(4px);
-  transition: opacity 150ms ease, transform 150ms ease, color 150ms ease, background 150ms ease, border-color 150ms ease;
-}
-
-.equipment-slot:hover .equipment-slot-unequip,
-.equipment-slot:focus-within .equipment-slot-unequip {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
-.equipment-slot-unequip:hover,
-.equipment-slot-unequip:focus-visible {
-  color: #7f2940;
-  background: #fbdfe5;
-  border-color: #c25a6e;
-}
-
-/* 空槽: 稿子上没有虚线框, 只有卡片 + 紫色线条剪影 + 右侧圆形 ＋。 */
-.equipment-slot-empty {
-  display: grid;
-  place-items: center;
-  position: relative;
-  color: #5b4bc4;
-}
-
-.equipment-slot-empty svg {
-  position: absolute;
-  top: 20%;
-  left: 22%;
-  width: 26%;
-  height: 46%;
-  stroke-width: 2.6;
-}
-
-.equipment-slot-name {
-  position: absolute;
-  bottom: 16px;
-  left: 18px;
-  z-index: 2;
-  /* 稿子上标签直接压在浅色卡片上, 没有底色块。 */
-  color: #3a2f9c;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  pointer-events: none;
-}
-
-/* 右侧的圆形 ＋ —— 十字用两条伪元素细线画, 不依赖字形。 */
-.equipment-slot-add {
-  position: absolute;
-  top: 50%;
-  right: 34px;
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  background: #aca6db7a;
-  transform: translateY(-50%);
-  font-size: 0;
-}
-.equipment-slot-add::before,
-.equipment-slot-add::after {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  content: "";
-  background: #5b4bc4;
-  transform: translate(-50%, -50%);
-}
-.equipment-slot-add::before { width: 19px; height: 2px; }
-.equipment-slot-add::after { width: 2px; height: 19px; }
-
-.equipment-slot-empty:hover:not(:disabled),
-.equipment-slot-empty:focus-visible {
-  color: var(--cd-glow-deep);
-  background: #ffffff5c;
-  outline: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .equipment-slot {
-    transition: none;
-  }
-}
+.equipment-slot .equipment-slot-item:hover, .equipment-slot .equipment-slot-item:focus-visible, .equipment-slot .equipment-slot-empty:hover, .equipment-slot .equipment-slot-empty:focus-visible { background: transparent; border: 0; box-shadow: none; transform: none; outline: none; }
+.equipment-slot-unequip { position: absolute; right: 10px; bottom: 10px; z-index: 3; padding: 5px 11px; color: #ffd8df; font-size: 18px; background: rgb(0 0 0 / 0.58); border: 1px solid #c25a6e8f; border-radius: 8px; clip-path: none; opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity 150ms ease, transform 150ms ease; }
+.equipment-slot:hover .equipment-slot-unequip, .equipment-slot:focus-within .equipment-slot-unequip { opacity: 1; pointer-events: auto; transform: none; }
+.equipment-slot .equipment-slot-unequip:hover, .equipment-slot .equipment-slot-unequip:focus-visible { color: #fff; background: #421c28; border-color: #e68ba0; transform: none; }
+.equipment-slot-empty { display: grid; place-items: center; position: relative; color: rgb(218 230 234 / 0.32); }
+.equipment-slot-empty svg { width: 42%; height: 42%; }
+.equipment-slot-name { position: absolute; bottom: 16px; left: 18px; z-index: 2; color: #dce8e9; font-size: 22px; font-weight: 700; letter-spacing: 3px; pointer-events: none; text-shadow: 0 1px 3px #000; }
+.equipment-slot-add { position: absolute; top: 16px; right: 16px; width: 28px; height: 28px; border: 1px solid #ffffff2e; border-radius: 50%; background: #ffffff0a; }
+.equipment-slot-add::before, .equipment-slot-add::after { position: absolute; top: 50%; left: 50%; content: ""; background: #dce8e980; transform: translate(-50%, -50%); }
+.equipment-slot-add::before { width: 12px; height: 2px; }
+.equipment-slot-add::after { width: 2px; height: 12px; }

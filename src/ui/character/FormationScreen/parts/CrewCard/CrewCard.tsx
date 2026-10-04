@@ -111,7 +111,7 @@ function CrewCardView({
       }
       data-crew-card={detail ? undefined : cs.charId}
     >
-      {/* ★ 上阵态的表达: 常亮边缘光 + 上阵外框(CrewFrame) + 角色色名字 + 更浓的填充(0.3 vs 0.2)。
+      {/* ★ 上阵态的表达: 常亮边缘光 + 角色色名字 + 更浓的填充(0.3 vs 0.2)。
           ★ 底色必须保持半透明: BorderGlow 的 ::after 会以它作为 soft-light 混合基底,
           做成不透明会吃掉渐变原色; 卡片背后的深底由 .card 负责。
           ★ 上阵卡的常亮是**锁定**的(followPointer=false): 悬浮期间整圈照常、不塌成光锥,
@@ -146,7 +146,7 @@ function CrewCardView({
             <CrewVitals cs={cs} detail={detail} />
           </div>
 
-          <CrewEquipment equipped={cs.equipped} />
+          {!detail && <CrewEquipment equipped={cs.equipped} />}
           <CrewToggle
             upgrade={detail}
             upgradeDisabled={upgradeDisabled}

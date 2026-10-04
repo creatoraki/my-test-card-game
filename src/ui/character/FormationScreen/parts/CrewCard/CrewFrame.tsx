@@ -1,4 +1,4 @@
-// 编队卡外框: 常驻内框、上阵外框与左上角等级牌。
+// 编队卡装饰: 常驻内框与左上角等级牌。
 // ★ pointer-events: none，不参与点击也不改变卡片尺寸。
 // ⚠ 坐标按卡片 276×772 设计 px 直接写死 —— 卡片尺寸改了要一并改这里的 path。
 
@@ -13,14 +13,6 @@ interface Props {
 export function CrewFrame({ level, onField }: Props) {
   return (
     <span className={cx(s.frame, onField && s["is-on"])}>
-      {/* 上阵外框: 画在卡外 10px, 296×792 */}
-      <svg className={s.outer} preserveAspectRatio="none" viewBox="0 0 296 792" fill="none" aria-hidden="true">
-        <path className={s["outer-line"]} d="M2 2 H272 L294 24 V790 H24 L2 768 Z" />
-        <path className={s["outer-corner"]} d="M2 78 V2 H78" />
-        <path className={s["outer-corner"]} d="M294 714 V790 H218" />
-        <path className={s["outer-tick"]} d="M2 380 V412 M294 380 V412" />
-      </svg>
-
       {/* 常驻内框: 内缩 8px, 右上 / 左下斜切 */}
       <svg className={s.inner} preserveAspectRatio="none" viewBox="0 0 276 772" fill="none" aria-hidden="true">
         <path className={s["inner-line"]} d="M8 8 H250 L268 26 V764 H26 L8 746 Z" />

@@ -1,4 +1,4 @@
-import { DetailFrame } from "@/ui/common/frame/DetailFrame";
+import { useLayoutEffect } from "react";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
 import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import type { EquipSlot, ItemStack } from "@/items/types";
@@ -8,7 +8,6 @@ import ItemTooltip from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import { equipSlotIcon } from "@/ui/art/items/itemArt";
 import { cx } from "@/ui/common/shared/cx";
-import { SlotMark } from "./SlotMark";
 import s from "./EquipmentSlots.module.css";
 
 interface Props {
@@ -22,7 +21,6 @@ interface Props {
 export function EquipmentSlots({ equipped, activeSlot, onSelect, onUnequip, className }: Props) {
   return (
     <section className={cx(s["equipment-slots"], className)} aria-label="角色装备">
-      <DetailFrame />
       <div className={s["equipment-slots-head"]}>
         <span className={s["equipment-slots-label"]}>装备配置</span>
       </div>
@@ -61,19 +59,20 @@ function EquipmentSlot({
   const { point, bind } = useHoverTooltip();
   const { point: unequipPoint, bind: unequipBind } = useHoverTooltip();
 
+  // 仓库开关或装备变化时清掉旧锚点，避免换装后沿用之前的悬停／焦点提示。
+  useLayoutEffect(() => {
+    bind.onPointerLeave();
+    unequipBind.onPointerLeave();
+  }, [selected, worn?.uid]);
+
   return (
     <div className={cx(s["equipment-slot"], selected && s["is-active"])} {...(worn ? bind : {})}>
-      {/* 左上角三角角标 —— 装饰 SVG 收在角标里，空槽与已穿戴槽共用。 */}
-      <span className={s["equipment-slot-mark-badge"]}>
-        <SlotMark className={s["equipment-slot-mark"]} />
-      </span>
       {worn ? (
         <>
           <ItemSlot
             stack={worn}
             showName={false}
             showCount={false}
-            showBond={false}
             className={s["equipment-slot-item"]}
             aria-label={`查看${SLOT_LABEL[slot]}装备`}
             onClick={() => onSelect(slot)}
@@ -87,7 +86,7 @@ function EquipmentSlot({
           >
             卸下
           </button>
-          {unequipPoint && (
+          {!selected && unequipPoint && (
             <HoverTooltip point={unequipPoint}>
               <TooltipCard title={`卸下${SLOT_LABEL[slot]}装备`} />
             </HoverTooltip>
@@ -105,7 +104,7 @@ function EquipmentSlot({
         </button>
       )}
       <span className={s["equipment-slot-name"]}>{SLOT_LABEL[slot]}</span>
-      {worn && point && <ItemTooltip stack={worn} point={point} />}
+      {!selected && worn && point && <ItemTooltip stack={worn} point={point} />}
     </div>
   );
 }

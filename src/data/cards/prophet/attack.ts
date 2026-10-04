@@ -99,7 +99,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     anim: "lightning",
     effects: [
       { type: "DAMAGE", multiplier: 0.4, target: "primary" },
-      // 0 费只能靠星印抬价 / 倒泻 / 天顶星触发瀑布, 额外伤害完全按当前费用缩放, 无保底。
+      // 0 费在没有其他可打出的手牌时也能触发瀑布；额外伤害完全按当前费用缩放，无保底。
       {
         type: "DAMAGE",
         multiplier: 0,

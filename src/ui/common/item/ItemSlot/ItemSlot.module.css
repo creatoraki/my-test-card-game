@@ -168,12 +168,13 @@
   pointer-events: none;
 }
 
-/* 羁绊词条角标 —— 放左上角, 与右下角的数量角标错开互不遮挡 */
+/* 羁绊词条角标默认放左上角，调用方可按格子布局调整位置与尺寸。 */
 .item-slot-bond {
   position: absolute;
   z-index: 1;
-  top: 2px;
-  left: 3px;
+  top: var(--item-slot-bond-top, 2px);
+  left: var(--item-slot-bond-left, 3px);
+  right: var(--item-slot-bond-right, auto);
   width: var(--item-slot-bond-size, 16px);
   height: var(--item-slot-bond-size, 16px);
   line-height: 1;

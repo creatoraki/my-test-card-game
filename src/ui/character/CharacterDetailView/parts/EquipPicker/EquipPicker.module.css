@@ -1,5 +1,14 @@
-/* 面板部分使用角色详情态的浅色玻璃；`.compare*` 部分渲染在全站深色 HoverTooltip 内，刻意保留深色字色。 */
+
 .picker {
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #343a40, #23282d);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 3px 10px rgb(0 0 0 / 0.18);
+  --cd-ink: #e8f0ee;
+  --cd-ink-dim: #aabec2;
+  --cd-line: rgb(255 255 255 / 0.18);
+  --cd-glow: var(--gc-color, #b8d9ed);
+  --cd-glow-deep: #ffffff;
   position: absolute;
   font-size: var(--fm-fs-l3, 18px);
   z-index: 5;
@@ -10,10 +19,7 @@
   padding: 24px;
   overflow: hidden;
   color: var(--cd-ink);
-  background: linear-gradient(145deg, #ffffffef, #fbf3ffeb 58%, #ecdcfadd);
-  border: 1px solid #2a1b3d38;
-  box-shadow: 0 28px 70px -32px #2a1b3dcc, inset 0 1px 0 #ffffff;
-  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+
 }
 
 .head,
@@ -73,6 +79,7 @@
 }
 
 .close {
+  composes: glass from "../../../styles/equipmentGlass.module.css";
   display: grid;
   width: 40px;
   height: 40px;
@@ -80,14 +87,13 @@
   padding: 0;
   color: var(--cd-ink-dim);
   font-size: 28px;
-  background: #ffffff82;
-  border: 1px solid var(--cd-line);
+  clip-path: none;
 }
 
-.close:hover,
-.close:focus-visible {
+.picker .close:hover,
+.picker .close:focus-visible {
   color: var(--cd-glow-deep);
-  background: #ffffffd0;
+  background: linear-gradient(145deg, rgb(185 193 201 / 0.24), rgb(42 48 55 / 0.46));
   border-color: var(--cd-glow);
 }
 
@@ -114,25 +120,33 @@
 }
 
 .candidate {
+  composes: glass from "../../../styles/equipmentGlass.module.css";
   display: grid;
   min-width: 0;
   gap: 5px;
   padding: 7px;
   color: var(--cd-ink);
-  background: #ffffff8a;
-  border: 1px solid var(--cd-line);
+
   outline: none;
   transition: border-color 150ms ease, background 150ms ease;
 }
 
 .candidate:hover,
 .candidate:focus-visible {
-  background: #ffffffd0;
+  background: linear-gradient(145deg, rgb(185 193 201 / 0.24), rgb(42 48 55 / 0.46));
   border-color: var(--cd-glow);
 }
 
-.candidateSlot {
+.candidate .candidateSlot {
+  background: transparent;
+  border: none;
+  clip-path: none;
+  --item-slot-halo: 0px;
+  --item-slot-halo-core: 0px;
   --item-slot-icon-size: 72%;
+  --item-slot-bond-size: 32px;
+  --item-slot-bond-top: 8px;
+  --item-slot-bond-left: 8px;
   width: 100%;
 }
 

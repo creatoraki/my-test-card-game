@@ -1,4 +1,3 @@
-import { DetailFrame } from "@/ui/common/frame/DetailFrame";
 import type { ItemStack, EquipSlot } from "@/items/types";
 import { EquipmentSlots } from "@/ui/character/EquipmentSlots";
 import type { StatBlock } from "@/engine";
@@ -27,7 +26,6 @@ export function ProfilePanel({ exp, stats, preview, rolling, equipped, activeSlo
         onUnequip={onUnequip}
       />
       <div className={s.stats}>
-        <DetailFrame />
         <div className={s.head}>
           <h3 className={s.heading}><span aria-hidden="true" /> 角色属性</h3>
           <span className={s["head-sub"]}>数据总览</span>
