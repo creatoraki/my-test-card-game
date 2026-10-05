@@ -2,16 +2,24 @@ import type { BattleState, Card, CultivateStage, Targeting } from "../types";
 import { STATUS_DEFS } from "../core/hookRegistry";
 import { ctxFor } from "../core/ops";
 
-export function cultivateStage(card: Card): CultivateStage | null {
+// 培育计数: N..1 生长中; 0 成熟; -1 成熟且即将枯萎(本回合结束仍在手牌中就枯萎, 见 deck.witherCards)。
+// 嫁接牌停在 0, 一直保持成熟。
+export type CultivatePhase = "growing" | "mature";
+
+function cultivateLeftOf(card: Card): number | null {
   if (!card.cultivate) return null;
-  const left = card.cultivateLeft ?? card.cultivate.turns;
-  if (left < 0) return "overripe";
-  return left === 0 ? "mature" : "growing";
+  return card.cultivateLeft ?? card.cultivate.turns;
 }
 
-// 常青牌与嫁接牌成熟后停在成熟: 不会过熟, 也不能被催熟。
-export function capsAtMature(card: Card): boolean {
-  return Boolean(card.cultivate?.evergreen || card.grafted);
+export function cultivateStage(card: Card): CultivatePhase | null {
+  const left = cultivateLeftOf(card);
+  if (left == null) return null;
+  return left <= 0 ? "mature" : "growing";
+}
+
+// 嫁接牌成熟后停在成熟: 不会枯萎。
+export function neverWithers(card: Card): boolean {
+  return Boolean(card.grafted);
 }
 
 // 嫁接只挂在实例上, 离手 / 打出后连同临时培育一起剥离。
@@ -29,7 +37,7 @@ export function resetCultivate(card: Card): void {
   if (card.cultivate) card.cultivateLeft = card.cultivate.turns;
 }
 
-function notifyCultivateStage(state: BattleState, card: Card, stage: CultivateStage): void {
+export function notifyCultivateStage(state: BattleState, card: Card, stage: CultivateStage): void {
   for (const id of state.playerIds) {
     const owner = state.combatants[id];
     if (!owner?.alive) continue;
@@ -38,17 +46,16 @@ function notifyCultivateStage(state: BattleState, card: Card, stage: CultivateSt
   }
 }
 
+// 推进培育计数。成熟牌最多被回合开始推进到"即将枯萎"(-1), 不会再往下走。
 export function advanceCultivate(state: BattleState, card: Card, delta: number): void {
   if (!card.cultivate || delta <= 0) return;
   const amount = Math.floor(delta);
   for (let i = 0; i < amount; i++) {
-    const before = cultivateStage(card);
-    const left = card.cultivateLeft ?? card.cultivate.turns;
+    const left = cultivateLeftOf(card)!;
     if (left <= -1) break;
-    if (left <= 0 && capsAtMature(card)) break;
+    if (left <= 0 && neverWithers(card)) break;
     card.cultivateLeft = left - 1;
-    const after = cultivateStage(card);
-    if (after && after !== before) notifyCultivateStage(state, card, after);
+    if (left === 1) notifyCultivateStage(state, card, "mature");
   }
 }
 
@@ -56,19 +63,18 @@ export function cultivateReady(card: Card): boolean {
   return cultivateStage(card) === "mature";
 }
 
-export function cultivateOverripe(card: Card): boolean {
-  return cultivateStage(card) === "overripe";
+// 成熟的第 2 个回合: 卡面高亮提示, 回合结束仍在手牌中就枯萎。
+export function cultivateWitherSoon(card: Card): boolean {
+  const left = cultivateLeftOf(card);
+  return left != null && left < 0 && !neverWithers(card);
 }
 
+// 催熟只推进生长中的牌; 成熟牌不可选(避免把牌往枯萎推)。
 export function cultivateCanAdvance(card: Card): boolean {
-  const stage = cultivateStage(card);
-  if (stage === "mature") return !capsAtMature(card);
-  return stage === "growing";
+  return cultivateStage(card) === "growing";
 }
 
 export function effectiveTargeting(card: Card): Targeting {
-  if (cultivateOverripe(card))
-    return card.cultivate?.overripe?.targeting ?? card.cultivateTargeting ?? card.targeting;
   return cultivateReady(card) ? card.cultivateTargeting ?? card.targeting : card.targeting;
 }
 

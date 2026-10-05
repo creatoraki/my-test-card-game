@@ -22,7 +22,7 @@ import "../relics/relicBehaviors";
 import "../damage";
 import "../prophecy/prophecy";
 import { allyTempoIds, purgeRoundStatuses, runAllyTempo, runOwnerTempo } from "../combat/statusLifecycle";
-import { drawCards, rotOverripeCards } from "../deck/deck";
+import { drawCards, witherCards } from "../deck/deck";
 import { startCharge } from "../enemy/ai";
 import { advanceTick, flushPendingActs } from "./scheduler";
 import { runRelicHook } from "../relics/types";
@@ -31,7 +31,6 @@ import { flushAutoPlays, moveToDiscard, withDiscardRecorder } from "../deck/disc
 import { firePassive, isPassive, recycleHandPassives } from "../combat/passive";
 import { fireRelic } from "../relics/relics";
 import { resetCultivate, tickCultivate } from "../deck/cultivate";
-import { runEvergreen } from "../deck/evergreen";
 import { withHitRecorder } from "../core/animHits";
 import { runEnemyFlee } from "./flee";
 import { createBattleState } from "./battleSetup";
@@ -93,7 +92,6 @@ export function startRound(state: BattleState): void {
   state.tick = RULES.timeline.startTick;
   purgeRoundStatuses(state);
   tickCultivate(state);
-  runEvergreen(state);
   state.redrawsThisRound = 0;
   state.waitsThisRound = 0;
   state.deferredTickAdvance = 0;
@@ -232,7 +230,7 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
     runRelicHook(state, "onRoundEnd");
     // 手牌里剩下的被动卡自动收进弃牌堆 —— 不计弃牌数、不触发任何弃牌联动。
     recycleHandPassives(state, rec);
-    rotOverripeCards(state);
+    witherCards(state);
     for (const uid of [...state.hand]) {
       const card = state.cards[uid];
       if (!card?.voidCard) continue;

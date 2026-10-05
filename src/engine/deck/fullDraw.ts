@@ -1,7 +1,6 @@
 import type { BattleState, Card, EffectDescriptor } from "../types";
 import { RULES } from "../core/battleRules";
 import { pierceOf, removePierce } from "../combat/pierce";
-import { ops } from "../core/ops";
 
 export interface FullDrawState {
   hitIds: string[];
@@ -27,23 +26,15 @@ export function resolveFullDraw(state: BattleState, card: Card, primaryId?: stri
 
   const hitIds: string[] = [];
   const removed: Record<string, number> = {};
-  const halfDrawOwner = state.playerIds.find((id) =>
-    state.combatants[id]?.alive && state.combatants[id].statuses.some(
-      (status) => status.id === "halfDraw" && status.stacks > 0,
-    ),
-  );
   for (const id of fullDrawTargetIds(state, card, primaryId)) {
     if (pierceOf(state, id) < volley.threshold) continue;
-    const amount = halfDrawOwner
-      ? Math.ceil(volley.threshold / 2)
-      : volley.consumeAll ? pierceOf(state, id) : volley.threshold;
+    const amount = volley.consumeAll ? pierceOf(state, id) : volley.threshold;
     const actual = removePierce(state, id, amount);
     if (actual <= 0) continue;
     hitIds.push(id);
     removed[id] = actual;
   }
 
-  if (hitIds.length > 0 && halfDrawOwner) ops.applyStatus(state, halfDrawOwner, "halfDraw", -1);
   state.fullDraw = { hitIds, removed };
 }
 

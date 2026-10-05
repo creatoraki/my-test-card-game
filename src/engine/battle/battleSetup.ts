@@ -180,6 +180,7 @@ export function createBattleState(
     activeCardStacks: 0,
     activeCardResonance: 0,
     fullDraw: { hitIds: [], removed: {} },
+    harvest: null,
     activeCardUid: null,
     activeCardPrimaryId: null,
     hexPlay: emptyHexPlay(),

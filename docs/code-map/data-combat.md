@@ -10,7 +10,7 @@
 | [basicCards.ts](../../src/data/cards/neutral/basicCards.ts) | 每个角色 3 张基础卡（攻击 / 治疗 / 护盾），以及统一的初始卡组。基础卡不进抽卡池，也不计入携带上限。 |
 | [cards/swordsman/](../../src/data/cards/swordsman/index.ts) | 剑士：攻击、功能与防御、被动三张分表。 |
 | [cards/prophet/](../../src/data/cards/prophet/index.ts) | 预言家：攻击、辅助、被动、临时卡。 |
-| [cards/botanist/](../../src/data/cards/botanist/index.ts) | 植物学家：攻击、辅助、被动、临时卡。 |
+| [cards/botanist/](../../src/data/cards/botanist/index.ts) | 植物学家：`bow`（弓：毒箭 / 满弓 / 采收）、`venom`（毒）、`garden`（园·治疗）、`support`（园·辅助）、`passive`、`temporary`（枯萎的果实、双生花·子株）。卡面词条说明在 `engine/cards/botanistKeywords.ts`。 |
 | [cards/alchemist/](../../src/data/cards/alchemist/index.ts) | 炼金术士：攻击、防御、辅助、被动，另有组装奖励卡与 `ASSEMBLE_REWARD_POOLS`。 |
 | [cards/actuary/](../../src/data/cards/actuary/index.ts) | 精算师：普通卡分治疗、功能与防护、被动、攻击四张分表，另有罕见、稀有两张分表（共 30 张）。 |
 | [cards/hexer/](../../src/data/cards/hexer/index.ts) | 咒术师：普通攻击、普通功能 / 防御、罕见、罕见被动、稀有五张分表；`gates.ts` 提供恶毒 / 后发门控简写。 |

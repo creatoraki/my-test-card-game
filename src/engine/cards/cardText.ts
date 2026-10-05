@@ -73,7 +73,7 @@ export function effectDisplayValue(
   }
 }
 
-// {0} 对应 effects[0]；{d0} 对应 onDiscard.effects[0]；{k0} 对应 cultivate.effects[0]；{o0} 对应过熟效果；{e0} 对应常青效果。
+// {0} 对应 effects[0]；{d0} 对应 onDiscard.effects[0]；{k0} 对应 cultivate.effects[0]；{c} 为培育剩余回合(成熟显示 ✔)。
 export function renderCardText(card: Card, stats: CardTextStats, cost = cardCost(null, card)): string {
   const mastery =
     cost <= RULES.combat.lowCostApMax ? stats.lowCostMastery : stats.highCostMastery;
@@ -83,21 +83,17 @@ export function renderCardText(card: Card, stats: CardTextStats, cost = cardCost
     healPower: stats.healPower + mastery,
     damageAttackBonus: card.cardType === "fast" ? stats.fastMastery ?? 0 : 0,
   };
-  return card.text.replace(/\{(d|k|o|e)?(\d+|c)\}/g, (_match, kind: string | undefined, indexText: string) => {
+  return card.text.replace(/\{(d|k)?(\d+|c)\}/g, (_match, kind: string | undefined, indexText: string) => {
     if (indexText === "c") {
       const left = card.cultivateLeft ?? card.cultivate?.turns;
-      return left == null ? "?" : left < 0 ? "过熟" : left === 0 ? "✔" : String(left);
+      return left == null ? "?" : left <= 0 ? "✔" : String(left);
     }
     const index = Number(indexText);
     const effects = kind === "d"
       ? card.onDiscard?.effects
       : kind === "k"
         ? card.cultivate?.effects
-        : kind === "o"
-          ? card.cultivate?.overripe?.effects
-          : kind === "e"
-            ? card.cultivate?.evergreen?.effects
-            : card.effects;
+        : card.effects;
     const value = effectDisplayValue(effects?.[index], effectiveStats, card.discardStacks ?? 0);
     return value == null ? "?" : String(value);
   });

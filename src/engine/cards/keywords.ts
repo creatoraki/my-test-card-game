@@ -8,6 +8,7 @@ import { RULES } from "../core/battleRules";
 import { baseEffectsOf } from "./cardEffects";
 import { resolveEffects } from "../effects/effects";
 import { HEX_CARD_KEYWORD_INFOS } from "./hexKeywords";
+import { BOTANIST_CARD_KEYWORD_INFOS } from "./botanistKeywords";
 import { ACTUARY_CARD_KEYWORD_INFOS } from "../actuary/actuaryKeywords";
 import { echoUncapped } from "../actuary/actuaryRules";
 
@@ -175,81 +176,6 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
     desc: "星印。费用 +1；打出后抽 1 张牌，持有多米诺被动时会重新附加到未带卡牌增益的手牌。",
   },
   {
-    id: "pierce",
-    name: "穿孔",
-    desc: "每层使目标受到的伤害提高 2%，最多 10 层。",
-  },
-  {
-    id: "fullDraw",
-    name: "满弓",
-    desc: "目标穿孔层数达到指定数量时，移除指定层数并触发满弓效果；本次不再附加穿孔。",
-  },
-  {
-    id: "overripe",
-    name: "过熟",
-    desc: "培育牌成熟后继续留在手牌中会过熟，打出时结算过熟效果。",
-  },
-  {
-    id: "ripen",
-    name: "催熟",
-    desc: "使一张生长中或已成熟的培育牌推进 1 层；成熟牌会被推进为过熟。",
-  },
-  {
-    id: "rottenFruit",
-    name: "腐烂的果实",
-    desc: "过熟培育牌在回合结束仍留在手牌中时转化而成的临时卡。",
-  },
-  {
-    id: "cultivate",
-    name: "培育",
-    desc: "该牌在手牌中每经过 1 个回合推进 1 层；成熟后打出触发培育效果，继续留在手牌中会过熟。",
-  },
-  {
-    id: "venomArrow",
-    name: "毒箭",
-    desc: "本卡的攻击每次命中时，若目标在命中前带有中毒（任意来源），额外附加对应层数的穿孔；多段攻击逐段判定。",
-  },
-  {
-    id: "toxicBurst",
-    name: "毒发",
-    desc: "立即按目标当前中毒层数结算对应次数的中毒伤害，不减少层数，也不消耗持续回合。",
-  },
-  {
-    id: "graft",
-    name: "嫁接",
-    desc: "其他角色的手牌获得培育 1；成熟后伤害、治疗、护盾与中毒数值 +40%，不会过熟。打出或离开手牌后移除。",
-  },
-  {
-    id: "evergreen",
-    name: "常青",
-    desc: "本牌不会过熟，也不能被催熟；成熟后仍在手牌中时，每回合开始结算常青效果。",
-  },
-  {
-    id: "bloom",
-    name: "盛放",
-    desc: "本回合打出成熟牌时，其培育效果额外结算一次；打出过熟牌时，其过熟效果额外结算一次。",
-  },
-  {
-    id: "slow",
-    name: "迟滞",
-    desc: "每层使敌人当前招式的发动时刻推迟 1，最多 2 层；招式发动后移除。",
-  },
-  {
-    id: "insectTrap",
-    name: "捕虫夹",
-    desc: "该敌人下一次发动招式前，先受到记录的伤害；若因此被击杀，招式取消，植物学家回复 1 点法力。最多持续 2 回合。",
-  },
-  {
-    id: "pollen",
-    name: "花粉",
-    desc: "持有者的攻击每次命中，为目标附加穿孔；每张牌因此附加的穿孔有上限。",
-  },
-  {
-    id: "myceliumWeb",
-    name: "菌丝网络",
-    desc: "本场战斗中，敌人的中毒每结算一次（包括毒发），为其附加 1 层穿孔；每名敌人每回合最多 2 层。不可驱散。",
-  },
-  {
     id: "resonance",
     name: "共鸣",
     desc: "打出共鸣牌时，手牌中费用更低的共鸣牌获得 1 次强化。",
@@ -314,6 +240,7 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
     name: "纳刀",
     desc: "下回合开始从弃牌堆取回手牌并免费打出；攻击牌本次伤害提高 40%。",
   },
+  ...BOTANIST_CARD_KEYWORD_INFOS,
   ...HEX_CARD_KEYWORD_INFOS,
   ...ACTUARY_CARD_KEYWORD_INFOS,
 ];

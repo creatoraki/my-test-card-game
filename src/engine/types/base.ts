@@ -39,7 +39,6 @@ export type CounterSource =
   | "fullDrawHits"
   | "fullDrawBigHits"
   | "primaryDebuffKinds"
-  | "handRottenFruit"
   | "lastExhaustedHandCards"
   | "activeCardResonance"
   | "activeCardCost"
@@ -56,6 +55,9 @@ export type CounterSource =
   | "lastStrippedResonance" // 最近一次 STRIP_RESONANCE 移除的共鸣强化次数
   | "primaryPierce" // 主目标当前穿孔层数
   | "primaryPierceTriples" // 主目标穿孔层数 ÷ 3(向下取整)
+  | "harvestPierce" // 本次采收读取到的穿孔层数(见 deck/harvest.ts)
+  | "harvestPierceHalves" // 采收层数 ÷ 2(向下取整)
+  | "harvestPierceTriples" // 采收层数 ÷ 3(向下取整)
   | "primaryPoisonTurns" // 主目标各段中毒中最长的剩余拍数; 存在无期限分段时为 Infinity
   | "lastDrainedAp" // 最近一次 DRAIN_ENEMY_AP 实际移除的行动点
   | "ticksThisRound" // 本回合已推进的时刻数(当前时刻 − 回合起始时刻)
@@ -91,8 +93,9 @@ export interface SquadBuffRewardPools {
 //   self     —— 施放者自身
 //   allFoes  —— 全体敌对
 //   allAllies—— 全体友方
+//   any      —— 任意一名存活角色(敌我皆可), 效果按主目标阵营用 primaryIsFoe / primaryIsAlly 分支
 //   none     —— 无需主目标(效果自带 target)
-export type Targeting = "foe" | "ally" | "self" | "allFoes" | "allAllies" | "none";
+export type Targeting = "foe" | "ally" | "any" | "self" | "allFoes" | "allAllies" | "none";
 
 // 单条效果作用到谁(相对施放者):
 //   primary   —— 卡牌/招式选定的主目标

@@ -170,6 +170,8 @@ export interface EffectDescriptor {
     | "targetHasStatus"
     | "primaryBelowHpLimit"
     | "primaryReacting" // 主目标同时带有灼烧与中毒(反应态)
+    | "primaryIsFoe" // 主目标是敌方单位(我方卡牌任意角色目标的分支)
+    | "primaryIsAlly" // 主目标是我方单位(我方卡牌任意角色目标的分支)
     | "hasSquadBuff" // 持有 squadBuff 指定的组装 BUFF
     | "lacksSquadBuff" // 未持有 squadBuff 指定的组装 BUFF
     | "primaryActsWithin" // 满足条件时才结算。primaryActsWithin: 主目标敌人的招式将在 conditionValue 时刻内发动
@@ -203,7 +205,7 @@ export interface EffectDescriptor {
   repeatFrom?: CounterSource; // 按计数把本条效果重复结算 N 次, 每次重新解析目标
   resonatePick?: "handAll" | "lowerCost";
   fromModule?: string; // 由卡牌模组追加的效果标记(模组 itemId); 纯标记, 引擎结算不读取
-  maxDuration?: number; // EXTEND_STATUS: 延长后的剩余拍数上限
+  maxDuration?: number; // EXTEND_STATUS: 延长后的剩余拍数上限; 延长量可用 amountFrom + maxAmount 取自计数
   settlePct?: number; // SETTLE_INSURANCE: 只理赔当前层数的这一比例(向下取整)
   keepStacks?: boolean; // SETTLE_INSURANCE: 理赔后不扣除层数
   claimTransferred?: boolean; // TRANSFER_INSURANCE: 转入的部分立即理赔, 目标原有保险保留

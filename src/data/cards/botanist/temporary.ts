@@ -2,12 +2,13 @@ import type { CardDef } from "@/engine/types";
 
 export const BOTANIST_TEMPORARY_CARDS: CardDef[] = [
   {
-    id: "rotten-fruit",
-    name: "腐烂的果实",
+    // 培育牌枯萎后的替换卡(见 engine/deck/deck.witherCards)。按主目标阵营二选一结算。
+    id: "withered-fruit",
+    name: "枯萎的果实",
     ownerCharId: "botanist",
-    cost: 1,
+    cost: 0,
     cardType: "normal",
-    targeting: "foe",
+    targeting: "any",
     temporary: true,
     exhaust: true,
     anim: "poison",
@@ -15,12 +16,14 @@ export const BOTANIST_TEMPORARY_CARDS: CardDef[] = [
       {
         type: "APPLY_STATUS",
         status: "poison",
-        stacksFromStat: { stat: "attack", multiplier: 0.7 },
+        stacksFromStat: { stat: "attack", multiplier: 0.25 },
         duration: 2,
         target: "primary",
+        condition: "primaryIsFoe",
       },
+      { type: "HEAL", multiplier: 0.3, target: "primary", condition: "primaryIsAlly" },
     ],
-    text: "对一名敌人附加 {0} 层中毒，持续 2 回合。消耗。",
+    text: "选择任意一名角色。敌人：附加 {0} 层中毒，持续 2 拍。队友：恢复 {1} 点生命。消耗。",
   },
   {
     id: "twin-flower-sprout",

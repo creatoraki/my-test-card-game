@@ -56,6 +56,12 @@ export function conditionMet(
     const primary = primaryId ? state.combatants[primaryId] : undefined;
     return Boolean(primary?.alive && primary.hp < primary.hpLimit);
   }
+  // 任意角色目标的分支: 只有我方卡牌使用, 按主目标阵营判定。
+  if (effect.condition === "primaryIsFoe" || effect.condition === "primaryIsAlly") {
+    const primary = primaryId ? state.combatants[primaryId] : undefined;
+    if (!primary) return false;
+    return (primary.team === "enemy") === (effect.condition === "primaryIsFoe");
+  }
   if (effect.condition === "primaryReacting")
     return isReacting(primaryId ? state.combatants[primaryId] : undefined);
   if (effect.condition === "hasSquadBuff" || effect.condition === "lacksSquadBuff") {

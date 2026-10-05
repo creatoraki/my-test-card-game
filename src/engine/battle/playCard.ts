@@ -22,7 +22,8 @@ import { applyResonanceOnPlay } from "../cards/resonance";
 import { fireRelic } from "../relics/relics";
 import { validFoeTargetIds } from "../combat/targeting";
 import { cultivateReady, effectiveTargeting, resetCultivate } from "../deck/cultivate";
-import { bloomExtraEffects, graftBonusPct } from "./cultivatePlay";
+import { applyGraftStatBonus, bloomExtraEffects } from "./cultivatePlay";
+import { beginHarvest, finishHarvest } from "../deck/harvest";
 import { emptyFullDraw, resolveFullDraw } from "../deck/fullDraw";
 import { withHitRecorder } from "../core/animHits";
 import { prophetIdOf } from "../prophet/prophetUnit";
@@ -55,12 +56,13 @@ function isValidPrimary(state: BattleState, card: Card, primaryId?: string): boo
   const t = state.combatants[primaryId];
   if (!t || !t.alive) return false;
   const targeting = effectiveTargeting(card);
-  if (targeting === "foe") {
+  if (targeting === "foe" || (targeting === "any" && t.team === "enemy")) {
     if (t.team !== "enemy") return false;
     const owner = state.combatants[card.ownerCharId];
     return owner?.team !== "player" || validFoeTargetIds(state, "player").includes(primaryId);
   }
-  if (targeting === "ally") return t.team === "player" && !(card.excludeSelfTarget && primaryId === card.ownerCharId);
+  if (targeting === "ally" || targeting === "any")
+    return t.team === "player" && !(card.excludeSelfTarget && primaryId === card.ownerCharId);
   return true;
 }
 
@@ -111,7 +113,7 @@ export function playCard(
   const cardMarksAtPlay = [...(card.marks ?? [])];
   const owner = state.combatants[card.ownerCharId];
   const targeting = effectiveTargeting(card);
-  if ((targeting === "foe" || targeting === "ally") && !isValidPrimary(state, card, primaryId))
+  if ((targeting === "foe" || targeting === "ally" || targeting === "any") && !isValidPrimary(state, card, primaryId))
     return false;
 
   const faceCost = cardCost(state, card);
@@ -149,9 +151,10 @@ export function playCard(
   //   引擎里 HP 的写入口只有 dealDamage / heal(markDead 与 maxHp 修正除外), 记录器已经全覆盖。
   const cardHits = withHitRecorder(() => {
     withDiscardRecorder(discardRecorder, () => {
-      // 嫁接加成与本卡数值同一乘区; 须在 resetCultivate 之前读取培育阶段。
-      state.playValueBonusPct = graftBonusPct(state, card);
+      state.playValueBonusPct = 0;
       revertPlayStatMods(state);
+      // 嫁接: 所属角色本次结算攻击力 / 治愈力提高, 走出牌期临时面板; 须在 resetCultivate 之前读取培育阶段。
+      applyGraftStatBonus(state, card);
       state.activeCardCost = faceCost;
       state.activeCardType = playedType;
       state.activeCardStacks = card.discardStacks ?? 0;
@@ -169,6 +172,7 @@ export function playCard(
         }
         resolveFullDraw(state, card, primaryId);
         if (rec) rec.cardFullDraw = state.fullDraw.hitIds.length;
+        beginHarvest(state, card, primaryId);
         const cultivated = cultivateReady(card);
         const cultivateMode = card.cultivate?.mode ?? "append";
         const baseEffects = baseEffectsOf(card);
@@ -185,6 +189,8 @@ export function playCard(
         // 盛放(花期): 成熟牌的培育效果 / 过熟牌的过熟效果再结算一次。
         if (bloomEffects.length)
           mergeCardResolution(resolveEffects(state, bloomEffects, card.ownerCharId, primaryId));
+        // 采收: 本卡效果全部结算完再移除读取到的穿孔。
+        finishHarvest(state);
         if (
           state.pendingChoice?.kind === "recoverFromDiscard" &&
           state.pendingChoice.sourceCardUid === card.ownerCharId
@@ -261,6 +267,7 @@ export function playCard(
         state.activeCardPrimaryId = null;
         state.pendingDiscardPicks = [];
         state.hexPlay = emptyHexPlay();
+        state.harvest = null;
       }
     });
   });

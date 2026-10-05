@@ -9,7 +9,7 @@ import { RULES } from "../core/battleRules";
 import { getStatusDef } from "../statuses";
 import { CARD_MARK_DEFS } from "../cards/cardMarks";
 import { waterfallWouldTrigger } from "../battle/waterfall";
-import { graftBonusPct } from "../battle/cultivatePlay";
+import { graftStatBonusPct } from "../battle/cultivatePlay";
 import { pierceOf } from "./pierce";
 import { filterByKeywordGate } from "../hexer/hexGate";
 
@@ -40,14 +40,7 @@ function willFullDraw(state: BattleState, card: Card, targetId?: string): boolea
 function previewPierceStacks(state: BattleState, card: Card, targetId: string): number {
   const current = pierceOf(state, targetId);
   if (!card.volley || !willFullDraw(state, card, targetId)) return current;
-  const halfDraw = state.playerIds.some((id) =>
-    state.combatants[id]?.alive && state.combatants[id].statuses.some(
-      (status) => status.id === "halfDraw" && status.stacks > 0,
-    ),
-  );
-  const removed = halfDraw
-    ? Math.ceil(card.volley.threshold / 2)
-    : card.volley.consumeAll ? current : card.volley.threshold;
+  const removed = card.volley.consumeAll ? current : card.volley.threshold;
   return Math.max(0, current - removed);
 }
 
@@ -66,14 +59,21 @@ function previewConditionMet(
   return conditionMet(state, effect, card, targetId ? [targetId] : undefined, targetId);
 }
 
-function playStatAmount(state: BattleState, card: Card, effect: EffectDescriptor): number {
+// 采收计数在预览时还没读取, 按预览目标当前的穿孔推算。
+function previewHarvestCounter(state: BattleState, counter: string, targetId?: string): number | null {
+  if (counter !== "harvestPierce" && counter !== "harvestPierceHalves" && counter !== "harvestPierceTriples") return null;
+  const pierce = targetId ? pierceOf(state, targetId) : 0;
+  return counter === "harvestPierce" ? pierce : Math.floor(pierce / (counter === "harvestPierceHalves" ? 2 : 3));
+}
+
+function playStatAmount(state: BattleState, card: Card, effect: EffectDescriptor, targetId?: string): number {
   const scale = effect.scaleByCounter;
   if (!scale) return effect.amount ?? 0;
   const counter = scale.counter === "activeCardCost"
     ? cardCost(state, card)
     : scale.counter === "activeCardStarSpent"
       ? starlightPayment(state, card)
-      : counterOf(state, scale.counter, card);
+      : previewHarvestCounter(state, scale.counter, targetId) ?? counterOf(state, scale.counter, card);
   let factor = counter * (scale.per ?? 1);
   if (scale.min != null) factor = Math.max(scale.min, factor);
   if (scale.max != null) factor = Math.min(scale.max, factor);
@@ -86,11 +86,16 @@ function playStatAmount(state: BattleState, card: Card, effect: EffectDescriptor
 function withPlayStatBonuses<T>(state: BattleState, card: Card, targetId: string | undefined, run: () => T): T {
   const attacker = state.combatants[card.ownerCharId];
   const bonuses = attacker ? playStatBonusesOf(state, card, targetId) : [];
-  for (const effect of bonuses) addMod(attacker, effect.stat!, playStatAmount(state, card, effect), effect.pct ?? false);
+  const amounts = bonuses.map((effect) => playStatAmount(state, card, effect, targetId));
+  // 嫁接: 所属角色攻击力百分比加成(与 playCard 的 applyGraftStatBonus 同口径)。
+  const graftPct = attacker ? graftStatBonusPct(state, card) : 0;
+  bonuses.forEach((effect, index) => addMod(attacker, effect.stat!, amounts[index], effect.pct ?? false));
+  if (graftPct) addMod(attacker, "attack", graftPct, true);
   try {
     return run();
   } finally {
-    for (const effect of bonuses) addMod(attacker, effect.stat!, -playStatAmount(state, card, effect), effect.pct ?? false);
+    bonuses.forEach((effect, index) => addMod(attacker, effect.stat!, -amounts[index], effect.pct ?? false));
+    if (graftPct) addMod(attacker, "attack", -graftPct, true);
   }
 }
 
@@ -213,7 +218,7 @@ export function cardDamagePreview(state: BattleState, card: Card, targetId: stri
     const fullDrawBonus = activeEffectsOf(card)
       .filter((candidate) => candidate.type === "VALUE_BOOST" && candidate.boostSource === "fullDraw" && willFullDraw(state, card, targetId))
       .reduce((sum, candidate) => sum + (candidate.boostPct ?? 0), 0);
-    const valueMultiplier = 1 + (state.playValueBonusPct + graftBonusPct(state, card) + fullDrawBonus) / 100;
+    const valueMultiplier = 1 + (state.playValueBonusPct + fullDrawBonus) / 100;
     const rawDamage = fixed
       ? (effect.amount ?? 0) * (1 + bonusMult) * valueMultiplier * valueScale
       : attackDamage(cardAttack(state, card, targetId), damageMultiplier) * valueMultiplier * valueScale;

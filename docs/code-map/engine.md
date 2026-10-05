@@ -40,6 +40,7 @@
 | [cardText.ts](../../src/engine/cards/cardText.ts) | 渲染卡牌说明文字（把 `{0}` 等占位符替换成实际数值）。 |
 | [cost.ts](../../src/engine/cards/cost.ts) | 法力与星光费用的计算和支付。 |
 | [cultivate.ts](../../src/engine/deck/cultivate.ts) / [waterfall.ts](../../src/engine/battle/waterfall.ts) / [fullDraw.ts](../../src/engine/deck/fullDraw.ts) / [handChoice.ts](../../src/engine/deck/handChoice.ts) | 角色专属机制：培育阶段、瀑布再演、`fullDraw` 效果的命中结算（与穿刺层数联动）、弃牌选择的数量计算。 |
+| [harvest.ts](../../src/engine/deck/harvest.ts) / [graft.ts](../../src/engine/deck/graft.ts) / [cultivatePlay.ts](../../src/engine/battle/cultivatePlay.ts) | 植物学家：采收（`CardDef.harvest`，出牌前读取主目标穿孔写入 `state.harvest`，计数 `harvestPierce*`，结算后移除）；嫁接与盛放（嫁接成熟后走出牌期临时面板给所属角色攻击力 / 治愈力 +40%）。培育计数 `0` 成熟、`-1` 即将枯萎，回合结束由 `deck.witherCards` 替换为枯萎的果实并派发 `withered` 阶段事件。 |
 | [counters.ts](../../src/engine/combat/counters.ts) / [pierce.ts](../../src/engine/combat/pierce.ts) / [insurance.ts](../../src/engine/combat/insurance.ts) | 计数器、穿刺层数、精算师的保险层数与受击增值（理赔见下方“精算师机制”）。 |
 
 ## 咒术师机制
@@ -75,7 +76,8 @@
 | [damage/pipeline.ts](../../src/engine/damage/pipeline.ts) | 伤害结算管线，顺序固定为：乘区 → 命中前 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → 扣血前 → 扣血 → 结算后。固定伤害跳过防御和格挡两段。 |
 | [damage/modifiers.ts](../../src/engine/damage/modifiers.ts) / [damage/types.ts](../../src/engine/damage/types.ts) | 乘区收集：（基础 + 固定加成）×（1 + 造成百分比）× 造成倍率 ×（1 + 承受百分比）× 承受倍率，结果与状态挂上的先后顺序无关。 |
 | [damage/preview.ts](../../src/engine/damage/preview.ts) / [hitPreview.ts](../../src/engine/combat/hitPreview.ts) | 不消耗随机数的伤害预览与命中率预览，已计入模组带来的出牌临时加成。 |
-| [ops.ts](../../src/engine/core/ops.ts) | 引擎原语：治疗、护盾、施加状态、属性修正、死亡标记、胜负判定。所有效果最终都落到这里。 |
+| [ops.ts](../../src/engine/core/ops.ts) | 引擎原语：治疗、护盾、施加状态、属性修正、死亡标记、胜负判定。所有效果最终都落到这里。分段状态施加时 `data.growth` 写到新分段上（菌毒），不进实例 data。 |
+| [hpLimit.ts](../../src/engine/core/hpLimit.ts) | 体力极限修复（同额回复生命），`RESTORE_HP_LIMIT` 与根系网络共用。 |
 | [statuses/](../../src/engine/statuses/index.ts) | 状态定义（`STATUS_DEFS`），按类别拆分：增益、减益、持续伤害、控制、各角色专属、废弃楼层敌人专属。叠层与合并规则在 `stacking.ts`。 |
 | [pollution.ts](../../src/engine/combat/pollution.ts) / [quirks.ts](../../src/engine/combat/quirks.ts) | 污染累积与抽到污染卡的登记；怪癖（如“生病”）的定义。 |
 | [squadBuff.ts](../../src/engine/combat/squadBuff.ts) | 小队增益，以及炼金术士组装部件的收集和兑现。 |
@@ -84,7 +86,7 @@
 
 | 文件 | 作用 |
 | --- | --- |
-| [ai.ts](../../src/engine/enemy/ai.ts) | 敌人蓄力、抽招和出手。 |
+| [ai.ts](../../src/engine/enemy/ai.ts) | 敌人蓄力、抽招和出手。状态钩子时点：`onBeforeAct`（出招前，捕虫夹）→ 结算 → 移除 `expiresOnAct` → `onAfterAct`（迟滞计次）→ `startCharge` 末尾 `onCharge`（迟滞推迟新招式）。 |
 | [enemyMovePick.ts](../../src/engine/enemy/enemyMovePick.ts) / [enemyScript.ts](../../src/engine/enemy/enemyScript.ts) | 招式权重、条件偏好、目标选择，以及首领的状态机脚本。 |
 | [targeting.ts](../../src/engine/combat/targeting.ts) | 敌我查询与嘲讽规则：有嘲讽单位时只能选它，否则在存活单位中随机选。 |
 | [relics/](../../src/engine/relics/relics.ts)（relics.ts + relicBehaviors.ts + basic / uncommon / tutorial） | 声明式遗物的触发，以及行为型遗物（分基础、罕见、教程三组）。`runRelicHook` 从 `hookRegistry` 查行为表。`ops.dealDamage` 与 `ops.draw` 等同样是晚绑定：由 `damage/index`、`deck/deck` 等模块加载时挂到 `ops` 上。 |

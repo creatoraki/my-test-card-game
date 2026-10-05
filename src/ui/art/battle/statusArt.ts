@@ -44,9 +44,7 @@ import slowArt from "@/assets/buffs/状态/控制限制/迟滞.webp";
 import staticArt from "@/assets/buffs/状态/控制限制/静电.webp";
 import emberWallArt from "@/assets/buffs/状态/触发联动/余烬护壁.webp";
 import cascadeArt from "@/assets/buffs/状态/出牌规则/倒泻.webp";
-import debuffImmuneArt from "@/assets/buffs/状态/伤害防护/免疫.webp";
 import yachiyoArt from "@/assets/buffs/状态/出牌规则/八千代.webp";
-import halfDrawArt from "@/assets/buffs/状态/出牌规则/半熟保鲜.webp";
 import salvageArmorArt from "@/assets/buffs/状态/属性强化/回收装甲.webp";
 import zenithStarArt from "@/assets/buffs/状态/出牌规则/天顶星.webp";
 import conductiveFilmArt from "@/assets/buffs/状态/触发联动/导电薄膜.webp";
@@ -70,7 +68,6 @@ import prophecyGoodOmenArt from "@/assets/buffs/状态/出牌规则/预言·吉�
 import prophecyApocalypseArt from "@/assets/buffs/状态/出牌规则/预言·天启.webp";
 import prophecyOmenArt from "@/assets/buffs/状态/出牌规则/预言·预兆.webp";
 import windCutArt from "@/assets/buffs/状态/属性强化/风切.webp";
-import agaveBloomArt from "@/assets/buffs/状态/触发联动/龙舌花信.webp";
 
 export const STATUS_ART: Record<string, string> = {
   ...HEXER_STATUS_ART,
@@ -114,9 +111,7 @@ export const STATUS_ART: Record<string, string> = {
   static: staticArt,
   emberWall: emberWallArt,
   cascade: cascadeArt,
-  debuffImmune: debuffImmuneArt,
   yachiyo: yachiyoArt,
-  halfDraw: halfDrawArt,
   salvageArmor: salvageArmorArt,
   zenithStar: zenithStarArt,
   conductiveFilm: conductiveFilmArt,
@@ -140,7 +135,6 @@ export const STATUS_ART: Record<string, string> = {
   prophecyApocalypse: prophecyApocalypseArt,
   prophecyOmen: prophecyOmenArt,
   windCut: windCutArt,
-  agaveBloom: agaveBloomArt,
 };
 
 export const SHIELD_ART: string = shieldArt;
@@ -191,9 +185,7 @@ export const STATUS_ART_SOURCES: readonly string[] = [
   staticArt,
   emberWallArt,
   cascadeArt,
-  debuffImmuneArt,
   yachiyoArt,
-  halfDrawArt,
   salvageArmorArt,
   zenithStarArt,
   conductiveFilmArt,
@@ -217,6 +209,5 @@ export const STATUS_ART_SOURCES: readonly string[] = [
   prophecyApocalypseArt,
   prophecyOmenArt,
   windCutArt,
-  agaveBloomArt,
   shieldArt,
 ];

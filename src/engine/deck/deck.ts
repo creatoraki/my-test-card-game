@@ -5,7 +5,7 @@ import { shuffle } from "../core/rng";
 import { log, ops } from "../core/ops";
 import { partyHandLimit } from "../combat/stats";
 import { registerPollutedCardDraw } from "../combat/pollution";
-import { cultivateOverripe, resetCultivate } from "./cultivate";
+import { cultivateWitherSoon, notifyCultivateStage, resetCultivate } from "./cultivate";
 import { makeCard } from "@/data";
 import { runRelicHook } from "../relics/types";
 import { exhaustCard } from "./exhaust";
@@ -85,13 +85,17 @@ export function replaceHandCard(
   return replacement.uid;
 }
 
-export function rotOverripeCards(state: BattleState): void {
+// 枯萎: 成熟第 2 个回合结束仍在手牌中的培育牌移出本场战斗, 原位置替换为枯萎的果实。
+export const WITHERED_FRUIT_ID = "withered-fruit";
+
+export function witherCards(state: BattleState): void {
   for (const uid of [...state.hand]) {
     const card = state.cards[uid];
-    if (!card || !cultivateOverripe(card)) continue;
-    const replacementUid = replaceHandCard(state, uid, "rotten-fruit", card.ownerCharId);
+    if (!card || !cultivateWitherSoon(card)) continue;
+    const replacementUid = replaceHandCard(state, uid, WITHERED_FRUIT_ID, card.ownerCharId);
     if (!replacementUid) continue;
     exhaustCard(state, uid);
-    log(state, `${card.name} 过熟腐烂，变为腐烂的果实`);
+    log(state, `${card.name} 枯萎，变为枯萎的果实`);
+    notifyCultivateStage(state, card, "withered");
   }
 }

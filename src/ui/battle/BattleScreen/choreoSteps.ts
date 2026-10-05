@@ -101,6 +101,7 @@ export function fxTargets(battle: BattleState, uid: string, primaryId?: string):
   switch (effectiveTargeting(card)) {
     case "foe":
     case "ally":
+    case "any":
       return primaryId ? [primaryId] : [];
     case "self":
       return [card.ownerCharId];

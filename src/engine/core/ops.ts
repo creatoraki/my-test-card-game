@@ -20,7 +20,7 @@ import { rngFloat } from "./rng";
 import { addMod, healValue, offenseStatOf, statOf } from "../combat/stats";
 import { checkChallengesOnWin, noteChallengeKill } from "../challenges";
 import { recordHitPart } from "./animHits";
-import { capStatusStacks, mergeStatus, syncSegments } from "../statuses/stacking";
+import { capStatusStacks, mergeStatus, newSegment, syncSegments } from "../statuses/stacking";
 import { runRelicHook } from "../relics/types";
 
 export function log(state: BattleState, text: string): void {
@@ -187,15 +187,6 @@ export function applyStatus(
   if (!t || !t.alive || stacks === 0) return;
   const def = STATUS_DEFS[statusId];
 
-  if (
-    def?.kind === "debuff" &&
-    statusId !== "debuffImmune" &&
-    t.statuses.some((status) => status.id === "debuffImmune" && status.stacks > 0)
-  ) {
-    log(state, `${t.emoji} ${t.name} 免疫了 ${def.name}`);
-    return;
-  }
-
   // 封印: 持有者无法获得增益(扣层不受影响)。
   if (def?.kind === "buff" && stacks > 0 && t.statuses.some((status) => STATUS_DEFS[status.id]?.blocksBuffs && status.stacks > 0)) {
     log(state, `${t.emoji} ${t.name} 被封印，无法获得 ${def.name}`);
@@ -223,9 +214,17 @@ export function applyStatus(
   runRelicHook(state, "modifyStatusApply", info);
   stacks = info.stacks;
 
+  // 分段状态的 growth(菌毒)写在新分段上, 不进实例 data。
+  let growth: number | undefined;
+  if (def?.stackMode === "segments" && data?.growth != null) {
+    const { growth: segmentGrowth, ...rest } = data;
+    growth = segmentGrowth;
+    data = Object.keys(rest).length ? rest : undefined;
+  }
+
   const existing = getStatus(t, statusId);
   if (existing) {
-    mergeStatus(existing, def ?? { id: statusId, name: statusId, emoji: "", kind: "buff", desc: "" }, stacks, duration, t.tempo);
+    mergeStatus(existing, def ?? { id: statusId, name: statusId, emoji: "", kind: "buff", desc: "" }, stacks, duration, t.tempo, growth);
     if (data) existing.data = { ...existing.data, ...data };
     if (sourceId) existing.sourceId = sourceId;
   } else {
@@ -238,7 +237,7 @@ export function applyStatus(
       appliedAt: t.tempo,
     };
     if (def?.stackMode === "segments") {
-      instance.segments = [{ stacks, ...(duration != null ? { duration } : {}), appliedAt: t.tempo }];
+      instance.segments = [newSegment(stacks, duration, t.tempo, growth)];
       syncSegments(instance);
     }
     t.statuses.push(instance);

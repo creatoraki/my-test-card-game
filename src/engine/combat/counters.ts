@@ -6,6 +6,7 @@ import { RULES } from "../core/battleRules";
 import { getStatusDef } from "../statuses";
 import { ticksThisRound } from "../hexer/hexGate";
 import { ACTUARY_ID } from "../actuary/actuaryRules";
+import { harvestedPierce } from "../deck/harvest";
 
 export function counterOf(state: BattleState, source: CounterSource, card?: Card): number {
   if (source === "discardsThisRound") return state.discardsThisRound;
@@ -41,8 +42,9 @@ export function counterOf(state: BattleState, source: CounterSource, card?: Card
     // 无期限分段视为无限长, 交给效果的 maxStacks 截断。
     return Math.max(0, ...segments.map((segment) => segment.duration ?? Infinity));
   }
-  if (source === "handRottenFruit")
-    return state.hand.filter((uid) => state.cards[uid]?.id === "rotten-fruit").length;
+  if (source === "harvestPierce") return harvestedPierce(state);
+  if (source === "harvestPierceHalves") return Math.floor(harvestedPierce(state) / 2);
+  if (source === "harvestPierceTriples") return Math.floor(harvestedPierce(state) / 3);
   if (source === "lastExhaustedHandCards") return state.lastExhaustedHandCards;
   if (source === "activeCardResonance") return card ? card.resonanceStacks ?? 0 : state.activeCardResonance;
   if (source === "activeCardCost") return state.activeCardCost ?? 0;

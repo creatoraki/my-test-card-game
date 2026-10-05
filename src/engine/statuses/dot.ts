@@ -1,5 +1,6 @@
 import type { DamageCtx, StatusCtx, StatusDef } from "../types";
 import { notifyPoisonTick } from "./poisonEvents";
+import { growSegments } from "./stacking";
 
 export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
   poison: {
@@ -8,7 +9,7 @@ export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
     emoji: "☠️",
     kind: "debuff",
     stackMode: "segments",
-    desc: "每拍每层受到 1 点伤害(无视护盾, 不降低体力极限), 持续指定回合。",
+    desc: "每拍每层受到 1 点伤害(无视护盾, 不降低体力极限), 持续指定回合。菌毒分段每结算一次层数 +1。",
     resistMode: "stacks",
     hooks: {
       onTempo: (c: StatusCtx) => {
@@ -20,6 +21,7 @@ export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
           unblockable: true,
           noLimitLoss: true,
         });
+        growSegments(c.inst);
         notifyPoisonTick(c.state, c.ownerId);
       },
     },

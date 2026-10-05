@@ -1,5 +1,5 @@
 import type { Card } from "@/engine";
-import { CARD_MARK_DEFS, cultivateOverripe, cultivateReady } from "@/engine";
+import { CARD_MARK_DEFS, cultivateReady, cultivateWitherSoon } from "@/engine";
 import { cardMarkArtOf } from "@/ui/art/battle/cardMarkArt";
 import { CULTIVATION_ART, CULTIVATED_ART } from "@/ui/art/battle/buffArt";
 import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
@@ -16,13 +16,10 @@ function cultivateTip(card: Card): string {
   const left = card.cultivateLeft ?? card.cultivate?.turns ?? 0;
   if (card.grafted)
     return cultivateReady(card)
-      ? "已成熟：打出时本牌数值 +40%。嫁接牌不会过熟。"
-      : `还需经过 ${left} 个回合成熟；成熟后本牌数值 +40%，且不会过熟。`;
-  if (cultivateOverripe(card)) return "已过熟：打出时结算过熟效果；本回合结束时仍在手牌中会腐烂。";
-  if (cultivateReady(card))
-    return card.cultivate?.evergreen
-      ? "已就绪：打出时触发额外效果。常青：不会过熟；留在手牌中每回合开始结算常青效果。"
-      : "已就绪：打出时触发额外效果。";
+      ? "已成熟：打出时该牌所属角色攻击力、治愈力 +40%。嫁接牌不会枯萎。"
+      : `还需经过 ${left} 个回合成熟；成熟后打出时所属角色攻击力、治愈力 +40%，且不会枯萎。`;
+  if (cultivateWitherSoon(card)) return "已成熟，即将枯萎：打出时触发成熟效果；本回合结束时仍在手牌中会枯萎，变为枯萎的果实。";
+  if (cultivateReady(card)) return "已成熟：打出时触发成熟效果。成熟维持到下一个回合结束。";
   return `还需经过 ${left} 个回合。`;
 }
 
@@ -81,14 +78,14 @@ export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
           data-card-marks
           data-hidden={hidden}
         >
-          <span className={`${s["hc-mark"]}${cultivateReady(card) ? ` ${s["hc-cultivate-ready"]}` : ""}${cultivateOverripe(card) ? ` ${s["hc-cultivate-overripe"]}` : ""}`} aria-label="培育">
+          <span className={`${s["hc-mark"]}${cultivateReady(card) ? ` ${s["hc-cultivate-ready"]}` : ""}${cultivateWitherSoon(card) ? ` ${s["hc-cultivate-wither"]}` : ""}`} aria-label="培育">
             <span className={`${s["hc-mark-icon"]} ${s["hc-cultivate-icon"]}`} aria-hidden>
               <img
                 className={s["hc-cultivate-emblem"]}
-                src={cultivateReady(card) || cultivateOverripe(card) ? CULTIVATED_ART : CULTIVATION_ART}
+                src={cultivateReady(card) ? CULTIVATED_ART : CULTIVATION_ART}
                 alt=""
               />
-              {!cultivateReady(card) && !cultivateOverripe(card) && (
+              {!cultivateReady(card) && (
                 <span className={s["hc-mark-count"]}>{card.cultivateLeft ?? card.cultivate.turns}</span>
               )}
             </span>

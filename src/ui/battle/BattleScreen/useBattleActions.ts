@@ -204,7 +204,7 @@ export function useBattleActions({
     }
     const card = battle.cards[uid];
     const targeting = effectiveTargeting(card);
-    if (targeting === "foe" || targeting === "ally") {
+    if (targeting === "foe" || targeting === "ally" || targeting === "any") {
       const selecting = selectedUid !== uid;
       setSelectedUid(selecting ? uid : null);
       if (selecting) playSfx("cardSelect");
@@ -219,8 +219,8 @@ export function useBattleActions({
     const target = battle.combatants[id];
     if (!selectedCard || !target?.alive) return;
     const targeting = effectiveTargeting(selectedCard);
-    if (targeting === "foe" && target.team === "enemy") triggerPlay(selectedUid, id);
-    else if (targeting === "ally" && target.team === "player") {
+    if ((targeting === "foe" || targeting === "any") && target.team === "enemy") triggerPlay(selectedUid, id);
+    else if ((targeting === "ally" || targeting === "any") && target.team === "player") {
       if (selectedCard.excludeSelfTarget && id === selectedCard.ownerCharId) return;
       triggerPlay(selectedUid, id);
     }

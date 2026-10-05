@@ -1,11 +1,12 @@
-// 嫁接 —— 给其他角色的一张手牌临时挂上培育 1。成熟后本牌数值提高, 不会过熟; 离手或打出后剥离(见 cultivate.resetCultivate)。
+// 嫁接 —— 给其他角色的一张手牌临时挂上培育 1。成熟后打出时所属角色攻击力 / 治愈力提高, 不会枯萎;
+// 离手或打出后剥离(见 cultivate.resetCultivate)。
 
 import type { BattleState, Card } from "../types";
 import { playableHandUids } from "../cards/passiveCards";
 import { log } from "../core/ops";
 
-// 嫁接牌成熟后打出时的数值加成(百分点): 伤害 / 治疗 / 护盾 / 中毒层数。
-export const GRAFT_VALUE_BONUS_PCT = 40;
+// 嫁接牌成熟后打出时, 所属角色在本次结算中攻击力、治愈力各提高的百分点。
+export const GRAFT_STAT_BONUS_PCT = 40;
 
 export function canGraft(card: Card | undefined, sourceId: string): card is Card {
   return Boolean(card && card.ownerCharId !== sourceId && !card.cultivate && !card.temporary);

@@ -5,6 +5,7 @@ import { rngPick } from "../core/rng";
 import { foesOf } from "../combat/targeting";
 import { transferPierce } from "../combat/pierce";
 import { ops } from "../core/ops";
+import { counterOf } from "../combat/counters";
 
 function matchesKind(status: StatusInstance, kind: EffectDescriptor["statusKind"]): boolean {
   const def = getStatusDef(status.id);
@@ -13,7 +14,8 @@ function matchesKind(status: StatusInstance, kind: EffectDescriptor["statusKind"
 }
 
 function extendStatuses(state: BattleState, effect: EffectDescriptor, targetIds: string[]): void {
-  const amount = Math.max(0, Math.floor(effect.amount ?? 1));
+  const rawAmount = effect.amountFrom ? counterOf(state, effect.amountFrom) : effect.amount ?? 1;
+  const amount = Math.max(0, Math.floor(Math.min(effect.maxAmount ?? Infinity, rawAmount)));
   if (amount <= 0) return;
   for (const id of targetIds) {
     const target = state.combatants[id];

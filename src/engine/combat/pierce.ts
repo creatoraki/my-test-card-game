@@ -27,6 +27,13 @@ export function applyPierce(state: BattleState, targetId: string, stacks: number
   return Math.max(0, pierceOf(target) - before);
 }
 
+// 毒箭 N: 附加 N 层穿孔; 目标此刻带有中毒(任意来源)时改为 2N 层。返回实际附加的层数。
+export function applyVenomArrow(state: BattleState, targetId: string, stacks: number, sourceId?: string): number {
+  const target = state.combatants[targetId];
+  const poisoned = target?.statuses.some((status) => status.id === "poison" && status.stacks > 0) ?? false;
+  return applyPierce(state, targetId, poisoned ? stacks * 2 : stacks, sourceId);
+}
+
 export function removePierce(state: BattleState, targetId: string, stacks = Infinity): number {
   const target = state.combatants[targetId];
   const current = pierceOf(target);

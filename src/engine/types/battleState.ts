@@ -81,6 +81,8 @@ export interface BattleState {
   // 当前结算卡的共鸣强化次数, 与 activeCardStacks 同生命周期。
   activeCardResonance: number;
   fullDraw: { hitIds: string[]; removed: Record<string, number> };
+  // 采收: 本次出牌读取到的主目标穿孔层数, 只在一次出牌结算内有效(见 deck/harvest.ts)。
+  harvest: { targetId: string; stacks: number } | null;
   activeCardUid: string | null;
   activeCardPrimaryId: string | null;
   // 咒术师效果对本次出牌的改写(回手 / 视为速攻 / 额外推进 / 伤害 flags), 只在一次出牌内有效。

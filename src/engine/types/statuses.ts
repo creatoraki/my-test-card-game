@@ -16,6 +16,7 @@ export interface StatusSegment {
   stacks: number;
   duration?: number;
   appliedAt: number;
+  growth?: number; // 菌毒: 这一段每结算一次(含毒发)层数增加的量
 }
 
 export interface StatusInstance {
@@ -90,6 +91,8 @@ export interface StatusHooks {
   onFoePoisonTick?: (c: StatusCtx, victimId: string) => void; // 我方持有者: 任意单位的中毒结算一次后(含毒发)
   onFoeDotExpired?: (c: StatusCtx, victimId: string, statusId: string, stacks: number) => void; // 我方持有者: 敌人的灼烧/中毒某一段自然到期
   onBeforeAct?: (c: StatusCtx) => void; // 敌方持有者: 发动招式前(眩晕判定之后、选招之前)
+  onAfterAct?: (c: StatusCtx) => void; // 敌方持有者: 招式结算完毕、开始蓄力下一招之前
+  onCharge?: (c: StatusCtx) => void; // 敌方持有者: 抽到新招式并写入发动时刻之后(迟滞据此推迟)
   onOverflow?: (c: StatusCtx, overflow: number) => void; // 施加层数超出上限时, 溢出部分的层数
   // 目标身上: 攻击者对持有者本次攻击的暴击率加成(百分点)。厄运。
   modifyIncomingCrit?: (c: StatusCtx, sourceId: string) => number;
@@ -113,7 +116,8 @@ export interface StatusDetailStat {
   suffix?: string;
 }
 
-export type CultivateStage = "growing" | "mature" | "overripe";
+// 培育阶段事件: growing → mature 时派发 mature; 成熟牌枯萎离手时派发 withered。
+export type CultivateStage = "growing" | "mature" | "withered";
 
 // 异常抗性抵抗哪一项 —— 每种异常只能选一种(《角色养成设计.md》3.3)。
 //   chance   —— 按抗性掷判定, 成功则本次完全不施加(眩晕这类开关型控制)

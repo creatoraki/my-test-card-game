@@ -1,29 +1,7 @@
 import type { CardDef } from "@/engine/types";
 
-// 愈 —— 治疗 / 护盾 / 嘲讽: 支援队友, 多数通过培育成长。
+// 园·辅助 —— 嘲讽、护盾、嫁接与花期: 保护队友, 把花园延伸到队友手牌。
 export const BOTANIST_SUPPORT_CARDS: CardDef[] = [
-  {
-    id: "cactus-armor",
-    name: "仙人掌护甲",
-    ownerCharId: "botanist",
-    cost: 1,
-    cardType: "normal",
-    targeting: "ally",
-    rarity: "uncommon",
-    anim: "shield",
-    effects: [{ type: "GAIN_SHIELD", multiplier: 0.5, target: "primary" }],
-    cultivate: {
-      turns: 1,
-      effects: [{ type: "APPLY_STATUS", status: "cactusCounterattack", stacks: 1, duration: 2, target: "primary" }],
-      overripe: {
-        effects: [
-          { type: "GAIN_SHIELD", multiplier: 0.3, target: "primary" },
-          { type: "DAMAGE", multiplier: 0.3, target: "allFoes" },
-        ],
-      },
-    },
-    text: "为一名队友附加 {0} 点护盾。培育 {c}：附加仙人掌，持续 2 回合。过熟：附加 {o0} 点护盾，并对所有敌人造成 30% 伤害。",
-  },
   {
     id: "guiding-crown",
     name: "引路棘冠",
@@ -37,60 +15,71 @@ export const BOTANIST_SUPPORT_CARDS: CardDef[] = [
     cultivate: {
       turns: 1,
       effects: [{ type: "APPLY_STATUS", status: "thornCrown", stacks: 1, duration: 1, target: "primary" }],
-      overripe: {
-        effects: [
-          { type: "APPLY_STATUS", status: "taunt", stacks: 1, duration: 1, target: "primary" },
-          { type: "GAIN_SHIELD", multiplier: 0.4, target: "primary" },
-        ],
-      },
     },
-    text: "目标获得嘲讽，持续 1 回合。培育 {c}：目标受到攻击时，为攻击者附加棘冠穿孔。过熟：目标获得嘲讽，并获得 {o1} 点护盾。",
+    text: "目标获得嘲讽，持续 1 回合。培育 {c}：目标获得棘冠，持续 1 回合：受到攻击时，对攻击者施加毒箭 2。",
   },
   {
-    id: "agave",
-    name: "龙舌兰",
+    id: "cactus-armor",
+    name: "仙人掌护甲",
     ownerCharId: "botanist",
-    cost: 2,
+    cost: 1,
     cardType: "normal",
     targeting: "ally",
-    rarity: "common",
-    anim: "heal",
-    effects: [{ type: "HEAL", multiplier: 0.8, target: "primary" }],
+    rarity: "uncommon",
+    anim: "shield",
+    effects: [{ type: "GAIN_SHIELD", multiplier: 0.5, target: "primary" }],
     cultivate: {
       turns: 1,
-      effects: [{ type: "APPLY_STATUS", status: "tequila", stacks: 1, duration: 1, target: "primary" }],
-      overripe: {
-        effects: [
-          { type: "HEAL", multiplier: 0.4, target: "primary" },
-          { type: "APPLY_STATUS", status: "agaveBloom", stacks: 1, duration: 1, target: "allAllies" },
-        ],
-      },
+      effects: [{ type: "APPLY_STATUS", status: "cactusCounterattack", stacks: 1, duration: 2, target: "primary" }],
     },
-    text: "为一名队友恢复 {0} 点生命。培育 {c}：目标攻击力 +20%，持续 1 回合。过熟：恢复 {o0} 点生命，全队获得龙舌花信。",
+    text: "为一名队友附加 {0} 点护盾。培育 {c}：附加仙人掌，持续 2 回合：拥有护盾时被攻击，对攻击者造成反伤。",
   },
   {
-    id: "purify-nectar",
-    name: "净化甘露",
+    id: "grafting",
+    name: "嫁接",
     ownerCharId: "botanist",
-    cost: 2,
+    cost: 0,
     cardType: "normal",
-    targeting: "ally",
-    rarity: "common",
-    anim: "heal",
+    targeting: "self",
+    rarity: "uncommon",
+    anim: "buff",
+    effects: [{ type: "CHOOSE_HAND_CARD", amount: 1, handChoiceAction: "graft" }],
+    text: "选择一张其他角色的手牌，使其获得嫁接：培育 1；成熟后打出时，该牌所属角色在本次结算中攻击力 +40%、治愈力 +40%。嫁接牌不会枯萎。已有培育的牌、被动牌与临时卡不可选。",
+  },
+  {
+    id: "millennial-tree",
+    name: "千年古树",
+    ownerCharId: "botanist",
+    cost: 3,
+    cardType: "normal",
+    targeting: "allAllies",
+    rarity: "rare",
+    anim: "shield",
+    effects: [{ type: "GAIN_SHIELD", multiplier: 0.4, target: "allAllies" }],
+    cultivate: {
+      turns: 2,
+      mode: "replace",
+      effects: [
+        { type: "GAIN_SHIELD", multiplier: 0.6, target: "allAllies" },
+        { type: "APPLY_STATUS", status: "deepRoots", stacks: 1, target: "allAllies" },
+      ],
+    },
+    text: "为全队附加 {0} 点护盾。培育 {c}（替换）：为全队附加 {k0} 点护盾，并获得根深：本回合受到的伤害不会降低体力极限。",
+  },
+  {
+    id: "blooming-season",
+    name: "花期",
+    ownerCharId: "botanist",
+    cost: 1,
+    cardType: "normal",
+    targeting: "self",
+    rarity: "rare",
+    exhaust: true,
+    anim: "buff",
     effects: [
-      { type: "REMOVE_STATUS", statusKind: "debuff", target: "primary" },
-      { type: "HEAL", multiplier: 0.4, target: "primary" },
+      { type: "DRAW", amount: 1 },
+      { type: "APPLY_STATUS", status: "bloom", stacks: 1, duration: 1, target: "self" },
     ],
-    cultivate: {
-      turns: 1,
-      effects: [{ type: "APPLY_STATUS", status: "debuffImmune", stacks: 1, duration: 1, target: "primary" }],
-      overripe: {
-        effects: [
-          { type: "REMOVE_STATUS", statusKind: "debuff", target: "primary" },
-          { type: "TRANSFER_DEBUFFS", target: "primary" },
-        ],
-      },
-    },
-    text: "移除目标所有负面状态并恢复 {1} 点生命。培育 {c}：目标免疫负面状态 1 回合。过熟：不治疗，将移除的负面状态转移给一名随机敌人，持续 1 回合。",
+    text: "抽 1 张牌。本回合获得盛放：打出成熟牌时，其成熟效果额外结算一次。消耗。",
   },
 ];

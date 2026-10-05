@@ -86,7 +86,7 @@ export { claimInsurance } from "./actuary/claims";
 export { enemyMoveWeight, biasConditionMet, pickScriptedTarget, pickAllyTarget } from "./enemy/enemyMovePick";
 export { pickScriptedMove, updateAiMemory } from "./enemy/enemyScript";
 export { moveToDiscard } from "./deck/discard";
-export { addCardToHand, replaceHandCard, rotOverripeCards } from "./deck/deck";
+export { addCardToHand, replaceHandCard, witherCards } from "./deck/deck";
 export { isPassive, playableHandUids, handPassiveUids } from "./combat/passive";
 export { avidyaPickCount } from "./deck/handChoice";
 export { RELIC_TRIGGERS, fireRelic } from "./relics/relics";
@@ -94,8 +94,8 @@ export { RELIC_BEHAVIORS, runRelicHook } from "./relics/relicBehaviors";
 export type { RelicBehavior, RelicBehaviorContext } from "./relics/relicBehaviors";
 export {
   cultivateCanAdvance,
-  cultivateOverripe,
   cultivateReady,
+  cultivateWitherSoon,
   cultivateStage,
   effectiveTargeting,
   resetCultivate,

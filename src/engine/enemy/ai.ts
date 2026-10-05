@@ -51,6 +51,16 @@ export function startCharge(state: BattleState, enemyId: string, firstOfRound = 
   };
   e.intent = intent;
   e.nextActTick = state.tick + enemyActDelay(state, e, move.delay + e.moveDelayDelta);
+  runEnemyStatusHook(state, e, "onCharge");
+}
+
+// 敌人身上状态的出招周期钩子(迟滞的蓄力推迟 / 出招计次)。
+function runEnemyStatusHook(state: BattleState, e: Enemy, hook: "onCharge" | "onAfterAct"): void {
+  for (const inst of [...e.statuses]) {
+    if (!e.alive) break;
+    STATUS_DEFS[inst.id]?.hooks?.[hook]?.(ctxFor(state, e.id, inst));
+  }
+  cleanup(e);
 }
 
 // 敌人行动结果 —— 供帧记录器构造动画帧(不影响引擎结算)。
@@ -178,8 +188,9 @@ export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase
   ops.prophecyEvent(state, { type: "afterEnemyAct", enemyId });
 
   if (e.hp <= 0) markDead(state, e);
-  // 招式发动后移除的状态(迟滞等) —— 必须早于 startCharge, 否则会拖累下一招。
+  // 招式发动后移除的状态(捕虫夹等)与出招计次(迟滞) —— 必须早于 startCharge, 否则会拖累下一招。
   e.statuses = e.statuses.filter((inst) => !STATUS_DEFS[inst.id]?.expiresOnAct);
+  if (e.alive) runEnemyStatusHook(state, e, "onAfterAct");
   startCharge(state, enemyId);
   const hitIds = new Set(resolution.hit);
   return {

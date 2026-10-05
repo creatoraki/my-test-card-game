@@ -221,8 +221,9 @@ export function BattleScreen() {
   const isPlayerTurn = battle.phase === "player";
   const selectedCard = selectedUid ? battle.cards[selectedUid] ?? null : null;
   const selectedTargeting = selectedCard ? effectiveTargeting(selectedCard) : null;
-  const needsFoe = selectedTargeting === "foe";
-  const needsAlly = selectedTargeting === "ally";
+  // 任意角色目标(枯萎的果实): 敌我两侧同时可选。
+  const needsFoe = selectedTargeting === "foe" || selectedTargeting === "any";
+  const needsAlly = selectedTargeting === "ally" || selectedTargeting === "any";
   const enemies = battle.enemyIds.map((id) => battle.combatants[id] as Enemy);
   const allies = battle.playerIds.map((id) => battle.combatants[id]);
   const hitPreview = needsFoe && selectedCard

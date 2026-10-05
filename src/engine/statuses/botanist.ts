@@ -1,9 +1,36 @@
 import type { Card, DamageCtx, StatusCtx, StatusDef } from "../types";
 import { foesOf } from "../combat/targeting";
-import { applyPierce } from "../combat/pierce";
+import { applyPierce, applyVenomArrow } from "../combat/pierce";
+import { restoreHpLimit } from "../core/hpLimit";
 
 // 菌丝网络: 每名敌人每回合最多因中毒结算获得的穿孔层数。
 export const MYCELIUM_PIERCE_CAP_PER_ROUND = 2;
+// 根系网络: 培育牌枯萎时为生命比例最低的队友修复的体力极限。
+export const ROOT_NETWORK_HP_LIMIT = 2;
+// 孢子护幕: 受到带有中毒的敌人攻击时的伤害倍率。
+export const SPORE_VEIL_DAMAGE_MULT = 0.75;
+// 锋芒: 攻击力加成(百分点), 固定数值, 卡牌只改变持续回合。
+export const EDGE_ATTACK_PCT = 20;
+// 淬毒: 附加中毒的持续拍数。
+export const ENVENOM_POISON_DURATION = 2;
+
+// 出牌结算期间 playedThisRound 尚未追加本张牌, 回合号 + 已出牌数即可唯一标识"这张牌"。
+// 返回 true 表示这是持有者本张攻击牌第一次命中敌人。
+function firstEnemyHitOfCard(c: StatusCtx, dmg: DamageCtx): boolean {
+  if (!dmg.isAttack || dmg.missed || dmg.sourceId !== c.ownerId) return false;
+  const target = c.state.combatants[dmg.targetId];
+  if (!target?.alive || target.team !== "enemy") return false;
+  const data = (c.inst.data ??= {});
+  const playKey = c.state.round * 1000 + c.state.playedThisRound.length;
+  if (data.playKey === playKey) return false;
+  data.playKey = playKey;
+  return true;
+}
+
+function poisoned(c: StatusCtx, id: string | undefined): boolean {
+  const unit = id ? c.state.combatants[id] : undefined;
+  return unit?.statuses.some((status) => status.id === "poison" && status.stacks > 0) ?? false;
+}
 
 export const BOTANIST_STATUS_DEFS: Record<string, StatusDef> = {
   thornCrown: {
@@ -14,50 +41,13 @@ export const BOTANIST_STATUS_DEFS: Record<string, StatusDef> = {
     maxStacks: 1,
     stackMode: "max",
     refreshMode: "override",
-    desc: "受到攻击时，为攻击者附加 2 层穿孔。",
+    desc: "受到攻击时，对攻击者施加毒箭 2：附加 2 层穿孔，攻击者中毒时改为 4 层。",
     hooks: {
       onAfterAttacked: (c: StatusCtx, dmg: DamageCtx) => {
         if (dmg.isAttack && dmg.sourceId && dmg.sourceId !== c.ownerId)
-          c.ops.applyStatus(c.state, dmg.sourceId, "pierce", 2, undefined, undefined, c.ownerId);
+          applyVenomArrow(c.state, dmg.sourceId, 2, c.ownerId);
       },
     },
-  },
-  halfDraw: {
-    id: "halfDraw",
-    name: "半熟保鲜",
-    emoji: "🥭",
-    kind: "buff",
-    maxStacks: 1,
-    stackMode: "max",
-    refreshMode: "override",
-    desc: "本回合下一次满弓只移除所需穿孔层数的一半。",
-  },
-  agaveBloom: {
-    id: "agaveBloom",
-    name: "龙舌花信",
-    emoji: "🌺",
-    kind: "buff",
-    maxStacks: 1,
-    stackMode: "max",
-    refreshMode: "override",
-    desc: "本回合下一次攻击命中时，为目标附加 1 层穿孔，然后移除本状态。",
-    hooks: {
-      onAfterAttack: (c: StatusCtx, dmg: DamageCtx) => {
-        if (!dmg.isAttack || dmg.missed || dmg.sourceId !== c.ownerId) return;
-        c.ops.applyStatus(c.state, dmg.targetId, "pierce", 1, undefined, undefined, c.ownerId);
-        c.inst.stacks = 0;
-      },
-    },
-  },
-  debuffImmune: {
-    id: "debuffImmune",
-    name: "免疫",
-    emoji: "🛡️",
-    kind: "buff",
-    maxStacks: 1,
-    stackMode: "max",
-    refreshMode: "override",
-    desc: "持续期间免疫负面状态。",
   },
   rootNetwork: {
     id: "rootNetwork",
@@ -67,23 +57,22 @@ export const BOTANIST_STATUS_DEFS: Record<string, StatusDef> = {
     maxStacks: 1,
     stackMode: "max",
     refreshMode: "override",
-    desc: "培育牌成熟时对所有敌人穿孔 1；过熟时对穿孔最多的敌人穿孔 1。",
+    desc: `培育牌成熟时，所有敌人附加穿孔 1；培育牌枯萎时，生命比例最低的队友修复 ${ROOT_NETWORK_HP_LIMIT} 点体力极限，并回复等值生命。`,
     hooks: {
       onCultivateStage: (c: StatusCtx, _card: Card, stage) => {
         const owner = c.state.combatants[c.ownerId];
         if (!owner?.alive) return;
-        const foes = foesOf(c.state, owner);
         if (stage === "mature") {
-          for (const foe of foes) c.ops.applyStatus(c.state, foe.id, "pierce", 1, undefined, undefined, c.ownerId);
-        } else if (stage === "overripe") {
-          const targetId = foes.reduce<string | undefined>((bestId, foe) => {
-            if (!bestId) return foe.id;
-            const best = c.state.combatants[bestId];
-            const bestStacks = best?.statuses.find((status) => status.id === "pierce")?.stacks ?? 0;
-            const currentStacks = foe.statuses.find((status) => status.id === "pierce")?.stacks ?? 0;
-            return currentStacks > bestStacks ? foe.id : bestId;
-          }, undefined);
-          if (targetId) c.ops.applyStatus(c.state, targetId, "pierce", 1, undefined, undefined, c.ownerId);
+          for (const foe of foesOf(c.state, owner)) c.ops.applyStatus(c.state, foe.id, "pierce", 1, undefined, undefined, c.ownerId);
+        } else if (stage === "withered") {
+          const allies = c.state.playerIds
+            .map((id) => c.state.combatants[id])
+            .filter((ally) => ally?.alive && ally.maxHp > 0);
+          const target = allies.reduce<(typeof allies)[number] | undefined>(
+            (best, ally) => (!best || ally.hp / ally.maxHp < best.hp / best.maxHp ? ally : best),
+            undefined,
+          );
+          if (target) restoreHpLimit(c.state, target.id, ROOT_NETWORK_HP_LIMIT);
         }
       },
     },
@@ -96,28 +85,76 @@ export const BOTANIST_STATUS_DEFS: Record<string, StatusDef> = {
     maxStacks: 1,
     stackMode: "max",
     refreshMode: "override",
-    desc: "攻击每次命中，为目标附加穿孔；每张牌因此附加的穿孔有上限。",
-    detailStats: (inst) => [
-      { label: "每次命中", value: inst.data?.perHit ?? 1, suffix: " 层" },
-      { label: "每张牌上限", value: inst.data?.cap ?? 2, suffix: " 层" },
-    ],
+    desc: "持有者每张攻击牌首次命中敌人时，对其施加毒箭：附加对应层数的穿孔，该敌人中毒时层数翻倍。",
+    detailStats: (inst) => [{ label: "毒箭", value: inst.data?.perHit ?? 1, suffix: " 层" }],
     hooks: {
       onAfterAttack: (c: StatusCtx, dmg: DamageCtx) => {
-        if (!dmg.isAttack || dmg.missed || dmg.sourceId !== c.ownerId) return;
-        const target = c.state.combatants[dmg.targetId];
-        if (!target?.alive || target.team !== "enemy" || c.state.fullDraw.hitIds.includes(dmg.targetId)) return;
-        // 出牌结算期间 playedThisRound 尚未追加本张牌, 回合号 + 已出牌数即可唯一标识“这张牌”。
-        const data = (c.inst.data ??= {});
-        const playKey = c.state.round * 1000 + c.state.playedThisRound.length;
-        if (data.playKey !== playKey) {
-          data.playKey = playKey;
-          data.used = 0;
-        }
-        const amount = Math.min(data.perHit ?? 1, (data.cap ?? 2) - (data.used ?? 0));
-        if (amount <= 0) return;
-        data.used = (data.used ?? 0) + applyPierce(c.state, dmg.targetId, amount, c.ownerId);
+        // 满弓目标不再被本卡附加穿孔。
+        if (c.state.fullDraw.hitIds.includes(dmg.targetId) || !firstEnemyHitOfCard(c, dmg)) return;
+        applyVenomArrow(c.state, dmg.targetId, c.inst.data?.perHit ?? 1, c.ownerId);
       },
     },
+  },
+  envenom: {
+    id: "envenom",
+    name: "淬毒",
+    emoji: "🧪",
+    kind: "buff",
+    maxStacks: 1,
+    stackMode: "max",
+    refreshMode: "override",
+    desc: `持有者每张攻击牌首次命中敌人时，为其附加植物学家攻击力 15% 的中毒，持续 ${ENVENOM_POISON_DURATION} 拍。`,
+    detailStats: (inst) => [{ label: "中毒", value: Math.round(inst.data?.poison ?? 0), suffix: " 层" }],
+    hooks: {
+      onAfterAttack: (c: StatusCtx, dmg: DamageCtx) => {
+        if (!firstEnemyHitOfCard(c, dmg)) return;
+        const stacks = Math.round(c.inst.data?.poison ?? 0);
+        if (stacks > 0)
+          c.ops.applyStatus(c.state, dmg.targetId, "poison", stacks, ENVENOM_POISON_DURATION, undefined, c.inst.sourceId ?? c.ownerId);
+      },
+    },
+  },
+  sporeVeil: {
+    id: "sporeVeil",
+    name: "孢子护幕",
+    emoji: "🌫️",
+    kind: "buff",
+    maxStacks: 1,
+    stackMode: "max",
+    refreshMode: "override",
+    desc: `受到带有中毒的敌人攻击时，本次伤害降低 ${Math.round((1 - SPORE_VEIL_DAMAGE_MULT) * 100)}%。`,
+    hooks: {
+      modifyIncomingDamage: (c, dmg, mods) => {
+        if (dmg.isAttack && dmg.sourceId !== c.ownerId && poisoned(c, dmg.sourceId)) mods.mulTaken(SPORE_VEIL_DAMAGE_MULT);
+      },
+    },
+  },
+  deepRoots: {
+    id: "deepRoots",
+    name: "根深",
+    emoji: "🌳",
+    kind: "buff",
+    maxStacks: 1,
+    stackMode: "max",
+    refreshMode: "override",
+    expiresOnRoundEnd: true,
+    desc: "本回合受到的伤害不会降低体力极限。",
+    hooks: {
+      onBeforeHpLoss: (_c: StatusCtx, dmg: DamageCtx) => {
+        dmg.keepHpLimit = true;
+      },
+    },
+  },
+  edge: {
+    id: "edge",
+    name: "锋芒",
+    emoji: "✴️",
+    kind: "buff",
+    maxStacks: 1,
+    stackMode: "max",
+    refreshMode: "max",
+    statModsPct: { attack: EDGE_ATTACK_PCT },
+    desc: `攻击力 +${EDGE_ATTACK_PCT}%。不可叠加，重复获得时持续回合取较大值。`,
   },
   bloom: {
     id: "bloom",
@@ -128,7 +165,7 @@ export const BOTANIST_STATUS_DEFS: Record<string, StatusDef> = {
     stackMode: "max",
     refreshMode: "override",
     durationStartsImmediately: true,
-    desc: "本回合打出成熟牌时，其培育效果额外结算一次；打出过熟牌时，其过熟效果额外结算一次。",
+    desc: "本回合打出成熟牌时，其成熟效果额外结算一次；嫁接牌的攻击力、治愈力加成按两次计算。",
   },
   myceliumWeb: {
     id: "myceliumWeb",

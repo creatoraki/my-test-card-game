@@ -1,6 +1,6 @@
 import type { CardDef } from "@/engine/types";
 
-// 毒 —— 中毒 / 毒箭 / 毒发: 铺持续伤害, 并读取任意来源(含炼金术士)的中毒为弓提供燃料。
+// 毒 —— 毒从植物里来(培育牌 / 枯萎的果实); 读取中毒来毒发、延长、为全队吸血。
 export const BOTANIST_VENOM_CARDS: CardDef[] = [
   {
     id: "venom-dart",
@@ -13,11 +13,10 @@ export const BOTANIST_VENOM_CARDS: CardDef[] = [
     anim: "poison",
     volley: { threshold: 2 },
     effects: [
-      { type: "DAMAGE", multiplier: 0.5, target: "primary" },
-      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.3 }, duration: 2, target: "primary" },
+      { type: "DAMAGE", multiplier: 0.7, target: "primary" },
       { type: "TICK_STATUS", status: "poison", amount: 1, target: "primary", fullDraw: "hit" },
     ],
-    text: "造成 {0} 点伤害，并附加 {1} 层中毒，持续 2 回合。满弓 2：附加中毒后毒发 1。",
+    text: "造成 {0} 点伤害。满弓 2：毒发。",
   },
   {
     id: "poison-mushroom",
@@ -28,27 +27,27 @@ export const BOTANIST_VENOM_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "common",
     anim: "poison",
-    volley: { threshold: 3 },
     effects: [
-      { type: "DAMAGE", multiplier: 0.4, pierceOnHit: 1, target: "primary" },
-      {
-        type: "APPLY_STATUS",
-        status: "poison",
-        stacksFromStat: { stat: "attack", multiplier: 0.4 },
-        duration: 2,
-        target: "primary",
-      },
-      {
-        type: "SPREAD_STATUS",
-        status: "poison",
-        spreadPct: 1,
-        duration: 2,
-        target: "primary",
-        targetHasStatus: "pierce",
-        fullDraw: "hit",
-      },
+      { type: "DAMAGE", multiplier: 0.4, target: "primary" },
+      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.3 }, duration: 2, target: "primary" },
     ],
-    text: "造成 {0} 点伤害，附加 {1} 层中毒，持续 2 回合，并附加穿孔 1。满弓 3：本卡中毒同时附加给其他带穿孔的敌人。",
+    cultivate: {
+      turns: 1,
+      mode: "replace",
+      // 菌毒: 这一段中毒每结算一次层数 +1(statusData.growth 写在新分段上)。
+      effects: [
+        { type: "DAMAGE", multiplier: 0.4, target: "primary" },
+        {
+          type: "APPLY_STATUS",
+          status: "poison",
+          stacksFromStat: { stat: "attack", multiplier: 0.2 },
+          duration: 4,
+          statusData: { growth: 1 },
+          target: "primary",
+        },
+      ],
+    },
+    text: "造成 {0} 点伤害，并附加 {1} 层中毒，持续 2 拍。培育 {c}（替换）：造成 {k0} 点伤害，并附加 {k1} 层菌毒，持续 4 拍。",
   },
   {
     id: "spore-cloud",
@@ -60,43 +59,36 @@ export const BOTANIST_VENOM_CARDS: CardDef[] = [
     rarity: "common",
     anim: "poison",
     effects: [
-      { type: "DAMAGE", multiplier: 0.4, target: "allFoes" },
+      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.25 }, duration: 2, target: "allFoes" },
+    ],
+    cultivate: {
+      turns: 1,
+      effects: [{ type: "APPLY_STATUS", status: "sporeVeil", stacks: 1, duration: 1, target: "allAllies" }],
+    },
+    text: "为所有敌人附加 {0} 层中毒，持续 2 拍。培育 {c}：全队获得孢子护幕，持续 1 回合：受到带有中毒的敌人攻击时，本次伤害降低 25%。",
+  },
+  {
+    id: "wither-spore",
+    name: "枯萎孢子",
+    ownerCharId: "botanist",
+    cost: 1,
+    cardType: "normal",
+    targeting: "allFoes",
+    rarity: "common",
+    anim: "poison",
+    // 先消耗果实取得张数, 再按张数结算中毒倍率与全队治疗。
+    effects: [
+      { type: "EXHAUST_HAND_CARDS", cardId: "withered-fruit", target: "self" },
       {
         type: "APPLY_STATUS",
         status: "poison",
-        stacksFromStat: { stat: "attack", multiplier: 0.4, bonusMultiplierFrom: "handRottenFruit", bonusMultiplierPer: 0.1, bonusMultiplierMax: 0.3 },
+        stacksFromStat: { stat: "attack", multiplier: 0.1, bonusMultiplierFrom: "lastExhaustedHandCards", bonusMultiplierPer: 0.1 },
         duration: 2,
         target: "allFoes",
       },
+      { type: "HEAL", multiplier: 0.1, scaleByCounter: { counter: "lastExhaustedHandCards" }, target: "allAllies" },
     ],
-    cultivate: {
-      turns: 2,
-      mode: "replace",
-      effects: [
-        { type: "DAMAGE", multiplier: 0.4, target: "allFoes" },
-        {
-          type: "APPLY_STATUS",
-          status: "poison",
-          stacksFromStat: { stat: "attack", multiplier: 0.4, bonusMultiplierFrom: "handRottenFruit", bonusMultiplierPer: 0.1, bonusMultiplierMax: 0.3 },
-          duration: 4,
-          target: "allFoes",
-        },
-      ],
-      overripe: {
-        effects: [
-          { type: "DAMAGE", multiplier: 0.4, target: "allFoes" },
-          {
-            type: "APPLY_STATUS",
-            status: "poison",
-            stacksFromStat: { stat: "attack", multiplier: 0.4, bonusMultiplierFrom: "handRottenFruit", bonusMultiplierPer: 0.1, bonusMultiplierMax: 0.3 },
-            duration: 2,
-            target: "allFoes",
-          },
-          { type: "TICK_STATUS", status: "poison", amount: 1, target: "allFoes" },
-        ],
-      },
-    },
-    text: "对所有敌人造成 {0} 点伤害，附加 {1} 层中毒，持续 2 回合；手牌中每有 1 张腐烂的果实，中毒增加 10% 攻击力，最多 +30%。培育 {c}（替换）：中毒持续 4 回合。过熟：中毒持续 2 回合，附加后毒发 1。",
+    text: "为所有敌人附加 {1} 层中毒，持续 2 拍。然后消耗手牌中所有枯萎的果实，每消耗 1 张：本次中毒倍率 +10%，并为全队恢复 {2} 点生命。",
   },
   {
     id: "blood-vine",
@@ -112,8 +104,7 @@ export const BOTANIST_VENOM_CARDS: CardDef[] = [
       {
         type: "DAMAGE",
         multiplier: 1.2,
-        pierceOnHit: 1,
-        lifesteal: 0.3,
+        lifesteal: 0.25,
         lifestealTarget: "allAllies",
         target: "primary",
         condition: "targetHasStatus",
@@ -122,14 +113,13 @@ export const BOTANIST_VENOM_CARDS: CardDef[] = [
       {
         type: "DAMAGE",
         multiplier: 1.2,
-        pierceOnHit: 1,
         lifesteal: 0.2,
         target: "primary",
         condition: "targetLacksStatus",
         conditionStatus: "poison",
       },
     ],
-    text: "造成 {1} 点伤害，命中附加穿孔 1，自身回复实际伤害 20% 的生命。若目标带有中毒：改为全队各回复实际伤害 30% 的生命。",
+    text: "造成 {1} 点伤害，自身回复实际伤害 20% 的生命。若目标带有中毒：改为全队各回复实际伤害 25% 的生命。",
   },
   {
     id: "upas-tree",
@@ -140,11 +130,12 @@ export const BOTANIST_VENOM_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "uncommon",
     anim: "poison",
+    harvest: true,
     effects: [
       { type: "DAMAGE", multiplier: 0.6, target: "primary" },
-      { type: "APPLY_STATUS", status: "pierce", stacksFrom: "primaryPoisonTurns", stacksFromPer: 2, maxStacks: 6, target: "primary" },
+      { type: "EXTEND_STATUS", status: "poison", amountFrom: "harvestPierceHalves", maxAmount: 4, target: "primary" },
     ],
-    text: "造成 {0} 点伤害；目标中毒每剩余 1 回合，附加穿孔 2，最多 6 层。多段中毒取剩余回合最多的一段。",
+    text: "造成 {0} 点伤害。采收：每 2 层穿孔，目标身上所有中毒的持续时间 +1 拍，最多 +4 拍。",
   },
   {
     id: "mycelium-web",
@@ -160,6 +151,6 @@ export const BOTANIST_VENOM_CARDS: CardDef[] = [
       { type: "TICK_STATUS", status: "poison", amount: 1, target: "allFoes", targetHasStatus: "poison" },
       { type: "APPLY_STATUS", status: "myceliumWeb", stacks: 1, target: "self" },
     ],
-    text: "所有中毒的敌人毒发 1。本场战斗获得菌丝网络：任意来源的中毒每结算一次（包括毒发），为该敌人附加穿孔 1；每名敌人每回合最多 2 层。消耗。",
+    text: "所有中毒的敌人毒发。本场战斗获得菌丝网络：任意来源的中毒每结算一次（包括毒发），为该敌人附加穿孔 1；每名敌人每回合最多 2 层。消耗。",
   },
 ];
