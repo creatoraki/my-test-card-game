@@ -18,6 +18,9 @@ export type TooltipPoint = {
   /** 锚点在 host 局部坐标系里的设计 px。 */
   x: number;
   y: number;
+  /** 触发元素左右边缘的设计 px；横向翻转时使用对应边缘，避免浮层覆盖图标。 */
+  anchorLeft?: number;
+  anchorRight?: number;
   /** 默认从右侧展开；left 从左侧展开；vertical 优先下方、放不下翻到上方；top 优先上方、放不下翻到下方。 */
   direction?: TooltipDirection;
   /** 浮层要挂进去的那张设计画布 —— 挂在画布内, 坐标系才和画布内的一切 px 一致。 */
@@ -52,6 +55,8 @@ export function tooltipPointFromElement(el: Element, direction: TooltipDirection
           ? rect.top - hostRect.top
           : rect.top + rect.height / 2 - hostRect.top
     ) / k,
+    anchorLeft: (rect.left - hostRect.left) / k,
+    anchorRight: (rect.right - hostRect.left) / k,
     host,
     direction,
   };
@@ -105,22 +110,23 @@ export function useTooltipPlacement(
     const topward = point.direction === "top";
     const leftward = point.direction === "left";
 
-    const right = point.x + TOOLTIP_GAP;
+    const right = (point.anchorRight ?? point.x) + TOOLTIP_GAP;
+    const leftOfAnchor = (point.anchorLeft ?? point.x) - width - TOOLTIP_GAP;
     const left = vertical
       ? Math.min(
           Math.max(TOOLTIP_MARGIN, point.x - width / 2),
           Math.max(TOOLTIP_MARGIN, boxW - width - TOOLTIP_MARGIN),
         )
       : leftward
-        ? point.x - width - TOOLTIP_GAP >= TOOLTIP_MARGIN
-          ? point.x - width - TOOLTIP_GAP
+        ? leftOfAnchor >= TOOLTIP_MARGIN
+          ? leftOfAnchor
           : Math.min(
               Math.max(TOOLTIP_MARGIN, right),
               Math.max(TOOLTIP_MARGIN, boxW - width - TOOLTIP_MARGIN),
             )
       : right + width <= boxW - TOOLTIP_MARGIN
         ? right
-        : Math.max(TOOLTIP_MARGIN, point.x - width - TOOLTIP_GAP);
+        : Math.max(TOOLTIP_MARGIN, leftOfAnchor);
     const below = point.y + TOOLTIP_GAP;
     const above = point.y - height - TOOLTIP_GAP;
     const wanted = vertical

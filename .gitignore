@@ -9,3 +9,4 @@ dist-ssr
 .tmp-buff-preview/
 tmp/
 output/
+处理后的WebP素材/

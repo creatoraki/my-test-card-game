@@ -40,7 +40,10 @@ export function upgradeRecipe(
 ): UpgradeRecipe | null {
   if (target === "fine") {
     return {
-      materials: [...SLOT_MATERIALS[slot], { itemId: regionalMaterial(regionId, "low").id, count: 1 }],
+      materials: [
+        ...SLOT_MATERIALS[slot].map((material) => ({ ...material, count: 2 })),
+        { itemId: regionalMaterial(regionId, "low").id, count: 2 },
+      ],
       loot: 300,
     };
   }

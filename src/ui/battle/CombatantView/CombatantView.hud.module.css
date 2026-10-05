@@ -11,9 +11,13 @@
   justify-content: flex-start;
   pointer-events: auto;
 }
-/* 信息栏宽 256px, 间距 3px: 6×40 + 5×3 = 255, 一行最多放 6 个。 */
+/* 信息栏保持 256px，缩小间距并放大素材，抵消透明留白；一行仍放 6 个。 */
 .combatant-statuses {
-  --pip-box: 40px;
+  --pip-gap: 1px;
+  --pip-box: calc((256px - 5 * var(--pip-gap)) / 6);
+  --pip-art-scale: 1.2;
+  --pip-background: rgba(0, 0, 0, 0.3);
+  --pip-backdrop-filter: blur(8px);
   --pip-count-size: 18px;
   width: 100%;
   justify-content: flex-start;

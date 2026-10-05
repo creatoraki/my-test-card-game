@@ -1,3 +1,4 @@
+import { BondEffect } from "@/ui/common/bond/BondEffect";
 // 物品详情 —— 背包面板与仓库设施的右栏共用。
 // 操作按钮不写在这里: 两个界面能做的事不同(探索里是使用/丢弃/寄回, 据点里是穿戴/出售),
 // 故用 children 插槽让调用方自己塞。本组件只负责「这件东西是什么」。
@@ -117,7 +118,7 @@ export default function ItemDetail({
             </span>
             <span className={s["item-detail-bond-count"]}>羁绊 +1</span>
           </div>
-          <p className={s["item-detail-bond-desc"]}>{bond.desc}</p>
+          <p className={s["item-detail-bond-desc"]}><BondEffect def={bond} /></p>
         </div>
       )}
       {/* 有 affinityRollable 却没 roll 到词条(如旧存档残留 / 已下线的羁绊 id) ——

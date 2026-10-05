@@ -20,6 +20,7 @@ export function RailTooltip({ side, children }: { side: string; children: ReactN
         const direction = side === "left" ? "left" : side === "right" ? "right" : side.startsWith("top") ? "top" : "vertical";
         const next = tooltipPointFromElement(anchor, direction);
         setPoint((previous) => previous?.host === next.host && previous.x === next.x
+          && previous.anchorLeft === next.anchorLeft && previous.anchorRight === next.anchorRight
           && previous.y === next.y && previous.direction === next.direction ? previous : next);
       }
       // 运镜开始后即时隐藏，缩放与角色位移时重新定位。

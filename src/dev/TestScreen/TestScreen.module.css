@@ -1,58 +1,8 @@
 .root {
-  position: relative;
   width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background: #000;
-  color: #fff;
+  min-height: 100vh;
+  overflow: auto;
+  background: #0b1018;
+  color: #e8edf5;
   font-size: 18px;
 }
-
-/* 图层次序与 CorridorScene 一致：远景(0) → 深渊(1) → 顶部雾(2) → 近景(3) → 实体(5) → 暗角(20) → 控制条(30)。 */
-.canvas { overflow: hidden; background: #080e11; color: #e9ddc9; }
-.haze { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(180deg, #09151b9c 0%, #09151b4a 15%, transparent 36%, transparent 100%); }
-.world { position: absolute; inset: 0 auto 0 0; height: 1080px; z-index: 3; }
-.entities { position: absolute; inset: 0; z-index: 5; }
-.vignette { position: absolute; inset: 0; z-index: 20; box-shadow: inset 0 0 180px 50px #020507ad; pointer-events: none; }
-
-/* 与 CorridorScene 的角色容器同尺寸：180×240 立绘居中于 216 宽容器，下沉 3px 贴地。 */
-.playerAnchor { position: absolute; z-index: 6; pointer-events: none; }
-.player { position: absolute; left: 0; top: 0; transform: translate(-50%, calc(-100% + 3px)); width: 216px; height: 240px; }
-
-.controls {
-  position: absolute;
-  left: 24px;
-  top: 24px;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 18px;
-  background: #0b1a1ce6;
-  border: 1px solid #45f0dc55;
-  box-shadow: 0 0 18px #45f0dc1f;
-}
-/* 演示页切换: 右上角, 压在所有演示内容之上。 */
-.tabs {
-  position: absolute;
-  right: 24px;
-  top: 24px;
-  z-index: 40;
-  display: flex;
-  gap: 10px;
-  padding: 10px 12px;
-  background: #0b1a1ce6;
-  border: 1px solid #45f0dc55;
-}
-.title { font-size: 22px; color: #d9f4ec; letter-spacing: 2px; margin-right: 8px; }
-.toggle {
-  font-size: 18px;
-  padding: 6px 14px;
-  color: #9fb8b2;
-  background: #102628;
-  border: 1px solid #7fc9b655;
-  cursor: pointer;
-  transition: color 160ms, border-color 160ms, background 160ms;
-}
-.toggle:hover { color: #d9f4ec; border-color: #7fc9b6aa; }
-.toggle.on { color: #0b1a1c; background: #45f0dc; border-color: #45f0dc; }

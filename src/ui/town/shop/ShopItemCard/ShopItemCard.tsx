@@ -1,3 +1,4 @@
+import { bondEffectText } from "@/ui/common/bond/bondEffectText";
 // 商店物品详情的数据组装层。视觉外壳统一由 ShopDetailCard 承载。
 
 import { memo, useMemo, type CSSProperties } from "react";
@@ -88,7 +89,7 @@ const ShopItemCardBody = memo(function ShopItemCardBody({ stack }: { stack: Item
             <span
               className={s["sx-card-bond"]}
               style={{ "--sx-bond": bond.color } as CSSProperties}
-              aria-label={`${bond.name}（${bond.arcana}）· ${bond.desc}`}
+              aria-label={`${bond.name}（${bond.arcana}）· ${bondEffectText(bond)}`}
               data-rail-item
               tabIndex={0}
               role="group"

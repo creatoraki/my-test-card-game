@@ -1,11 +1,9 @@
-// 羁绊悬浮详情: 大头部(秘仪图标) + 描述 + 各级效果表 + 未激活时的差额提示。
-// 外观统一由 TooltipCard 绘制, 这里只排等级表。
+// 羁绊悬浮详情：直接展示各档效果与门槛，保留当前档位和未激活提示。
 
 import type { BondDef, BondTier } from "@/data/roster/bonds";
 import { ArcanaIcon, getArcanaAccent } from "@/ui/common/icon/ArcanaIcon";
-import { cx } from "@/ui/common/shared/cx";
+import { BondEffect } from "@/ui/common/bond/BondEffect";
 import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
-import s from "./BondTooltip.module.css";
 
 export function BondTooltip({
   def,
@@ -32,19 +30,11 @@ export function BondTooltip({
     <TooltipCard
       icon={<ArcanaIcon id={def.id} size={96} chrome={false} accent={accent} inactive={inactive} />}
       title={def.name}
-      meta={`${count} 点 · ${inactive ? "未激活" : `Lv.${tierIndex + 1}`}`}
-      desc={def.desc}
+      meta={`${count} 点 · ${inactive ? "未激活" : `第 ${tierIndex + 1} 档`}`}
       accent={accent}
       notes={notes.length > 0 ? notes : undefined}
     >
-      <div className={s.tiers}>
-        {def.tiers.map((tier, index) => (
-          <div className={cx(s.tier, index === tierIndex && s["is-active"])} key={tier.count}>
-            <b>Lv.{index + 1} · {tier.count} 点</b>
-            <span>{tier.desc}</span>
-          </div>
-        ))}
-      </div>
+      <BondEffect def={def} tierIndex={tierIndex} />
     </TooltipCard>
   );
 }

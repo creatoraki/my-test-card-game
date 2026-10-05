@@ -8,9 +8,9 @@ interface Props {
 
 export const ASSEMBLE_ACCENT: Record<AssembleId, string> = {
   assembleA: "#5ad6ff",
-  assembleB: "#ff7a45",
-  assembleC: "#d8b04a",
-  assembleD: "#7f8cff",
+  assembleB: "#ffd34a",
+  assembleC: "#45e5e8",
+  assembleD: "#cf65ff",
 };
 
 export function AssembleIcon({ id, className }: Props) {

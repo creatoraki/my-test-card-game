@@ -296,11 +296,12 @@ span.ally-portrait {
 /* 状态图标在卡框外, 这样上方详情浮层不会被 .ally-frame 的裁切截断。 */
 .ally-status {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 0;
+  right: 0;
   z-index: 6;
   pointer-events: auto;
-  --pip-box: 44px;
+  --pip-box: 32px;
+  --pip-count-size: 18px;
   --pip-rows: 5;
 }
 /* 可选中 / 仇恨目标的描边发光。

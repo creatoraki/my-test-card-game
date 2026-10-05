@@ -2,6 +2,7 @@
 // 四宫格状态图必须使用 `node scripts/crop-status-buffs.mjs <四宫格原图路径>` 切图；
 // 切分后的素材按状态实际目录登记，不要手动截屏取图。
 
+import { HEXER_STATUS_ART } from "./hexerStatusArt";
 import poisonArt from "@/assets/buffs/dot/中毒.webp";
 import shieldArt from "@/assets/buffs/护盾.webp";
 import burnArt from "@/assets/buffs/dot/灼烧.webp";
@@ -71,6 +72,7 @@ import windCutArt from "@/assets/buffs/buffs/风切.webp";
 import agaveBloomArt from "@/assets/buffs/buffs/龙舌花信.webp";
 
 export const STATUS_ART: Record<string, string> = {
+  ...HEXER_STATUS_ART,
   starlight: starlightArt,
   ironwall: ironwallArt,
   strength: strengthArt,
@@ -146,6 +148,7 @@ export function statusArtOf(id: string): string | undefined {
 }
 
 export const STATUS_ART_SOURCES: readonly string[] = [
+  ...Object.values(HEXER_STATUS_ART),
   starlightArt,
   ironwallArt,
   strengthArt,

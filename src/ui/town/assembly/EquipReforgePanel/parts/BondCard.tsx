@@ -1,3 +1,4 @@
+import { BondEffect } from "@/ui/common/bond/BondEffect";
 import { getBondDef } from "@/data";
 import { BondIcon } from "@/ui/common/bond/BondIcon";
 import { cx } from "@/ui/common/shared/cx";
@@ -29,10 +30,7 @@ export function BondCard({ bondId, selected = false, onSelect, tag }: Props) {
       </div>
       {bond ? (
         <>
-          <p className={s.desc}>{bond.desc}</p>
-          <ul className={s.tiers}>
-            {bond.tiers.map((tier) => <li key={tier.count}>{tier.desc}</li>)}
-          </ul>
+          <p className={s.desc}><BondEffect def={bond} /></p>
         </>
       ) : (
         <p className={s.desc}>这件装备当前没有羁绊词条。</p>

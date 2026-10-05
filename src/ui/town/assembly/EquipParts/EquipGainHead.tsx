@@ -1,3 +1,4 @@
+import { BondEffect } from "@/ui/common/bond/BondEffect";
 import { getBondDef } from "@/data";
 import type { ItemDef } from "@/items/types";
 import { RARITY_LABEL, SLOT_LABEL } from "@/items/types";
@@ -39,7 +40,7 @@ export function EquipGainHead({ def, nextDef, notice, affinityId }: Props) {
             {bond.name}
             <span className={s.bondArcana}>{bond.arcana}</span>
           </span>
-          <span className={s.bondDesc}>{bond.desc}</span>
+          <span className={s.bondDesc}><BondEffect def={bond} /></span>
         </div>
       )}
 

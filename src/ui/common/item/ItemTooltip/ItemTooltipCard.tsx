@@ -1,3 +1,4 @@
+import { BondEffect } from "@/ui/common/bond/BondEffect";
 // 物品悬浮详情卡 —— 直接套全项目统一的 TooltipCard(与 BUFF 详情同款):
 // 徽章图标 + 大标题 + 稀有度/分类副信息 → 斜切正文面板(描述 + 属性 / 遗物 / 装配条件 / 羁绊) → 底栏。
 // 内容口径与详情栏 ItemDetail 同一份(itemDetailData); 这里只负责换成卡片的排法。
@@ -106,7 +107,7 @@ export function ItemTooltipCard({
                 <span className={s["bond-arcana"]}>{bond.arcana}</span>
                 <span className={s["bond-count"]}>羁绊 +1</span>
               </div>
-              <p className={s["bond-desc"]}>{bond.desc}</p>
+              <p className={s["bond-desc"]}><BondEffect def={bond} /></p>
             </div>
           )}
           {def.affinityRollable && !bond && <p className={s.muted}>这件装备没有羁绊词条。</p>}

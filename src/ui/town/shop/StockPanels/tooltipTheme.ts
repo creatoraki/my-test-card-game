@@ -1,8 +1,7 @@
 import type { CSSProperties } from "react";
 
-/** 回收台详情弹层：字号不低于项目约定的 18px，宽度覆盖公共物品卡默认值。 */
+/** 回收台详情弹层：字号不低于项目约定的 18px，宽度由内部详情卡撑开，保证定位测量与可见外框一致。 */
 export const RECYCLE_TOOLTIP_THEME = {
-  width: "420px",
   "--tooltip-detail-padding": "20px",
   "--item-detail-gap": "16px",
   "--item-detail-icon-width": "72px",

@@ -1,7 +1,7 @@
 .status-pips {
   display: flex;
   flex-wrap: wrap;
-  gap: 3px;
+  gap: var(--pip-gap, 3px);
   justify-content: center;
 }
 .status-pips.reverse {
@@ -28,6 +28,9 @@
   font-size: calc(var(--pip-box, 30px) * 0.55);
   line-height: 1;
   color: #e7f4f5;
+  background: var(--pip-background, transparent);
+  -webkit-backdrop-filter: var(--pip-backdrop-filter, none);
+  backdrop-filter: var(--pip-backdrop-filter, none);
   cursor: help;
 }
 .pip > b {
@@ -42,6 +45,12 @@
   font-weight: 800;
   line-height: 1;
   text-shadow: 1px 1px 0 #05080a, -1px -1px 0 #05080a, 1px -1px 0 #05080a, -1px 1px 0 #05080a;
+}
+/* 战斗四角框的黑色毛玻璃底层。 */
+.pip-framed {
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 /* 带四角框时, 层数压在右下 L 角上并放大, 角框作为数字的托底。 */
 .pip-framed > b {
@@ -71,5 +80,6 @@
 }
 .status-icon:is(img),
 .shield-icon:is(img) {
+  transform: scale(var(--pip-art-scale, 1));
   filter: drop-shadow(0 0 2px rgba(158, 216, 255, 0.45));
 }
