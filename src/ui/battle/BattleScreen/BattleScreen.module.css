@@ -62,6 +62,16 @@
   filter: blur(36px) brightness(0.45) saturate(0.85);
 }
 
+.topLeft {
+  position: absolute;
+  top: var(--canvas-pad);
+  left: var(--canvas-pad);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .topRight {
   position: absolute;
   top: var(--canvas-pad);

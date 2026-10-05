@@ -19,18 +19,19 @@ export function MarketPriceTag({ price, sold, disabledReason, icon, ariaText, on
   const state = sold ? "sold" : canBuy ? "ready" : "poor";
   const label = ariaText ?? `${price} 居民积分`;
   const ariaLabel = sold ? "已售出" : canBuy ? label : disabledReason;
+  const tagClassName = cx(s.tag, icon !== undefined && s.foodTag, s[`is-${state}`]);
   const content = <>
     {icon !== undefined ? <span className={s.icon} aria-hidden="true">{icon}</span> : <MarketPriceArtwork />}
     <strong className={s.price}>{price}</strong>
   </>;
 
   if (!onBuy) {
-    return <span className={cx(s.tag, s[`is-${state}`])} role="img" aria-label={ariaLabel}>{content}</span>;
+    return <span className={tagClassName} role="img" aria-label={ariaLabel}>{content}</span>;
   }
 
   return (
     <button
-      className={cx(s.tag, s[`is-${state}`])}
+      className={tagClassName}
       type="button"
       disabled={!canBuy}
       aria-label={ariaLabel}

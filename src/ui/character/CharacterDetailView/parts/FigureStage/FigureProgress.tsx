@@ -33,7 +33,7 @@ export function FigureProgress({ level, exp, cost, disabled, onUpgrade }: Props)
               <path d="m4 13 8-8 8 8M4 23l8-8 8 8" stroke="currentColor" strokeWidth="2.5" />
             </svg>
           </button>
-          {ready && <span className={s.notice} aria-hidden="true">↑</span>}
+          {ready && !disabled && <span className={s.notice} aria-hidden="true" />}
         </div>
       </div>
       <ExperienceBar exp={exp} cost={cost} />

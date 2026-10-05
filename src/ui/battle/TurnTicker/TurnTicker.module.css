@@ -1,144 +1,123 @@
-.plate {
-  --ticker-bg: #0b0f12b3;
-  position: absolute;
-  top: calc(var(--canvas-pad) - 12px);
-  left: 50%;
-  z-index: 12;
+﻿.plate {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-width: 174px;
-  padding: 8px 16px 9px;
+  gap: 20px;
+  height: 80px;
+  box-sizing: border-box;
+  padding: 10px 22px;
   overflow: hidden;
-  transform: translateX(-50%);
+  isolation: isolate;
   pointer-events: none;
-  background: var(--ticker-bg);
-  border: 1px solid #ffffff14;
-  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
-  backdrop-filter: blur(2px);
+  background: linear-gradient(135deg, #263238f2, #11191ff5 60%, #0b1116f5);
+  border: 1px solid #71838b80;
+  border-radius: 4px 16px 4px 16px;
+  box-shadow: inset 0 1px 0 #ffffff1f, inset 0 -3px 8px #00000066, 0 6px 18px #00000059;
+  backdrop-filter: blur(8px);
 }
+
 .plate::before {
   position: absolute;
-  top: 0;
-  right: 10px;
-  left: 10px;
-  height: 1px;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 3px;
   content: "";
   background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
-  opacity: 0.7;
+  box-shadow: 0 0 12px #d8f32955;
 }
+
 .sweep {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -35%;
+  inset: 0 auto 0 -35%;
   width: 24%;
-  content: "";
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background: linear-gradient(90deg, transparent, #d8f32926, transparent);
   opacity: 0;
   transform: skewX(-18deg);
-  pointer-events: none;
   animation: plateSweep 420ms ease-out both;
 }
+
 .slot {
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: auto 42px;
+  display: flex;
   align-items: center;
-  column-gap: 8px;
+  gap: 12px;
 }
+
 .label {
-  color: #a8b9bc;
-  font-size: 10px;
-  letter-spacing: 3px;
-  opacity: 0.5;
+  color: #bdcbd0;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 2px;
   white-space: nowrap;
 }
+
+.roundSlot .label {
+  color: #e5ebd0;
+}
+
 .roll {
   position: relative;
   display: block;
-  width: 42px;
-  height: 27px;
+  min-width: 2ch;
+  width: max-content;
+  height: 42px;
   overflow: hidden;
-  text-align: right;
+  font-size: 28px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 42px;
+  text-align: center;
 }
+
+.roundSlot .roll {
+  font-size: 36px;
+}
+
 .digit,
 .digitOut {
-  position: absolute;
-  inset: 0;
-  color: #eaffd0;
-  font-size: 22px;
-  line-height: 27px;
-  opacity: 0.55;
-  text-shadow: 0 0 8px #d8f32933;
+  display: block;
+  color: #e2edf1;
 }
+
+.roundSlot .digit,
+.roundSlot .digitOut {
+  color: #edfac4;
+  text-shadow: 0 0 14px #d8f32933;
+}
+
 .digit {
   animation: rollIn 180ms ease-out both;
 }
+
 .digitOut {
+  position: absolute;
+  inset: 0;
   z-index: 1;
   animation: rollOut 180ms ease-in both;
 }
+
 .sep {
   position: relative;
   z-index: 1;
   width: 1px;
-  height: 24px;
-  background: #ffffff2e;
-  transform: skewX(-16deg);
+  height: 36px;
+  background: linear-gradient(180deg, transparent, #9cabb05c, transparent);
 }
 
 @keyframes rollIn {
-  from {
-    opacity: 0;
-    transform: translateY(60%);
-  }
-  to {
-    opacity: 0.55;
-    transform: translateY(0);
-  }
-}
-@keyframes rollOut {
-  from {
-    opacity: 0.55;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-60%);
-  }
-}
-@keyframes plateSweep {
-  from {
-    opacity: 0;
-    transform: translateX(0) skewX(-18deg);
-  }
-  20% {
-    opacity: 0.5;
-  }
-  to {
-    opacity: 0;
-    transform: translateX(650%) skewX(-18deg);
-  }
+  from { opacity: 0; transform: translateY(60%); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .sweep,
-  .digit,
-  .digitOut {
-    animation: none;
-  }
-  .sweep {
-    display: none;
-  }
-  .digit,
-  .digitOut {
-    opacity: 0.55;
-    transform: none;
-  }
-  .digitOut {
-    display: none;
-  }
+@keyframes rollOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-60%); }
+}
+
+@keyframes plateSweep {
+  from { opacity: 0; transform: translateX(0) skewX(-18deg); }
+  20% { opacity: 1; }
+  to { opacity: 0; transform: translateX(650%) skewX(-18deg); }
 }

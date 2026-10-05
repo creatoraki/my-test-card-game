@@ -1,4 +1,5 @@
 import type { CurioKind } from "@/explore/corridor/types";
+import { EXPLORE_RULES } from "@/explore/core/exploreRules";
 import type { CurioDef } from "../types";
 
 export const SERVICE_CURIOS = {
@@ -7,7 +8,7 @@ export const SERVICE_CURIOS = {
     role: "service",
     verb: "启用",
     size: 250,
-    description: "投递柜仍与据点相连。打开后可从背包选择物品寄回，已寄出的物品不会因团灭丢失。",
+    description: `投递柜仍与据点相连。打开后可从背包选择最多 ${EXPLORE_RULES.chute.maxItems} 件物品寄回，已寄出的物品不会因团灭丢失。`,
     decisions: [{
       id: "send",
       label: "开启投递口",

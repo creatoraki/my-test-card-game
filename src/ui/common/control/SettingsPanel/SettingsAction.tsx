@@ -1,4 +1,5 @@
 import { PlateButton, type PlateIconName } from "@/ui/common/control/PlateButton";
+import s from "./SettingsPanel.module.css";
 
 export interface SettingsActionProps {
   name: string;
@@ -13,6 +14,7 @@ export interface SettingsActionProps {
 export function SettingsAction({ name, note, icon, danger = false, disabled = false, onClick }: SettingsActionProps) {
   return (
     <PlateButton
+      className={s.action}
       label={name}
       note={note}
       icon={icon}

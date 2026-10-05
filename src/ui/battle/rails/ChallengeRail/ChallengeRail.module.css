@@ -1,8 +1,4 @@
 .rail {
-  position: absolute;
-  top: var(--canvas-pad);
-  left: var(--canvas-pad);
-  z-index: 12;
   display: flex;
 }
 .items {

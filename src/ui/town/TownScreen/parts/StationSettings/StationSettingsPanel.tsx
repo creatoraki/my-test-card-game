@@ -38,6 +38,7 @@ export function StationSettingsPanel({
       onClose={onClose}
       kicker="据点终端"
       title="系统菜单"
+      compact
       scrimClassName={s.scrim}
     >
       <AudioSettingsRows />
@@ -52,7 +53,7 @@ export function StationSettingsPanel({
         {onTestReward && (
           <SettingsAction
             name="测试奖励"
-            note="发放 2000 经验与 10000 积分"
+            note="2000 经验 · 10000 积分"
             icon="reward"
             onClick={onTestReward}
           />

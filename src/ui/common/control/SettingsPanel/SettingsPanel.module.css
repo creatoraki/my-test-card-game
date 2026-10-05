@@ -81,6 +81,23 @@
   gap: 14px 16px;
 }
 
+/* 紧凑布局只由主城显式启用，保留正文至少 18px。 */
+.compact .section { gap: 10px; padding-bottom: 16px; }
+.compact .section + .section { padding-top: 16px; padding-bottom: 0; }
+.compact .row { min-height: 58px; padding: 8px 14px; gap: 12px; }
+.compact .rowName { width: 44px; font-size: 18px; }
+.compact .toggle { min-width: 90px; min-height: 36px; height: 36px; padding: 0 12px; }
+.compact .actions { grid-auto-rows: 64px; gap: 12px; }
+.compact .action {
+  --plate-icon-size: 24px;
+  --plate-icon-margin: 0 12px 0 16px;
+  --plate-label-size: 20px;
+  --plate-arrow-width: 10px;
+  --plate-arrow-height: 18px;
+  min-height: 64px;
+  padding-right: 16px;
+}
+
 @keyframes settings-veil-in {
   from { background-color: transparent; }
 }

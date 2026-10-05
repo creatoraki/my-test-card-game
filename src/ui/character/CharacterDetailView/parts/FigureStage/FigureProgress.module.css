@@ -60,16 +60,12 @@
   position: absolute;
   top: -5px;
   right: -4px;
-  display: grid;
-  place-items: center;
-  width: 21px;
-  height: 21px;
+  width: 14px;
+  height: 14px;
   border: 1px solid #ffb6d2;
   border-radius: 50%;
   background: #fb466a;
-  color: white;
-  font-size: 18px;
-  line-height: 1;
+  box-shadow: 0 0 8px #fb466a99;
   pointer-events: none;
 }
 

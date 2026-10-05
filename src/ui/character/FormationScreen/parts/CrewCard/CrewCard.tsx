@@ -10,6 +10,7 @@
 
 import { memo, useMemo, type CSSProperties, type MouseEvent } from "react";
 import { getCharacter } from "@/data";
+import { deckUpgradeCost } from "@/engine/core/battleRules";
 import type { CharacterState } from "@/store/town/townStore";
 import { CHARACTER_CARD_GLOW, characterGlow } from "@/ui/character/FormationScreen/parts/CrewCard/characterGlow";
 import { BorderGlow } from "@/ui/common/frame/BorderGlow";
@@ -74,6 +75,7 @@ function CrewCardView({
   onToggle,
 }: Props) {
   const def = getCharacter(cs.charId);
+  const upgradeCost = deckUpgradeCost(cs.deckLevel);
   const glow = useMemo(() => characterGlow(def.color), [def.color]);
   const blocked = onField ? lastOne : full;
   const reason = onField ? "至少要保留 1 名队员上阵" : `上阵人数已达上限 ${size} 人`;
@@ -150,6 +152,7 @@ function CrewCardView({
           <CrewToggle
             upgrade={detail}
             upgradeDisabled={upgradeDisabled}
+            upgradeReady={upgradeCost != null && cs.exp >= upgradeCost}
             onField={onField}
             resting={resting}
             blocked={blocked}

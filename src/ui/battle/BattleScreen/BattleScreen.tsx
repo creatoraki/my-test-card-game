@@ -281,8 +281,10 @@ export function BattleScreen() {
         <AmbienceGrade mapId={mapId} />
         <ScreenFxLayer hits={choreo.hits} playerIds={battle.playerIds} fxRate={playback.fxRate} />
 
-        {battle && <ChallengeRail challenges={battle.challenges} />}
-        <TurnTicker round={battle.round} tick={battle.tick} />
+        <div className={s.topLeft}>
+          <ChallengeRail challenges={battle.challenges} />
+          <TurnTicker round={battle.round} tick={battle.tick} />
+        </div>
         <div className={s.topRight}>
           <RelicRail battle={battle} activeRelicId={choreo.relicId} />
           {battleMeta && <BondRail bonds={battleMeta.bonds} />}

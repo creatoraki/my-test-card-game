@@ -81,7 +81,7 @@ export function TurnTicker({ round, tick }: Props) {
   return (
     <aside className={s.plate} data-flash={flashSeq || undefined} aria-label="回合与时刻">
       <span className={s.sweep} key={flashSeq} aria-hidden="true" />
-      <div className={s.slot}>
+      <div className={`${s.slot} ${s.roundSlot}`}>
         <span className={s.label}>回合</span>
         <RollingNumber value={round} onSequenceChange={handleRoundSequence} />
       </div>

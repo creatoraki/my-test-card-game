@@ -34,3 +34,11 @@
     linear-gradient(#000 0 0) right bottom / var(--fc-len) var(--fc-w) no-repeat,
     linear-gradient(#000 0 0) right bottom / var(--fc-w) var(--fc-len) no-repeat;
 }
+
+.frame[data-danger] {
+  filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 3px #b51e36aa);
+}
+
+.frame[data-danger] .corners {
+  background: linear-gradient(135deg, #ff5265 0%, #c5223c 35%, #651021 70%, #10060a 100%);
+}

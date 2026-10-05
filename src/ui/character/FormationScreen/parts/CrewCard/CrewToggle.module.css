@@ -36,6 +36,21 @@
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, color 160ms ease;
 }
 
+/* 红点放在按钮外层，避免被胶囊按钮的 overflow 裁切。 */
+.notice {
+  position: absolute;
+  top: -4px;
+  right: 8px;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #ffb6d2;
+  border-radius: 50%;
+  background: #fb466a;
+  box-shadow: 0 0 8px #fb466a99;
+  pointer-events: none;
+}
+
 /* 内描边: 一圈细线让胶囊有"双层玻璃"的厚度 */
 .toggle::before {
   content: "";

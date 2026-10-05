@@ -89,11 +89,18 @@ export default function BackpackPanel({
   const sel = backpack.find((s) => s.uid === selected) ?? null;
   const selDef = sel ? getItemDef(sel.itemId) : null;
 
-  const toggleShip = (uid: string) =>
-    setShipping((cur) => (cur.includes(uid) ? cur.filter((x) => x !== uid) : [...cur, uid]));
+  const shippingCount = backpack.reduce((total, stack) => total + (shipping.includes(stack.uid) ? stack.count : 0), 0);
+  const toggleShip = (stack: ItemStack) => {
+    if (!canShipHome(stack, getItemDef(stack.itemId))) return;
+    setShipping((cur) => {
+      if (cur.includes(stack.uid)) return cur.filter((uid) => uid !== stack.uid);
+      const count = backpack.reduce((total, item) => total + (cur.includes(item.uid) ? item.count : 0), 0);
+      return count + stack.count <= EXPLORE_RULES.chute.maxItems ? [...cur, stack.uid] : cur;
+    });
+  };
 
   const onSlotClick = (st: ItemStack) => {
-    if (chuteMode) return toggleShip(st.uid);
+    if (chuteMode) return toggleShip(st);
     setSelected(st.uid);
   };
 
@@ -163,18 +170,18 @@ export default function BackpackPanel({
             {chuteMode && (
               <div className={s["bp-chute"]}>
                 <span className={s["bp-chute-label"]}>
-                  传送投递口已开启 —— 选中的物品寄回据点，团灭也带得走
+                  每次最多寄回 {EXPLORE_RULES.chute.maxItems} 件 · 已选 {shippingCount} / {EXPLORE_RULES.chute.maxItems} 件 · 团灭也带得走
                 </span>
                 <EventPanelButton
                   tone="primary"
                   className={s["bp-mini"]}
-                  disabled={!shipping.length}
+                  disabled={!shippingCount || shippingCount > EXPLORE_RULES.chute.maxItems}
                   onClick={() => {
                     shipHome(shipping);
                     setShipping([]);
                   }}
                 >
-                  寄回 {shipping.length} 件 · 粒子 −{EXPLORE_RULES.chute.energyCost}
+                  寄回 {shippingCount} 件 · 粒子 −{EXPLORE_RULES.chute.energyCost}
                 </EventPanelButton>
               </div>
             )}
@@ -188,7 +195,8 @@ export default function BackpackPanel({
                     <ItemSlot
                       stack={stack}
                       selected={chuteMode ? shipping.includes(stack.uid) : selected === stack.uid}
-                      disabled={chuteMode && !canShipHome(stack, getItemDef(stack.itemId))}
+                      disabled={chuteMode && (!canShipHome(stack, getItemDef(stack.itemId))
+                        || (!shipping.includes(stack.uid) && shippingCount + stack.count > EXPLORE_RULES.chute.maxItems))}
                       onClick={() => onSlotClick(stack)}
                     />
                     <ItemSectionMark mark={marks[i]} rowStart={i % COLS === 0} />

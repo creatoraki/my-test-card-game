@@ -20,6 +20,7 @@ export function StatusPips({
   popoverSide,
   team = "player",
   frame,
+  debuffFrame = false,
 }: {
   statuses: StatusInstance[];
   /** 调用方的布局类(这一排在自己的槽位里怎么占位)。图标外观一律由本组件持有。 */
@@ -38,6 +39,8 @@ export function StatusPips({
   team?: Team;
   /** 四角 L 型白金边框, 层数随之压到右下角上。 */
   frame?: boolean;
+  /** 减益使用红黑色四角框。 */
+  debuffFrame?: boolean;
 }) {
   if (statuses.length === 0 && shield <= 0) return null;
 
@@ -93,7 +96,7 @@ export function StatusPips({
           : `${name}，当前层数 ${stacks}${duration != null ? `，剩余 ${duration} ${durationUnit}` : ""}`
       }
     >
-      {frame && <StatusFrame />}
+      {frame && <StatusFrame danger={debuffFrame && kind === "debuff"} />}
       {icon ?? emoji}
       {/* 护盾值即层数, 哪怕只剩 1 点也要标出来。 */}
       {(shieldPip || stacks > 1) && <b>{stacks}</b>}

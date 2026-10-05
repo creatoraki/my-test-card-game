@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import type { EnemyPlacement } from "@/data";
-import { getStatus, type Enemy } from "@/engine";
+import { getStatus, getStatusDef, type Enemy } from "@/engine";
 import { StatusPips } from "@/ui/common/bar/StatusPips";
 import { cx } from "@/ui/common/shared/cx";
 import type { HitFx } from "@/ui/battle/choreo/animations";
@@ -18,6 +18,7 @@ import { HourglassIcon } from "./icons";
 import { HitChanceBadge } from "./HitChanceBadge";
 import s from "./CombatantView.module.css";
 import m from "./CombatantView.motion.module.css";
+import h from "./CombatantView.hud.module.css";
 
 interface Props {
   cmb: Enemy;
@@ -123,6 +124,8 @@ export const CombatantView = memo(function CombatantView({
     vars["--body-cx"] = "0px";
   }
   const idle = enemyIdle(enemySprite);
+  const buffs = cmb.statuses.filter((status) => getStatusDef(status.id)?.kind !== "debuff");
+  const debuffs = cmb.statuses.filter((status) => getStatusDef(status.id)?.kind === "debuff");
   vars["--idle-bob"] = `${idle.bob}px`;
   vars["--idle-sway"] = `${idle.sway}px`;
   vars["--idle-tilt"] = `${idle.tilt}deg`;
@@ -193,24 +196,36 @@ export const CombatantView = memo(function CombatantView({
         </div>
       </div>
 
-      {/* 立绘下方: BUFF/护盾 → 血条 → 意图/倒计时 */}
+      {/* 减益保留在血条上方，增益与护盾从血条右下方向左排列。 */}
       <div className={s["combatant-info"]}>
         <div className={s["combatant-hp"]}>
-          <div className={s["combatant-badges"]}>
+          <div className={h["combatant-badges"]}>
             <StatusPips
-              statuses={cmb.statuses}
-              shield={cmb.shield}
+              statuses={debuffs}
               team={cmb.team}
               detail
               popoverSide="top-left"
               frame
-              className={s["combatant-statuses"]}
+              debuffFrame
+              className={h["combatant-statuses"]}
             />
           </div>
+          {phase === "alive" && <EnemyIntent enemy={cmb} currentTick={currentTick} />}
           <HpBar hp={cmb.hp} hpLimit={cmb.hpLimit} maxHp={cmb.maxHp} hideLimit large />
           <ShieldBar shield={cmb.shield} maxHp={cmb.maxHp} large hideEmpty />
+          <div className={h["combatant-buffs"]}>
+            <StatusPips
+              statuses={buffs}
+              shield={cmb.shield}
+              team={cmb.team}
+              detail
+              popoverSide="top-right"
+              frame
+              reverse
+              className={h["combatant-statuses"]}
+            />
+          </div>
         </div>
-        {phase === "alive" && <EnemyIntent enemy={cmb} currentTick={currentTick} />}
       </div>
 
     </div>
@@ -231,24 +246,24 @@ function EnemyIntent({ enemy, currentTick }: { enemy: Enemy; currentTick: number
   const revealed = isIntentRevealed(enemy);
   return (
     <div
-      className={s["combatant-readout"]}
+      className={h["combatant-readout"]}
     >
       {revealed && (
-        <span className={cx(s["intent-badge"], s[`intent-${i.kind}`])}>
+        <span className={cx(h["intent-badge"], h[`intent-${i.kind}`])}>
           {i.emoji}
           {i.value != null && <b>{i.value}</b>}
         </span>
       )}
       <span
         className={cx(
-          s["countdown"],
-          !revealed && s["countdown-solo"],
-          countdown === 0 && s["imminent"],
+          h["countdown"],
+          !revealed && h["countdown-solo"],
+          countdown === 0 && h["imminent"],
         )}
         aria-label={`距离下次行动 ${countdown} 时刻`}
       >
-        <HourglassIcon className={s.hourglass} />
-        <span className={s["countdown-num"]}>{countdown}</span>
+        <HourglassIcon className={h.hourglass} />
+        <span className={h["countdown-num"]}>{countdown}</span>
       </span>
     </div>
   );

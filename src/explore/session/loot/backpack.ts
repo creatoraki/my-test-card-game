@@ -216,10 +216,12 @@ export function abandonPending(s: ExploreState, index?: number): boolean {
 // ★ 代价按**一次寄件**收, 不按件数收 —— 否则玩家会为了省能量只寄一件, 解压阀就失效了。
 export function shipHome(s: ExploreState, uids: string[]): boolean {
   if (!s.chuteOpen || !uids.length) return false;
-  const picked = uids
+  const picked = [...new Set(uids)]
     .map((u) => findByUid(s.backpack, u))
     .filter((x): x is ItemStack => !!x && canShipHome(x, getItemDef(x.itemId)));
-  if (!picked.length) return false;
+  if (!picked.length || picked.reduce((total, stack) => total + stack.count, 0) > EXPLORE_RULES.chute.maxItems) {
+    return false;
+  }
 
   for (const st of picked) s.backpack = removeByUid(s.backpack, st.uid);
   s.shipped = [...s.shipped, ...picked];

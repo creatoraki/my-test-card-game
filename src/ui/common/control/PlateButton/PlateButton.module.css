@@ -73,9 +73,9 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  margin: 0 22px 0 30px;
+  width: var(--plate-icon-size, 38px);
+  height: var(--plate-icon-size, 38px);
+  margin: var(--plate-icon-margin, 0 22px 0 30px);
   color: var(--glyph);
   transition: color 180ms ease;
 }
@@ -96,7 +96,7 @@
 
 .text strong {
   overflow: hidden;
-  font-size: 26px;
+  font-size: var(--plate-label-size, 26px);
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: 0.04em;
@@ -120,8 +120,8 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: 12px;
-  height: 22px;
+  width: var(--plate-arrow-width, 12px);
+  height: var(--plate-arrow-height, 22px);
   color: #eef8fa;
   transition: color 180ms ease, transform 180ms ease;
 }

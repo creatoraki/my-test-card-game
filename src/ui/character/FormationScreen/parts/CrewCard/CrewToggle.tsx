@@ -11,6 +11,7 @@ import s from "./CrewToggle.module.css";
 interface Props {
   upgrade?: boolean;
   upgradeDisabled?: boolean;
+  upgradeReady?: boolean;
   onField: boolean;
   resting: boolean;
   blocked: boolean;
@@ -19,7 +20,7 @@ interface Props {
   onToggle: () => void;
 }
 
-export function CrewToggle({ upgrade = false, upgradeDisabled = false, onField, resting, blocked, tooltipTitle, tooltipReason, onToggle }: Props) {
+export function CrewToggle({ upgrade = false, upgradeDisabled = false, upgradeReady = false, onField, resting, blocked, tooltipTitle, tooltipReason, onToggle }: Props) {
   const { point, bind } = useHoverTooltip();
 
   return (
@@ -31,6 +32,7 @@ export function CrewToggle({ upgrade = false, upgradeDisabled = false, onField, 
           className={cx(s.toggle, onField && s["is-on"])}
           type="button"
           disabled={upgrade ? upgradeDisabled : blocked}
+          aria-label={upgrade && upgradeReady ? "升级，经验已足够升级" : undefined}
           onClick={onToggle}
         >
           {onField && <Chevrons side="left" />}
@@ -38,6 +40,7 @@ export function CrewToggle({ upgrade = false, upgradeDisabled = false, onField, 
           {onField && <Chevrons side="right" />}
         </button>
       )}
+      {upgrade && upgradeReady && !upgradeDisabled && <span className={s.notice} aria-hidden="true" />}
       {!upgrade && (resting || blocked) && point && (
         <HoverTooltip point={point}>
           <TooltipCard title={tooltipTitle} desc={tooltipReason} />

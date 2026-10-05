@@ -23,8 +23,26 @@
   transition: filter 180ms;
 }
 .tag:not(button) { cursor: var(--cursor-default); }
+/* 食物价格牌不使用金币原图，独立补齐切角描边并居中排列内容。 */
+.foodTag {
+  justify-content: center;
+  gap: calc(6 * var(--market-unit));
+  padding: 0 calc(13 * var(--market-unit));
+  background: linear-gradient(135deg, #fff0b1, #b8954f 45%, #e3c77e);
+  translate: none;
+}
+.foodTag::before {
+  position: absolute;
+  content: "";
+  inset: 1px;
+  background: linear-gradient(115deg, #302719, #171411 65%, #292115);
+  clip-path: polygon(5px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
+  pointer-events: none;
+}
+.foodTag .icon { margin-right: 0; }
 .price {
   position: relative;
+  z-index: 1;
   overflow: hidden;
   color: inherit;
   font-family: "BebasNeue", "SourceHanSansSC", sans-serif;

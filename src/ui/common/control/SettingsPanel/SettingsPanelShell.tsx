@@ -15,6 +15,8 @@ export interface SettingsPanelShellProps {
   title: string;
   /** 遮罩层附加类名 —— 各场景据此压自己的 z-index / 遮罩浓度。 */
   scrimClassName?: string;
+  /** 主城使用更紧凑的设置布局。 */
+  compact?: boolean;
   children: ReactNode;
 }
 
@@ -24,6 +26,7 @@ export function SettingsPanelShell({
   kicker,
   title,
   scrimClassName,
+  compact = false,
   children,
 }: SettingsPanelShellProps) {
   // open 置假后多留 PANEL_OUT_MS 播完退场动画再卸载。
@@ -61,8 +64,8 @@ export function SettingsPanelShell({
       closeLabel="关闭设置"
       closing={!open}
       onClose={onClose}
-      size={SETTINGS_SIZE}
-      className={cx(s.veil, scrimClassName)}
+      size={compact ? { w: 720 } : SETTINGS_SIZE}
+      className={cx(s.veil, compact && s.compact, scrimClassName)}
     >
       {children}
     </PanelShell>
