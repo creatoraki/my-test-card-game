@@ -1,6 +1,10 @@
 import type { ItemStack } from "@/items/types";
 import { makeItemStack } from "../registry";
 import { difficultyKey, type MapDifficulty } from "./mapDifficulty";
+import { rngPick } from "@/engine/core/rng";
+import { NEAR_EXPIRY_FOOD_IDS } from "../items/catalog/consumables";
+import { MAPS } from "./index";
+import { MAP_DIFFICULTY_IDS, mapHasDifficulty } from "./mapDifficulty";
 
 export interface AidSupplyEntry {
   itemId: string;
@@ -35,4 +39,30 @@ export function makeAidSupplyStacks(mapId: string, difficulty: MapDifficulty): I
   return aidSupplyOf(mapId, difficulty).map(({ itemId, count }) =>
     makeItemStack(itemId, count, { disposable: true }),
   );
+}
+
+// 食品与消耗品各抽一种；净化粒子罐固定配发，不参与抽选。
+const RANDOM_CONSUMABLE_POOL = [
+  "medical-kit-c",
+  "sugar-cube-c",
+  "holy-water-c",
+  "fruit-juice-c",
+];
+
+export function rollAllDailyAidSupplies(): Record<string, ItemStack[]> {
+  const rng = { rngState: Math.floor(Math.random() * 0x100000000) >>> 0 };
+  const supplies: Record<string, ItemStack[]> = {};
+  for (const map of MAPS) {
+    const difficulties: readonly MapDifficulty[] = mapHasDifficulty(map.id) ? MAP_DIFFICULTY_IDS : ["normal"];
+    for (const difficulty of difficulties) {
+      const foodId = rngPick(rng, [...NEAR_EXPIRY_FOOD_IDS]);
+      const consumableId = rngPick(rng, RANDOM_CONSUMABLE_POOL);
+      supplies[difficultyKey(map.id, difficulty)] = [
+        makeItemStack(foodId, 2, { disposable: true }),
+        makeItemStack(consumableId, consumableId === "medical-kit-c" ? 1 : 2, { disposable: true }),
+        makeItemStack("energy-canister", 1, { disposable: true }),
+      ];
+    }
+  }
+  return supplies;
 }

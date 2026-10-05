@@ -3,16 +3,16 @@
 // 坐标以 1254×1254 原图为基准；裁切时会按输入图尺寸等比缩放。
 
 import { mkdir } from "node:fs/promises";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import sharp from "sharp";
+import { buffAssetPath } from "./buff-asset-paths.mjs";
 
 const BASE_SIZE = 1254;
 const OUTPUT_SIZE = 64;
 const CIRCLE_FEATHER = 5;
-const OUTPUT_DIRECTORY = resolve("src/assets/buffs");
 const CROPS = [
   { label: "中毒", filename: "中毒.png", left: 129, top: 57 },
-  { label: "烧伤", filename: "烧伤.png", left: 677, top: 57 },
+  { label: "灼烧", filename: "灼烧.png", left: 677, top: 57 },
   { label: "护盾", filename: "护盾.png", left: 129, top: 614 },
   { label: "增幅（锋利）", filename: "锋利.png", left: 677, top: 614 },
 ];
@@ -50,7 +50,6 @@ async function main() {
   }
 
   const scale = metadata.width / BASE_SIZE;
-  await mkdir(OUTPUT_DIRECTORY, { recursive: true });
 
   for (const crop of CROPS) {
     const left = Math.round(crop.left * scale);
@@ -63,7 +62,8 @@ async function main() {
       .toBuffer({ resolveWithObject: true });
 
     applyCircularAlpha(data, info.width, info.height);
-    const outputPath = resolve(OUTPUT_DIRECTORY, crop.filename);
+    const outputPath = buffAssetPath(crop.filename.replace(/\.png$/, ""), ".png");
+    await mkdir(dirname(outputPath), { recursive: true });
     await sharp(data, {
       raw: { width: info.width, height: info.height, channels: 4 },
     })

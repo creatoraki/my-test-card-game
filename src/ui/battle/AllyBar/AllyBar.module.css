@@ -31,6 +31,7 @@
      静态值, 把特效锚点定在立绘取景窗中心(取景窗高 = 槽高 100% − 底部三条约 48px)。
      .vfx 的 top 公式: fig-h − foot-inset − body-h×0.48 ≈ 取景窗高的 52% ≈ 其中心。 */
   --fig-h: calc(100% - 48px);
+  --ally-bars-height: calc(var(--hp-bar-h, 24px) + var(--poll-bar-h, 24px) + 8px);
   --foot-inset: 0px;
   --body-h: calc(100% - 48px);
   --body-cx: 0px;
@@ -296,13 +297,27 @@ span.ally-portrait {
 /* 状态图标在卡框外, 这样上方详情浮层不会被 .ally-frame 的裁切截断。 */
 .ally-status {
   position: absolute;
-  top: 0;
-  right: 0;
   z-index: 6;
   pointer-events: auto;
   --pip-box: 32px;
   --pip-count-size: 18px;
   --pip-rows: 5;
+}
+.ally-debuffs {
+  top: 0;
+  right: 0;
+}
+.ally-buffs {
+  bottom: calc(var(--ally-bars-height) + 2px);
+  left: 0;
+  max-width: 100%;
+}
+.ally-buff-pips {
+  --pip-gap: 0px;
+  flex-direction: column-reverse;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 /* 可选中 / 仇恨目标的描边发光。
    ⚠ 不能走 box-shadow: 卡框带 clip-path, 而 clip-path 会把外阴影一起裁掉(整条不可见)。

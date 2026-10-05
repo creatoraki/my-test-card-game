@@ -16,9 +16,19 @@ export interface CardMarkDef {
   playsAsFast?: true;
   // 常驻增益: 打出或离开手牌都不移除, 不能被搬运或剥离。
   persistent?: true;
+  expiresOnRoundEnd?: true;
 }
 
 export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
+  returnTax: {
+    id: "returnTax",
+    name: "回手负担",
+    emoji: "🪨",
+    desc: "每次回手使本卡费用 +1，可叠加；本回合结束时移除。",
+    effects: [],
+    persistent: true,
+    expiresOnRoundEnd: true,
+  },
   starPact: {
     id: "starPact",
     name: "星契",

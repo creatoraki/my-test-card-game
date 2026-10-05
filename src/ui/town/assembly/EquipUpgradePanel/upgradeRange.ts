@@ -3,14 +3,14 @@
 // ★ 口径全部来自 items/equipRoll.ts 的 upgradeEquipment(): 升阶不是重掷, 而是在原 roll 上继续加点。
 //   1. 每条正面词条先抬到新阶模型的 affix.min 地板: max(affix.min, 旧值)。
 //   2. 负面词条**整条重置**为 -rolledCost(数据上 min === max, 所以是确定值, 不是区间)。
-//   3. 增量预算 = randomInt(upgradeAdd) + 新阶返还 - 旧 cost 按新阶费率折算的返还(通用表每阶 9~10)。
-//   4. 这份预算按权重随机分配到各正面词条, 单条不超过 affix.max。
+//   3. 新完美度 = 旧完美度 + randomInt(upgradeAdd), 不超过新阶上限(upgradePerfectnessRange)。
+//   4. 新预算 = 新完美度 + 新阶返还; 减去已保留的正面点数后, 按权重随机分配到各正面词条, 单条不超过 affix.max。
 //
 // ⚠ 下限通常等于地板值(这一条可能一点都没分到); 只有**其余词条全部封顶**、预算无处可去时,
 //   它才被迫吃下多出来的点 —— 所以下限要减去其余词条的剩余空间, 不能想当然写成地板值。
 
 import type { StatBlock } from "@/engine";
-import { AFFIX_SCALE, DEFAULT_UPGRADE_ADD } from "@/items/equipRoll";
+import { AFFIX_SCALE, rollPerfectness, upgradePerfectnessRange } from "@/items/equipRoll";
 import type { EquipRoll, ItemDef } from "@/items/types";
 import { STAT_LABEL } from "@/ui/common/item/ItemDetail";
 import { isPercentStat } from "@/ui/common/shared/statGroups";
@@ -31,31 +31,34 @@ export interface StatRangeRow {
 
 export interface UpgradeRangePreview {
   rows: StatRangeRow[];
-  /** 本次升阶实际投入的模型值区间。 */
+  /** 本次升阶实际补发到正面词条的模型值区间。 */
   budgetMin: number;
   budgetMax: number;
+  /** 完美度: 当前值与升阶后区间。 */
+  perfectness: { current: number; min: number; max: number };
 }
 
 const scaled = (stat: keyof StatBlock, points: number) => points * (AFFIX_SCALE[stat] ?? 1);
 
 /** 算出「这件装备升到 nextDef 后, 每条属性可能落在什么区间」。nextDef 没有模型时返回 null。 */
-export function upgradeRangePreview(nextDef: ItemDef, roll: EquipRoll): UpgradeRangePreview | null {
+export function upgradeRangePreview(
+  currentDef: ItemDef,
+  nextDef: ItemDef,
+  roll: EquipRoll,
+): UpgradeRangePreview | null {
   const model = nextDef.model;
   if (!model) return null;
 
-  // 升阶固定投入的模型值, 与 upgradeEquipment 同口径。
-  const [addedMin, addedMax] = model.upgradeAdd ?? DEFAULT_UPGRADE_ADD;
-  const refundRate = model.costRefund ?? 0.7;
+  // 与 upgradeEquipment 同口径: 新预算 = 新完美度 + 新阶返还 - 已保留的正面点数。
+  const [perfectMin, perfectMax] = upgradePerfectnessRange(currentDef, roll, nextDef);
   const drawbacks = model.drawbacks ?? [];
   const costMin = drawbacks.reduce((sum, affix) => sum + affix.min, 0);
   const costMax = drawbacks.reduce((sum, affix) => sum + affix.max, 0);
-  const refundOf = (cost: number) => model.costRefundFlat ?? Math.round(cost * refundRate);
-  // 旧 cost 也按**新阶**的费率折算 —— 与 upgradeEquipment 保持一致。
-  const previousRefund = roll.cost == null ? 0 : Math.round(roll.cost * refundRate);
-  const budgetMin = Math.max(0, addedMin + refundOf(costMin) - previousRefund);
-  const budgetMax = Math.max(budgetMin, addedMax + refundOf(costMax) - previousRefund);
-
+  const refundOf = (cost: number) => model.costRefundFlat ?? Math.round(cost * (model.costRefund ?? 0.7));
   const floors = model.affixes.map((affix) => Math.max(affix.min, roll.points[affix.stat] ?? 0));
+  const kept = floors.reduce((sum, floor) => sum + floor, 0);
+  const budgetMin = Math.max(0, perfectMin + refundOf(costMin) - kept);
+  const budgetMax = Math.max(budgetMin, perfectMax + refundOf(costMax) - kept);
   const rooms = model.affixes.map((affix, i) => Math.max(0, affix.max - floors[i]));
   const totalRoom = rooms.reduce((sum, room) => sum + room, 0);
 
@@ -89,7 +92,12 @@ export function upgradeRangePreview(nextDef: ItemDef, roll: EquipRoll): UpgradeR
     });
   }
 
-  return { rows, budgetMin, budgetMax };
+  return {
+    rows,
+    budgetMin,
+    budgetMax,
+    perfectness: { current: rollPerfectness(currentDef, roll), min: perfectMin, max: perfectMax },
+  };
 }
 
 /** 展示用: 四舍五入到整数, 正数带 +。 */

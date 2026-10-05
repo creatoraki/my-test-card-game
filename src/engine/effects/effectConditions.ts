@@ -2,7 +2,7 @@ import type { BattleState, Card, EffectDescriptor } from "../types";
 import { counterOf } from "../combat/counters";
 import { playableHandUids } from "../cards/passiveCards";
 import { isReacting } from "../combat/reaction";
-import { getStatusDef } from "../statuses";
+import { isStealableBuff } from "../hexer/stealableBuff";
 import { anyAllyCountsAsAttacked, countsAsAttacked, emergencyPartyWide } from "../actuary/actuaryRules";
 
 export function conditionMet(
@@ -48,10 +48,7 @@ export function conditionMet(
     );
   if (effect.condition === "targetHasBuff" || effect.condition === "targetLacksBuff") {
     const hasBuff = (targetIds ?? []).some((id) =>
-      state.combatants[id]?.statuses.some((status) => {
-        const def = getStatusDef(status.id);
-        return status.stacks > 0 && def?.kind === "buff" && !def.undispellable;
-      }),
+      state.combatants[id]?.statuses.some(isStealableBuff),
     );
     return effect.condition === "targetHasBuff" ? hasBuff : !hasBuff;
   }

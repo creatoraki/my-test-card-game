@@ -5,6 +5,9 @@ import { useMemo } from "react";
 import { activeBonds, BOND_DEFS, nextTier } from "@/data/roster/bonds";
 import { bondCountsOf, type CharacterState } from "@/store/town/townStore";
 import { BondSlot } from "@/ui/common/bond/BondSlot";
+import { BondEffect } from "@/ui/common/bond/BondEffect";
+import { RailPopover } from "@/ui/common/tooltip/RailPopover";
+import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import s from "./SquadBondStrip.module.css";
 
 interface Props {
@@ -29,7 +32,7 @@ export function SquadBondStrip({ characters, party, charId }: Props) {
 
   return (
     <section className={s.strip} aria-label="小队羁绊">
-      <div className={s.label}>
+      <div className={s.label} data-rail-item tabIndex={0}>
         <span className={s.index} aria-hidden="true">02</span>
         <div className={s.labelText}>
           <h3 className={s.title}>小队羁绊</h3>
@@ -37,10 +40,28 @@ export function SquadBondStrip({ characters, party, charId }: Props) {
             已激活 <b>{activeCount}</b> / {bonds.length}
           </span>
         </div>
+        <RailPopover side="bottom">
+          <TooltipCard title="小队羁绊详情" accent="var(--k)"
+            desc={bonds.length === 0 ? "当前小队尚无羁绊词条。装备带有羁绊词条的物品后，小队点数达到对应门槛即可激活效果。" : undefined}>
+            {bonds.length > 0 && <div className={s.details}>
+              {bonds.map(({ def, count, mine, tierIndex, next }) => <div key={def.id}>
+                <p className={s.detailHeading}>{def.name} · {count} 点 · {tierIndex < 0 ? "未激活" : `第 ${tierIndex + 1} 档`}</p>
+                <BondEffect def={def} tierIndex={tierIndex} />
+                <p className={s.detailNote}>本队员贡献 {mine} 点{next ? `，距离下一档还差 ${next.count - count} 点` : "，已达到最高档"}</p>
+              </div>)}
+            </div>}
+          </TooltipCard>
+        </RailPopover>
       </div>
 
       {bonds.length === 0 ? (
-        <p className={s.empty}>小队装备上暂无羁绊词条</p>
+        <div className={s.empty} data-rail-item tabIndex={0}>
+          小队装备上暂无羁绊词条
+          <RailPopover side="bottom">
+            <TooltipCard title="小队羁绊详情" accent="var(--k)"
+              desc="当前小队尚无羁绊词条。装备带有羁绊词条的物品后，小队点数达到对应门槛即可激活效果。" />
+          </RailPopover>
+        </div>
       ) : (
         <div className={s.list}>
           {bonds.map(({ def, count, mine, tierIndex, next }) => (

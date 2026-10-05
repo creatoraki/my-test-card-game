@@ -1,5 +1,6 @@
 import { memo } from "react";
 import type { Ally, Card, Combatant } from "@/engine";
+import { getStatusDef } from "@/engine";
 import { getCharacter } from "@/data";
 import type { HitFx } from "@/ui/battle/choreo/animations";
 import { UNIT_BODY_ATTR, unitShellAttrs } from "@/ui/battle/choreo/unitShell";
@@ -144,13 +145,22 @@ const AllySlot = memo(function AllySlot({
       }}
     >
       <span className={s["ally-glow"]} aria-hidden="true" />
-      <div className={s["ally-status"]}>
+      <div className={cx(s["ally-status"], s["ally-debuffs"])}>
         <StatusPips
-          statuses={cmb.statuses}
-          shield={cmb.shield}
+          statuses={cmb.statuses.filter((status) => getStatusDef(status.id)?.kind === "debuff")}
           detail
           vertical
           popoverSide="top-left"
+          frame
+        />
+      </div>
+      <div className={cx(s["ally-status"], s["ally-buffs"])}>
+        <StatusPips
+          statuses={cmb.statuses.filter((status) => getStatusDef(status.id)?.kind !== "debuff")}
+          shield={cmb.shield}
+          detail
+          className={s["ally-buff-pips"]}
+          popoverSide="top-right"
           frame
         />
       </div>

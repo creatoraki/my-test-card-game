@@ -165,7 +165,7 @@ export interface Card extends CardDef {
   // 磁化护符的被动牌保留回合数。0 / 缺省表示按普通规则回收。
   holdRounds?: number;
   resonanceStacks?: number; // 手牌内共鸣强化次数; 离手后清零
-  costStacks?: number; // 雷走回手累计费用加成; 真正进弃牌堆后清零
+  costStacks?: number; // 回手负担 BUFF 的费用加成层数，回合结束清零
   notoPending?: boolean; // 纳刀待取回标记
   marks?: string[];
   cultivateLeft?: number;

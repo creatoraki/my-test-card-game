@@ -14,6 +14,7 @@ import { regionalTierOf, type RegionalTier } from "@/data/items/catalog/regional
 import type { EquipSlot, ItemCategory, ItemDef } from "@/items/types";
 import { ModuleGlyph, hasModuleGlyph } from "../moduleGlyphs/moduleGlyphs";
 import { MODULE_ART, MODULE_ART_SOURCES } from "./moduleArt";
+import { TEMPORARY_RELIC_ART } from "./temporaryRelicArt";
 import deflectionBladeArt from "@/assets/道具/装备/武器/太刀.webp";
 import saberArt from "@/assets/道具/装备/武器/军刀.webp";
 import crossSwordArt from "@/assets/道具/装备/武器/盾斧.webp";
@@ -345,6 +346,7 @@ const SCRAP_ART: Record<string, string> = {
 };
 
 const RELIC_ART: Record<string, string> = {
+  ...TEMPORARY_RELIC_ART,
   "relic-black-iron-nail": blackIronNailArt,
   "relic-pendulum": pendulumArt,
   "relic-sport-shoes": sportShoesArt,

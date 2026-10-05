@@ -196,16 +196,17 @@ export function playCard(
         const returnsToHand = card.playReturn?.when === "fastPlaysThisRound" &&
           fastPlays >= card.playReturn.atLeast &&
           state.hand.length < partyHandLimit(state);
-        // 咒术师回手(咒钉满足恶毒): 不改费用; 手牌已满时照常进弃牌堆。
+        // 咒术师回手：手牌已满时照常进弃牌堆。
         const hexReturns = !returnsToHand && state.hexPlay.returnToHand && state.hand.length < partyHandLimit(state);
         if (card.exhaust) exhaustCard(state, uid);
-        else if (returnsToHand) {
+        else if (returnsToHand || hexReturns) {
           state.hand.push(uid);
-          card.costStacks = (card.costStacks ?? 0) + 1;
-          log(state, `${card.name} 返回手牌，费用增加 ${card.playReturn?.costDelta ?? 0}`);
-        } else if (hexReturns) {
-          state.hand.push(uid);
-          log(state, `${card.name} 返回手牌`);
+          const costDelta = returnsToHand ? card.playReturn!.costDelta : 1;
+          if (costDelta > 0) {
+            card.costStacks = (card.costStacks ?? 0) + costDelta;
+            if (!card.marks?.includes("returnTax")) (card.marks ??= []).push("returnTax");
+          }
+          log(state, `${card.name} 返回手牌，本回合费用增加 ${costDelta}`);
         } else moveToDiscard(state, uid, "play");
 
         for (const ref of card.keywords ?? []) {

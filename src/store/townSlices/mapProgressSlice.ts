@@ -1,10 +1,11 @@
-import { difficultyKey, rollAllDailyClearRewards, type MapDifficulty } from "@/data";
+import { difficultyKey, rollAllDailyClearRewards, rollAllDailyAidSupplies, type MapDifficulty } from "@/data";
 import type { ItemStack } from "@/items/types";
 import type { TownStore } from "../town/townStore";
 
 export interface DailyClearState {
   day: number;
   rewards: Record<string, ItemStack[]>;
+  aidSupplies: Record<string, ItemStack[]>;
 }
 
 export interface MapProgressState {
@@ -21,7 +22,7 @@ export interface MapProgressSlice {
 export function freshMapProgress(day: number): MapProgressState {
   return {
     clearedDifficulties: [],
-    dailyClear: { day, rewards: rollAllDailyClearRewards(day) },
+    dailyClear: { day, rewards: rollAllDailyClearRewards(), aidSupplies: rollAllDailyAidSupplies() },
   };
 }
 
@@ -40,7 +41,7 @@ export function createMapProgressSlice(
     syncDailyClear: () => {
       const { day, dailyClear } = get();
       if (dailyClear.day === day) return;
-      set({ dailyClear: { day, rewards: rollAllDailyClearRewards(day) } });
+      set({ dailyClear: freshMapProgress(day).dailyClear });
     },
 
     takeDailyClearReward: (mapId, difficulty) => {

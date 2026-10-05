@@ -12,15 +12,15 @@ export function useExploreInventory(session: ExploreState | null) {
   const [beaconPicking, setBeaconPicking] = useState(false);
   const [atlasOpen, setAtlasOpen] = useState(false);
   const [detailCharId, setDetailCharId] = useState<string | null>(null);
-  // 背包里点「装备」带进队员档案的那件装备(背包 uid)。穿上后它离开背包, 档案自然不再提示。
-  const [equipPendingUid, setEquipPendingUid] = useState<string | null>(null);
+  // 只记录需要引导的部位，不保存待装备物品。
+  const [equipFocus, setEquipFocus] = useState<{ slot: EquipSlot } | null>(null);
   const [target, setTarget] = useState<ItemStack | null>(null);
   // 选人使用物品被拒(目标不适用)时, 在该队员框上闪一下红框 —— seq 让连续点同一人也能重播。
   const [rejected, setRejected] = useState<{ charId: string; seq: number } | null>(null);
   const allowed = Boolean(session && canOpenBackpack(session));
 
   useEffect(() => {
-    if (!allowed) { setBagOpen(false); setPicnicOpen(false); setBeaconPicking(false); setAtlasOpen(false); setDetailCharId(null); setEquipPendingUid(null); setTarget(null); }
+    if (!allowed) { setBagOpen(false); setPicnicOpen(false); setBeaconPicking(false); setAtlasOpen(false); setDetailCharId(null); setEquipFocus(null); setTarget(null); }
   }, [allowed]);
   useEffect(() => {
     if (!rejected) return;
@@ -31,7 +31,7 @@ export function useExploreInventory(session: ExploreState | null) {
   useEffect(() => {
     const escape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      setTarget(null); setDetailCharId(null); setEquipPendingUid(null); setPicnicOpen(false); setBeaconPicking(false); setAtlasOpen(false); setBagOpen(false);
+      setTarget(null); setDetailCharId(null); setEquipFocus(null); setPicnicOpen(false); setBeaconPicking(false); setAtlasOpen(false); setBagOpen(false);
     };
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
@@ -51,20 +51,23 @@ export function useExploreInventory(session: ExploreState | null) {
     if (target) {
       if (useExploreStore.getState().useItem(target.uid, charId)) setTarget(null);
       else setRejected((prev) => ({ charId, seq: (prev?.seq ?? 0) + 1 }));
-    } else setDetailCharId(charId);
+    } else { setEquipFocus(null); setDetailCharId(charId); }
   };
-  // 背包「装备」: 打开队员档案并带上这件装备。档案已开着就留在当前队员, 否则落在第一名存活队员上。
   const openEquip = useCallback((stack: ItemStack) => {
-    const party = useExploreStore.getState().session?.party ?? [];
-    const first = party.find((member) => member.alive) ?? party[0];
+    const current = useExploreStore.getState().session;
+    const def = getItemDef(stack.itemId);
+    if (!current || !canOpenBackpack(current) || def.category !== "equipment" || !def.slot) return;
+    const first = current.party.find((member) => member.alive) ?? current.party[0];
     if (!first) return;
-    setEquipPendingUid(stack.uid);
-    setDetailCharId((current) => current ?? first.charId);
+    setTarget(null);
+    setBagOpen(false);
+    setEquipFocus({ slot: def.slot });
+    setDetailCharId((selected) => current.party.some((member) => member.charId === selected && member.alive) ? selected : first.charId);
   }, []);
-  const closeDetail = () => { setDetailCharId(null); setEquipPendingUid(null); };
+  const closeDetail = () => { setDetailCharId(null); setEquipFocus(null); };
   const equip = (uid: string) => {
     if (!detailCharId) return;
-    useRunStore.getState().equipFromBackpack(detailCharId, uid);
+    if (useRunStore.getState().equipFromBackpack(detailCharId, uid)) setEquipFocus(null);
   };
   const unequip = (slot: EquipSlot) => {
     if (!detailCharId) return;
@@ -72,9 +75,9 @@ export function useExploreInventory(session: ExploreState | null) {
   };
   const mustReplace = Boolean(session?.pendingPickup.length);
   return {
-    allowed, bagOpen: bagOpen || mustReplace, picnicOpen, beaconPicking, atlasOpen, detailCharId, equipPendingUid, target, rejected,
+    allowed, bagOpen: bagOpen || mustReplace, picnicOpen, beaconPicking, atlasOpen, detailCharId, equipFocus, target, rejected,
     blocked: bagOpen || mustReplace || picnicOpen || atlasOpen || beaconPicking || Boolean(detailCharId || target),
-    setBagOpen, setPicnicOpen, setBeaconPicking, setAtlasOpen, setDetailCharId, setEquipPendingUid, setTarget,
+    setBagOpen, setPicnicOpen, setBeaconPicking, setAtlasOpen, setDetailCharId, setTarget,
     useItem, chooseMember, openEquip, closeDetail, equip, unequip,
   };
 }

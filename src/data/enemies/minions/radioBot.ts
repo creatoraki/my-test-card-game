@@ -7,7 +7,7 @@ export const RADIO_BOT: EnemyDef = {
   emoji: "📻",
   maxHp: 45,
   exp: 14,
-  stats: { attack: 45, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
+  stats: { attack: 100, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
   moves: [
     {
       id: "radio-peck",
@@ -20,7 +20,7 @@ export const RADIO_BOT: EnemyDef = {
       weight: 3,
       anim: "shot",
       effects: [
-        { type: "DAMAGE", multiplier: 0.55, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.2475, target: "primary" },
         { type: "APPLY_STATUS", status: "static", stacks: 1, target: "primary" },
       ],
     },
@@ -47,7 +47,7 @@ export const RADIO_BOT: EnemyDef = {
       weight: 1,
       anim: "lightning",
       effects: [
-        { type: "DAMAGE", multiplier: 0.5, target: "allFoes" },
+        { type: "DAMAGE", multiplier: 0.225, target: "allFoes" },
         { type: "APPLY_STATUS", status: "static", stacks: 1, target: "allFoes" },
       ],
     },

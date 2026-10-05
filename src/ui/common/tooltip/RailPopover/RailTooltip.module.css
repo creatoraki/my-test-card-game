@@ -8,3 +8,8 @@
   pointer-events: none;
   font-size: 18px;
 }
+
+/* 弹窗内触发的详情与物品详情同层，避免被弹窗遮罩及背景模糊覆盖。 */
+.tooltip[data-in-dialog] {
+  z-index: 1000;
+}

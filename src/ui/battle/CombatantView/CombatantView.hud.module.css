@@ -18,7 +18,9 @@
   --pip-art-scale: 1;
   --pip-background: rgba(0, 0, 0, 0.3);
   --pip-backdrop-filter: blur(8px);
-  --pip-count-size: 18px;
+  --pip-count-size: 16px;
+  /* 数字字形底部贴住图标下沿，增益与减益使用相同读数样式。 */
+  --pip-count-bottom: -2px;
   width: 100%;
   justify-content: flex-start;
 }

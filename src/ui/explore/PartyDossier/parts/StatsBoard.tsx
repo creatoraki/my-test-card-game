@@ -1,6 +1,6 @@
 // 「属性装备」页下半: 三组只读面板属性, 一组一列。
 // ★ 分组与条长旋钮来自 common/statGroups.ts(与角色详情页同一份)。
-// ★ preview 非空时(悬停候选 / 有待换上装备), 每行在数值后标出换装后的差值。
+// ★ preview 非空时(悬停候选), 每行在数值后标出换装后的差值。
 import type { CSSProperties } from "react";
 import type { StatBlock } from "@/engine";
 import { StatIcon } from "@/ui/common/icon/StatIcon";

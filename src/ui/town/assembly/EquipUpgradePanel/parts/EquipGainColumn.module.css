@@ -87,6 +87,17 @@
   text-shadow: 0 0 10px color-mix(in srgb, var(--deco-teal) 35%, transparent);
 }
 
+/* 完美度: 金色标出, 与普通词条区分。 */
+.perfect .label,
+.perfect .next {
+  color: var(--deco-gold);
+  font-weight: 700;
+}
+
+.perfect .next {
+  text-shadow: 0 0 10px color-mix(in srgb, var(--deco-gold) 35%, transparent);
+}
+
 /* 已封顶: 整行压暗, 一眼看出这条不会再涨。 */
 .capped .label,
 .capped .current {

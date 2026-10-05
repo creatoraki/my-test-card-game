@@ -32,7 +32,7 @@ export const HEXER_UNCOMMON_CARDS: CardDef[] = [
     rarity: "uncommon",
     anim: "lightning",
     effects: [
-      { type: "DAMAGE", multiplier: 1.3, target: "primary" },
+      { type: "DAMAGE", multiplier: 1, target: "primary" },
       { type: "GAIN_ENEMY_AP", amount: 2, target: "primary", keywordGate: late(3, true) },
     ],
     text: "造成 {0} 点伤害，然后目标获得 2 点行动点。后发 3：改为不获得行动点。",

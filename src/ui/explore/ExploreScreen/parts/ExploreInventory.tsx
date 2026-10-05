@@ -36,8 +36,9 @@ export function ExploreInventory({ session, inventory }: { session: ExploreState
     {inventory.picnicOpen && <PicnicPanel onClose={() => inventory.setPicnicOpen(false)} />}
     {/* 队员档案: 页签与浮层状态挂在 PartyDossier 自身, 换队员只换 charId, 不重新挂载。 */}
     {inventory.detailCharId && <PartyDossier
-      session={session} charId={inventory.detailCharId} pendingUid={inventory.equipPendingUid} allowed={inventory.allowed}
+      session={session} charId={inventory.detailCharId} allowed={inventory.allowed}
+      equipFocus={inventory.equipFocus}
       onSelect={inventory.setDetailCharId} onEquip={inventory.equip} onUnequip={inventory.unequip}
-      onCancelPending={() => inventory.setEquipPendingUid(null)} onClose={inventory.closeDetail} />}
+      onClose={inventory.closeDetail} />}
   </>;
 }

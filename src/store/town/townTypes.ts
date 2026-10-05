@@ -5,7 +5,7 @@ import type { TechTreeState } from "@/data";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import type { BondBias } from "@/explore/types";
 import type { CurioTownSlice } from "../townSlices/curioTownSlice";
-import type { MapProgressSlice } from "../townSlices/mapProgressSlice";
+import type { DailyClearState, MapProgressSlice } from "../townSlices/mapProgressSlice";
 import type { ShopState } from "../townSlices/shopSlice";
 
 export interface CharacterState {
@@ -72,7 +72,7 @@ export interface TownStore extends CurioTownSlice {
   fallen: string[]; // 永久阵亡的角色 id, 按阵亡先后。与 awakened 互斥
   clearedMaps: string[]; // 已通关的地图 id
   clearedDifficulties: string[]; // 已通关的地图难度 key
-  dailyClear: { day: number; rewards: Record<string, ItemStack[]> };
+  dailyClear: DailyClearState;
   party: string[]; // 上阵角色 id, 1 ≤ length ≤ RULES.progression.partySize, 且必须 ⊆ awakened
   loot: number; // 居民积分余额 —— 主要来自废料出售; 团灭时本趟的产出全丢
   // ★ 物资中转仓: **不设上限**(与背包的 24 格形成对照)。远征活着回来才有东西进来。

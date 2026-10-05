@@ -82,7 +82,7 @@ export function createEquipCraftSlice(
       const recipe = upgradeRecipe(nextDef.slot, nextDef.rarity, itemRegionId(nextDef));
       if (!recipe || !check.ok) return;
 
-      const nextRoll = upgradeEquipment(stack.roll, nextDef, randomPick);
+      const nextRoll = upgradeEquipment(stack.roll, currentDef, nextDef, randomPick);
       const nextStorage = recipe.materials.reduce(
         (storage, material) => consumeItems(storage, material.itemId, material.count),
         state.storage,

@@ -1,5 +1,5 @@
 // 「属性装备」页上半: 武器 / 防具 / 饰品三张大装备卡 + 点开后的背包候选浮层。
-// ★ 候选悬停与「待换上」都会通过 onPreview 把假设穿戴交给属性面板做差值预览。
+// ★ 候选悬停通过 onPreview 把假设穿戴交给属性面板做差值预览。
 import { useState } from "react";
 import { getItemDef } from "@/data";
 import type { EquipSlot, ItemStack } from "@/items/types";
@@ -13,8 +13,8 @@ interface Props {
   equipped: Record<EquipSlot, ItemStack | null>;
   /** 背包里的全部装备。 */
   candidates: ItemStack[];
-  pending: ItemStack | null;
   lockedReason?: string;
+  highlightedSlot?: EquipSlot;
   onEquip: (uid: string) => void;
   onUnequip: (slot: EquipSlot) => void;
   onPreview: (preview: { slot: EquipSlot; stack: ItemStack } | null) => void;
@@ -25,8 +25,8 @@ interface Props {
 export function EquipRow({
   equipped,
   candidates,
-  pending,
   lockedReason,
+  highlightedSlot,
   onEquip,
   onUnequip,
   onPreview,
@@ -34,7 +34,6 @@ export function EquipRow({
   onHideTooltip,
 }: Props) {
   const [open, setOpen] = useState<{ slot: EquipSlot; anchor: HTMLElement } | null>(null);
-  const pendingSlot = pending ? getItemDef(pending.itemId).slot : undefined;
 
   const close = () => {
     onHideTooltip();
@@ -49,11 +48,9 @@ export function EquipRow({
           key={slot}
           slot={slot}
           stack={equipped[slot]}
-          pending={pendingSlot === slot ? pending : null}
           active={open?.slot === slot}
-          lockedReason={lockedReason}
+          highlighted={!lockedReason && highlightedSlot === slot}
           onOpen={(anchor) => setOpen((current) => (current?.slot === slot ? null : { slot, anchor }))}
-          onEquipPending={() => pending && onEquip(pending.uid)}
           onShowTooltip={onShowTooltip}
           onHideTooltip={onHideTooltip}
         />

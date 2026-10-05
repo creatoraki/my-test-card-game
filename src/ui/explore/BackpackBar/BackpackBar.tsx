@@ -20,7 +20,6 @@ export default memo(function BackpackBar({
 }: {
   // 「使用」入口: 由 ExploreScreen 接手(目标类消耗品进入头像选择流程, 其余立即生效)。
   onUseItem?: (stack: ItemStack) => void;
-  // 「装备」入口: 打开队员档案并带上这件装备, 由玩家在档案里挑队员换上。
   onEquipItem?: (stack: ItemStack) => void;
 }) {
   const backpack = useExploreStore((state) => state.session?.backpack);
@@ -31,7 +30,7 @@ export default memo(function BackpackBar({
 
   if (!backpack) return null;
 
-  // 详情浮层操作区的按钮: 模组给「装载」、模组箱给「拆箱」、装备给「装备」、其余有 use 效果的给「使用」(阶段不允许时置灰并写明理由),
+  // 详情浮层操作区的按钮: 模组给「装载」、模组箱给「拆箱」、有 use 效果的给「使用」(阶段不允许时置灰并写明理由),
   // 可丢的给「丢弃」(原地二次确认)。
   const slotActions = (stack: ItemStack): SlotAction[] => {
     const def = getItemDef(stack.itemId);
@@ -54,13 +53,13 @@ export default memo(function BackpackBar({
         hint: "本阶段不能拆箱",
         onSelect: () => modules.openCrate(stack),
       });
-    } else if (def.category === "equipment" && def.slot) {
+    } else if (def.category === "equipment" && def.slot && onEquipItem) {
       actions.push({
         key: "equip",
         label: "装备",
         tone: "primary",
         icon: "equip",
-        onSelect: () => onEquipItem?.(stack),
+        onSelect: () => onEquipItem(stack),
       });
     } else if (def.use) {
       actions.push({

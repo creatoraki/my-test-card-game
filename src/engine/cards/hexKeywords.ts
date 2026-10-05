@@ -35,7 +35,7 @@ export const HEX_CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
   },
   {
     id: "boneRot",
-    name: "附骨",
+    name: "痛楚",
     desc: "每拍每层受到 1 点伤害，无视护盾，不降低体力极限；持续 5 回合。每次施加形成独立一段。",
   },
   {

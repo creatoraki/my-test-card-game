@@ -7,7 +7,7 @@ export const SWEEP_DRONE: EnemyDef = {
   emoji: "🛸",
   maxHp: 72,
   exp: 16,
-  stats: { attack: 60, defense: 2, dodgeRate: 0, initiative: 20, critDamage: 150 },
+  stats: { attack: 100, defense: 2, dodgeRate: 0, initiative: 20, critDamage: 150 },
   moves: [
     {
       id: "sweep-bump",
@@ -19,7 +19,7 @@ export const SWEEP_DRONE: EnemyDef = {
       targeting: "foe",
       weight: 2,
       anim: "smash",
-      effects: [{ type: "DAMAGE", multiplier: 0.6, target: "primary" }],
+      effects: [{ type: "DAMAGE", multiplier: 0.36, target: "primary" }],
     },
     {
       id: "sweep-recover",
@@ -32,7 +32,7 @@ export const SWEEP_DRONE: EnemyDef = {
       weight: 1.5,
       anim: "slash",
       effects: [
-        { type: "DAMAGE", multiplier: 0.6, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.36, target: "primary" },
         { type: "APPLY_STATUS", status: "static", stacks: 1, target: "primary" },
         { type: "DRAIN_SHIELD", maxAmount: 8, target: "primary" },
       ],
@@ -70,7 +70,7 @@ export const SWEEP_DRONE: EnemyDef = {
       bias: [{ when: "noFoeHasStatus", status: "burn", multiplier: 0.5 }],
       anim: "fire",
       effects: [
-        { type: "DAMAGE", multiplier: 0.8, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.48, target: "primary" },
         { type: "APPLY_STATUS", status: "flammable", stacks: 1, duration: 3, target: "primary" },
         { type: "APPLY_STATUS", status: "scorched", stacks: 1, duration: 3, target: "primary" },
       ],

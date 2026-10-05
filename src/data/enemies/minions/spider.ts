@@ -7,7 +7,7 @@ export const MAINTENANCE_SPIDER: EnemyDef = {
   emoji: "🕷️",
   maxHp: 62,
   exp: 16,
-  stats: { attack: 60, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
+  stats: { attack: 100, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
   moves: [
     {
       id: "spider-slag",
@@ -20,7 +20,7 @@ export const MAINTENANCE_SPIDER: EnemyDef = {
       weight: 2,
       anim: "fire",
       effects: [
-        { type: "DAMAGE", multiplier: 0.5, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.3, target: "primary" },
         { type: "APPLY_STATUS", status: "static", stacks: 1, target: "primary" },
         { type: "MARK_CARDS", mark: "scorching", markPick: "targetHandRandom", amount: 1, target: "primary" },
       ],
@@ -36,7 +36,7 @@ export const MAINTENANCE_SPIDER: EnemyDef = {
       weight: 2,
       anim: "fire",
       effects: [
-        { type: "DAMAGE", multiplier: 0.55, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.33, target: "primary" },
         { type: "APPLY_STATUS", status: "burn", stacks: 3, duration: 3, target: "primary" },
       ],
     },
@@ -51,7 +51,7 @@ export const MAINTENANCE_SPIDER: EnemyDef = {
       weight: 0.8,
       anim: "fire",
       effects: [
-        { type: "DAMAGE", multiplier: 0.45, target: "allFoes" },
+        { type: "DAMAGE", multiplier: 0.27, target: "allFoes" },
         { type: "APPLY_STATUS", status: "burn", stacks: 2, duration: 2, target: "allFoes" },
       ],
     },

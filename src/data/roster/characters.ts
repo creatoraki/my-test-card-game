@@ -322,7 +322,7 @@ export const CHARACTERS: CharacterDef[] = [
     }),
     startingCardIds: [
       ...basicStartingCardIds("hexer"),
-      // 缠丝(怨咒) → 待机 → 迟咒(后发 2, 全体附骨) → 咒钉(厄运, 恶毒 3 回手): 第一回合两个词条各触发一次。
+      // 缠丝(怨咒) → 待机 → 迟咒(后发 2, 全体痛楚) → 咒钉(厄运, 恶毒 3 回手): 第一回合两个词条各触发一次。
       "curse-nail",
       "lingering-hex",
       "binding-thread",

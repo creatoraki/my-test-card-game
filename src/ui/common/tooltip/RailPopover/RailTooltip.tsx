@@ -7,9 +7,11 @@ import s from "./RailTooltip.module.css";
 export function RailTooltip({ side, children }: { side: string; children: ReactNode }) {
   const marker = useRef<HTMLSpanElement>(null);
   const [point, setPoint] = useState<TooltipPoint | null>(null);
+  const [inDialog, setInDialog] = useState(false);
   useEffect(() => {
     const anchor = marker.current?.closest<HTMLElement>("[data-rail-item]");
     if (!anchor) return;
+    setInDialog(Boolean(anchor.closest('[role="dialog"], [aria-modal="true"]')));
     let frame = 0;
     const update = () => {
       cancelAnimationFrame(frame);
@@ -28,18 +30,19 @@ export function RailTooltip({ side, children }: { side: string; children: ReactN
     };
     const events = ["pointerenter", "pointerleave", "focusin", "focusout"] as const;
     events.forEach((event) => anchor.addEventListener(event, update));
+    update();
     return () => {
       cancelAnimationFrame(frame);
       events.forEach((event) => anchor.removeEventListener(event, update));
     };
   }, [side]);
-  return <><span ref={marker} hidden />{point && <TooltipLayer point={point}>{children}</TooltipLayer>}</>;
+  return <><span ref={marker} hidden />{point && <TooltipLayer point={point} inDialog={inDialog}>{children}</TooltipLayer>}</>;
 }
 
-function TooltipLayer({ point, children }: { point: TooltipPoint; children: ReactNode }) {
+function TooltipLayer({ point, inDialog, children }: { point: TooltipPoint; inDialog: boolean; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const placement = useTooltipPlacement(point, ref);
-  return createPortal(<div ref={ref} role="tooltip" className={s.tooltip} style={tooltipStyle(placement)}>
+  return createPortal(<div ref={ref} role="tooltip" className={s.tooltip} data-in-dialog={inDialog || undefined} style={tooltipStyle(placement)}>
     {children}
   </div>, point.host);
 }

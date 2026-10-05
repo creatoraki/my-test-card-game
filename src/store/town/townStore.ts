@@ -222,6 +222,7 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: TOWN_PROFILE_KEY, version: 31 },
+    // v32: 配额物资与通关奖励每日随机生成并共同持久化。
+    { name: TOWN_PROFILE_KEY, version: 32 },
   ),
 );

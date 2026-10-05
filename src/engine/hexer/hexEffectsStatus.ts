@@ -6,6 +6,7 @@ import { ops } from "../core/ops";
 import { rngPick } from "../core/rng";
 import { getStatusDef } from "../statuses";
 import { attackDamage, offenseStatOf } from "../combat/stats";
+import { isStealableBuff } from "./stealableBuff";
 
 const RANDOM_HEX_POOL = ["doom", "grudge", "seal"] as const;
 const GRUDGE_DAMAGE_RATIO = 0.1;
@@ -46,7 +47,7 @@ function stealBuff(state: BattleState, sourceId: string, primaryId: string | und
   const target = aliveUnit(state, primaryId);
   state.lastRemovedStatusCount = 0;
   if (!target || !aliveUnit(state, sourceId)) return;
-  const pool = target.statuses.filter((status) => movable(status, "buff"));
+  const pool = target.statuses.filter(isStealableBuff);
   if (pool.length === 0) return;
   const stolen = pool.reduce((best, status) => (status.stacks > best.stacks ? status : best));
   target.statuses = target.statuses.filter((status) => status !== stolen);

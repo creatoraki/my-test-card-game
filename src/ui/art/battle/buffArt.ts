@@ -2,13 +2,13 @@
 // 战斗状态仍由 statusArt.ts 管理，避免把两套 id 体系混在同一张表里。
 
 import type { AssembleId } from "@/engine";
-import assembleAArt from "@/assets/buffs/buffs/组装A.webp";
-import assembleBArt from "@/assets/buffs/buffs/组装B.webp";
-import assembleCArt from "@/assets/buffs/buffs/组装C.webp";
-import assembleDArt from "@/assets/buffs/buffs/组装D.webp";
-import cultivationArt from "@/assets/buffs/buffs/培育.webp";
-import cultivatedArt from "@/assets/buffs/buffs/培育成熟.webp";
-import potionArt from "@/assets/buffs/buffs/魔药.webp";
+import assembleAArt from "@/assets/buffs/部件/组装/组装A.webp";
+import assembleBArt from "@/assets/buffs/部件/组装/组装B.webp";
+import assembleCArt from "@/assets/buffs/部件/组装/组装C.webp";
+import assembleDArt from "@/assets/buffs/部件/组装/组装D.webp";
+import cultivationArt from "@/assets/buffs/标记/培育/培育.webp";
+import cultivatedArt from "@/assets/buffs/标记/培育/培育成熟.webp";
+import potionArt from "@/assets/buffs/道具/药剂/魔药.webp";
 
 export const BUFF_ART: Record<"cultivate" | "cultivated" | "potion" | AssembleId, string> = {
   cultivate: cultivationArt,

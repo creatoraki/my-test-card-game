@@ -32,6 +32,28 @@
   gap: 10px;
   padding-right: 16px;
   border-right: 1px solid #ffffff1a;
+  cursor: help;
+}
+
+.details {
+  display: grid;
+  gap: 18px;
+  max-height: 480px;
+  overflow-y: auto;
+  font-size: 18px;
+}
+
+.detailHeading {
+  margin: 0 0 8px;
+  color: #eef6f7;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.detailNote {
+  margin: 8px 0 0;
+  color: #8fa6ac;
+  font-size: 18px;
 }
 
 .index {

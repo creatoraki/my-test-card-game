@@ -81,6 +81,7 @@ export {
   DEFAULT_AID_SUPPLY,
   aidSupplyOf,
   makeAidSupplyStacks,
+  rollAllDailyAidSupplies,
   type AidSupplyEntry,
 } from "./maps/mapAidSupply";
 export {

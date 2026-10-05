@@ -19,7 +19,7 @@ if (filenames.length !== 96) throw new Error(`待处理素材应为 96 个，实
 const jobs = filenames.map((filename) => {
   const name = filename.replace(/^\d{3}_/, "").replace(/\.webp$/, "");
   const destination = name === "备用·护盾"
-    ? path.join(assetRoot, "护盾.webp")
+    ? path.join(assetRoot, "备选", "备用·护盾.webp")
     : name.startsWith("备用·")
       ? path.join(assetRoot, "备选", `${name}.webp`)
       : targets.get(name);

@@ -212,32 +212,54 @@ export function bumpPerfectness(
   return { ...roll, budget: roll.budget + gain, points };
 }
 
+/** 升阶后完美度区间：旧完美度 + 升阶投入，不超过新阶模型上限。预览与实际升阶共用。 */
+export function upgradePerfectnessRange(
+  currentDef: ItemDef,
+  roll: EquipRoll,
+  nextDef: ItemDef,
+): readonly [number, number] {
+  const model = nextDef.model;
+  const previous = rollPerfectness(currentDef, roll);
+  if (!model) return [previous, previous];
+  const [addMin, addMax] = model.upgradeAdd ?? DEFAULT_UPGRADE_ADD;
+  return [
+    Math.min(model.budget.max, previous + addMin),
+    Math.min(model.budget.max, previous + addMax),
+  ];
+}
+
+/**
+ * 升阶: 保留原词条点数(不低于新阶地板), 负面代价按新阶重置。
+ * 新完美度 = 旧完美度(按当前阶口径) + 升阶投入; 新预算 = 新完美度 + 新阶返还,
+ * 预算减去已有正面点数后按权重补发, 保证「词条点数之和 = 预算」。
+ */
 export function upgradeEquipment(
   roll: EquipRoll,
+  currentDef: ItemDef,
   nextDef: ItemDef,
   pick: (n: number) => number,
 ): EquipRoll {
-  if (!nextDef.model) throw new Error(`装备没有可升阶模型: ${nextDef.id}`);
+  const model = nextDef.model;
+  if (!model) throw new Error(`装备没有可升阶模型: ${nextDef.id}`);
   assertModelValid(nextDef);
   const points: Partial<Record<keyof StatBlock, number>> = {};
-  for (const affix of nextDef.model.affixes) {
+  for (const affix of model.affixes) {
     points[affix.stat] = Math.max(affix.min, roll.points[affix.stat] ?? 0);
   }
-  const previousRefund =
-    roll.cost == null ? 0 : Math.round(roll.cost * (nextDef.model.costRefund ?? 0.7));
+  const kept = model.affixes.reduce((sum, affix) => sum + (points[affix.stat] ?? 0), 0);
   let cost = 0;
-  for (const drawback of nextDef.model.drawbacks ?? []) {
+  for (const drawback of model.drawbacks ?? []) {
     const rolledCost = randomInt(drawback.min, drawback.max, pick);
     points[drawback.stat] = -rolledCost;
     cost += rolledCost;
   }
-  const refund = calculateRefund(nextDef.model, cost);
-  const [addMin, addMax] = nextDef.model.upgradeAdd ?? DEFAULT_UPGRADE_ADD;
-  const added = randomInt(addMin, addMax, pick);
-  const budgetAdded = added + refund - previousRefund;
+  const [rangeMin, rangeMax] = upgradePerfectnessRange(currentDef, roll, nextDef);
+  const perfectness = randomInt(rangeMin, rangeMax, pick);
+  const budget = perfectness + calculateRefund(model, cost);
+  const budgetAdded = budget - kept;
   if (budgetAdded < 0) throw new Error(`装备升阶后预算不足: ${nextDef.id}`);
-  distribute(nextDef.model, points, budgetAdded, pick);
-  return { budget: roll.budget + budgetAdded, cost: cost || undefined, points };
+  distribute(model, points, budgetAdded, pick);
+  return { budget, cost: cost || undefined, points };
 }
 
 export function rollToFlat(roll: EquipRoll): Partial<StatBlock> {

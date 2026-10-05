@@ -244,7 +244,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     anim: "thunder-run",
     playReturn: { when: "fastPlaysThisRound", atLeast: 1, costDelta: 1 },
     effects: [{ type: "DAMAGE", multiplier: 0.7, target: "primary", hitBonus: 10 }],
-    text: "造成 {0} 点伤害，命中 +10%。本回合已打出其他速攻牌时，打出后回到手牌且费用 +1。",
+    text: "造成 {0} 点伤害，命中 +10%。本回合已打出其他速攻牌时，打出后回到手牌，并叠加 1 层回手负担（本回合费用 +1，回合结束移除）。",
   },
   {
     id: "shigure",

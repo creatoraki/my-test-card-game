@@ -1,5 +1,7 @@
 # 状态与卡牌增益美术素材完备性
 
+> 2026-10-05 目录整理：素材现按实际机制细分，目录规则见 [素材目录说明](../../src/assets/buffs/README.md)。痛楚归入持续伤害；敌方标记、卡牌标记、培育、组装与药剂各自独立。下方数量和缺失表是原统计日期的历史快照。
+
 > 统计时间：2026-09-29  
 > 战斗状态来源：`src/engine/statuses/index.ts` 汇总的 `STATUS_DEFS`，包括由预言定义动态生成的状态。  
 > 状态美术登记：`src/ui/art/battle/statusArt.ts` 中的 `STATUS_ART`；未登记状态在战斗状态栏回退显示定义里的 emoji。  
@@ -103,10 +105,10 @@
 
 | 项目 | 素材 / 登记 | 说明 |
 | --- | --- | --- |
-| 护盾 | `src/assets/buffs/护盾.webp`，由 `SHIELD_ART` 导出 | 护盾不是状态定义，不计入状态总数；`src/assets/buffs/备选/护盾.webp` 是未使用的备用图。 |
-| 培育 | `src/assets/buffs/buffs/培育.webp`，由 `BUFF_ART.cultivate` 登记 | 卡牌培育标记使用。 |
-| 组装 A-D | `src/assets/buffs/buffs/组装A.webp` 至 `组装D.webp`，由 `BUFF_ART` 登记 | 用于组装部件展示。 |
-| 魔药 | `src/assets/buffs/buffs/魔药.webp`，由 `BUFF_ART.potion` 登记并预加载 | 非状态素材；不计入状态图标统计。 |
+| 护盾 | `src/assets/buffs/战斗/护盾/护盾.webp`，由 `SHIELD_ART` 导出 | 护盾不是状态定义，不计入状态总数；`src/assets/buffs/备选/护盾.webp` 是未使用的备用图。 |
+| 培育 | `src/assets/buffs/标记/培育/培育.webp`，由 `BUFF_ART.cultivate` 登记 | 卡牌培育标记使用。 |
+| 组装 A-D | `src/assets/buffs/部件/组装/组装A.webp` 至 `组装D.webp`，由 `BUFF_ART` 登记 | 用于组装部件展示。 |
+| 魔药 | `src/assets/buffs/道具/药剂/魔药.webp`，由 `BUFF_ART.potion` 登记并预加载 | 非状态素材；不计入状态图标统计。 |
 
 ## 统计口径与维护入口
 

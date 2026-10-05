@@ -62,12 +62,16 @@ export function BattleBurnFront({ origin, mode, onClip }: Props) {
     const front = createBurnFront(origin ?? { x: width / 2, y: height / 2 }, width, height);
     const particles = createParticlePool();
     const closedClip = closedClipPath(front.origin);
-    const startedAt = performance.now();
-    let last = startedAt;
+    let startedAt = -1;
+    let last = 0;
     let pierced = false;
     let animationFrame = 0;
 
     const draw = (now: number) => {
+      if (startedAt < 0) {
+        startedAt = now;
+        last = now;
+      }
       const t = now - startedAt;
       const dt = Math.min(50, now - last);
       last = now;
@@ -99,7 +103,11 @@ export function BattleBurnFront({ origin, mode, onClip }: Props) {
     };
 
     // 挂载这一帧就先画出烫红的起点, 不留一帧空白给快照。
-    draw(startedAt);
+    draw(performance.now());
+    // ★ 时间轴改由第一个 rAF 重新起算, 而不是挂载那一刻: 挂载发生在 swap 的 flushSync 里,
+    //   其后还要经历战斗页挂载 + 新快照抓取这一整个长任务, VT 的伪元素动画也是从那之后才开跑。
+    //   按挂载时刻起算, 卡住的这段时间会直接吃掉「烫红」段, 第一帧就跳到半熟的焦斑。
+    startedAt = -1;
     return () => cancelAnimationFrame(animationFrame);
   }, [mode, origin]);
 

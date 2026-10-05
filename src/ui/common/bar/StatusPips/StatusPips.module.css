@@ -36,7 +36,7 @@
 .pip > b {
   position: absolute;
   right: 3px;
-  bottom: 2px;
+  bottom: var(--pip-count-bottom, 2px);
   z-index: 1;
   max-width: calc(100% - 6px);
   overflow: hidden;

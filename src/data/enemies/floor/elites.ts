@@ -31,7 +31,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
     emoji: "🤖",
     maxHp: 95,
     exp: 39,
-    stats: { attack: 85, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
+    stats: { attack: 100, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "scrap-crush",
@@ -43,7 +43,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         targeting: "foe",
         weight: 2,
         anim: "smash",
-        effects: [{ type: "DAMAGE", multiplier: 1.05, target: "primary" }],
+        effects: [{ type: "DAMAGE", multiplier: 0.8925, target: "primary" }],
       },
       {
         id: "scrap-spray",
@@ -55,7 +55,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         targeting: "foe",
         weight: 1,
         anim: "shot",
-        effects: [{ type: "DAMAGE", multiplier: 0.75, target: "allFoes" }],
+        effects: [{ type: "DAMAGE", multiplier: 0.6375, target: "allFoes" }],
       },
       {
         id: "scrap-compress",
@@ -68,7 +68,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         weight: 1,
         anim: "debuff",
         effects: [
-          { type: "DAMAGE", multiplier: 0.3, target: "primary" },
+          { type: "DAMAGE", multiplier: 0.255, target: "primary" },
           { type: "MARK_CARDS", mark: "heavy", markPick: "handRandom", amount: 1 },
         ],
       },
@@ -94,7 +94,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
     emoji: "🤖",
     maxHp: 100,
     exp: 42,
-    stats: { attack: 90, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
+    stats: { attack: 100, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "pole-smash",
@@ -106,7 +106,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         targeting: "foe",
         weight: 2,
         anim: "smash",
-        effects: [{ type: "DAMAGE", multiplier: 1.1, target: "primary" }],
+        effects: [{ type: "DAMAGE", multiplier: 0.99, target: "primary" }],
       },
       {
         id: "pole-arc",
@@ -118,7 +118,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         targeting: "foe",
         weight: 1,
         anim: "lightning",
-        effects: [{ type: "DAMAGE", multiplier: 0.85, target: "allFoes" }],
+        effects: [{ type: "DAMAGE", multiplier: 0.765, target: "allFoes" }],
       },
       {
         id: "pole-paralyze",
@@ -131,7 +131,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         weight: 1,
         anim: "lightning",
         effects: [
-          { type: "DAMAGE", multiplier: 0.4, target: "primary" },
+          { type: "DAMAGE", multiplier: 0.36, target: "primary" },
           { type: "APPLY_STATUS", status: "stun", stacks: 1, duration: 1, target: "primary" },
         ],
       },

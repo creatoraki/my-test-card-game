@@ -3,12 +3,13 @@ import {
   difficultyLockReason,
   getMapDifficulty,
   isDifficultyUnlocked,
-  makeAidSupplyStacks,
+  difficultyKey,
   mapDifficultyIds,
   fixedClearRewardOf,
   type MapDifficulty,
 } from "@/data";
 import type { ItemStack } from "@/items/types";
+import { useTownStore } from "@/store/town/townStore";
 import { HoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
 import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
@@ -41,7 +42,7 @@ function MapDifficultyPanel({
     point: TooltipPoint;
   } | null>(null);
   const active = isMotionActive(motion);
-  const aidStacks = useMemo(() => makeAidSupplyStacks(mapId, difficulty), [mapId, difficulty]);
+  const aidStacks = useTownStore((state) => state.dailyClear.aidSupplies[difficultyKey(mapId, difficulty)]);
   const groupedRewards = useMemo(
     () => Object.values(rewards.reduce<Record<string, ItemStack>>((result, stack) => {
       const existing = result[stack.itemId];
@@ -122,7 +123,7 @@ function MapDifficultyPanel({
       )}
 
       <div className={s.rewards}>
-        <PanelItemRow title="配额物资" kind="aid" stacks={aidStacks} active={active} />
+        <PanelItemRow title="配额物资" kind="aid" stacks={aidStacks ?? []} active={active} />
         <PanelItemRow
           title="通关奖励"
           kind="daily"

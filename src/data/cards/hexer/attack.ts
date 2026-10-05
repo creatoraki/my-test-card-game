@@ -14,10 +14,10 @@ export const HEXER_ATTACK_CARDS: CardDef[] = [
     anim: "shot",
     effects: [
       { type: "APPLY_STATUS", status: "doom", stacks: 1, duration: 2, target: "primary" },
-      { type: "DAMAGE", multiplier: 0.8, target: "primary" },
+      { type: "DAMAGE", multiplier: 0.7, target: "primary" },
       { type: "RETURN_SELF_TO_HAND", keywordGate: venom(3) },
     ],
-    text: "对目标施加厄运，然后造成 {1} 点伤害。恶毒 3：本卡返回手牌。",
+    text: "对目标施加厄运，然后造成 {1} 点伤害。恶毒 3：本卡返回手牌，并叠加 1 层回手负担（本回合费用 +1，回合结束移除）。",
   },
   {
     id: "lingering-hex",
@@ -30,7 +30,7 @@ export const HEXER_ATTACK_CARDS: CardDef[] = [
     anim: "poison",
     effects: [
       { type: "DAMAGE", multiplier: 0.4, target: "primary" },
-      // 附骨层数 = 同费中毒层数 × 2/3: 跳满 3 回合与毒刺箭的中毒总量持平。
+      // 痛楚层数 = 同费中毒层数 × 2/3: 跳满 3 回合与毒刺箭的中毒总量持平。
       {
         type: "APPLY_STATUS",
         status: "boneRot",
@@ -48,7 +48,7 @@ export const HEXER_ATTACK_CARDS: CardDef[] = [
         keywordGate: late(2),
       },
     ],
-    text: "造成 {0} 点伤害，并对目标施加 {1} 层附骨，持续 5 回合。后发 2：附骨改为施加给所有敌人。",
+    text: "造成 {0} 点伤害，并对目标施加 {1} 层痛楚，持续 5 回合。后发 2：痛楚改为施加给所有敌人。",
   },
   {
     id: "binding-thread",
@@ -82,7 +82,7 @@ export const HEXER_ATTACK_CARDS: CardDef[] = [
     rarity: "common",
     anim: "slash",
     effects: [
-      { type: "DAMAGE", multiplier: 1.1, target: "primary" },
+      { type: "DAMAGE", multiplier: 1, target: "primary" },
       {
         type: "GAIN_ENEMY_AP",
         amount: 1,
@@ -158,21 +158,18 @@ export const HEXER_ATTACK_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "common",
     anim: "slash",
-    // 三条伤害互斥: 未满足恶毒 / 满足且目标有增益 / 满足且目标没有增益(吸血保底)。
+    // 两条伤害互斥：恶毒未满足时仅造成伤害，满足时附带吸血。
     effects: [
       { type: "DAMAGE", multiplier: 1.2, target: "primary", keywordGate: venom(3, true) },
-      { type: "DAMAGE", multiplier: 1.2, target: "primary", condition: "targetHasBuff", keywordGate: venom(3) },
       {
         type: "DAMAGE",
         multiplier: 1.2,
         lifesteal: 0.3,
         target: "primary",
-        condition: "targetLacksBuff",
         keywordGate: venom(3),
       },
-      { type: "STEAL_BUFF", target: "primary", keywordGate: venom(3) },
     ],
-    text: "造成 {0} 点伤害。恶毒 3：夺取目标层数最高的 1 个增益；目标没有增益时，改为回复本次实际伤害 30% 的生命。",
+    text: "造成 {0} 点伤害。恶毒 3：恢复本次实际造成伤害 30% 的生命值。",
   },
   {
     id: "death-knell",
@@ -184,7 +181,7 @@ export const HEXER_ATTACK_CARDS: CardDef[] = [
     rarity: "common",
     anim: "smash",
     effects: [
-      { type: "DAMAGE", multiplier: 2, target: "primary" },
+      { type: "DAMAGE", multiplier: 1.5, target: "primary" },
       { type: "GAIN_ENEMY_AP", amount: 2, target: "primary" },
     ],
     text: "造成 {0} 点伤害，然后目标获得 2 点行动点。",

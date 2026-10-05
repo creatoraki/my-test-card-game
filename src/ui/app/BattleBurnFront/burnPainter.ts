@@ -82,6 +82,21 @@ export function paintInnerShade(ctx: CanvasRenderingContext2D, front: BurnFront)
   ctx.restore();
 }
 
+// 热芯按亮度分档: 同一档的线段并成一条路径一次 stroke。原先逐段 stroke(一帧最多 144 次,
+// 每次还要现拼一个颜色字符串), 是烧穿段每帧最密集的一组调用。12 档的亮度步进约 7%,
+// 两三像素宽的热芯上读不出台阶。
+const EMBER_MIN_GLOW = 0.12;
+const EMBER_LEVELS = 12;
+const EMBER_STYLES = Array.from({ length: EMBER_LEVELS }, (_, level) => {
+  const glow = EMBER_MIN_GLOW + ((level + 0.5) / EMBER_LEVELS) * (1 - EMBER_MIN_GLOW);
+  return {
+    width: 1.1 + glow * 1.8,
+    color: `rgb(255 ${Math.round(150 + glow * 90)} ${Math.round(60 + glow * 110)} / ${0.3 + glow * 0.65})`,
+  };
+});
+/** 每帧原地复用: 第 index 段热芯落在哪一档, -1 = 太暗不画。 */
+const emberLevel = new Int8Array(BURN_VERTICES);
+
 /** 余烬火线: 两道宽而淡的红橙辉光 + 逐段明暗不一的黄白热芯。 */
 export function paintEmberRim(ctx: CanvasRenderingContext2D, front: BurnFront, t: number): void {
   const points = front.points;
@@ -99,14 +114,25 @@ export function paintEmberRim(ctx: CanvasRenderingContext2D, front: BurnFront, t
   ctx.lineCap = "round";
   for (let index = 0; index < BURN_VERTICES; index++) {
     const glow = emberGlow(front, index, t);
-    if (glow < 0.12) continue;
-    const a = points[index];
-    const b = points[(index + 1) % BURN_VERTICES];
-    ctx.lineWidth = 1.1 + glow * 1.8;
-    ctx.strokeStyle = `rgb(255 ${Math.round(150 + glow * 90)} ${Math.round(60 + glow * 110)} / ${0.3 + glow * 0.65})`;
+    emberLevel[index] =
+      glow < EMBER_MIN_GLOW
+        ? -1
+        : Math.min(EMBER_LEVELS - 1, Math.floor(((glow - EMBER_MIN_GLOW) / (1 - EMBER_MIN_GLOW)) * EMBER_LEVELS));
+  }
+  for (let level = 0; level < EMBER_LEVELS; level++) {
     ctx.beginPath();
-    ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
+    let any = false;
+    for (let index = 0; index < BURN_VERTICES; index++) {
+      if (emberLevel[index] !== level) continue;
+      const a = points[index];
+      const b = points[(index + 1) % BURN_VERTICES];
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      any = true;
+    }
+    if (!any) continue;
+    ctx.lineWidth = EMBER_STYLES[level].width;
+    ctx.strokeStyle = EMBER_STYLES[level].color;
     ctx.stroke();
   }
   ctx.restore();

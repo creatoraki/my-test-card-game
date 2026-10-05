@@ -7,7 +7,7 @@ export const TRAFFIC_LIGHT_BOT: EnemyDef = {
   emoji: "🚦",
   maxHp: 70,
   exp: 18,
-  stats: { attack: 55, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
+  stats: { attack: 100, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
   moves: [
     {
       id: "signal-green",
@@ -57,7 +57,7 @@ export const TRAFFIC_LIGHT_BOT: EnemyDef = {
       bias: [{ when: "allyCountBelow", value: 2, multiplier: 3 }],
       anim: "lightning",
       effects: [
-        { type: "DAMAGE", multiplier: 1.1, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.605, target: "primary" },
         { type: "APPLY_STATUS", status: "static", stacks: 2, target: "primary" },
       ],
     },
@@ -73,7 +73,7 @@ export const TRAFFIC_LIGHT_BOT: EnemyDef = {
       bias: [{ when: "allyCountBelow", value: 2, multiplier: 3 }],
       anim: "shot",
       effects: [
-        { type: "DAMAGE", multiplier: 0.6, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.33, target: "primary" },
         { type: "MARK_CARDS", mark: "heavy", markPick: "targetHandRandom", amount: 1, target: "primary" },
       ],
     },

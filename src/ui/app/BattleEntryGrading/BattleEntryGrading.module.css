@@ -25,8 +25,7 @@
      | contrast   | 1.09              | 1.09                         |
      | brightness | 1.05              | 1.05                         |
 
-   vt-grade-new 末帧还剩两条 drop-shadow, 那是烧穿**边缘**的血光; VT 结束时烧穿早已扩出
-   视口, 屏幕内看不到它, 所以这里不需要接 —— 别照抄过来, 全屏 drop-shadow 只会白烧一层。
+   (vt-grade-new 曾带两条 drop-shadow, 画面上从来看不见, 已删除 —— 这里也不要加。)
 
    ⚠ filter / backdrop-filter 的关键帧要求函数序列**同构**(个数与顺序一致), 写漏一项
      浏览器会退化成离散跳变。首尾两帧都是 saturate → contrast → brightness。

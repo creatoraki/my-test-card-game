@@ -27,8 +27,8 @@ export function cardCost(state: BattleState | null, card: Card): number {
       .find((handCard) => handCard?.cardType === "passive" && handCard.handAura?.cardId === card.id)
       ?.handAura?.cost
     : undefined;
-  const returnDelta = card.playReturn?.when === "fastPlaysThisRound"
-    ? (card.costStacks ?? 0) * card.playReturn.costDelta
+  const returnDelta = card.marks?.includes("returnTax")
+    ? (card.costStacks ?? 0)
     : 0;
   return Math.max(0, (override ?? auraCost ?? card.cost) + delta + stackDelta + markDelta + returnDelta);
 }

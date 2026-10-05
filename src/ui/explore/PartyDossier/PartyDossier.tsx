@@ -1,4 +1,4 @@
-// ★ 探索场景的队员档案 ★ —— 底栏点立绘、或背包里点装备的「装备」时打开。
+// ★ 探索场景的队员档案 ★ —— 底栏点立绘或背包选择装备时打开。
 //
 // 版面: 左栏 = 「01 队员」立绘舞台 + 生命污染 + 队员切换条; 右栏 = 「02 小队羁绊」常驻条
 //   + 「03 队员配置」主分区(页签: 属性装备 / 卡组)。
@@ -27,7 +27,6 @@ import { DossierTabs, type DossierTab } from "./parts/DossierTabs";
 import { EquipRow } from "./parts/EquipRow";
 import { MemberStage } from "./parts/MemberStage";
 import { MemberSwitcher } from "./parts/MemberSwitcher";
-import { PendingChip } from "./parts/PendingChip";
 import { SquadBondStrip } from "./parts/SquadBondStrip";
 import { StatsBoard } from "./parts/StatsBoard";
 import s from "./PartyDossier.module.css";
@@ -37,14 +36,12 @@ const pad2 = (value: number) => String(value).padStart(2, "0");
 interface Props {
   session: ExploreState;
   charId: string;
-  /** 背包「装备」带进来的装备 uid; 已不在背包里(穿上了)就视同没有。 */
-  pendingUid: string | null;
   /** 当前阶段能否动背包(换装同一道闸)。 */
   allowed: boolean;
+  equipFocus?: { slot: EquipSlot } | null;
   onSelect: (charId: string) => void;
   onEquip: (uid: string) => void;
   onUnequip: (slot: EquipSlot) => void;
-  onCancelPending: () => void;
   onClose: () => void;
   /** 遮罩层附加类名 —— 场景据此压 z-index。 */
   className?: string;
@@ -53,12 +50,11 @@ interface Props {
 export function PartyDossier({
   session,
   charId,
-  pendingUid,
   allowed,
+  equipFocus,
   onSelect,
   onEquip,
   onUnequip,
-  onCancelPending,
   onClose,
   className,
 }: Props) {
@@ -72,8 +68,6 @@ export function PartyDossier({
 
   const member = session.party.find((item) => item.charId === charId);
   const character = characters[charId];
-  const pending = pendingUid ? session.backpack.find((stack) => stack.uid === pendingUid) ?? null : null;
-  const pendingSlot = pending ? getItemDef(pending.itemId).slot : undefined;
   const candidates = useMemo(
     () => session.backpack.filter((stack) => getItemDef(stack.itemId).category === "equipment"),
     [session.backpack],
@@ -83,10 +77,9 @@ export function PartyDossier({
     playSfx("panel");
   }, []);
 
-  // 背包里又点了一件「装备」: 跳回属性装备页, 让待换上的那张卡露出来。
   useEffect(() => {
-    if (pendingUid) setTab("loadout");
-  }, [pendingUid]);
+    if (equipFocus) setTab("loadout");
+  }, [equipFocus]);
 
   // 换人只清掉跟着旧队员走的悬停态; 页签保持不动。
   useEffect(() => {
@@ -103,9 +96,8 @@ export function PartyDossier({
   const preview = useMemo(() => {
     if (!character) return null;
     if (hoverPreview) return previewStatsWith(character, hoverPreview.slot, hoverPreview.stack);
-    if (pending && pendingSlot) return previewStatsWith(character, pendingSlot, pending);
     return null;
-  }, [character, hoverPreview, pending, pendingSlot]);
+  }, [character, hoverPreview]);
 
   if (!member || !character || !stats) return null;
 
@@ -189,7 +181,6 @@ export function PartyDossier({
               deco="LOADOUT"
               extra={
                 <>
-                  {pending && <PendingChip stack={pending} onCancel={onCancelPending} />}
                   <DossierTabs value={tab} deckCount={character.deck.length} onChange={setTab} />
                 </>
               }
@@ -203,8 +194,8 @@ export function PartyDossier({
                     <EquipRow
                       equipped={character.equipped}
                       candidates={candidates}
-                      pending={pending}
                       lockedReason={lockedReason}
+                      highlightedSlot={equipFocus?.slot}
                       onEquip={onEquip}
                       onUnequip={onUnequip}
                       onPreview={setHoverPreview}

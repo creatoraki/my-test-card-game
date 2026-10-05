@@ -22,6 +22,10 @@ function unit(row: StatRangeRow): string {
   return row.percent ? "%" : "";
 }
 
+function spanText(min: number, max: number): string {
+  return min === max ? `${min}` : `${min} ~ ${max}`;
+}
+
 function rangeText(row: StatRangeRow): string {
   const suffix = unit(row);
   if (row.min === row.max) return `${signedValue(row.min)}${suffix}`;
@@ -49,6 +53,13 @@ export function EquipGainColumn({
               <span role="columnheader">当前</span>
               <span role="columnheader">升阶后</span>
             </div>
+            <div className={cx(s.row, s.perfect)} role="row">
+              <span className={s.label} role="cell">完美度</span>
+              <span className={s.current} role="cell">{preview.perfectness.current}</span>
+              <span className={s.next} role="cell">
+                {spanText(preview.perfectness.min, preview.perfectness.max)}
+              </span>
+            </div>
             {preview.rows.map((row) => (
               <div
                 key={row.stat}
@@ -71,9 +82,10 @@ export function EquipGainColumn({
           </div>
 
           <p className={s.foot}>
-            本次升阶投入 {preview.budgetMin === preview.budgetMax
-              ? preview.budgetMin
-              : `${preview.budgetMin}~${preview.budgetMax}`} 点模型值，按词条权重随机分配；
+            完美度提升 {spanText(
+              preview.perfectness.min - preview.perfectness.current,
+              preview.perfectness.max - preview.perfectness.current,
+            )}，词条共补发 {spanText(preview.budgetMin, preview.budgetMax)} 点模型值，按词条权重随机分配；
             单条不会超过该阶模型的上限。
           </p>
         </>

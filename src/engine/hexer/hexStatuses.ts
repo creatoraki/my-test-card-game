@@ -1,4 +1,4 @@
-// 咒术师的状态 —— 专属五咒(厄运 / 怨咒 / 封印 / 停摆 / 附骨)、三种标记(锁魂 / 疫病 / 咒丝)与自身增益。
+// 咒术师的状态 —— 专属五咒(厄运 / 怨咒 / 封印 / 停摆 / 痛楚)、三种标记(锁魂 / 疫病 / 咒丝)与自身增益。
 // 标记以减益形态挂在敌人身上, 但 mark = true: 不计入恶毒种类, 也不会被转移、复制、汇集。
 
 import type { DamageCtx, StatusCtx, StatusDef } from "../types";
@@ -71,7 +71,7 @@ export const HEXER_STATUS_DEFS: Record<string, StatusDef> = {
   },
   boneRot: {
     id: "boneRot",
-    name: "附骨",
+    name: "痛楚",
     emoji: "🦴",
     kind: "debuff",
     stackMode: "segments",

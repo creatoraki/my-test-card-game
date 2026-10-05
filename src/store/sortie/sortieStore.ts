@@ -19,7 +19,7 @@
 
 import { create } from "zustand";
 import { RULES } from "@/engine";
-import { getItemDef, makeAidSupplyStacks, makeItemStack } from "@/data";
+import { difficultyKey, getItemDef, makeItemStack } from "@/data";
 import { addToContainer, isDisposable, occupiedSlots, removeByUid } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
 import type { MapDifficulty } from "@/data/maps/mapDifficulty";
@@ -119,7 +119,8 @@ function syncAidSupply(
 ): Pick<SortieStore, "backpack" | "bought"> {
   let backpack = state.backpack.filter((stack) => !isDisposable(stack));
   let bought = state.bought;
-  const aidStacks = makeAidSupplyStacks(mapId, difficulty);
+  const aidStacks = (useTownStore.getState().dailyClear.aidSupplies[difficultyKey(mapId, difficulty)] ?? [])
+    .map((stack) => makeItemStack(stack.itemId, stack.count, { disposable: true }));
   let result = addToContainer(backpack, aidStacks, getItemDef, RULES.burden.backpackSlots);
 
   while (result.overflow.length) {

@@ -77,7 +77,6 @@ export function moveToDiscard(
     card.resonanceStacks = 0;
     // 星印与纳刀离开手牌即移除, 不结算收益; 常驻增益(星契)保留。
     card.marks = card.marks?.filter((mark) => !dropsOnLeaveHand(mark));
-    card.costStacks = 0;
   }
   const rule = RULES.discard.reasons[reason];
   if (rule.count) {

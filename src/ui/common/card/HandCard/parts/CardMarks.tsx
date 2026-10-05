@@ -65,7 +65,9 @@ export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
                   <TooltipCard
                     icon={art ? <img src={art} alt="" /> : mark.emoji}
                     title={mark.name}
-                    desc={mark.desc}
+                    desc={markId === "returnTax"
+                      ? `当前 ${card.costStacks ?? 0} 层：本卡费用 +${card.costStacks ?? 0}。每次回手继续叠加，本回合结束时移除。`
+                      : mark.desc}
                   />
                 </span>
               </span>

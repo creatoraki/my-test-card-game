@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { ItemStack } from "@/items/types";
+import type { EquipRoll, ItemDef, ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/town/townStore";
 import type { EquipTarget } from "@/store/townSlices/equipCraftSlice";
 import ItemTooltip, {
@@ -9,9 +9,15 @@ import ItemTooltip, {
 } from "@/ui/common/item/ItemTooltip";
 import { buildEquipTargets, equipStackOf, equipTargetKey } from "../EquipTargetList";
 import { EquipUpgradeBoard, type PickEntry } from "./parts";
-import { upgradeChanges } from "./upgradeMessage";
+import { EquipUpgradeReveal } from "./EquipUpgradeReveal";
 import { useUpgradeView } from "./upgradeView";
-import s from "./EquipUpgradePanel.module.css";
+
+interface UpgradeResult {
+  fromDef: ItemDef;
+  toDef: ItemDef;
+  before: EquipRoll;
+  after: EquipRoll;
+}
 
 export function EquipUpgradePanel() {
   const storage = useTownStore((state) => state.storage);
@@ -21,7 +27,7 @@ export function EquipUpgradePanel() {
   const [selected, setSelected] = useState<EquipTarget | null>(null);
   const [equipTab, setEquipTab] = useState<import("@/ui/common/item/shared/itemFilters").EquipTab>("all");
   const [hovered, setHovered] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
-  const [flash, setFlash] = useState<string | null>(null);
+  const [result, setResult] = useState<UpgradeResult | null>(null);
 
   const entries = useMemo<PickEntry[]>(
     () => buildEquipTargets(storage, characters).map((entry) => ({
@@ -45,14 +51,15 @@ export function EquipUpgradePanel() {
   };
 
   const onUpgrade = () => {
-    if (!selected || !current?.roll || !view.nextDef) return;
+    if (!selected || !current?.roll || !view.currentDef || !view.nextDef) return;
     const before = current.roll;
-    const nextName = view.nextDef.name;
+    const fromDef = view.currentDef;
+    const toDef = view.nextDef;
     upgradeEquip(selected);
     const nextState = useTownStore.getState();
     const after = equipStackOf(nextState.storage, nextState.characters, selected);
-    if (!after?.roll) return;
-    setFlash(upgradeChanges(before, after.roll, nextName));
+    if (!after?.roll || after.itemId !== toDef.id) return;
+    setResult({ fromDef, toDef, before, after: after.roll });
   };
 
   return (
@@ -66,7 +73,6 @@ export function EquipUpgradePanel() {
           const target = keyMap.get(key);
           if (!target) return;
           setSelected(target);
-          setFlash(null);
         }}
         current={current}
         currentDef={view.currentDef}
@@ -81,7 +87,7 @@ export function EquipUpgradePanel() {
         onShowTooltip={showTooltip}
         onHideTooltip={() => setHovered(null)}
       />
-      {flash && <p className={s.flash} role="status">{flash}</p>}
+      {result && <EquipUpgradeReveal {...result} onClose={() => setResult(null)} />}
       {hovered && <ItemTooltip stack={hovered.stack} point={hovered.point} />}
     </>
   );

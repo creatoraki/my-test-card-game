@@ -15,7 +15,7 @@ export function useUpgradeView(stack: ItemStack | null, loot: number, storage: I
   const currentDef = stack ? getItemDef(stack.itemId) : null;
   const nextDef = currentDef?.category === "equipment" ? nextEquipDef(currentDef) : null;
   const check = nextDef ? upgradeCheck(nextDef, loot, storage) : null;
-  const preview = nextDef && stack?.roll ? upgradeRangePreview(nextDef, stack.roll) : null;
+  const preview = currentDef && nextDef && stack?.roll ? upgradeRangePreview(currentDef, nextDef, stack.roll) : null;
   const canUpgrade = Boolean(stack?.roll && nextDef?.model && check?.ok);
 
   let notice = "选择一件装备查看升阶预览。";

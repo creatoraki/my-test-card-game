@@ -37,6 +37,7 @@ import { runEnemyFlee } from "./flee";
 import { createBattleState } from "./battleSetup";
 import type { BattleSetup as BattleSetupInput } from "./battleSetup";
 import { exhaustCard } from "../deck/exhaust";
+import { CARD_MARK_DEFS } from "../cards/cardMarks";
 
 export { canPlay, playBlockReason, playCard } from "./playCard";
 export type { PlayBlock, PlayRecorder } from "./playCard";
@@ -240,6 +241,10 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
       log(state, `${card.name} 因虚无进入消耗堆`);
     }
     flushAutoPlays(state, rec);
+    for (const card of Object.values(state.cards)) {
+      card.marks = card.marks?.filter((markId) => !CARD_MARK_DEFS[markId]?.expiresOnRoundEnd);
+      card.costStacks = 0;
+    }
     runEnemyFlee(state, rec);
     if (state.phase !== "player") return;
     startRound(state);

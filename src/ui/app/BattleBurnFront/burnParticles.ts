@@ -102,27 +102,56 @@ export function stepParticles(pool: ParticlePool, dtMs: number): void {
   }
 }
 
+// 火星按「剩余寿命档 × 粗细档」分桶, 同一桶并成一条路径一次 stroke; 颜色表预先建好,
+// 全局淡出改用 globalAlpha 乘上去。原先每颗火星一次 stroke + 一个现拼的颜色字符串。
+const SPARK_LIFE_LEVELS = 10;
+const SPARK_WIDTHS = [1.5, 2.1] as const; // 对应 size 1.2~1.8 / 1.8~2.4 两档
+const SPARK_STYLES = Array.from({ length: SPARK_LIFE_LEVELS }, (_, level) => {
+  const life = (level + 0.5) / SPARK_LIFE_LEVELS;
+  return `rgb(255 ${Math.round(120 + life * 110)} ${Math.round(40 + life * 80)} / ${life})`;
+});
+
+/** 每帧原地复用: 第 index 个粒子的火星分桶, -1 = 灰烬。 */
+const particleBucket = new Int8Array(MAX_PARTICLES);
+
+function sparkBucket(particle: Particle): number {
+  if (particle.kind !== "spark") return -1;
+  const life = 1 - particle.age / particle.life;
+  const level = Math.min(SPARK_LIFE_LEVELS - 1, Math.floor(life * SPARK_LIFE_LEVELS));
+  return level * SPARK_WIDTHS.length + (particle.size >= 1.8 ? 1 : 0);
+}
+
 /** fade: 全局淡出系数, 收尾时让残留粒子跟着一起消失而不是在画布清空时硬切。 */
 export function paintParticles(ctx: CanvasRenderingContext2D, pool: ParticlePool, fade: number): void {
   if (fade <= 0) return;
   ctx.save();
+  // 灰烬: 颜色固定, 透明度走 globalAlpha —— 与逐颗拼 rgb(... / alpha) 逐像素等价。
+  ctx.fillStyle = "rgb(22 13 8)";
   for (const particle of pool.items) {
     if (particle.kind !== "ash") continue;
-    const alpha = (1 - particle.age / particle.life) * 0.75 * fade;
     const w = particle.size * (0.4 + Math.abs(Math.cos(particle.spin)) * 0.6);
-    ctx.fillStyle = `rgb(22 13 8 / ${alpha})`;
+    ctx.globalAlpha = (1 - particle.age / particle.life) * 0.75 * fade;
     ctx.fillRect(particle.x - w / 2, particle.y - particle.size / 2, w, particle.size);
   }
+  ctx.globalAlpha = fade;
   ctx.globalCompositeOperation = "lighter";
   ctx.lineCap = "round";
-  for (const particle of pool.items) {
-    if (particle.kind !== "spark") continue;
-    const life = 1 - particle.age / particle.life;
-    ctx.strokeStyle = `rgb(255 ${Math.round(120 + life * 110)} ${Math.round(40 + life * 80)} / ${life * fade})`;
-    ctx.lineWidth = particle.size;
+  const items = pool.items;
+  for (let index = 0; index < items.length; index++) particleBucket[index] = sparkBucket(items[index]);
+  const bucketCount = SPARK_LIFE_LEVELS * SPARK_WIDTHS.length;
+  for (let bucket = 0; bucket < bucketCount; bucket++) {
     ctx.beginPath();
-    ctx.moveTo(particle.x, particle.y);
-    ctx.lineTo(particle.x - particle.vx * 0.035, particle.y - particle.vy * 0.035);
+    let any = false;
+    for (let index = 0; index < items.length; index++) {
+      if (particleBucket[index] !== bucket) continue;
+      const particle = items[index];
+      ctx.moveTo(particle.x, particle.y);
+      ctx.lineTo(particle.x - particle.vx * 0.035, particle.y - particle.vy * 0.035);
+      any = true;
+    }
+    if (!any) continue;
+    ctx.strokeStyle = SPARK_STYLES[Math.floor(bucket / SPARK_WIDTHS.length)];
+    ctx.lineWidth = SPARK_WIDTHS[bucket % SPARK_WIDTHS.length];
     ctx.stroke();
   }
   ctx.restore();

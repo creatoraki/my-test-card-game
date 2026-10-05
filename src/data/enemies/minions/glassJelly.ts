@@ -7,7 +7,7 @@ export const GLASS_JELLY: EnemyDef = {
   emoji: "🎐",
   maxHp: 46,
   exp: 17,
-  stats: { attack: 50, defense: 0, dodgeRate: 15, initiative: 20, critDamage: 150 },
+  stats: { attack: 100, defense: 0, dodgeRate: 15, initiative: 20, critDamage: 150 },
   moves: [
     {
       id: "jelly-sting",
@@ -20,7 +20,7 @@ export const GLASS_JELLY: EnemyDef = {
       weight: 2,
       anim: "lightning",
       effects: [
-        { type: "DAMAGE", multiplier: 0.55, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.275, target: "primary" },
         { type: "APPLY_STATUS", status: "static", stacks: 1, target: "primary" },
       ],
     },
@@ -68,7 +68,7 @@ export const GLASS_JELLY: EnemyDef = {
       weight: 1,
       anim: "lightning",
       effects: [
-        { type: "DAMAGE", multiplier: 0.5, target: "allFoes" },
+        { type: "DAMAGE", multiplier: 0.25, target: "allFoes" },
         { type: "APPLY_STATUS", status: "static", stacks: 1, target: "allFoes" },
       ],
     },

@@ -76,8 +76,9 @@ export function rollDailyClearReward(
   return rollClearReward(rng, getMapDifficulty(difficulty).reward);
 }
 
-export function rollAllDailyClearRewards(day: number): Record<string, ItemStack[]> {
-  const rng = { rngState: (Math.imul(day | 0, 0x9e3779b1) ^ 0x5f3759df) | 0 };
+export function rollAllDailyClearRewards(): Record<string, ItemStack[]> {
+  // 每次建档与每日刷新重新抽签；抽签结果由城镇存档保存，预览和领取共用。
+  const rng = { rngState: Math.floor(Math.random() * 0x100000000) >>> 0 };
   const rewards: Record<string, ItemStack[]> = {};
   for (const map of MAPS) {
     if (mapHasDifficulty(map.id)) {

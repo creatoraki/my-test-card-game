@@ -38,21 +38,17 @@
 }
 
 .card.active,
+.card.highlighted,
 .card:has(.main:hover),
 .card:has(.swap:hover) {
   border-color: var(--k);
   box-shadow: inset 0 0 24px #0009, 0 0 16px color-mix(in srgb, var(--k) 28%, transparent);
 }
 
-/* 有待换上装备的那张卡: 主题色呼吸描边, 引导视线。 */
-.card[data-pending] {
-  border-color: var(--k);
-  animation: pendingPulse 1.8s ease-in-out infinite;
-}
-
-@keyframes pendingPulse {
-  0%, 100% { box-shadow: inset 0 0 24px #0009, 0 0 0 transparent; }
-  50% { box-shadow: inset 0 0 24px #0009, 0 0 18px color-mix(in srgb, var(--k) 45%, transparent); }
+.card.highlighted::before {
+  display: block;
+  background: var(--k);
+  box-shadow: 0 0 12px var(--k);
 }
 
 .head {
@@ -186,62 +182,3 @@
   color: #ffffff;
 }
 
-.pending {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: auto;
-  padding: 10px 10px 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--k) 50%, transparent);
-  background: color-mix(in srgb, var(--k) 10%, #061014);
-}
-
-.pendingLabel {
-  flex: none;
-  color: var(--k);
-  font-size: 18px;
-  letter-spacing: 2px;
-}
-
-.pendingIcon {
-  display: flex;
-  flex: none;
-}
-
-.pendingName {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  color: color-mix(in srgb, var(--pr) 45%, #ffffff);
-  font-size: 18px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pendingButton {
-  flex: none;
-  padding: 4px 16px;
-  border: 1px solid var(--k);
-  background: color-mix(in srgb, var(--k) 22%, #061014);
-  color: #f2feff;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  cursor: var(--cursor-pointer);
-  transition: background 160ms ease, box-shadow 160ms ease;
-}
-
-.pendingButton:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--k) 40%, #061014);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--k) 50%, transparent);
-}
-
-.pendingButton:disabled {
-  border-color: #ffb45488;
-  background: #2a1d0acc;
-  color: #ffb454;
-  font-weight: 400;
-  letter-spacing: 0;
-  cursor: var(--cursor-default);
-}
