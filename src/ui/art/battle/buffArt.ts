@@ -7,10 +7,12 @@ import assembleBArt from "@/assets/buffs/buffs/组装B.webp";
 import assembleCArt from "@/assets/buffs/buffs/组装C.webp";
 import assembleDArt from "@/assets/buffs/buffs/组装D.webp";
 import cultivationArt from "@/assets/buffs/buffs/培育.webp";
+import cultivatedArt from "@/assets/buffs/buffs/培育成熟.webp";
 import potionArt from "@/assets/buffs/buffs/魔药.webp";
 
-export const BUFF_ART: Record<"cultivate" | "potion" | AssembleId, string> = {
+export const BUFF_ART: Record<"cultivate" | "cultivated" | "potion" | AssembleId, string> = {
   cultivate: cultivationArt,
+  cultivated: cultivatedArt,
   potion: potionArt,
   assembleA: assembleAArt,
   assembleB: assembleBArt,
@@ -21,6 +23,7 @@ export const BUFF_ART: Record<"cultivate" | "potion" | AssembleId, string> = {
 export const BUFF_ART_SOURCES: readonly string[] = Object.values(BUFF_ART);
 
 export const CULTIVATION_ART = BUFF_ART.cultivate;
+export const CULTIVATED_ART = BUFF_ART.cultivated;
 
 export function assembleBuffArtOf(id: AssembleId): string {
   return BUFF_ART[id];

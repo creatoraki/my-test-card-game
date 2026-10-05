@@ -1,8 +1,7 @@
 import type { Card } from "@/engine";
 import { CARD_MARK_DEFS, cultivateOverripe, cultivateReady } from "@/engine";
 import { cardMarkArtOf } from "@/ui/art/battle/cardMarkArt";
-import { CultivatedEmblem } from "@/ui/common/icon/BuffIcon";
-import { CULTIVATION_ART } from "@/ui/art/battle/buffArt";
+import { CULTIVATION_ART, CULTIVATED_ART } from "@/ui/art/battle/buffArt";
 import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import s from "./CardMarks.module.css";
 
@@ -82,11 +81,11 @@ export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
         >
           <span className={`${s["hc-mark"]}${cultivateReady(card) ? ` ${s["hc-cultivate-ready"]}` : ""}${cultivateOverripe(card) ? ` ${s["hc-cultivate-overripe"]}` : ""}`} aria-label="培育">
             <span className={`${s["hc-mark-icon"]} ${s["hc-cultivate-icon"]}`} aria-hidden>
-              {cultivateReady(card) || cultivateOverripe(card) ? (
-                <CultivatedEmblem className={s["hc-cultivate-emblem"]} label={null} />
-              ) : (
-                <img className={s["hc-cultivate-emblem"]} src={CULTIVATION_ART} alt="" />
-              )}
+              <img
+                className={s["hc-cultivate-emblem"]}
+                src={cultivateReady(card) || cultivateOverripe(card) ? CULTIVATED_ART : CULTIVATION_ART}
+                alt=""
+              />
               {!cultivateReady(card) && !cultivateOverripe(card) && (
                 <span className={s["hc-mark-count"]}>{card.cultivateLeft ?? card.cultivate.turns}</span>
               )}

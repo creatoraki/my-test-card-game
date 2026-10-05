@@ -14,11 +14,12 @@
   dx/dy 挪整个单位(血条跟着走), scale 由内层几何变量折进立绘尺寸、并补偿布局。 */
 .combatant {
   position: relative;
+  --combatant-hp-width: 256px;
   --ui-glow-color: var(--accent);
   --badge-size: 14px;
   --badge-pad: 1px 7px;
   /* 宽仍是血条/意图的布局宽; 立绘可按 --fig-w 向两侧溢出。 */
-  width: 256px;
+  width: var(--combatant-hp-width);
   padding: 0;
   transition: transform 0.1s;
   translate: var(--place-dx, 0) var(--place-dy, 0);
