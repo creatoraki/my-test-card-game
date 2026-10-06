@@ -19,6 +19,17 @@ function delaySlowedMove(c: StatusCtx, delta: number): void {
 }
 
 export const BOTANIST_FOE_STATUS_DEFS: Record<string, StatusDef> = {
+  mycoToxin: {
+    id: "mycoToxin",
+    name: "菌毒",
+    emoji: "🍄",
+    kind: "debuff",
+    maxStacks: 1,
+    stackMode: "max",
+    refreshMode: "max",
+    pausesStatusDuration: ["poison"],
+    desc: "持有期间，中毒正常结算伤害，但不扣除剩余拍数。菌毒自身不造成伤害，也不增加中毒层数。",
+  },
   insectTrap: {
     id: "insectTrap",
     name: "捕虫夹",

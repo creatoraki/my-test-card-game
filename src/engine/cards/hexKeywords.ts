@@ -14,6 +14,11 @@ export const HEX_CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
     desc: "打出时本回合已推进不少于 N 个时刻，结算冒号后的效果。全队出牌与待机的推进都计入，本卡自己的推进不计入。",
   },
   {
+    id: "curse",
+    name: "诅咒",
+    desc: "咒术师施加的专属减益，共 5 种：痛楚、怨咒、厄运、封印、停摆。锁魂、疫病、咒丝属于标记，不是诅咒。",
+  },
+  {
     id: "doom",
     name: "厄运",
     desc: "受到攻击时，攻击者本次暴击率 +20%。持续 2 回合。",
@@ -36,7 +41,7 @@ export const HEX_CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
   {
     id: "boneRot",
     name: "痛楚",
-    desc: "每拍每层受到 1 点伤害，无视护盾，不降低体力极限；持续 5 回合。每次施加形成独立一段。",
+    desc: "每拍每层受到 1 点伤害，无视护盾，不降低体力极限；持续 5 回合。每次施加形成独立一段。提前结算时，每结算 1 拍扣除 1 拍持续。",
   },
   {
     id: "soulLock",

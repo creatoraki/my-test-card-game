@@ -126,7 +126,8 @@ function previewBonusCounter(state: BattleState, card: Card, effect: EffectDescr
       const kind = remover.statusKind ?? "debuff";
       return target.statuses.filter((status) => {
         const def = getStatusDef(status.id);
-        return status.stacks > 0 && !def?.undispellable && (kind === "all" || def?.kind === kind);
+        const kindMatched = remover.curseOnly ? Boolean(def?.curse) : kind === "all" || def?.kind === kind;
+        return status.stacks > 0 && !def?.undispellable && kindMatched && status.id !== remover.exceptStatus;
       }).length;
     }
   }

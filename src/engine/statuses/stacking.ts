@@ -50,20 +50,12 @@ export function reduceStatusStacks(inst: StatusInstance, amount: number): number
   return removed;
 }
 
-export function newSegment(stacks: number, duration: number | undefined, tempo: number, growth?: number): StatusSegment {
+export function newSegment(stacks: number, duration: number | undefined, tempo: number): StatusSegment {
   return {
     stacks,
     ...(duration != null ? { duration } : {}),
     appliedAt: tempo,
-    ...(growth ? { growth } : {}),
   };
-}
-
-// 菌毒: 带 growth 的分段每结算一次(含毒发)层数增加。
-export function growSegments(inst: StatusInstance): void {
-  if (!inst.segments?.some((segment) => segment.growth)) return;
-  for (const segment of inst.segments) if (segment.growth) segment.stacks += segment.growth;
-  syncSegments(inst);
 }
 
 export function mergeStatus(
@@ -72,14 +64,13 @@ export function mergeStatus(
   stacks: number,
   duration: number | undefined,
   tempo: number,
-  growth?: number,
 ): void {
   const stackMode = def.stackMode ?? "add";
   if (stackMode === "segments") {
     const segments = (inst.segments ??= inst.stacks > 0
       ? [{ stacks: inst.stacks, duration: inst.duration, appliedAt: inst.appliedAt ?? tempo }]
       : []);
-    if (stacks > 0) segments.push(newSegment(stacks, duration, tempo, growth));
+    if (stacks > 0) segments.push(newSegment(stacks, duration, tempo));
     else if (stacks < 0) removeSegmentStacks(inst, -stacks);
     inst.appliedAt = tempo;
     syncSegments(inst);

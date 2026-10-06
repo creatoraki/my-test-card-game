@@ -306,7 +306,8 @@ function applyEffect(
         if (!target) continue;
         target.statuses = target.statuses.filter((status) => {
           const def = getStatusDef(status.id);
-          const removed = !def?.undispellable && (kind === "all" || def?.kind === kind);
+          const kindMatched = effect.curseOnly ? Boolean(def?.curse) : kind === "all" || def?.kind === kind;
+          const removed = !def?.undispellable && kindMatched && status.id !== effect.exceptStatus;
           if (removed) {
             state.lastRemovedStatusCount += 1;
             state.lastRemovedStatuses.push(structuredClone(status));

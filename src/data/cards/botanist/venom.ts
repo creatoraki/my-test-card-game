@@ -33,21 +33,9 @@ export const BOTANIST_VENOM_CARDS: CardDef[] = [
     ],
     cultivate: {
       turns: 1,
-      mode: "replace",
-      // 菌毒: 这一段中毒每结算一次层数 +1(statusData.growth 写在新分段上)。
-      effects: [
-        { type: "DAMAGE", multiplier: 0.4, target: "primary" },
-        {
-          type: "APPLY_STATUS",
-          status: "poison",
-          stacksFromStat: { stat: "attack", multiplier: 0.2 },
-          duration: 4,
-          statusData: { growth: 1 },
-          target: "primary",
-        },
-      ],
+      effects: [{ type: "APPLY_STATUS", status: "mycoToxin", stacks: 1, duration: 2, target: "primary" }],
     },
-    text: "造成 {0} 点伤害，并附加 {1} 层中毒，持续 2 拍。培育 {c}（替换）：造成 {k0} 点伤害，并附加 {k1} 层菌毒，持续 4 拍。",
+    text: "造成 {0} 点伤害，并附加 {1} 层中毒，持续 2 拍。培育 {c}：额外附加 2 回合菌毒。",
   },
   {
     id: "spore-cloud",

@@ -6,6 +6,7 @@ import { HEXER_STATUS_ART } from "./hexerStatusArt";
 import { ADDITIONAL_STATUS_ART } from "./additionalStatusArt";
 import { BOTANIST_STATUS_ART } from "./botanistStatusArt";
 import poisonArt from "@/assets/buffs/状态/持续伤害/中毒.webp";
+import mycoToxinArt from "@/assets/buffs/状态/属性削弱/菌毒.png";
 import shieldArt from "@/assets/buffs/战斗/护盾/护盾.webp";
 import burnArt from "@/assets/buffs/状态/持续伤害/灼烧.webp";
 import regenArt from "@/assets/buffs/状态/生命恢复/再生.webp";
@@ -87,6 +88,7 @@ export const STATUS_ART: Record<string, string> = {
   taunt: tauntArt,
   burn: burnArt,
   poison: poisonArt,
+  mycoToxin: mycoToxinArt,
   regen: regenArt,
   thorns: thornsArt,
   flammable: flammableArt,
@@ -162,6 +164,7 @@ export const STATUS_ART_SOURCES: readonly string[] = [
   tauntArt,
   burnArt,
   poisonArt,
+  mycoToxinArt,
   regenArt,
   thornsArt,
   flammableArt,

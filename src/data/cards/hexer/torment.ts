@@ -1,0 +1,95 @@
+import type { CardDef } from "@/engine/types";
+import { HEXER_ID, late, venom } from "./gates";
+
+// 咒术师 · 痛楚兑现卡: 让痛楚提前结算。提前结算只是加速, 每结算 1 拍扣 1 拍持续, 不增加痛楚总量。
+export const HEXER_TORMENT_CARDS: CardDef[] = [
+  {
+    id: "soul-devour",
+    name: "噬魂",
+    ownerCharId: HEXER_ID,
+    cost: 2,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "common",
+    anim: "slash",
+    effects: [
+      { type: "SETTLE_TORMENT", amountFrom: "primaryCurseKinds", maxAmount: 5, lifesteal: 0.3, target: "primary" },
+    ],
+    text: "目标身上每有 1 种诅咒，其痛楚提前结算 1 拍；回复本次造成伤害 30% 的生命。",
+  },
+  {
+    id: "hex-burst",
+    name: "咒爆",
+    ownerCharId: HEXER_ID,
+    cost: 2,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "uncommon",
+    anim: "fire",
+    effects: [
+      { type: "REMOVE_STATUS", curseOnly: true, exceptStatus: "boneRot", target: "primary" },
+      { type: "SETTLE_TORMENT", amountFrom: "lastRemovedStatusCount", target: "primary" },
+    ],
+    text: "移除目标除痛楚外的全部诅咒，每移除 1 种，其痛楚提前结算 1 拍。",
+  },
+  {
+    id: "silent-hex",
+    name: "无声咒",
+    ownerCharId: HEXER_ID,
+    cost: 1,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "uncommon",
+    anim: "basic-slash",
+    effects: [
+      { type: "SETTLE_TORMENT", amount: 2, target: "primary" },
+      { type: "PLAY_AS_FAST", keywordGate: venom(3) },
+    ],
+    text: "目标的痛楚提前结算 2 拍。恶毒 3：本次视为速攻，不推进时刻。",
+  },
+  {
+    id: "brimming-malice",
+    name: "盈煞",
+    ownerCharId: HEXER_ID,
+    cost: 2,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "uncommon",
+    anim: "blood-slash",
+    effects: [
+      { type: "DRAIN_ENEMY_AP", amount: 2, target: "primary" },
+      { type: "SETTLE_TORMENT", amountFrom: "lastDrainedAp", target: "primary" },
+    ],
+    text: "移除目标至多 2 点行动点，每移除 1 点，其痛楚提前结算 1 拍。",
+  },
+  {
+    id: "night-parade",
+    name: "百鬼夜行",
+    ownerCharId: HEXER_ID,
+    cost: 1,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "rare",
+    anim: "lightning",
+    effects: [
+      { type: "SETTLE_TORMENT", amount: 2, target: "primary", keywordGate: late(5, true) },
+      { type: "SETTLE_TORMENT", amount: 2, target: "allFoes", keywordGate: late(5) },
+    ],
+    text: "目标的痛楚提前结算 2 拍。后发 5：改为所有敌人的痛楚各提前结算 2 拍。",
+  },
+  {
+    id: "all-curses-return",
+    name: "万咒归宗",
+    ownerCharId: HEXER_ID,
+    cost: 3,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "rare",
+    anim: "blood-slash",
+    effects: [
+      { type: "GATHER_DEBUFFS", target: "primary" },
+      { type: "SETTLE_TORMENT", amount: 5, target: "primary" },
+    ],
+    text: "把其他所有敌人身上的诅咒汇集到目标，然后其痛楚提前结算 5 拍。",
+  },
+];

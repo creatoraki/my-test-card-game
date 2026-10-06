@@ -33,7 +33,7 @@ export const BOTANIST_CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
   {
     id: "mycoToxin",
     name: "菌毒",
-    desc: "一段特殊的中毒：每结算一次（包括毒发），这一段的层数 +1。",
+    desc: "独立减益：持有期间，中毒结算时不扣除剩余拍数。菌毒自身不造成伤害，也不增加中毒层数。",
   },
   {
     id: "cultivate",

@@ -1,5 +1,5 @@
 import type { CardDef } from "@/engine/types";
-import { HEXER_ID, late, venom } from "./gates";
+import { HEXER_ID, late } from "./gates";
 
 // 咒术师 · 普通功能 / 防御卡。
 export const HEXER_SUPPORT_CARDS: CardDef[] = [
@@ -44,6 +44,15 @@ export const HEXER_SUPPORT_CARDS: CardDef[] = [
     anim: "poison",
     effects: [
       {
+        type: "APPLY_STATUS",
+        status: "plague",
+        stacks: 1,
+        target: "primary",
+        condition: "counterAtLeast",
+        conditionCounter: "aliveFoeCount",
+        conditionValue: 2,
+      },
+      {
         type: "COPY_DEBUFF",
         target: "randomFoe",
         excludePrimary: true,
@@ -51,19 +60,9 @@ export const HEXER_SUPPORT_CARDS: CardDef[] = [
         conditionCounter: "aliveFoeCount",
         conditionValue: 2,
       },
-      {
-        type: "APPLY_STATUS",
-        status: "plague",
-        stacks: 1,
-        target: "primary",
-        keywordGate: venom(3),
-        condition: "counterAtLeast",
-        conditionCounter: "aliveFoeCount",
-        conditionValue: 2,
-      },
       { type: "DRAW", amount: 1, condition: "counterBelow", conditionCounter: "aliveFoeCount", conditionValue: 2 },
     ],
-    text: "随机把目标身上 1 种减益复制给另一名随机敌人。恶毒 3：目标获得疫病。场上只有目标一名敌人时，改为抽 1 张牌。",
+    text: "对目标施加疫病，并随机把目标身上 1 种诅咒复制给另一名随机敌人。场上只有目标一名敌人时，改为抽 1 张牌。",
   },
   {
     id: "warding-charm",

@@ -214,17 +214,9 @@ export function applyStatus(
   runRelicHook(state, "modifyStatusApply", info);
   stacks = info.stacks;
 
-  // 分段状态的 growth(菌毒)写在新分段上, 不进实例 data。
-  let growth: number | undefined;
-  if (def?.stackMode === "segments" && data?.growth != null) {
-    const { growth: segmentGrowth, ...rest } = data;
-    growth = segmentGrowth;
-    data = Object.keys(rest).length ? rest : undefined;
-  }
-
   const existing = getStatus(t, statusId);
   if (existing) {
-    mergeStatus(existing, def ?? { id: statusId, name: statusId, emoji: "", kind: "buff", desc: "" }, stacks, duration, t.tempo, growth);
+    mergeStatus(existing, def ?? { id: statusId, name: statusId, emoji: "", kind: "buff", desc: "" }, stacks, duration, t.tempo);
     if (data) existing.data = { ...existing.data, ...data };
     if (sourceId) existing.sourceId = sourceId;
   } else {
@@ -237,7 +229,7 @@ export function applyStatus(
       appliedAt: t.tempo,
     };
     if (def?.stackMode === "segments") {
-      instance.segments = [newSegment(stacks, duration, t.tempo, growth)];
+      instance.segments = [newSegment(stacks, duration, t.tempo)];
       syncSegments(instance);
     }
     t.statuses.push(instance);

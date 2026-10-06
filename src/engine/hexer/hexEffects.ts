@@ -1,9 +1,10 @@
 // 咒术师效果分发 —— 出牌改写(回手 / 视为速攻 / 额外推进 / 伤害 flags)在这里直接写入 hexPlay,
-// 行动点与操纵类转 hexEffectsEnemy, 状态搬运类转 hexEffectsStatus。
+// 行动点与操纵类转 hexEffectsEnemy, 状态搬运类转 hexEffectsStatus, 痛楚提前结算转 hexTorment。
 
 import type { BattleState, EffectDescriptor } from "../types";
 import { applyHexEnemyEffect } from "./hexEffectsEnemy";
 import { applyHexStatusEffect } from "./hexEffectsStatus";
+import { settleTorment } from "./hexTorment";
 
 export const HEX_EFFECT_TYPES: ReadonlySet<EffectDescriptor["type"]> = new Set<EffectDescriptor["type"]>([
   "GAIN_ENEMY_AP",
@@ -17,6 +18,8 @@ export const HEX_EFFECT_TYPES: ReadonlySet<EffectDescriptor["type"]> = new Set<E
   "INHERIT_DEBUFFS",
   "GATHER_DEBUFFS",
   "COPY_DEBUFF",
+  "SWAP_CURSES",
+  "SETTLE_TORMENT",
   "RANDOM_HEX",
   "PUPPET_STRIKE",
   "EXECUTE",
@@ -47,8 +50,12 @@ export function applyHexEffect(
     case "INHERIT_DEBUFFS":
     case "GATHER_DEBUFFS":
     case "COPY_DEBUFF":
+    case "SWAP_CURSES":
     case "RANDOM_HEX":
       applyHexStatusEffect(state, effect, sourceId, targetIds, primaryId);
+      return;
+    case "SETTLE_TORMENT":
+      settleTorment(state, effect, sourceId, targetIds);
       return;
     default:
       applyHexEnemyEffect(state, effect, targetIds, primaryId);

@@ -29,6 +29,12 @@ export function counterOf(state: BattleState, source: CounterSource, card?: Card
       ? new Set(target.statuses.filter((status) => status.id !== "pierce" && getStatusDef(status.id)?.kind === "debuff" && !getStatusDef(status.id)?.mark && status.stacks > 0).map((status) => status.id)).size
       : 0;
   }
+  if (source === "primaryCurseKinds") {
+    const target = state.activeCardPrimaryId ? state.combatants[state.activeCardPrimaryId] : undefined;
+    return target
+      ? new Set(target.statuses.filter((status) => status.stacks > 0 && getStatusDef(status.id)?.curse).map((status) => status.id)).size
+      : 0;
+  }
   if (source === "primaryPierce" || source === "primaryPierceTriples") {
     const target = state.activeCardPrimaryId ? state.combatants[state.activeCardPrimaryId] : undefined;
     const pierce = target?.statuses.find((status) => status.id === "pierce")?.stacks ?? 0;

@@ -39,6 +39,7 @@ export type CounterSource =
   | "fullDrawHits"
   | "fullDrawBigHits"
   | "primaryDebuffKinds"
+  | "primaryCurseKinds" // 主目标身上的诅咒种类数(见 StatusDef.curse)
   | "lastExhaustedHandCards"
   | "activeCardResonance"
   | "activeCardCost"

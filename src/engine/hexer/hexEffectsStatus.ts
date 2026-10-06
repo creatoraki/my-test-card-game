@@ -1,5 +1,5 @@
-// 咒术师效果: 夺取增益、继承 / 汇集 / 复制减益、随机专属咒。从 hexEffects.ts 分发进来。
-// ★ 标记(锁魂 / 疫病 / 咒丝)与不可驱散状态一律不参与搬运。
+// 咒术师效果: 夺取增益、继承 / 汇集 / 复制 / 交换诅咒、随机诅咒。从 hexEffects.ts 分发进来。
+// ★ 只搬运诅咒(StatusDef.curse); 标记(锁魂 / 疫病 / 咒丝)、其他职业的减益与不可驱散状态一律不参与。
 
 import type { BattleState, EffectDescriptor, StatusInstance } from "../types";
 import { ops } from "../core/ops";
@@ -11,9 +11,9 @@ import { isStealableBuff } from "./stealableBuff";
 const RANDOM_HEX_POOL = ["doom", "grudge", "seal"] as const;
 const GRUDGE_DAMAGE_RATIO = 0.1;
 
-function movable(status: StatusInstance, kind: "buff" | "debuff"): boolean {
+function movableCurse(status: StatusInstance): boolean {
   const def = getStatusDef(status.id);
-  return status.stacks > 0 && def?.kind === kind && !def.mark && !def.undispellable;
+  return status.stacks > 0 && Boolean(def?.curse) && !def?.mark && !def?.undispellable;
 }
 
 function aliveUnit(state: BattleState, id: string | undefined) {
@@ -32,10 +32,10 @@ function copyStatusTo(state: BattleState, toId: string, status: StatusInstance, 
   ops.applyStatus(state, toId, status.id, status.stacks, status.duration, status.data, from);
 }
 
-function moveDebuffs(state: BattleState, fromId: string, toId: string): number {
+function moveCurses(state: BattleState, fromId: string, toId: string): number {
   const from = state.combatants[fromId];
   if (!from || !aliveUnit(state, toId) || fromId === toId) return 0;
-  const moving = from.statuses.filter((status) => movable(status, "debuff"));
+  const moving = from.statuses.filter(movableCurse);
   if (moving.length === 0) return 0;
   from.statuses = from.statuses.filter((status) => !moving.includes(status));
   for (const status of moving) copyStatusTo(state, toId, status);
@@ -56,31 +56,46 @@ function stealBuff(state: BattleState, sourceId: string, primaryId: string | und
   ops.log(state, `${state.combatants[sourceId].name} 夺取了 ${target.name} 的${getStatusDef(stolen.id)?.name ?? stolen.id}`);
 }
 
-// 继承: 主目标(通常是刚被击杀的敌人)的全部减益交给解析出的目标。
+// 继承: 主目标(通常是刚被击杀的敌人)的全部诅咒交给解析出的目标。
 function inheritDebuffs(state: BattleState, targetIds: string[], primaryId: string | undefined): void {
   const heirId = targetIds.find((id) => id !== primaryId);
   if (!primaryId || !heirId) return;
-  const moved = moveDebuffs(state, primaryId, heirId);
-  if (moved > 0) ops.log(state, `${state.combatants[heirId].name} 继承了 ${moved} 种减益`);
+  const moved = moveCurses(state, primaryId, heirId);
+  if (moved > 0) ops.log(state, `${state.combatants[heirId].name} 继承了 ${moved} 种诅咒`);
 }
 
-// 汇集: 其他所有敌人的减益转移到主目标, 同种减益按状态自身规则合并。
+// 汇集: 其他所有敌人的诅咒转移到主目标, 同种诅咒按状态自身规则合并。
 function gatherDebuffs(state: BattleState, primaryId: string | undefined): void {
   if (!primaryId || !aliveUnit(state, primaryId)) return;
   let moved = 0;
   for (const id of state.enemyIds) {
     if (id === primaryId || !aliveUnit(state, id)) continue;
-    moved += moveDebuffs(state, id, primaryId);
+    moved += moveCurses(state, id, primaryId);
   }
-  if (moved > 0) ops.log(state, `${state.combatants[primaryId].name} 汇集了 ${moved} 种减益`);
+  if (moved > 0) ops.log(state, `${state.combatants[primaryId].name} 汇集了 ${moved} 种诅咒`);
 }
 
-// 复制: 随机把主目标的 1 种减益复制给解析出的目标(层数与剩余持续相同)。
+// 交换: 主目标与解析出的另一名敌人互换全部诅咒。先双方同时摘下再互相施加, 避免同种诅咒在中途合并。
+function swapCurses(state: BattleState, targetIds: string[], primaryId: string | undefined): void {
+  const primary = aliveUnit(state, primaryId);
+  const other = aliveUnit(state, targetIds.find((id) => id !== primaryId));
+  if (!primary || !other) return;
+  const fromPrimary = primary.statuses.filter(movableCurse);
+  const fromOther = other.statuses.filter(movableCurse);
+  if (fromPrimary.length === 0 && fromOther.length === 0) return;
+  primary.statuses = primary.statuses.filter((status) => !fromPrimary.includes(status));
+  other.statuses = other.statuses.filter((status) => !fromOther.includes(status));
+  for (const status of fromPrimary) copyStatusTo(state, other.id, status);
+  for (const status of fromOther) copyStatusTo(state, primary.id, status);
+  ops.log(state, `${primary.name} 与 ${other.name} 交换了诅咒`);
+}
+
+// 复制: 随机把主目标的 1 种诅咒复制给解析出的目标(层数与剩余持续相同)。
 function copyDebuff(state: BattleState, targetIds: string[], primaryId: string | undefined): void {
   const source = aliveUnit(state, primaryId);
   const receiverId = targetIds.find((id) => id !== primaryId && aliveUnit(state, id));
   if (!source || !receiverId) return;
-  const pool = source.statuses.filter((status) => movable(status, "debuff"));
+  const pool = source.statuses.filter(movableCurse);
   if (pool.length === 0) return;
   copyStatusTo(state, receiverId, rngPick(state, pool));
 }
@@ -118,6 +133,9 @@ export function applyHexStatusEffect(
       break;
     case "COPY_DEBUFF":
       copyDebuff(state, targetIds, primaryId);
+      break;
+    case "SWAP_CURSES":
+      swapCurses(state, targetIds, primaryId);
       break;
     case "RANDOM_HEX":
       randomHex(state, effect, sourceId, targetIds);

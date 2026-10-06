@@ -65,10 +65,12 @@ export type EffectType =
   | "PLAY_AS_FAST" // 本次出牌视为速攻
   | "PLAY_DAMAGE_FLAGS" // 本次出牌的伤害追加 flags
   | "STEAL_BUFF" // 夺取主目标层数最高的 1 个增益给施放者
-  | "INHERIT_DEBUFFS" // 主目标的全部减益转移给解析出的目标
-  | "GATHER_DEBUFFS" // 其他敌人的全部减益转移到主目标
-  | "COPY_DEBUFF" // 随机复制主目标的 1 种减益给解析出的目标
-  | "RANDOM_HEX" // 每名目标获得 1 种尚未持有的随机专属咒(厄运 / 怨咒 / 封印)
+  | "INHERIT_DEBUFFS" // 主目标的全部诅咒转移给解析出的目标
+  | "GATHER_DEBUFFS" // 其他敌人的全部诅咒转移到主目标
+  | "COPY_DEBUFF" // 随机复制主目标的 1 种诅咒给解析出的目标
+  | "RANDOM_HEX" // 每名目标获得 1 种尚未持有的随机诅咒(厄运 / 怨咒 / 封印)
+  | "SWAP_CURSES" // 主目标与解析出的另一名敌人交换全部诅咒(分段状态逐段交换)
+  | "SETTLE_TORMENT" // 痛楚提前结算 N 拍(amount / amountFrom, maxAmount 封顶): 每拍按当前层数结算并扣 1 拍持续; 支持 lifesteal
   | "PUPPET_STRIKE" // 主目标按自身攻击力 × multiplier 攻击解析出的目标(无其他目标时打自己)
   | "EXECUTE"; // 目标生命不高于阈值时直接击杀
 
@@ -85,6 +87,8 @@ export interface EffectDescriptor {
   target?: EffectTarget; // 默认 "primary"
   status?: string; // APPLY_STATUS: 状态 id
   statusKind?: StatusKind | "all"; // REMOVE_STATUS: 要移除的状态种类
+  curseOnly?: boolean; // REMOVE_STATUS: 只移除诅咒(忽略 statusKind)
+  exceptStatus?: string; // REMOVE_STATUS: 不移除的状态 id
   statusData?: Record<string, number>; // APPLY_STATUS: 状态的结构化运行时参数
   statusDataFrom?: { key: string; stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 从施法者属性生成参数
   stacks?: number; // APPLY_STATUS: 层数

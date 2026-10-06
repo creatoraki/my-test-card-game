@@ -1,4 +1,4 @@
-// 咒术师的状态 —— 专属五咒(厄运 / 怨咒 / 封印 / 停摆 / 痛楚)、三种标记(锁魂 / 疫病 / 咒丝)与自身增益。
+// 咒术师的状态 —— 五种诅咒(厄运 / 怨咒 / 封印 / 停摆 / 痛楚, curse = true)、三种标记(锁魂 / 疫病 / 咒丝)与自身增益。
 // 标记以减益形态挂在敌人身上, 但 mark = true: 不计入恶毒种类, 也不会被转移、复制、汇集。
 
 import type { DamageCtx, StatusCtx, StatusDef } from "../types";
@@ -19,6 +19,7 @@ export const HEXER_STATUS_DEFS: Record<string, StatusDef> = {
     name: "厄运",
     emoji: "🎲",
     kind: "debuff",
+    curse: true,
     maxStacks: 1,
     stackMode: "max",
     refreshMode: "max",
@@ -33,6 +34,7 @@ export const HEXER_STATUS_DEFS: Record<string, StatusDef> = {
     name: "怨咒",
     emoji: "🧿",
     kind: "debuff",
+    curse: true,
     maxStacks: 1,
     stackMode: "max",
     refreshMode: "max",
@@ -52,6 +54,7 @@ export const HEXER_STATUS_DEFS: Record<string, StatusDef> = {
     name: "封印",
     emoji: "📜",
     kind: "debuff",
+    curse: true,
     maxStacks: 1,
     stackMode: "max",
     refreshMode: "max",
@@ -64,6 +67,7 @@ export const HEXER_STATUS_DEFS: Record<string, StatusDef> = {
     name: "停摆",
     emoji: "⏸️",
     kind: "debuff",
+    curse: true,
     maxStacks: 1,
     stackMode: "max",
     expiresOnRoundEnd: true,
@@ -74,9 +78,10 @@ export const HEXER_STATUS_DEFS: Record<string, StatusDef> = {
     name: "痛楚",
     emoji: "🦴",
     kind: "debuff",
+    curse: true,
     stackMode: "segments",
     resistMode: "stacks",
-    desc: "每拍每层受到 1 点伤害（无视护盾，不降低体力极限），持续 5 回合。每次施加形成独立一段。",
+    desc: "每拍每层受到 1 点伤害（无视护盾，不降低体力极限），持续 5 回合。每次施加形成独立一段。被提前结算时，每结算 1 拍扣除 1 拍持续。",
     hooks: {
       onTempo: (c: StatusCtx) => {
         if (c.stacks <= 0) return;

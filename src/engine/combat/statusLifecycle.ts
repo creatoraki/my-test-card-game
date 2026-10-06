@@ -24,9 +24,14 @@ function runTempo(state: BattleState, ownerId: string): void {
   }
 
   const expiredDots: { statusId: string; segments: StatusSegment[] }[] = [];
+  // 衰减前取快照，避免暂停效果在同拍到期时受状态遍历顺序影响。
+  const pausedDurations = new Set(cmb.statuses
+    .filter((inst) => inst.stacks > 0 && (inst.duration == null || inst.duration > 0))
+    .flatMap((inst) => STATUS_DEFS[inst.id]?.pausesStatusDuration ?? []));
   for (const inst of [...cmb.statuses]) {
     const def = STATUS_DEFS[inst.id];
     if (!def) continue;
+    if (pausedDurations.has(inst.id)) continue;
     const expired = tickStatus(inst, def, tempo);
     if (expired.length > 0) expiredDots.push({ statusId: inst.id, segments: expired });
   }
