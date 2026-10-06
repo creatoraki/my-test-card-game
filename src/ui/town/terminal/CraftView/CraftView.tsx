@@ -22,6 +22,7 @@ export function CraftView() {
   const storage = useTownStore((state) => state.storage);
   const characters = useTownStore((state) => state.characters);
   const awakened = useTownStore((state) => state.awakened);
+  const party = useTownStore((state) => state.party);
   const craftModule = useTownStore((state) => state.craftModule);
   const [charId, setCharId] = useState(awakened[0] ?? "");
   const [recipeItemId, setRecipeItemId] = useState<string | null>(null);
@@ -59,6 +60,8 @@ export function CraftView() {
       <div className={s.body}>
         <AssemblyCharacterStage
           awakened={awakened}
+          party={party}
+          twoRows
           selected={charId}
           onSelect={(id) => {
             setCharId(id);

@@ -4,10 +4,11 @@ import { cx } from "@/ui/common/shared/cx";
 /** 详情页与编队页共用的升级经验条。 */
 export function ExperienceBar({ exp, cost, compact = false }: { exp: number; cost: number | null; compact?: boolean }) {
   const full = cost == null;
+  const ready = cost != null && exp >= cost;
   const progress = cost == null || cost <= 0 ? 1 : Math.max(0, Math.min(1, exp / cost));
 
   return (
-    <div className={cx(s.experience, compact && s.compact)}>
+    <div className={cx(s.experience, compact && s.compact, ready && s.ready)}>
       {!compact && <span>经验</span>}
       <div className={s.track} role="progressbar" aria-label="卡组升级经验"
         aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}

@@ -18,6 +18,8 @@ export const CARD_MARK_ART: Record<string, string> = {
   mindsEye: mindsEyeArt,
   starPact: starPactArt,
   heavy: heavyArt,
+  // 回手负担与沉重同属「费用加重」语义, 共用同一枚图标。
+  returnTax: heavyArt,
   streamer: streamerArt,
   scorching: scorchingArt,
   divineSight: divineSightArt,
@@ -25,7 +27,7 @@ export const CARD_MARK_ART: Record<string, string> = {
   countercurrent: countercurrentArt,
 };
 
-export const CARD_MARK_ART_SOURCES: readonly string[] = Object.values(CARD_MARK_ART);
+export const CARD_MARK_ART_SOURCES: readonly string[] = [...new Set(Object.values(CARD_MARK_ART))];
 
 export function cardMarkArtOf(id: string): string | undefined {
   return CARD_MARK_ART[id];

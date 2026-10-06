@@ -54,6 +54,7 @@ export const GLSL_HIT_FX: Record<GlslHitKind, (p: GlslHitFxProps) => JSX.Element
   fire: (p) => <GlslHitFx kind="fire" {...p} />,
   lightning: (p) => <GlslHitFx kind="lightning" {...p} />,
   poison: (p) => <GlslHitFx kind="poison" {...p} />,
+  torment: (p) => <GlslHitFx kind="torment" {...p} />,
   heal: (p) => <GlslHitFx kind="heal" {...p} />,
   buff: (p) => <GlslHitFx kind="buff" {...p} />,
   debuff: (p) => <GlslHitFx kind="debuff" {...p} />,

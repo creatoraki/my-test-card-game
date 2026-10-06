@@ -24,6 +24,7 @@ export function ModuleAssemblyView() {
   const storage = useTownStore((state) => state.storage);
   const characters = useTownStore((state) => state.characters);
   const awakened = useTownStore((state) => state.awakened);
+  const party = useTownStore((state) => state.party);
   const equipCardModule = useTownStore((state) => state.equipCardModule);
   const unequipCardModule = useTownStore((state) => state.unequipCardModule);
   const [charId, setCharId] = useState(awakened[0] ?? "");
@@ -75,6 +76,8 @@ export function ModuleAssemblyView() {
       <div className={s.body}>
         <AssemblyCharacterStage
           awakened={awakened}
+          party={party}
+          twoRows
           selected={charId}
           onSelect={(id) => {
             setCharId(id);

@@ -6,6 +6,7 @@ import { GLSL_HIT_FIRE } from "./shaders/fire.glsl";
 import { GLSL_HIT_HEAL } from "./shaders/heal.glsl";
 import { GLSL_HIT_LIGHTNING } from "./shaders/lightning.glsl";
 import { GLSL_HIT_POISON } from "./shaders/poison.glsl";
+import { GLSL_HIT_TORMENT } from "./shaders/torment.glsl";
 import { GLSL_HIT_SHIELD } from "./shaders/shield.glsl";
 import { GLSL_HIT_SHOT } from "./shaders/shot.glsl";
 import { GLSL_HIT_SLASH } from "./shaders/slash.glsl";
@@ -19,6 +20,7 @@ export type GlslHitKind =
   | "fire"
   | "lightning"
   | "poison"
+  | "torment"
   | "heal"
   | "buff"
   | "debuff"
@@ -46,6 +48,8 @@ export const GLSL_HIT_SPECS: Record<GlslHitKind, GlslHitSpec> = {
   fire: { program: program("fire", GLSL_HIT_FIRE), width: 260, height: 260, totalMs: 760 },
   lightning: { program: program("lightning", GLSL_HIT_LIGHTNING), width: 260, height: 340, totalMs: 600 },
   poison: { program: program("poison", GLSL_HIT_POISON), width: 260, height: 260, totalMs: 800 },
+  // 痛楚: 怨魂自外圈旋入、紫焰向上燃起, 画布需覆盖整个立绘并给上方留出余量。
+  torment: { program: program("torment", GLSL_HIT_TORMENT), width: 460, height: 520, totalMs: 1150 },
   // 辅助系: 光柱/光纹向上走, 画布加高; 方向语义(受益向上)不随阵营翻转。
   heal: { program: program("heal", GLSL_HIT_HEAL), width: 260, height: 340, totalMs: 1050 },
   buff: { program: program("buff", GLSL_HIT_BUFF), width: 260, height: 340, totalMs: 950 },

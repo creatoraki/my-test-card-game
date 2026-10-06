@@ -32,6 +32,7 @@ export type CardAnim =
   | "ice"
   | "lightning"
   | "poison"
+  | "torment"
   | "iai-slash"
   | "thunder-run"
   | "blade-slash"

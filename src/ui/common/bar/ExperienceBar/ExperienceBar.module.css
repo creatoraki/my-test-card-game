@@ -25,6 +25,14 @@
   transition: transform 220ms ease;
 }
 
+.ready .track {
+  border-color: #d9ad45;
+}
+
+.ready .fill {
+  background: linear-gradient(180deg, #fff0b5, #ffd05a 48%, #c58a19);
+}
+
 .amount { flex-shrink: 0; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 .compact .track { height: var(--exp-bar-h, 24px); }

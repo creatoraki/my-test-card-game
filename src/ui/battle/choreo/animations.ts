@@ -129,6 +129,8 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
   ice: { kind: "attack", emoji: "❄️", color: "#66d9e8", windup: 210, hold: 720, shake: 1 },
   lightning: { kind: "attack", proc: { impactMs: 120, floatMs: 420, damageAtImpact: true }, color: "#a5d8ff", windup: 130, hold: 740, shake: 1 },
   poison: { kind: "attack", proc: { impactMs: 200, floatMs: 420, damageAtImpact: true }, color: "#94d82d", windup: 190, hold: 860, shake: 1 },
+  // 痛楚: 怨魂旋入需要更长蓄势; 主色取图标的紫色鬼火, 与减益的蓝紫区分。
+  torment: { kind: "attack", proc: { impactMs: 340, floatMs: 520, damageAtImpact: true }, color: "#d65cff", windup: 190, hold: 1250, shake: 1 },
   // 居合拔刀斩(程序化 CSS): 全屏压暗 → 光点由暗渐亮蓄力 → 500ms 斩痕从左下向右上
   // 贯出 + 青白反白闪 + 顿帧震屏, 整段压在命中特效 hold 内。视觉在 IaiSlashFx.tsx
   // 与 ui/IaiSlashFx.css 的 iai 系关键帧(百分比按 1000ms 总时长换算, 50% = impactMs 500)。

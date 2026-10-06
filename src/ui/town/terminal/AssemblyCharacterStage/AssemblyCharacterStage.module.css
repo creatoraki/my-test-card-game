@@ -166,6 +166,28 @@
   display: none;
 }
 
+/* 固定两行五列；不足十人时仍保留第二行高度，立绘只裁切、不缩放。 */
+.twoRows .characterList {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  aspect-ratio: 390 / 234;
+  overflow: hidden;
+}
+
+.twoRows .character {
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+.viewport .onFieldGlow,
+.character .onFieldGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .characterList:focus-visible {
   outline: 1px solid var(--sx-key-hot);
   outline-offset: -1px;
@@ -219,6 +241,7 @@
   --bust-zoom: 2.15;
   --frame-k: 0.24;
   position: absolute;
+  z-index: 1;
   top: 0;
   left: 50%;
   width: calc(var(--slot-base-w) * var(--bust-zoom) * var(--bust-scale, 1));

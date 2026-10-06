@@ -8,6 +8,7 @@ import {
 } from "@/ui/battle/choreo/animations";
 import { attackSfxCue, impactSfxCue } from "@/ui/battle/choreo/animSfx";
 import { buildHitFx, impactSfxPlan } from "@/ui/battle/choreo/hitFloats";
+import { isTormentOnly } from "@/ui/battle/choreo/dotAnimation";
 import {
   choreograph,
   createTimeline,
@@ -81,7 +82,9 @@ export function useBattleChoreo({
 
   function runSteps(steps: ChoreoStep[], final: BattleState, seq: number, enter: Camera | null, excludeUid?: string) {
     if (!battle) return;
-    const plans = choreograph(steps, battle);
+    // 自然扣血与提前结算共用痛楚表现，时间轴也同步选用其爆点。
+    const plans = choreograph(steps.map((step) => isTormentOnly(step.hits)
+      ? { ...step, anim: "torment" as const } : step), battle);
     const handSeen = new Set(battle.hand);
     if (excludeUid) handSeen.delete(excludeUid);
     const marksAt: string[][] = [];

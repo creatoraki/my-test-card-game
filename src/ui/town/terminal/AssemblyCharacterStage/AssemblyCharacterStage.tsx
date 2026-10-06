@@ -1,9 +1,11 @@
-// 「01 角色选择」面板: 上方大立绘舞台, 下方单行缩略图 + 左右箭头。模组装配 / 模组制造两页共用。
+// 「01 角色选择」面板: 上方大立绘舞台, 下方缩略图 + 左右箭头。模组装配 / 模组制造两页共用。
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { getCharacter } from "@/data";
 import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
 import { cx } from "@/ui/common/shared/cx";
 import { TerminalPanel } from "@/ui/common/frame/TerminalPanel";
+import { BorderGlow } from "@/ui/common/frame/BorderGlow";
+import { CHARACTER_CARD_GLOW, characterGlow } from "@/ui/character/FormationScreen/parts/CrewCard/characterGlow";
 import s from "./AssemblyCharacterStage.module.css";
 
 interface Props {
@@ -11,20 +13,25 @@ interface Props {
   selected: string;
   onSelect: (charId: string) => void;
   className?: string;
+  party?: string[];
+  twoRows?: boolean;
 }
 
 const pad2 = (value: number) => String(value).padStart(2, "0");
 
-export function AssemblyCharacterStage({ awakened, selected, onSelect, className }: Props) {
+export function AssemblyCharacterStage({ awakened, selected, onSelect, className, party = [], twoRows = false }: Props) {
   const selectedId = selected || awakened[0];
   const selectedCharacter = selectedId ? getCharacter(selectedId) : null;
   const selectedIndex = selectedId ? awakened.indexOf(selectedId) : -1;
   const selectedRef = useRef<HTMLButtonElement | null>(null);
+  const pageStart = Math.floor(Math.max(0, selectedIndex) / 10) * 10;
+  const visibleCharacters = twoRows ? awakened.slice(pageStart, pageStart + 10) : awakened;
 
-  // 缩略图单行排列, 一屏 5 个; 超出的由代码把选中项滚进可视区。
+  // 单行模式滚动到选中项；双行模式按选中项切换每页 10 人。
   useEffect(() => {
+    if (twoRows) return;
     selectedRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [selectedId]);
+  }, [selectedId, twoRows]);
 
   const step = (delta: number) => {
     const nextIndex = selectedIndex + delta;
@@ -33,7 +40,8 @@ export function AssemblyCharacterStage({ awakened, selected, onSelect, className
   };
 
   const onListKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const delta = event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0;
+    const delta = event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1
+      : twoRows && event.key === "ArrowUp" ? -5 : twoRows && event.key === "ArrowDown" ? 5 : 0;
     if (!delta) return;
     event.preventDefault();
     step(delta);
@@ -47,9 +55,10 @@ export function AssemblyCharacterStage({ awakened, selected, onSelect, className
       rule="none"
       ariaLabel="角色选择"
       className={className}
-      bodyClassName={s.body}
+      bodyClassName={cx(s.body, twoRows && s.twoRows)}
     >
       <div className={s.viewport}>
+        {selectedCharacter && party.includes(selectedCharacter.id) && <OnFieldGlow color={selectedCharacter.color} />}
         <span className={s.slashes} aria-hidden="true" />
         {selectedCharacter ? (
           <CharacterPortrait
@@ -90,7 +99,7 @@ export function AssemblyCharacterStage({ awakened, selected, onSelect, className
             aria-label="可用角色"
             onKeyDown={onListKeyDown}
           >
-            {awakened.map((id) => {
+            {visibleCharacters.map((id) => {
               const character = getCharacter(id);
               const isSelected = id === selectedId;
               return (
@@ -100,10 +109,11 @@ export function AssemblyCharacterStage({ awakened, selected, onSelect, className
                   className={cx(s.character, isSelected && s.selected)}
                   type="button"
                   role="listitem"
-                  aria-label={`选择${character.name}`}
+                  aria-label={`选择${character.name}${party.includes(id) ? "，已上阵" : ""}`}
                   aria-pressed={isSelected}
                   onClick={() => onSelect(id)}
                 >
+                  {party.includes(id) && <OnFieldGlow color={character.color} />}
                   <CharacterPortrait characterId={id} emoji={character.emoji} alt="" className={s.thumbnail} />
                 </button>
               );
@@ -123,6 +133,22 @@ export function AssemblyCharacterStage({ awakened, selected, onSelect, className
         <p className={s.empty}>暂无可用角色</p>
       )}
     </TerminalPanel>
+  );
+}
+
+function OnFieldGlow({ color }: { color: string }) {
+  return (
+    <BorderGlow
+      className={s.onFieldGlow}
+      {...CHARACTER_CARD_GLOW}
+      {...characterGlow(color)}
+      borderRadius={0}
+      glowRadius={10}
+      persistent
+      followPointer={false}
+      animated={false}
+      fillOpacity={0.3}
+    />
   );
 }
 
