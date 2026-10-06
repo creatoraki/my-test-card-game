@@ -89,12 +89,11 @@ export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
     emoji: "🌱",
     kind: "buff",
     stackMode: "segments",
-    desc: "每拍回复施加者治愈力 20% 的生命。",
+    desc: "每拍每层回复 1 点生命，持续指定回合。",
     hooks: {
       onTempo: (c: StatusCtx) => {
-        const healAmount = c.inst.data?.healAmount ?? 0;
-        if (healAmount > 0 && c.stacks > 0)
-          c.ops.heal(c.state, c.inst.sourceId, c.ownerId, healAmount * c.stacks, { scaled: true });
+        if (c.stacks > 0)
+          c.ops.heal(c.state, c.inst.sourceId, c.ownerId, c.stacks, { scaled: true });
       },
     },
   },

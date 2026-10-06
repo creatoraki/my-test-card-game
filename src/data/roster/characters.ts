@@ -150,9 +150,9 @@ export const CHARACTERS: CharacterDef[] = [
     startingCardIds: [
       ...basicStartingCardIds("botanist"),
       // 毒 + 弓引导: 毒蘑菇孢子上毒 → 毒刺箭满弓毒发 → 藤蔓缠绕群体迟滞与眩晕。
-      "venom-dart",
+      "continuous-shot",
       "poison-mushroom",
-      "vine-entangle",
+      "aloe",
     ],
     // 奶 / 毒 / 首领单体输出三支柱, 普通 15 / 罕见 10 / 稀有 5。
     pools: {
