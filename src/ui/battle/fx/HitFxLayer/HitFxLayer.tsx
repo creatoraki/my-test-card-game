@@ -3,7 +3,7 @@ import type { CardAnim } from "@/engine";
 import { ANIM, type HitFx, type ProcFxPreset } from "@/ui/battle/choreo/animations";
 import type { UnitReact } from "@/ui/battle/choreo/unitShell";
 import { cx } from "@/ui/common/shared/cx";
-import { IaiSlashFx } from "@/ui/battle/fx/IaiSlashFx";
+import { WolfFangFx } from "@/ui/battle/fx/WolfFangFx";
 import { BladeSlashFx } from "@/ui/battle/fx/BladeSlashFx";
 import { BloodSlashFx } from "@/ui/battle/fx/BloodSlashFx";
 import { NeonCrossFx } from "@/ui/battle/fx/NeonCrossFx";
@@ -27,7 +27,7 @@ import s from "./HitFxLayer.module.css";
 const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset; color: string }) => JSX.Element | null>> = {
   // 基础档位(攻击系元素 + 治疗/增益/减益/护盾): GLSL 着色器特效, 取代原 emoji 与护盾图标。
   ...GLSL_HIT_FX,
-  "iai-slash": IaiSlashFx,
+  "wolf-fang": WolfFangFx,
   "thunder-run": ThunderRunFx,
   "blade-slash": BladeSlashFx,
   "blood-slash": BloodSlashFx,
@@ -110,7 +110,7 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
       )}
       {/* 飘字。多段伤害 = 多条, 原地依次弹出(delayMs 见 hitFloats.ts)。
           外层 .float-slot 只负责定位与叠序, 位移动画仍全归 .float-num 的 floatUp ——
-          两层分开才不用去改那条被居合斩等特效依赖的关键帧。 */}
+          两层分开才不用去改那条被各程序化特效依赖的关键帧。 */}
       {hit?.floats.map((float, index) => (
         <div
           key={`f${hit.seq}-${index}`}

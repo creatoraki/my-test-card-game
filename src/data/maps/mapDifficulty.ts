@@ -1,5 +1,5 @@
 // 地图难度规则唯一真相点。
-// 各地图保留自己的遭遇战与交互池，难度只覆盖装备上限、物件等级和战斗倍率。
+// 各地图保留自己的遭遇战与交互池，普通难度统一九间房，教学关沿用固定蓝图。
 
 import { MAPS, mapEquipRarities, type MapDef } from "./index";
 import type { ItemRarity } from "@/items/types";
@@ -10,6 +10,7 @@ export type MapDifficulty = "normal" | "hard" | "abyss";
 
 export const MAP_DIFFICULTY_IDS: readonly MapDifficulty[] = ["normal", "hard", "abyss"];
 const TUTORIAL_DIFFICULTY_IDS: readonly MapDifficulty[] = ["normal"];
+const NORMAL_ROOM_COUNT = 9;
 
 export interface MapDifficultyDef {
   id: MapDifficulty;
@@ -88,19 +89,19 @@ export function mapDifficultyIds(mapId: string): readonly MapDifficulty[] {
 
 function withNormalOverride(map: MapDef): MapDef {
   const override = map.normalOverride;
-  if (!override) return map;
   return {
     ...map,
-    roomCount: override.roomCount ?? map.roomCount,
-    battleEncounters: { ...map.battleEncounters, ...override.battleEncounters },
+    roomCount: NORMAL_ROOM_COUNT,
+    battleEncounters: { ...map.battleEncounters, ...override?.battleEncounters },
   };
 }
 
 export function difficultyMapConfig(mapId: string, difficulty: MapDifficulty): MapDef {
   const map = requireMap(mapId);
   const definition = getMapDifficulty(difficulty);
-  if (!mapHasDifficulty(mapId)) return map;
+  if (map.id === "tutorial") return map;
   if (difficulty === "normal") return withNormalOverride(map);
+  if (!mapHasDifficulty(mapId)) return map;
 
   return {
     ...map,

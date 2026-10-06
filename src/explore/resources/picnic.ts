@@ -68,7 +68,7 @@ function grantRecipeReward(s: ExploreState, reward: PicnicReward): string {
   if (reward.kind === "limit") {
     const amount = Math.min(EXPLORE_RULES.picnic.recipeLimitMax, reward.amount);
     recoverPartyLimit(s, amount);
-    return `全队体力极限 +${amount}，当前生命回复等值`;
+    return `全队体力极限 +${amount}`;
   }
   const def = getItemDef(reward.relicId);
   // 护栏: 食谱只能发野餐限定遗物, 与临时祝福匣的来源互不相通。
@@ -103,7 +103,7 @@ export function resolvePicnic(s: ExploreState, picks: Record<string, number>): P
       recipeId: null,
       recipeName: null,
       story: "食物没有拼成特别的组合，但热量足够让队伍撑住接下来的路。",
-      notes: [`全队体力极限 +${amount}，当前生命回复等值`],
+      notes: [`全队体力极限 +${amount}`],
     };
   } else {
     for (const member of s.party) {

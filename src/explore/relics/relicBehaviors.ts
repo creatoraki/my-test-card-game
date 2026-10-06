@@ -40,7 +40,7 @@ export const EXPLORE_RELIC_BEHAVIORS: Record<string, ExploreRelicBehaviorMap> = 
       for (const member of state.party) {
         if (member.alive) restoreLimit(member, 1);
       }
-      state.log.push("干燥药草：存活角色体力极限 +1，当前生命回复等值");
+      state.log.push("干燥药草：存活角色体力极限 +1");
     },
   },
   "relic-emergency-ration": {

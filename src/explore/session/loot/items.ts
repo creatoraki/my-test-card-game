@@ -69,7 +69,7 @@ export function useItem(s: ExploreState, uid: string, targetCharId?: string): It
       if (target.hpLimit >= target.maxHp && target.hp >= target.hpLimit) return null;
       const amount = Math.max(0, Math.floor(u.amount));
       restoreLimit(target, amount);
-      note = `${target.name} 体力极限修复 ${amount} 点，当前生命回复等值`;
+      note = `${target.name} 体力极限修复 ${amount} 点`;
       break;
     }
     case "reducePollutionOne": {

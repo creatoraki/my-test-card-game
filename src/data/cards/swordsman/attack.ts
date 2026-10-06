@@ -160,7 +160,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cardType: "fast",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "iai-slash",
+    anim: "wolf-fang",
     effects: [
       { type: "PLAY_STAT_BONUS", stat: "critRate", amount: 20 },
       {
@@ -172,7 +172,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
         target: "primary",
       },
     ],
-    text: "造成 {1} 点伤害；目标生命低于 30% 时伤害倍率改为 160%；暴击 +20%。击杀时抽 2 张牌。",
+    text: "造成 {1} 点伤害；目标生命低于 30% 时改为造成 160% 攻击力的伤害；暴击 +20%。击杀时抽 2 张牌。",
   },
   {
     id: "rift-light",

@@ -2,6 +2,9 @@ import { cardKeywordsIn, type Card } from "@/engine";
 import { getItemDef } from "@/data";
 import { cx } from "@/ui/common/shared/cx";
 import s from "./CardKeywordNotes.module.css";
+import { CardTextRich } from "../CardTextRich";
+import { useCardTextStats } from "@/ui/common/shared/cardTextFormat";
+import { inlineStatText } from "@/engine/cards/dynamicCardText";
 
 interface Props {
   text: string;
@@ -11,6 +14,7 @@ interface Props {
 }
 
 export function CardKeywordNotes({ text, card, className, additionalNotes }: Props) {
+  const stats = useCardTextStats(card?.ownerCharId ?? "swordsman");
   const keywords = cardKeywordsIn(text);
   const moduleDef = card?.cardModule ? getItemDef(card.cardModule.itemId) : undefined;
   const moduleNotes = moduleDef ? [{ id: moduleDef.id, name: moduleDef.name, desc: moduleDef.desc }] : [];
@@ -22,7 +26,7 @@ export function CardKeywordNotes({ text, card, className, additionalNotes }: Pro
       {notes.map((keyword) => (
         <div key={keyword.id} className={s.note}>
           <strong>{keyword.name}</strong>
-          <span>{keyword.desc}</span>
+          <span><CardTextRich text={card ? inlineStatText(keyword.desc, stats, true) : keyword.desc} /></span>
         </div>
       ))}
     </div>

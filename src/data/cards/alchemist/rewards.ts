@@ -54,7 +54,7 @@ export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
     anim: "heal",
     // 体力极限恢复自带等额生命回复, 不再单独挂 HEAL(否则生命会回两遍)。
     effects: [{ type: "RESTORE_HP_LIMIT", multiplier: 0.6, target: "primary" }],
-    text: "选择一名队友，回复 {0} 点生命并恢复等额体力极限。打出后消耗。",
+    text: "选择一名队友，修复 {0} 点体力极限。打出后消耗。",
   },
   {
     ...rewardBase,

@@ -3,7 +3,7 @@ import { ANIM } from "@/ui/battle/choreo/animations";
 import { DEATH } from "@/ui/battle/choreo/deathChoreo";
 import type { SpringTuning } from "./spring";
 
-export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "thunder" | "blade" | "gale" | "blood" | "neon" | "triple" | "keen" | "lunar" | "sakura" | "twin" | "foe" | "foeCast";
+export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "wolf" | "thunder" | "blade" | "gale" | "blood" | "neon" | "triple" | "keen" | "lunar" | "sakura" | "twin" | "foe" | "foeCast";
 
 export interface ShotPreset {
   kind: ShotKind;
@@ -57,8 +57,10 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
   aoe: { kind: "aoe", scale: 1.1, fit: 0.72, yaw: 8, pitch: 0, roll: 3, rig: { s: SOFT, yaw: SOFT }, lead: 240, hold: 820, punch: 0.025, shake: 12, creep: 0, hitstop: 70 },
   // hold = 掉血 + 消散(余烬焚解) + 40ms, 击杀镜头盖住完整死亡演出; 分镜侧另按 impactMs 再兜底。
   kill: { kind: "kill", scale: 1.85, fit: 0.68, yaw: 6, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 190, damping: 16 } }, lead: 320, hold: DEATH.drain + DEATH.vanish + 40, punch: 0.08, shake: 28, creep: 20, hitstop: 140, slowmo: { scale: 0.25, ms: 320 } },
-  iai: { kind: "iai", scale: 1.65, fit: 0.72, yaw: 5, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 210, damping: 15 } }, lead: 260, hold: 960, punch: 0.075, shake: 24, creep: 0, hitstop: 110 },
-  // 雷走·迅雷斩视觉 780ms: 比居合更快更利 —— 推近略小、roll 弹簧更硬(甩镜头感), 顿帧短一档
+  // 狼雀·牙咬视觉 1100ms: 推近一档、roll 带甩, 420ms 獠牙合拢那一拍给重震 + 偏长顿帧(咬住的停顿感);
+  // hold 1200 覆盖命中特效 1150ms。
+  wolf: { kind: "wolf", scale: 1.65, fit: 0.72, yaw: 5, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 210, damping: 15 } }, lead: 260, hold: 1200, punch: 0.075, shake: 24, creep: 0, hitstop: 120 },
+  // 雷走·迅雷斩视觉 780ms: 比狼雀更快更利 —— 推近略小、roll 弹簧更硬(甩镜头感), 顿帧短一档
   // 保住"快"; hold 920 覆盖命中特效 900ms, 200ms 爆点对齐重震与顿帧。
   thunder: { kind: "thunder", scale: 1.6, fit: 0.73, yaw: 5, pitch: 3, roll: 7, rig: { s: QUICK, roll: { stiffness: 240, damping: 15 } }, lead: 220, hold: 920, punch: 0.07, shake: 24, creep: 0, hitstop: 80 },
   // 刀光视觉时间轴约 1600ms; hold 1800ms 给刀痕消散尾段留 170ms 卸载余量。
@@ -85,7 +87,7 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
 /** 敌人自己的戏: 先把镜头聚焦到施法者、落位后再起蓄力(见 BattleScreen 的 focusLead)。 */
 export const isFoeLedShot = (p: ShotPreset) => p.kind === "foe" || p.kind === "foeCast";
 
-// 原生节拍不长于 KILL_FRAMING_BEAT 的镜头(普攻/重击/群攻/居合)整条换成击杀镜头;
+// 原生节拍不长于 KILL_FRAMING_BEAT 的镜头(普攻/重击/群攻/狼雀)整条换成击杀镜头;
 // 更长的专属特效保留自身取景, 只换打击感参数, hold 取两者较长者, 死亡演出不被截断。
 // 阈值与 kill.hold 解耦: 消散时长调整不应改变哪些特效用击杀取景。
 const KILL_FRAMING_BEAT = 1560;
@@ -103,7 +105,7 @@ export function pickShot(ctx: ShotContext): ShotPreset {
     // 全场级特效不论剩几个目标都用自己的取景: 风刃横贯整排, 单体镜头会把它裁掉。
     ctx.anim === "gale-sweep" ? SHOTS.gale
       : ctx.targetCount >= 2 ? SHOTS.aoe
-      : ctx.anim === "iai-slash" ? SHOTS.iai
+      : ctx.anim === "wolf-fang" ? SHOTS.wolf
       : ctx.anim === "thunder-run" ? SHOTS.thunder
         : ctx.anim === "blade-slash" ? SHOTS.blade
           : ctx.anim === "blood-slash" ? SHOTS.blood

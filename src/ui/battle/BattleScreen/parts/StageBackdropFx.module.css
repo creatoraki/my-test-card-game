@@ -1,0 +1,24 @@
+/* 背景调色层: 位于 .battle-layers 内, 背景纵深组(z 0)之上、敌人平面(z 3)之下。
+   时长按 --fx-rate 缩放(由 .battle-layers 行内下发), 与命中特效同步走倍速。 */
+.backdrop-blood {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-color: transparent;
+  animation: bloodBackdrop calc(2800ms / max(var(--fx-rate, 1), 0.25)) linear both;
+}
+
+/* 血色刀光(2800ms): 下劈前整屏沉入暗红黑 → 28.6%(800ms 刀身落下)背景泛血光 →
+   67.9%(1900ms 血花爆点)再泛一次 → 85% 起退去。只染背景, 刀光与血花始终压在上面。 */
+@keyframes bloodBackdrop {
+  0% { background-color: #14040600; }
+  1.8% { background-color: #140406a0; }
+  21% { background-color: #140406a0; }
+  28.6% { background-color: #ff4a4a40; }
+  32% { background-color: #140406a0; }
+  67.9% { background-color: #ff3a3a50; }
+  72% { background-color: #140406a0; }
+  85%,
+  100% { background-color: #14040600; }
+}

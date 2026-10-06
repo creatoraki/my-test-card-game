@@ -12,7 +12,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "poison",
+    anim: "torment",
     effects: [
       {
         type: "APPLY_STATUS",
@@ -69,7 +69,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "poison",
+    anim: "torment",
     effects: [
       {
         type: "SPREAD_STATUS",
@@ -92,7 +92,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "poison",
+    anim: "torment",
     effects: [
       {
         type: "APPLY_STATUS",
@@ -128,7 +128,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "allFoes",
     rarity: "common",
-    anim: "poison",
+    anim: "torment",
     effects: [
       {
         type: "APPLY_STATUS",

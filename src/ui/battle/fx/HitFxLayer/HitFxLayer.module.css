@@ -151,16 +151,9 @@
   animation-play-state: paused;
 }
 
-/* 居合斩的冲击环: 同法把延迟烘进关键帧(50% = 500ms 斩击时刻)。
-   ⓘ 原先住在 fx/IaiSlashFx/IaiSlashFx.module.css —— 但 .vfx-* 一族是**本文件**的类,
-     那边够不着(样式铁律 1), 故迁来此处。 */
-.vfx-iai-slash.vfx-attack::after {
-  animation: iaiRing 1000ms ease-out forwards;
-}
-@keyframes iaiRing {
-  0%, 49% { transform: scale(0.4); opacity: 0; }
-  50% { transform: scale(0.4); opacity: 0.9; }
-  80%, 100% { transform: scale(9); opacity: 0; }
+/* 狼雀·牙咬自带沿斩线压扁的冲击环, 爆点在 420ms; 默认圆环挂载即扩散会抢在獠牙合拢之前。 */
+.vfx-wolf-fang.vfx-attack::after {
+  content: none;
 }
 /* 刀光组件自带 .blade-shock 冲击波。基态本身就是可见圆环, 必须 content:none 而非 animation:none,
    否则会在 950ms 爆裂前静止显示在目标中心。 */
@@ -224,7 +217,7 @@
 /* —— 伤害/治疗飘字 —— */
 /* 飘字定位槽。多段伤害会同时挂多条飘字, 它们必须**共用同一个锚点**原地依次弹出,
    所以定位与叠序留在这一层, 位移动画全归内层 .float-num —— 这样 floatUp 关键帧里的
-   translate(-50%, …) 不用动(居合斩等特效的时序注释都是按它写的)。 */
+   translate(-50%, …) 不用动(各程序化特效的时序注释都是按它写的)。 */
 .float-slot {
   position: absolute;
   top: 26px;
@@ -248,7 +241,7 @@
   text-shadow: 0 0 10px currentColor;
   /* 聚焦镜头下停留约 1s: 快速弹出后保持可读, 末段才缓慢上浮淡出。
      延迟/时长走 CSS 变量(见 HitFxLayer.hitFxVars): 缺省值下与原 0.95s 无延迟逐帧等价;
-     居合斩把飘字推迟到斩击爆发瞬间(impactMs)并压缩时长, 保证在命中特效 hold 卸载前收尾。
+     程序化攻击把飘字推迟到斩击爆发瞬间(impactMs)并压缩时长, 保证在命中特效 hold 卸载前收尾。
     多段伤害再叠一层 --vfx-float-stagger(逐条按预算错开, 见 hitFloats.ts), 于是几个数字
     在同一位置依次弹出。 */
   animation: floatUp var(--vfx-float-dur, 0.95s) ease-out

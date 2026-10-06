@@ -94,7 +94,7 @@ export function useDeathGate(
 
     const reduced = prefersReducedMotion();
     const drain = reduced ? DEATH.reducedDrain : DEATH.drain;
-    // reduced-motion 下居合斩本身不播长动画, 不应保留等待 impactMs 的空档。
+    // reduced-motion 下程序化特效本身不播长动画, 不应保留等待 impactMs 的空档。
     const impactOffset = reduced ? 0 : impactOffsetRef.current;
     impactOffsetRef.current = 0;
     const rate = Math.max(0.25, rateRef.current);

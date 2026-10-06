@@ -57,7 +57,7 @@ export const BOTANIST_STATUS_DEFS: Record<string, StatusDef> = {
     maxStacks: 1,
     stackMode: "max",
     refreshMode: "override",
-    desc: `培育牌成熟时，所有敌人附加穿孔 1；培育牌枯萎时，生命比例最低的队友修复 ${ROOT_NETWORK_HP_LIMIT} 点体力极限，并回复等值生命。`,
+    desc: `培育牌成熟时，所有敌人附加穿孔 1；培育牌枯萎时，生命比例最低的队友修复 ${ROOT_NETWORK_HP_LIMIT} 点体力极限。`,
     hooks: {
       onCultivateStage: (c: StatusCtx, _card: Card, stage) => {
         const owner = c.state.combatants[c.ownerId];

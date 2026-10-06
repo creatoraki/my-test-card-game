@@ -41,7 +41,7 @@ export const HEXER_SUPPORT_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "poison",
+    anim: "torment",
     effects: [
       {
         type: "APPLY_STATUS",

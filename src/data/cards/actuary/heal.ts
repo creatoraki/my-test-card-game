@@ -29,7 +29,7 @@ export const ACTUARY_HEAL_CARDS: CardDef[] = [
         condition: "targetAttackedThisRound",
       },
     ],
-    text: "为一名队友附加相当于治愈力 50% 的保险，持续 2 回合；急诊：改为 80%。",
+    text: "为一名队友附加 {0} 层保险，持续 2 回合；急诊：改为 {1} 层。",
   },
   {
     id: "emergency-disbursement",

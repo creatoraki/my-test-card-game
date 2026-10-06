@@ -22,7 +22,6 @@ function stageFx(hits: Record<string, HitFx>) {
 }
 
 export function ScreenFxLayer({ hits, playerIds, fxRate }: Props) {
-  const dimHit = Object.values(hits).find((hit) => ANIM[hit.anim].screenFx === "dim");
   const flashHit = Object.values(hits).find((hit) => ANIM[hit.anim].screenFx === "flash");
   const bloodHit = Object.values(hits).find((hit) => ANIM[hit.anim].screenFx === "blood");
   const glitchHit = Object.values(hits).find((hit) => ANIM[hit.anim].screenFx === "glitch");
@@ -35,9 +34,17 @@ export function ScreenFxLayer({ hits, playerIds, fxRate }: Props) {
 
   return (
     <>
-      {dimHit && <div key={dimHit.seq} className={s["battle-dim"]} aria-hidden />}
       {flashHit && <div key={flashHit.seq} className={s["battle-flash"]} aria-hidden />}
-      {bloodHit && <div key={bloodHit.seq} className={s["battle-blood"]} aria-hidden />}
+      {/* 血色刀光的暗红黑底色在 StageBackdropFx(敌人之下), 这里只留两次滤色闪光; 本层不在
+          .battle-layers 内, 拿不到 --fx-rate, 倍速改由行内下发。 */}
+      {bloodHit && (
+        <div
+          key={bloodHit.seq}
+          className={s["battle-blood"]}
+          style={{ animationDuration: `${2800 / Math.max(fxRate, 0.25)}ms` }}
+          aria-hidden
+        />
+      )}
       {glitchHit && <div key={glitchHit.seq} className={s["battle-glitch"]} aria-hidden />}
       {twinHit && <div key={twinHit.seq} className={s["battle-twin"]} aria-hidden />}
       {thunderHit && <div key={thunderHit.seq} className={s["battle-thunder"]} aria-hidden />}

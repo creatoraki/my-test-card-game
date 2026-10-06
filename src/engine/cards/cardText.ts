@@ -2,6 +2,7 @@ import type { Card, EffectDescriptor, StatBlock } from "../types";
 import { attackDamage, healValue } from "../combat/stats";
 import { cardCost } from "./cost";
 import { RULES } from "../core/battleRules";
+import { dynamicText, effectTextScale, inlineStatText } from "./dynamicCardText";
 
 export interface CardTextStats {
   attack: number;
@@ -74,7 +75,7 @@ export function effectDisplayValue(
 }
 
 // {0} 对应 effects[0]；{d0} 对应 onDiscard.effects[0]；{k0} 对应 cultivate.effects[0]；{c} 为培育剩余回合(成熟显示 ✔)。
-export function renderCardText(card: Card, stats: CardTextStats, cost = cardCost(null, card)): string {
+export function renderCardText(card: Card, stats: CardTextStats, cost = cardCost(null, card), rich = false): string {
   const mastery =
     cost <= RULES.combat.lowCostApMax ? stats.lowCostMastery : stats.highCostMastery;
   const effectiveStats: CardTextStats = {
@@ -83,7 +84,9 @@ export function renderCardText(card: Card, stats: CardTextStats, cost = cardCost
     healPower: stats.healPower + mastery,
     damageAttackBonus: card.cardType === "fast" ? stats.fastMastery ?? 0 : 0,
   };
-  return card.text.replace(/\{(d|k)?(\d+|c)\}/g, (_match, kind: string | undefined, indexText: string) => {
+  const template = card.text.replace(/（(?:攻击力|治愈力)的\s*\d+(?:\.\d+)?%）/g, "");
+  const text = inlineStatText(template, effectiveStats, rich);
+  return text.replace(/\{(d|k)?(\d+|c)\}/g, (_match, kind: string | undefined, indexText: string) => {
     if (indexText === "c") {
       const left = card.cultivateLeft ?? card.cultivate?.turns;
       return left == null ? "?" : left <= 0 ? "✔" : String(left);
@@ -95,6 +98,11 @@ export function renderCardText(card: Card, stats: CardTextStats, cost = cardCost
         ? card.cultivate?.effects
         : card.effects;
     const value = effectDisplayValue(effects?.[index], effectiveStats, card.discardStacks ?? 0);
+    const scale = effectTextScale(effects?.[index]);
+    if (rich && value != null && scale) {
+      const multiplier = scale.multiplier + (effects?.[index]?.bonusMultiplierPerSelfStack ?? 0) * (card.discardStacks ?? 0);
+      return dynamicText(value, scale.stat, multiplier);
+    }
     return value == null ? "?" : String(value);
   });
 }

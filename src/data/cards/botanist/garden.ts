@@ -61,7 +61,7 @@ export const BOTANIST_GARDEN_CARDS: CardDef[] = [
       mode: "replace",
       effects: [{ type: "RESTORE_HP_LIMIT", multiplier: 0.15, target: "primary" }],
     },
-    text: "为一名队友恢复 {0} 点生命（治愈力的 40%）。培育 {c}（替换）：修复 {k0} 点体力极限（治愈力的 15%），并回复等值生命。",
+    text: "为一名队友恢复 {0} 点生命（治愈力的 40%）。培育 {c}（替换）：修复 {k0} 点体力极限（治愈力的 15%）。",
   },
   {
     id: "guaiac-wood",

@@ -114,7 +114,7 @@ export const BOTANIST_BOW_CARDS: CardDef[] = [
         conditionValue: RULES.pierce.max,
       },
     ],
-    text: `造成 {1} 点伤害；毒箭 2。若本卡结算前目标穿孔已满 ${RULES.pierce.max} 层：攻击倍率改为 170%（{0} 点伤害），不附加穿孔。`,
+    text: `造成 {1} 点伤害；毒箭 2。若本卡结算前目标穿孔已满 ${RULES.pierce.max} 层：改为造成 {0} 点伤害，不附加穿孔。`,
   },
   {
     id: "vine-entangle",

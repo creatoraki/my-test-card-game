@@ -3,3 +3,8 @@
   color: var(--accent);
   font-weight: 800;
 }
+
+.dynamic {
+  color: #ffd65a;
+  font-weight: 800;
+}

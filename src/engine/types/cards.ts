@@ -12,7 +12,7 @@ export type CardRarity = "basic" | Rarity;
 
 // 出牌动画类型(与技能绑定, 决定目标的受击/首击特效表现)。
 //   攻击系: slash 斩击 / shot 箭击 / fire 火爆 / ice 冰霜 / lightning 电击 / poison 剧毒
-//           iai-slash 居合拔刀斩(程序化 CSS)
+//           wolf-fang 狼雀·牙咬(GLSL: 琥珀狼瞳亮起 → 上下獠牙合拢成一线 → 爆点拖光 + 斩线烧蚀 + 雀羽翻飞，总长 1100ms)
 //           thunder-run 雷走·迅雷斩(GLSL: 蓄电压暗 → 两记疾斩交成 X、斩痕缠电 → 爆点雷光 + 复闪，总长 780ms)
 //           blade-slash 刀光斩(程序化 CSS, 三拍)
 //           gale-sweep 青岚横断(Canvas 2D 全场级: 疾风收拢 → 巨型风刃横贯整排 → 整线同时迸裂, 全体攻击只播一份)
@@ -33,7 +33,7 @@ export type CardAnim =
   | "lightning"
   | "poison"
   | "torment"
-  | "iai-slash"
+  | "wolf-fang"
   | "thunder-run"
   | "blade-slash"
   | "gale-sweep"

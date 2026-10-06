@@ -7,6 +7,7 @@
 import type { Card, CardAnim } from "@/engine";
 import { CARD_DEFS, type EnemyMove } from "@/data";
 import { THUNDER_TIMELINE } from "@/ui/battle/fx/ThunderRunFx/thunderRunTimeline";
+import { WOLF_TIMELINE } from "@/ui/battle/fx/WolfFangFx/wolfFangTimeline";
 
 // 卡牌定义表的 anim 索引: 卡实例随城镇档案持久化(localStorage), 实例上固化的 anim
 // 副本会在改数据后过期 —— 旧档的卡永远放老特效。anim 是纯表现字段, 故按定义表实时
@@ -20,7 +21,7 @@ export interface ProcFxPreset {
   // runSteps 用它推迟顿帧/震屏, hitFxVars 用它推迟受击抖动/闪白与飘字。
   impactMs: number;
   floatMs: number; // 飘字时长(压缩): impactMs + floatMs 须小于命中特效的 hold, 否则飘字被卸载截断
-  // 掉血(commit 快照)是否推迟到 impactMs。缺省 false = 挂载即结算(历史行为, iai-slash 依赖它)。
+  // 掉血(commit 快照)是否推迟到 impactMs。缺省 false = 挂载即结算(历史行为)。
   // 蓄力型特效(爆点远晚于挂载)置 true, 否则血条会在爆开前就掉完。
   damageAtImpact?: boolean;
   // 多段飘字的固定间隔(ms)。缺省走 hitFloats 的自适应算法。
@@ -34,7 +35,7 @@ export interface AnimPreset {
   // 全场级特效: 整次出牌只由 ScreenFxLayer 挂一份(覆盖全部目标), 各单位的 HitFxLayer
   // 不再各放一份 proc, 只保留受击反应与飘字。全体攻击用, 避免 n 个目标演成 n 份单体动画。
   stage?: boolean;
-  screenFx?: "dim" | "flash" | "blood" | "glitch" | "twin" | "thunder"; // 可选的场景外全屏层
+  screenFx?: "flash" | "blood" | "glitch" | "twin" | "thunder"; // 可选的场景外全屏层
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
   windup: number; // ms: 施法者前冲蓄力 → 命中时刻(伤害/特效在此刻触发)
   hold: number; // ms: 命中后特效(含飘字)完整播放所需时长
@@ -131,17 +132,17 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
   poison: { kind: "attack", proc: { impactMs: 200, floatMs: 420, damageAtImpact: true }, color: "#94d82d", windup: 190, hold: 860, shake: 1 },
   // 痛楚: 怨魂旋入需要更长蓄势; 主色取图标的紫色鬼火, 与减益的蓝紫区分。
   torment: { kind: "attack", proc: { impactMs: 340, floatMs: 520, damageAtImpact: true }, color: "#d65cff", windup: 190, hold: 1250, shake: 1 },
-  // 居合拔刀斩(程序化 CSS): 全屏压暗 → 光点由暗渐亮蓄力 → 500ms 斩痕从左下向右上
-  // 贯出 + 青白反白闪 + 顿帧震屏, 整段压在命中特效 hold 内。视觉在 IaiSlashFx.tsx
-  // 与 ui/IaiSlashFx.css 的 iai 系关键帧(百分比按 1000ms 总时长换算, 50% = impactMs 500)。
-  // 调 impactMs 时须同步改 ui/IaiSlashFx.css 里 iaiBlade/iaiGlow/iaiRing/iaiScreenDim 的百分比。
-  "iai-slash": {
+  // 狼雀·牙咬(GLSL): 1100ms —— 局部压暗、一对琥珀狼瞳亮起后眨眼熄灭 → 上下两道月牙獠牙
+  // 张成眼形加速合拢 → 420ms 爆点闭成一线(白核 + 横向拖光 + 咬合星芒 + 冲击环) →
+  // 斩线冷却烧蚀、雀羽翻飞飘落。impactMs 与 fx/WolfFangFx/wolfFangTimeline.ts 同源;
+  // 掉血/飘字锚在爆点。压暗与闪光都画在着色器内(只罩目标周围), 刻意不配 screenFx ——
+  // 全屏层压在敌人平面之上, 会把特效本身一起盖住。震屏/顿帧归相机 SHOTS.wolf。
+  "wolf-fang": {
     kind: "attack",
-    color: "#8fe3ff", // 青蓝主色(冲击环/受击着色/飘字)
-    proc: { impactMs: 500, floatMs: 500 },
-    screenFx: "dim",
-    windup: 210, // 现时序不消费, 按语义填写
-    hold: 1000,
+    color: "#ffb347", // 琥珀狼瞳(瞳光/雀羽/余烬/受击着色/飘字), 刃光另用着色器内的冷银
+    proc: { impactMs: WOLF_TIMELINE.impact, floatMs: 520, damageAtImpact: true },
+    windup: 190,
+    hold: 1150, // impactMs + floatMs = 940 < hold, 也盖住 total 1100
     shake: 2,
   },
   // 雷走·迅雷斩(GLSL): 780ms —— 蓄电压暗 → 两记疾斩交成 X(斩痕缠绕频闪电弧) →

@@ -47,9 +47,8 @@ export interface MapDef {
   // 战斗档位 → 遭遇战候选。房间深度到档位的权重是全局表(EXPLORE_RULES.battleTierWeights),
   // 地图只负责登记每个档位的战斗模板。
   battleEncounters: Record<BattleTier, string[]>;
-  /** 普通难度的减负覆写(房间数 / 遭遇战)；困难与深渊沿用上面的原始配置。 */
+  /** 普通难度的遭遇战覆写；房间数由统一难度规则决定。 */
   normalOverride?: {
-    roomCount?: number;
     /** 按档位合并, 未列出的档位沿用原配置。 */
     battleEncounters?: Partial<Record<BattleTier, string[]>>;
   };
@@ -112,7 +111,6 @@ export const MAPS: MapDef[] = [
     },
     // 普通难度: 九间房, 终局改为随机一场「1 精英 + 2 小怪」, 不出回收总控。
     normalOverride: {
-      roomCount: 9,
       battleEncounters: {
         t5: ["n-t5-lite-compactor", "n-t5-lite-scrapyard", "n-t5-lite-hivolt", "n-t5-lite-arc"],
       },

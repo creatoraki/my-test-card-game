@@ -13,9 +13,9 @@ export const PROPHET_SUPPORT_CARDS: CardDef[] = [
     anim: "heal",
     effects: [
       { type: "HEAL", multiplier: 0.35, target: "primary" },
-      { type: "RESTORE_HP_LIMIT", amount: 5, target: "primary", condition: "waterfall" },
+      { type: "RESTORE_HP_LIMIT", multiplier: 0.25, target: "primary", condition: "waterfall" },
     ],
-    text: "为一名队友恢复 {0} 点生命。瀑布：恢复 5 点体力极限并回复等值生命。",
+    text: "为一名队友恢复 {0} 点生命。瀑布：修复 {1} 点体力极限。",
   },
   {
     id: "solar-wind",

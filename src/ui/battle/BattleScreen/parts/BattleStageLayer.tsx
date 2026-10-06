@@ -8,6 +8,7 @@ import type { HitFx } from "@/ui/battle/choreo/animations";
 import type { DeathPhase } from "@/ui/battle/choreo/deathChoreo";
 import type { TelegraphKind } from "@/ui/battle/choreo/unitShell";
 import { PlaneUnit } from "./PlaneUnit";
+import { StageBackdropFx } from "./StageBackdropFx";
 import { useSetMember } from "./useSetMember";
 import s from "./BattleStageLayer.module.css";
 
@@ -103,6 +104,9 @@ export function BattleStageLayer({
         <img className={s["battle-bg-video"]} src={bg} alt="" />
         <AmbienceLayer layer="far" mapId={mapId} paused={hitstop} fxRate={fxRate} dofTargetsRef={dofTargetsRef} />
       </DepthScene>
+
+      {/* 背景调色(血色刀光的暗红黑底等): 压在背景之上、敌人之下, 不遮挡命中特效。 */}
+      <StageBackdropFx hits={hits} />
 
       {/* 敌人平面: 不在任何透视容器内, 各单位由 rig 写入等效 2D 变换, 推镜时按真实倍率重绘。 */}
       <div className={s["battle-plane"]} ref={planeRef}>
