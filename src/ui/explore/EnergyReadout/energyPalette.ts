@@ -56,6 +56,13 @@ const PALETTES: Record<number, EnergyPalette> = {
     fill: ["#302c4e", "#24213b", "#38275a"],
   },
   5: {
+    main: "#ff8a18", light: "#ffb45c", pale: "#ffdda4", deep: "#d95a08", rim: "#ffad55",
+    number: "#ffd09a",
+    bar: ["#ff8a26", "#ffbb70", "#ffdda4"],
+    edge: "#ffd4a0", band: "#8f4a12", glow: "#a65b24",
+    fill: ["#3d2e22", "#30241b", "#54351f"],
+  },
+  6: {
     main: "#fd0531", light: "#fa68a5", pale: "#fb9cc0", deep: "#e51323", rim: "#fd4678",
     number: "#f9a8a4",
     bar: ["#fc515c", "#ff9994", "#fcbab0"],
@@ -65,5 +72,5 @@ const PALETTES: Record<number, EnergyPalette> = {
 };
 
 export function energyPalette(energy: number): EnergyPalette {
-  return PALETTES[energyTier(energy).tier] ?? PALETTES[5];
+  return PALETTES[energyTier(energy).tier] ?? PALETTES[6];
 }

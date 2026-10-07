@@ -8,7 +8,7 @@ import { energyTier, toNextTier } from "@/explore/session";
 export interface EnergyTierInfo {
   name: string;
   color: string;
-  /** 收益加成百分比(1.35 → 35)。 */
+  /** 收益加成百分比(1.3 → 30)。 */
   bonusPct: number;
   overloadStacks: number;
   attackBonus: number;

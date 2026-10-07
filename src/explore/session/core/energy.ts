@@ -4,7 +4,7 @@ import type { EncounterModifier } from "@/engine/types";
 import { ENERGY_TIERS } from "../../core/exploreRules";
 import type { BattleTier, EnergyTier, ExploreState } from "../../types";
 
-// ENERGY_TIERS 按 min 降序排列(80 / 60 / 40 / 20 / 0), 故第一个 min <= energy 的就是当前档。
+// ENERGY_TIERS 按 min 降序排列(80 / 60 / 40 / 20 / 1 / 0), 故第一个 min <= energy 的就是当前档。
 export function energyTier(energy: number): EnergyTier {
   for (const t of ENERGY_TIERS) if (energy >= t.min) return t;
   return ENERGY_TIERS[ENERGY_TIERS.length - 1];
@@ -14,7 +14,7 @@ export function energyTier(energy: number): EnergyTier {
 export function toNextTier(energy: number): number | null {
   const cur = energyTier(energy);
   const next = ENERGY_TIERS.find((t) => t.tier === cur.tier + 1);
-  return next ? energy - next.min + 1 : null;
+  return next ? energy - cur.min + 1 : null;
 }
 
 // 即设计文档 §5.1 的 K_energy。同时作用于经验、居民积分与实物掉落。

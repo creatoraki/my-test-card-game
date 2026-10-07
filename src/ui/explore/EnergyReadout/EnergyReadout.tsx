@@ -3,7 +3,7 @@
 //   面板   —— SVG 路径: 右上大切角、右下带折角的小切角; 描边 = 外圈色带 + 1px 亮线, 外发光约 7px 衰减;
 //   能量罐 —— EnergyCanister, 压在面板左端之上;
 //   文字   —— 标题 / 大号数字 / 「/100」; 能量条按能量占比缩短。
-// 配色随能量档位切换(绿 / 黄 / 蓝 / 紫 / 红), 色值见 energyPalette.ts。
+// 配色随能量档位切换(绿 / 黄 / 蓝 / 紫 / 橙 / 红), 色值见 energyPalette.ts。
 // 悬浮(或键盘聚焦)弹出档位详情: 当前收益加成与敌人强化(EnergyTierDetail)。
 
 import { useId, type CSSProperties } from "react";

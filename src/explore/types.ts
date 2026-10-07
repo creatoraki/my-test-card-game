@@ -158,7 +158,7 @@ export interface NodeEvent {
 // 净化粒子档位 —— 唯一的难度轴(取代已废弃的区域危险度)
 // ---------------------------------------------------------------------------
 export interface EnergyTier {
-  tier: number; // 1..5
+  tier: number; // 1..6
   name: string;
   color: string;
   min: number; // 进入该档所需的能量下限(含)

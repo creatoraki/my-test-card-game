@@ -11,6 +11,9 @@ export function EnergyTierDetail({ energy }: { energy: number }) {
       ? { text: "已是最低档位", tone: "bad" }
       : { text: `再消耗 ${info.toNext} 点粒子将跌入下一档`, tone: "muted" },
     { text: "粒子越少，收益越高，敌人也越强", tone: "muted" },
+    ...(energy > 0 && energy < 20
+      ? [{ text: "粒子降至 0 时，敌方过载升至 5 层", tone: "bad" as const }]
+      : []),
   ];
 
   return (

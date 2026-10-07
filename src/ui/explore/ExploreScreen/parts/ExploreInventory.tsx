@@ -32,7 +32,7 @@ export function ExploreInventory({ session, inventory }: { session: ExploreState
     />}
     {/* 选人使用物品: 压暗场景让底栏立绘成为唯一焦点, 点空白处取消; 提示文字与取消按钮挂在立绘段上(见 PartyPicker)。 */}
     {inventory.target && <div className={s.pickScrim} aria-hidden onClick={() => inventory.setTarget(null)} />}
-    {inventory.bagOpen && inventory.allowed && <BackpackPanel onClose={() => inventory.setBagOpen(false)} onUse={inventory.useItem} />}
+    {inventory.bagOpen && inventory.allowed && !session.chuteOpen && <BackpackPanel onClose={() => inventory.setBagOpen(false)} onUse={inventory.useItem} />}
     {inventory.picnicOpen && <PicnicPanel onClose={() => inventory.setPicnicOpen(false)} />}
     {/* 队员档案: 页签与浮层状态挂在 PartyDossier 自身, 换队员只换 charId, 不重新挂载。 */}
     {inventory.detailCharId && <PartyDossier

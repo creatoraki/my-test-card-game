@@ -9,6 +9,7 @@ import { spendWalkEnergy } from "@/explore/resources/energyCost";
 import { beaconTravel, standOnPortal, travelPortal } from "@/explore/dungeon/dungeonSession";
 import type { PortalDir } from "@/explore/dungeon/types";
 import type { ExploreState } from "@/explore/types";
+import { chooseCurioDecision } from "@/explore/curio/resolve";
 
 function mutateCorridor(action: (session: ExploreState) => boolean): boolean {
   const current = useExploreStore.getState().session;
@@ -87,7 +88,13 @@ export function travelThroughPortal(dir: PortalDir): boolean {
 
 export const travelByBeacon = (roomId: string) => mutateCorridor((s) => beaconTravel(s, roomId));
 
-export const inspectCorridorObject = (id: string) => mutateCorridor((s) => openCorridorObject(s, id));
+export const inspectCorridorObject = (id: string) => mutateCorridor((s) => {
+  if (!openCorridorObject(s, id)) return false;
+  const object = s.corridor?.objects.find((candidate) => candidate.id === id);
+  if (object?.kind !== "dispatch") return true;
+  const executor = s.party.find((member) => member.alive);
+  return Boolean(executor && chooseCurioDecision(s, "send", executor.charId));
+});
 export const closeCorridorObject = () => mutateCorridor(dismissCorridorObject);
 export const openBossGateAt = () => mutateCorridor(openBossGate);
 export const closeBossGatePanel = () => mutateCorridor(closeBossGate);

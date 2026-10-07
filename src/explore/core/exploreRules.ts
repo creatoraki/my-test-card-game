@@ -198,7 +198,7 @@ export const EXPLORE_RULES = {
     // ★ 总产出旋钮。K =(K_energy + Σ挑战加成 + 同花加成)× kGlobal ——
     //   **全加法合成**(§5.1)。挑战加成由 engine/challenges.ts 判定, 同花加成来自战斗签快照。
     kGlobal: 1.0,
-    // K → 品质权重。⚠ 阈值已按新的 K 分布整体下移: K_energy 压平到 1.00-1.60 后,
+    // K → 品质权重。⚠ 阈值已按新的 K 分布整体下移: K_energy 压平到 1.00-1.50 后,
     //   旧的 1.2/1.8/2.5/3.5 分档会让无加成局面长期停在第一档(§13-10)。
     qualityTable: [
       { maxK: 1.05, w: { common: 85, fine: 14, rare: 1, epic: 0, legendary: 0 } },
@@ -216,8 +216,8 @@ export const EXPLORE_RULES = {
 // 分档而非连续数值, 是因为决策发生在「跨档的那一步」——
 // 玩家看到「再推进一个节点就掉进告急」会真的停下来算一算还要不要深潜。
 //
-// ⚠ 惩罚已按新回报重新定价: K_energy 全程只有 +0.60(旧版 +1.40)。
-//   粒子污染按档位 −1 层提高敌方攻击伤害与格挡, 与力量 buff 分开显示。
+// 六档收益从 1.00 逐档增加到 1.50；粒子归零独立成档。
+//   粒子污染按档位 −1 层提高敌方攻击力与格挡, 与力量 buff 分开显示。
 // 能量档位只把对应的 BUFF/状态层数带入战斗；每层的实际攻击与格挡加成由 engine/statuses 的过载定义。
 export const ENERGY_TIERS: EnergyTier[] = [
   {
@@ -250,14 +250,22 @@ export const ENERGY_TIERS: EnergyTier[] = [
     color: "#df46fc",
     min: 20,
     enemyStatuses: [{ id: "overload", stacks: 3 }],
-    rewardMultiplier: 1.35,
+    rewardMultiplier: 1.3,
   },
   {
     tier: 5,
     name: "枯竭",
+    color: "#ff8a18",
+    min: 1,
+    enemyStatuses: [{ id: "overload", stacks: 4 }],
+    rewardMultiplier: 1.4,
+  },
+  {
+    tier: 6,
+    name: "耗尽",
     color: "#fd0531",
     min: 0,
-    enemyStatuses: [{ id: "overload", stacks: 4 }],
-    rewardMultiplier: 1.6,
+    enemyStatuses: [{ id: "overload", stacks: 5 }],
+    rewardMultiplier: 1.5,
   },
 ];
