@@ -1,10 +1,5 @@
-import { EnemyStatusShowcase } from "./enemyStatus/EnemyStatusShowcase";
-import s from "./TestScreen.module.css";
+import { FlatMaterialScene } from "./flatMaterials/FlatMaterialScene";
 
 export function TestScreen() {
-  return (
-    <div className={s.root}>
-      <EnemyStatusShowcase />
-    </div>
-  );
+  return <FlatMaterialScene />;
 }

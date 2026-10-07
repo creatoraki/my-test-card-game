@@ -75,7 +75,7 @@ export default function ItemDetail({
 
       {stack.disposable && (
         <p className={s["item-detail-disposable"]}>
-          一次性物品：远征结束后自动销毁，无法带回仓库，也无法通过投递口寄回。
+          一次性物品：远征结束后自动销毁，无法带回仓库，也无法通过羽翼信使寄回。
         </p>
       )}
 

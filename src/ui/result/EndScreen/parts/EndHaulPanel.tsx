@@ -29,7 +29,7 @@ export function EndHaulPanel({ haul, salvageValue, wiped, levels, relicBonus }: 
     ? `换金物已自动售出 +${salvageValue} 积分 · 其余存入物资中转仓`
     : "已存入物资中转仓";
   const subtitle = itemCount
-    ? `${itemCount} 件 · ${stored}${wiped ? " · 全靠投递口寄回" : ""}`
+    ? `${itemCount} 件 · ${stored}${wiped ? " · 由羽翼信使寄回" : ""}`
     : wiped
       ? "本趟物资全部遗失"
       : "本趟没有带回物资";

@@ -21,7 +21,7 @@ const VERDICTS: Record<RunResult, { tone: string; label: string; subtitle: strin
   lost: {
     tone: "toneLost",
     label: "全员失联",
-    subtitle: "队伍未能返回，投递口仍保全了部分物资。",
+    subtitle: "队伍未能返回，羽翼信使仍保全了额外包裹中的物资。",
   },
 };
 

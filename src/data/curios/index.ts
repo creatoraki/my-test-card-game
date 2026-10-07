@@ -55,7 +55,6 @@ export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> 
   bondWorkbench: 2,
   perfectnessWorkbench: 1,
   relicCache: 2,
-  dispatch: 3,
   shrine: 1,
 };
 

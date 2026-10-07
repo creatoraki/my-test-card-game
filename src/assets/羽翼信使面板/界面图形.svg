@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="紫色" x2="0" y2="1">
+      <stop stop-color="#f2bdff"/><stop offset="1" stop-color="#9f4fe8"/>
+    </linearGradient>
+    <linearGradient id="按钮底色" x2="0" y2="1">
+      <stop stop-color="#073c6b"/><stop offset="1" stop-color="#051529"/>
+    </linearGradient>
+    <filter id="发光" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <symbol id="关闭" viewBox="0 0 72 72">
+    <path d="M14 4H58L68 14V58L58 68H4V14Z" fill="#12132b" fill-opacity=".8" stroke="#d9a3ff" stroke-width="2"/>
+    <path d="M23 23L49 49M49 23L23 49" fill="none" stroke="#fff" stroke-width="5"/>
+  </symbol>
+  <symbol id="背包" viewBox="0 0 48 48">
+    <path d="M17 13V8Q17 4 22 4H28Q33 4 33 8V13" fill="none" stroke="#ddb0ff" stroke-width="3"/>
+    <path d="M10 11H38L45 37Q46 44 39 44H9Q2 44 3 37Z" fill="url(#紫色)"/>
+    <path d="M24 19V37M15 21Q24 30 33 21M19 34H29" fill="none" stroke="#4b226d" stroke-width="3"/>
+  </symbol>
+  <symbol id="餐具" viewBox="0 0 48 48">
+    <path d="M8 3V16M14 3V16M20 3V16M8 16Q14 25 20 16M14 22V44M34 4Q44 15 39 26H34V44M34 4V26" fill="none" stroke="#d6a0fc" stroke-width="5" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="警告" viewBox="0 0 88 88">
+    <path d="M44 3L85 44L44 85L3 44Z" fill="#25103e" fill-opacity=".6" stroke="#cb76ff" stroke-width="2" filter="url(#发光)"/>
+    <path d="M38 25H50L48 54H40ZM40 62H48V70H40Z" fill="#e7b9ff"/>
+  </symbol>
+  <symbol id="空格十字" viewBox="0 0 40 40">
+    <path d="M20 4V36M4 20H36" stroke="#a87aff" stroke-dasharray="1 2"/>
+  </symbol>
+  <symbol id="加号" viewBox="0 0 52 52">
+    <path d="M12 4H40L48 12V40L40 48H12L4 40V12Z" fill="#063969" stroke="#51eaff" stroke-width="2" filter="url(#发光)"/>
+    <path d="M26 14V38M14 26H38" stroke="#fff" stroke-width="5"/>
+  </symbol>
+  <symbol id="减号" viewBox="0 0 52 52">
+    <path d="M12 4H40L48 12V40L40 48H12L4 40V12Z" fill="#163443" stroke="#c0d8e4" stroke-width="1.5"/>
+    <path d="M16 26H36" stroke="#fff" stroke-width="4"/>
+  </symbol>
+  <symbol id="取消" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="23" fill="#063950"/>
+    <path d="M12 12L36 36M36 12L12 36" stroke="#8af0ff" stroke-width="5"/>
+  </symbol>
+  <symbol id="羽翼" viewBox="0 0 64 64">
+    <path d="M10 52L29 20L57 4L46 22L28 31L52 24L40 39L25 41L40 43L28 52L20 48L14 58Z" fill="#e9dfff"/>
+    <path d="M14 55L31 27L51 14" fill="none" stroke="#8d6cff" stroke-width="2"/>
+  </symbol>
+  <symbol id="背包格框" viewBox="0 0 140 140" preserveAspectRatio="none">
+    <path d="M9 1H131L139 9V131L131 139H9L1 131V9Z" fill="#090e22" fill-opacity=".87" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M5 16V123L16 134H122" fill="none" stroke="currentColor" opacity=".4"/>
+  </symbol>
+  <symbol id="支付卡框" viewBox="0 0 190 220" preserveAspectRatio="none">
+    <path d="M12 2H178L188 12V208L178 218H12L2 208V12Z" fill="#090d22" fill-opacity=".9" stroke="#d092ff" stroke-width="2"/>
+    <g fill="none" stroke="#30254d" opacity=".45"><circle cx="95" cy="75" r="64"/><circle cx="95" cy="75" r="56"/><circle cx="95" cy="75" r="42"/></g>
+  </symbol>
+  <symbol id="操作按钮框" viewBox="0 0 336 84" preserveAspectRatio="none">
+    <path d="M22 3H314L333 22V62L314 81H22L3 62V22Z" fill="url(#按钮底色)" stroke="#5deaff" stroke-width="3"/>
+    <path d="M25 8H310L327 25V59L310 76H25L9 59V25Z" fill="none" stroke="#227bd8" stroke-width="2"/>
+    <path d="M5 32V23L24 4H44M291 4H314L331 21V34M331 51V61L313 79H292M44 79H23L5 61V52" fill="none" stroke="#a0f5ff" stroke-width="4"/>
+  </symbol>
+</svg>

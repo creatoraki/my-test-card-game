@@ -1,3 +1,4 @@
+import { seedMessengers } from "../curio/messenger";
 import { corridorPortalXFor, corridorSlotsFor } from "../corridor/types";
 import type { ExploreState } from "../types";
 import { link, makeRoom } from "./roomNode";
@@ -45,7 +46,9 @@ export function generatePlannedDungeon(s: ExploreState, plan: readonly DungeonRo
     link(rooms[order[index - 1]], rooms[order[index]], "right");
   }
   assignTutorialNearMaps(s, rooms, order);
-  for (const [index, roomPlan] of plan.entries()) layoutPlannedRoom(rooms[order[index]], roomPlan);
+  const curios = Object.fromEntries(plan.map((room, index) => [order[index], [...room.curios]]));
+  seedMessengers(s, curios);
+  for (const [index, roomPlan] of plan.entries()) layoutPlannedRoom(rooms[order[index]], { ...roomPlan, curios: curios[order[index]] });
 
   return {
     rooms,

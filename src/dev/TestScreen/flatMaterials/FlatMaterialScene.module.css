@@ -1,0 +1,8 @@
+.root { position: fixed; inset: 0; overflow: hidden; background: #080e11; color: #e9ddc9; font-size: 18px; }
+.canvas { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center; }
+.instructions { position: absolute; left: 24px; top: 24px; z-index: 30; display: flex; flex-direction: column; gap: 10px; padding: 18px 24px; background: #0b1722e8; border: 1px solid #9bb1bd55; pointer-events: none; }
+.instructions strong { font-size: 22px; }
+.instructions span { font-size: 18px; }
+.material { position: absolute; z-index: 5; }
+.material img { position: absolute; max-width: none; user-select: none; }
+.label { position: absolute; top: 26px; left: 0; transform: translateX(-50%); white-space: nowrap; padding: 8px 14px; border: 1px solid #afc7c25e; background: #102425e8; color: #ebf3df; font-size: 18px; }

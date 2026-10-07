@@ -15,6 +15,7 @@ import { EXPLORE_RULES } from "../core/exploreRules";
 import type { ExploreState } from "../types";
 import type { CurioKind } from "../corridor/types";
 import type { RoomNode } from "./types";
+import { seedMessengers } from "../curio/messenger";
 import { difficultyMapConfig } from "@/data/maps/mapDifficulty";
 import type { MapDef } from "@/data/maps";
 
@@ -24,7 +25,7 @@ const START_ROOM_CURIOS: readonly CurioKind[] = ["temporaryRelicCache"];
 function drawWeightedKinds(s: ExploreState, count: number, excluded: CurioKind[], map: MapDef): CurioKind[] {
   const weights = { ...RANDOM_CURIO_WEIGHTS, ...map.curioPool?.weights };
   const pool = (Object.keys(weights) as CurioKind[])
-    .filter(kind => (weights[kind] ?? 0) > 0 && !excluded.includes(kind) && kind !== "blacksmith" && kind !== "merchant");
+    .filter(kind => (weights[kind] ?? 0) > 0 && !excluded.includes(kind) && kind !== "blacksmith" && kind !== "merchant" && kind !== "dispatch");
   const picks: CurioKind[] = [];
   for (let i = 0; i < count && pool.length; i += 1) {
     const kind = rngPickWeighted(s, pool, (candidate) => weights[candidate] ?? 0);
@@ -70,5 +71,6 @@ export function planRoomCurios(
     const room = rooms[id];
     plan[id] = room.kind === "start" ? [...START_ROOM_CURIOS] : planRoom(s, room, merchantRooms.has(id), id === blacksmithRoom, map);
   }
+  seedMessengers(s, plan);
   return plan;
 }

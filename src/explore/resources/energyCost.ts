@@ -20,7 +20,7 @@ export function interactionCost(s: ExploreState): number {
   const kind = activeCurioKind(s);
   if (!kind) return prices.event;
   if (kind === "merchant") return prices.merchant;
-  if (kind === "blacksmith") return 0;
+  if (kind === "blacksmith" || kind === "dispatch") return 0;
   const def = CORRIDOR_CURIOS[kind];
   if (!def || def.forced) return 0;
   if (def.role === "loot" || def.role === "heal" || def.role === "service") return prices[def.role];

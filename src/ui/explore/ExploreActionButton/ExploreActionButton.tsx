@@ -25,6 +25,10 @@ interface Props {
   ariaLabel?: string;
   width?: number;
   height?: number;
+  /** 将图标和文案作为整体居中，默认保持探索底栏的左对齐。 */
+  centered?: boolean;
+  /** 无角标时按中文标签字数收紧宽度，包含图标、间距和左右留白。 */
+  fitLabel?: boolean;
 }
 
 /** 探索底栏行动按钮：切角霓虹牌面 + 图标 / 文案 / 角标，可选长按充能确认。 */
@@ -40,7 +44,12 @@ export function ExploreActionButton({
   ariaLabel,
   width = 216,
   height = 58,
+  centered = false,
+  fitLabel = false,
 }: Props) {
+  const buttonWidth = fitLabel && badge == null
+    ? Math.ceil(Array.from(label).length * 21 + (icon ? 36 : 0) + 24)
+    : width;
   const ready = state === "ready";
   const hold = useHoldCharge<HTMLButtonElement>({ duration: holdMs ?? 0, enabled: ready, onComplete: () => onClick?.() });
   const holdable = Boolean(holdMs);
@@ -51,15 +60,16 @@ export function ExploreActionButton({
       type="button"
       data-tone={tone}
       data-state={state}
+      data-centered={centered || undefined}
       data-hold={holdable || undefined}
       data-charging={hold.charging || undefined}
-      style={{ width, height }}
+      style={{ width: buttonWidth, height }}
       disabled={!ready}
       aria-label={ariaLabel ?? (holdable ? `${label}（长按确认）` : label)}
       onClick={holdable ? undefined : onClick}
       {...hold.handlers}
     >
-      <ActionFrame width={width} height={height} chamfer={CHAMFER} charge={holdable} />
+      <ActionFrame width={buttonWidth} height={height} chamfer={CHAMFER} charge={holdable} />
       {icon && <span className={s.icon} aria-hidden="true">{icon}</span>}
       <span className={s.label}>{hold.charging ? holdLabel : label}</span>
       {badge != null && !hold.charging && <span className={s.badge}>{badge}</span>}

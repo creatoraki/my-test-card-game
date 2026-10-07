@@ -104,7 +104,7 @@ interface ExploreStore {
   picnic: (picks: Record<string, number>) => PicnicResult | null;
   takePending: (index: number) => void; // 替换模式: 收下待取物
   abandonPending: (index?: number) => void; // 替换模式: 放弃(省略 index = 全部放弃)
-  shipHome: (uids: string[]) => void; // 投递口: 提前寄回据点
+  shipHome: (uids: string[], food: import("@/explore/curio/messenger").MessengerFoodPick[]) => void; // 投递口: 提前寄回据点
   takeLoot: (index: number) => boolean;
   /** 背包里的一整堆放回拾取框(背包满时腾格子, 可再拿回)。成功返回 true。 */
   returnToLoot: (uid: string) => boolean;
@@ -284,8 +284,8 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     mutate(get, set, (d) => abandonPending(d, index));
   },
 
-  shipHome: (uids) => {
-    mutate(get, set, (d) => shipHome(d, uids));
+  shipHome: (uids, food) => {
+    mutate(get, set, (d) => shipHome(d, uids, food));
   },
 
   takeLoot: (index) => {

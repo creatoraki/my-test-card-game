@@ -164,7 +164,9 @@ export const EXPLORE_RULES = {
 
   // ── 投递口: 把背包里选中的物品提前寄回据点, 安全落袋(设计文档 §6.5) ──
   chute: {
-    energyCost: 5,
+    energyCost: 0,
+    foodCost: 2,
+    roomChance: 0.1,
     maxItems: 6,
   },
 

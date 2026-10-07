@@ -7,7 +7,7 @@
 // 三种模式共用同一块面板(设计文档 §6.4 明确要求「背包满时自动弹出同一面板」):
 //   · 常规      —— 看 / 用 / 丢
 //   · 替换模式  —— session.pendingPickup 非空: 强制打开且不可关, 必须丢够格子才能拿
-//   · 寄件模式  —— session.chuteOpen: 多选物品寄回据点(E −5)
+//   · 寄件模式  —— session.chuteOpen: 羽翼信使独立面板，选物品与支付食品。
 // 另外, 拾取框(pendingLoot)非空时顶部挂一条拾取横幅, 选中物品可「放回拾取框」腾格子 —— 背包满时整理用。
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
@@ -20,8 +20,8 @@ import {
   canUseItem,
   partyBurdenAdapt,
 } from "@/explore/session";
-import { EXPLORE_RULES } from "@/explore/core/exploreRules";
-import { canShipHome, stackSlots } from "@/items/inventory";
+import { stackSlots } from "@/items/inventory";
+import { MessengerPanel } from "../MessengerPanel/MessengerPanel";
 import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/explore/exploreStore";
 import ItemDetail from "@/ui/common/item/ItemDetail";
@@ -60,7 +60,6 @@ export default function BackpackPanel({
 
   const [selected, setSelected] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null); // 丢弃二次确认的 uid
-  const [shipping, setShipping] = useState<string[]>([]); // 寄件模式的勾选
   const modules = useBackpackModules();
 
   const backpack = session?.backpack ?? [];
@@ -89,20 +88,12 @@ export default function BackpackPanel({
   const sel = backpack.find((s) => s.uid === selected) ?? null;
   const selDef = sel ? getItemDef(sel.itemId) : null;
 
-  const shippingCount = backpack.reduce((total, stack) => total + (shipping.includes(stack.uid) ? stack.count : 0), 0);
-  const toggleShip = (stack: ItemStack) => {
-    if (!canShipHome(stack, getItemDef(stack.itemId))) return;
-    setShipping((cur) => {
-      if (cur.includes(stack.uid)) return cur.filter((uid) => uid !== stack.uid);
-      const count = backpack.reduce((total, item) => total + (cur.includes(item.uid) ? item.count : 0), 0);
-      return count + stack.count <= EXPLORE_RULES.chute.maxItems ? [...cur, stack.uid] : cur;
-    });
-  };
-
   const onSlotClick = (st: ItemStack) => {
-    if (chuteMode) return toggleShip(st);
     setSelected(st.uid);
   };
+
+  if (chuteMode) return <MessengerPanel backpack={backpack} shipped={session.shipped}
+    onSend={shipHome} onClose={onClose} />;
 
   return (
     <div className={s["bp-modal"]}>
@@ -167,26 +158,15 @@ export default function BackpackPanel({
               </div>
             )}
 
-            {chuteMode && (
-              <div className={s["bp-chute"]}>
-                <span className={s["bp-chute-label"]}>
-                  每次最多寄回 {EXPLORE_RULES.chute.maxItems} 件 · 已选 {shippingCount} / {EXPLORE_RULES.chute.maxItems} 件 · 团灭也带得走
-                </span>
-                <EventPanelButton
-                  tone="primary"
-                  className={s["bp-mini"]}
-                  disabled={!shippingCount || shippingCount > EXPLORE_RULES.chute.maxItems}
-                  onClick={() => {
-                    shipHome(shipping);
-                    setShipping([]);
-                  }}
-                >
-                  寄回 {shippingCount} 件 · 粒子 −{EXPLORE_RULES.chute.energyCost}
-                </EventPanelButton>
-              </div>
-            )}
 
             {lootMode && <BackpackLootBanner loot={session.pendingLoot} free={free} />}
+
+            {session.shipped.length > 0 && <div className={s["bp-chute"]}>
+              <span className={s["bp-chute-label"]}>额外包裹 · {session.shipped.reduce((sum, stack) => sum + stack.count, 0)} 件 · 不占背包 · 回城后统一结算</span>
+              <div className={s["bp-pending-row"]}>
+                {session.shipped.map(stack => <ItemSlot key={stack.uid} stack={stack} />)}
+              </div>
+            </div>}
 
             <EventPanelBody className={s["bp-body"]}>
               <div className={s["bp-grid"]} style={{ "--bp-cols": COLS } as CSSProperties}>
@@ -194,9 +174,7 @@ export default function BackpackPanel({
                   <div className={s["bp-cell"]} key={stack.uid}>
                     <ItemSlot
                       stack={stack}
-                      selected={chuteMode ? shipping.includes(stack.uid) : selected === stack.uid}
-                      disabled={chuteMode && (!canShipHome(stack, getItemDef(stack.itemId))
-                        || (!shipping.includes(stack.uid) && shippingCount + stack.count > EXPLORE_RULES.chute.maxItems))}
+                      selected={selected === stack.uid}
                       onClick={() => onSlotClick(stack)}
                     />
                     <ItemSectionMark mark={marks[i]} rowStart={i % COLS === 0} />

@@ -40,7 +40,7 @@ function sentences(text: string): string[] {
 /** 结算页按钮: 有掉落时换成「全部拾取 / 放弃一切」, 处理完由 useCurioLoot 直接结束事件。 */
 function resultActions(session: ExploreState, loot: CurioLoot, onOpenBag: () => void): DossierAction[] {
   const bag: DossierAction[] = session.chuteOpen
-    ? [{ id: "bag", label: "打开背包寄回物品", icon: "bag", onClick: onOpenBag }]
+    ? [{ id: "bag", label: "选择物品与食品投递", icon: "bag", onClick: onOpenBag }]
     : [];
   if (session.pendingLoot.length) {
     return [

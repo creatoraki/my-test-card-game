@@ -105,7 +105,7 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
     }
     case "OPEN_CHUTE":
       s.chuteOpen = true;
-      return `投递口已开启（最多寄回 ${EXPLORE_RULES.chute.maxItems} 件物资 · 净化粒子 −${EXPLORE_RULES.chute.energyCost}）`;
+      return `羽翼信使等待收件（最多 ${EXPLORE_RULES.chute.maxItems} 件 · 服务费 ${EXPLORE_RULES.chute.foodCost} 个食品 · 回城后结算）`;
     case "MODIFY_ENERGY":
       changeEnergy(s, e.amount);
       return `净化粒子 ${e.amount > 0 ? "+" : ""}${e.amount}`;

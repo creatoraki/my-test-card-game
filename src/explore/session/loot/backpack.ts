@@ -5,14 +5,13 @@ import { RULES } from "@/engine/core/battleRules";
 import { burdenValue } from "@/engine/combat/stats";
 import {
   addToContainer,
-  canShipHome,
   findByUid,
   occupiedSlots,
   removeByUid,
   stackSlots,
 } from "@/items/inventory";
 import type { ItemRarity, ItemStack } from "@/items/types";
-import { changeEnergy } from "../../resources/energy";
+import { prepareMessengerParcel, type MessengerFoodPick } from "../../curio/messenger";
 import { relicBurdenAdapt } from "../../relics/relicModifiers";
 import { fireExploreRelic } from "../../relics/relics";
 import { EXPLORE_RULES } from "../../core/exploreRules";
@@ -212,21 +211,14 @@ export function abandonPending(s: ExploreState, index?: number): boolean {
   return true;
 }
 
-// 传送投递口(设计文档 §6.5): 把选中的物品提前寄回据点, 安全落袋, 不受后续团灭影响。
-// ★ 代价按**一次寄件**收, 不按件数收 —— 否则玩家会为了省能量只寄一件, 解压阀就失效了。
-export function shipHome(s: ExploreState, uids: string[]): boolean {
-  if (!s.chuteOpen || !uids.length) return false;
-  const picked = [...new Set(uids)]
-    .map((u) => findByUid(s.backpack, u))
-    .filter((x): x is ItemStack => !!x && canShipHome(x, getItemDef(x.itemId)));
-  if (!picked.length || picked.reduce((total, stack) => total + stack.count, 0) > EXPLORE_RULES.chute.maxItems) {
-    return false;
-  }
-
-  for (const st of picked) s.backpack = removeByUid(s.backpack, st.uid);
-  s.shipped = [...s.shipped, ...picked];
-  changeEnergy(s, -EXPLORE_RULES.chute.energyCost);
-  s.chuteOpen = false; // 一次交互只能寄一次
-  logLine(s, `投递口寄回 ${picked.length} 件 · 净化粒子 −${EXPLORE_RULES.chute.energyCost}`);
+// 羽翼信使：包裹在回城时统一结算。
+export function shipHome(s: ExploreState, uids: string[], food: MessengerFoodPick[] = []): boolean {
+  if (!s.chuteOpen) return false;
+  const parcel = prepareMessengerParcel(s.backpack, uids, food);
+  if (!parcel) return false;
+  s.backpack = parcel.backpack;
+  s.shipped = [...s.shipped, ...parcel.shipped];
+  s.chuteOpen = false;
+  logLine(s, `羽翼信使收下 ${parcel.shipped.reduce((sum, stack) => sum + stack.count, 0)} 件物品 · 食品 −${EXPLORE_RULES.chute.foodCost} · 回城后结算`);
   return true;
 }

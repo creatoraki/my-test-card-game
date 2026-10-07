@@ -9,7 +9,7 @@ import corridorSinkArt from "@/assets/explore-corridor/废弃楼层/可交互物
 import corridorRepairPodArt from "@/assets/explore-corridor/废弃楼层/可交互物体/修复舱.webp";
 import corridorModBenchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/改装台.webp";
 import corridorShrineArt from "@/assets/explore-corridor/废弃楼层/可交互物体/神龛.webp";
-import corridorDispatchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/传送带.webp";
+import corridorDispatchArt from "@/assets/explore-corridor/公共交互物/羽翼信使.webp";
 import corridorCrystalVeinArt from "@/assets/explore-corridor/废弃楼层/可交互物体/矿脉.webp";
 import corridorFarArt from "@/assets/explore-corridor/废弃楼层/无限远景.webp";
 import neonCityNear1Art from "@/assets/explore-corridor/废弃楼层/近景/近景1.webp";
@@ -58,7 +58,7 @@ const VENDING = sizeCorridorProp(corridorVendingArt, { width: 400, height: 400, 
 const MOD_BENCH = sizeCorridorProp(corridorModBenchArt, { width: 400, height: 400, top: 25, bottom: 380 }, "medium");
 const MERCHANT = sizeCorridorProp(corridorMerchantArt, { width: 362, height: 272, top: 3, bottom: 266 }, "medium");
 const SHRINE = sizeCorridorProp(corridorShrineArt, { width: 308, height: 308, top: 13, bottom: 280 }, "medium");
-const DISPATCH = sizeCorridorProp(corridorDispatchArt, { width: 400, height: 400, top: 124, bottom: 328 }, "small");
+const DISPATCH = sizeCorridorProp(corridorDispatchArt, { width: 400, height: 400, top: 4, bottom: 368 }, "medium");
 const SINK = sizeCorridorProp(corridorSinkArt, { width: 400, height: 400, top: 101, bottom: 326 }, "small");
 const REPAIR_POD = sizeCorridorProp(corridorRepairPodArt, { width: 400, height: 400, top: 81, bottom: 304 }, "small");
 const COMPACTOR = sizeCorridorProp(corridorCompactorArt, { width: 400, height: 400, top: 29, bottom: 374 }, "large");
@@ -85,7 +85,7 @@ export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
   shrine: SHRINE,
   dispatch: DISPATCH,
   merchant: MERCHANT,
-  blacksmith: { src: blacksmithArt, width: 512, height: 768, scale: 260 / (741 * 0.5), groundTrim: 23 / 768 },
+  blacksmith: { src: blacksmithArt, width: 512, height: 768, scale: 390 / (741 * 0.5), groundTrim: 23 / 768 },
   tutorialArmory: SAFE,
   tutorialModBench: MOD_BENCH,
   tutorialMedical: MEDICAL,
