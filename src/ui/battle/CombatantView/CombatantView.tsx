@@ -13,14 +13,18 @@ import { EnemyDeathFx, deathGeometry, useDeathTexture } from "@/ui/battle/fx/Ene
 import { glslAvailable } from "@/ui/common/fx/GlslSprite";
 import { DEATH, type DeathPhase } from "@/ui/battle/choreo/deathChoreo";
 import { HpBar } from "@/ui/common/bar/HpBar";
-import { ShieldBar } from "@/ui/common/bar/ShieldBar";
 import { HourglassIcon } from "./icons";
 import { HitChanceBadge } from "./HitChanceBadge";
+import { COLLATERAL_BUFF, collateralBuffDescription } from "@/engine/ecoArk/collateralBuff";
+import { BURST_BUFF, burstBuffDescription } from "@/engine/ecoArk/burstBuff";
+import type { BattleState } from "@/engine";
 import s from "./CombatantView.module.css";
 import m from "./CombatantView.motion.module.css";
 import h from "./CombatantView.hud.module.css";
 
 interface Props {
+  battle?: BattleState;
+  selectedOwnerId?: string;
   cmb: Enemy;
   currentTick: number;
   targetable: boolean; // 当前是否是合法的点选目标
@@ -41,6 +45,7 @@ interface Props {
 // 场上的敌人单位: 无背景面板, 立绘直接浮在场景上。
 // 我方不走这里 —— 见 ui/AllyBar.tsx 的底部玻璃头像栏; 两者共用 HitFxLayer 保证命中表现一致。
 export const CombatantView = memo(function CombatantView({
+  battle,
   cmb,
   currentTick,
   targetable,
@@ -125,6 +130,8 @@ export const CombatantView = memo(function CombatantView({
   }
   const idle = enemyIdle(enemySprite);
   const buffs = cmb.statuses.filter((status) => getStatusDef(status.id)?.kind !== "debuff");
+  const burstDescription = battle ? burstBuffDescription(battle, cmb) : undefined;
+  const collateralDescription = battle ? collateralBuffDescription(battle, cmb) : undefined;
   const debuffs = cmb.statuses.filter((status) => getStatusDef(status.id)?.kind === "debuff");
   vars["--idle-bob"] = `${idle.bob}px`;
   vars["--idle-sway"] = `${idle.sway}px`;
@@ -210,10 +217,14 @@ export const CombatantView = memo(function CombatantView({
           </div>
           {phase === "alive" && <EnemyIntent enemy={cmb} currentTick={currentTick} />}
           <HpBar hp={cmb.hp} hpLimit={cmb.hpLimit} maxHp={cmb.maxHp} hideLimit large />
-          <ShieldBar shield={cmb.shield} maxHp={cmb.maxHp} large hideEmpty />
+          {/* 血条下方只允许状态图标区；护盾统一作为 BUFF 图标显示。 */}
           <div className={h["combatant-buffs"]}>
             <StatusPips
               statuses={buffs}
+              descriptions={{
+                ...(burstDescription ? { [BURST_BUFF]: burstDescription } : {}),
+                ...(collateralDescription ? { [COLLATERAL_BUFF]: collateralDescription } : {}),
+              }}
               shield={cmb.shield}
               team={cmb.team}
               detail

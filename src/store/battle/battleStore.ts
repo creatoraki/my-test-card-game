@@ -21,6 +21,7 @@ import {
   endRound,
   playCard,
   redrawHandCard,
+  releaseRoot,
   resolveChoiceRecorded,
   waitTick,
 } from "@/engine";
@@ -85,6 +86,7 @@ interface BattleStore {
   ) => void;
   play: (uid: string, targetId?: string, discardPicks?: string[]) => PlayPlan | null;
   redrawCard: (uid: string) => BattleState | null;
+  releaseRoot: (uid: string) => boolean;
   discardCard: (uid: string) => DiscardPlan | null;
   pickPendingChoice: (uid: string) => ChoicePlan | null;
   cancelPendingChoice: () => EndPlan | null;
@@ -136,6 +138,16 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     return discardHandCard(draft, uid, rec) ? { final: draft, steps: rec.steps } : null;
   },
 
+  releaseRoot: (uid) => {
+    const battle = get().battle;
+    if (!battle) return false;
+    const draft = structuredClone(battle);
+    if (!releaseRoot(draft, uid)) return false;
+    set({ battle: draft });
+    return true;
+  },
+
+  /* 选牌操作与出牌都通过动画计划提交。 */
   pickPendingChoice: (uid) => {
     const b = get().battle;
     if (!b) return null;

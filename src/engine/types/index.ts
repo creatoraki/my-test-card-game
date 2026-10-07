@@ -14,3 +14,4 @@ export type * from "./battleState";
 export type * from "./engineOps";
 export type * from "./anim";
 export type * from "./prophecy";
+export type * from "./ecoArk";

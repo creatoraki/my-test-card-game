@@ -10,3 +10,4 @@
 .crystal {
   --mana-crystal-size: 48px;
 }
+.held { margin-left: 8px; color: #d8ba85; font-size: 18px; white-space: nowrap; }

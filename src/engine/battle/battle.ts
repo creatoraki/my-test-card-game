@@ -37,6 +37,9 @@ import { createBattleState } from "./battleSetup";
 import type { BattleSetup as BattleSetupInput } from "./battleSetup";
 import { exhaustCard } from "../deck/exhaust";
 import { CARD_MARK_DEFS } from "../cards/cardMarks";
+import { availableHand, cardLocked } from "../ecoArk/shared";
+import { clearRoots } from "../ecoArk/resources";
+export { releaseRoot } from "../ecoArk/resources";
 
 export { canPlay, playBlockReason, playCard } from "./playCard";
 export type { PlayBlock, PlayRecorder } from "./playCard";
@@ -91,6 +94,7 @@ export function startRound(state: BattleState): void {
   state.round += 1;
   state.tick = RULES.timeline.startTick;
   purgeRoundStatuses(state);
+  clearRoots(state);
   tickCultivate(state);
   state.redrawsThisRound = 0;
   state.waitsThisRound = 0;
@@ -143,7 +147,7 @@ export function redrawHandCard(state: BattleState, uid: string): boolean {
     state.pendingChoice ||
     state.phase !== "player" ||
     state.redrawsThisRound >= partyRedrawLimit(state) ||
-    !state.hand.includes(uid)
+    !state.hand.includes(uid) || cardLocked(state, uid)
   )
     return false;
   const card = state.cards[uid];
@@ -168,7 +172,7 @@ export function waitTick(state: BattleState, rec?: FxRecorder): boolean {
 }
 
 export function discardHandCard(state: BattleState, uid: string, rec?: FxRecorder): boolean {
-  if (state.pendingChoice || state.phase !== "player" || !state.hand.includes(uid)) return false;
+  if (state.pendingChoice || state.phase !== "player" || !state.hand.includes(uid) || cardLocked(state, uid)) return false;
   const card = state.cards[uid];
   if (!card) return false;
 
@@ -231,7 +235,7 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
     // 手牌里剩下的被动卡自动收进弃牌堆 —— 不计弃牌数、不触发任何弃牌联动。
     recycleHandPassives(state, rec);
     witherCards(state);
-    for (const uid of [...state.hand]) {
+    for (const uid of availableHand(state)) {
       const card = state.cards[uid];
       if (!card?.voidCard) continue;
       state.hand = state.hand.filter((handUid) => handUid !== uid);

@@ -25,6 +25,15 @@ const EFFECT_LABEL: Record<string, string> = {
   LOSE_HP: "失去生命",
   GAIN_POLLUTION: "增加污染值",
   CULTIVATE_TICK: "推进培育",
+  ARK_SEIZE_CARD: "扣押目标所属的随机 1 张手牌，锁在蟹身上，仅击杀后返还",
+  ARK_SEIZE_MANA: "扣押当前可用的 1 枚法力水晶，不降低后续回合自然回复，击杀后返还",
+  ARK_CARRY_ROOTS: "将全部缠根牌搬到自身作为押品，最多持有 3 张",
+  ARK_GERMINATE: "立即萌发并清空目标孢子，缠住随机 1 张所属手牌，同时触发蜗牛回灌",
+  ARK_MARK_GUARD: "所有受庇护怪物的记忆改为被攻击角色",
+  ARK_TRANSPLANT: "随机中毒角色作为病株，将其一半中毒层数（向上取整）复制给另一名角色，持续 3 拍，病株层数不减少",
+  ARK_BARRAGE: "装填 3 发，开启持续 3 个时刻的火力封锁",
+  GAIN_ENEMY_AP: "目标获得 2 点行动点，影响后续选招，当前蓄力招式不变",
+  TICK_STATUS: "立即毒发 1 次，不扣层数或持续时间",
 };
 
 function numberText(value: number): string {
@@ -80,6 +89,7 @@ export function moveKindLabel(kind: EnemyMove["kind"]): string {
 }
 
 export function moveSummary(move: EnemyMove): string {
+  if (move.description) return move.description;
   const summary = move.effects.map(effectText).filter(Boolean).join("；");
   return summary || KIND_LABEL[move.kind];
 }

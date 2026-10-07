@@ -54,7 +54,10 @@ export const RULES = {
   // 敌人行动点数: 每回合回复, 剩余跨回合保留; 招式按 cost 扣点。
   enemy: {
     apPerRound: 4, // 每回合回复的行动点(EnemyDef.apPerRound 可覆盖)
-    ultimateForceRatio: 1.5, // 当前点数 ≥ 大招消耗 × 该倍率时固定放大招
+    // 出招节奏「小 / 小 / 大」(见 enemy/enemyRhythm.ts): 连出这么多次小招后进入攒点期, 点数够了掷大招。
+    smallsBeforeUltimate: 2,
+    ultimateChance: 50, // 到点且付得起大招时放大招的概率(%); 没放 = 放弃本轮, 节奏重计并有点就连放小招
+    ultimateForceRatio: 1.5, // 仅脚本怪(EnemyDef.ai): 当前点数 ≥ 大招消耗 × 该倍率时固定放大招
   },
 
   squadCaps: {

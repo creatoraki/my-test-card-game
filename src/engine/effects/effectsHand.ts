@@ -15,6 +15,7 @@ import { advanceCultivate, cultivateCanAdvance, resetCultivate } from "../deck/c
 import { graftCandidates } from "../deck/graft";
 import { makeCard } from "@/data";
 import { exhaustCard } from "../deck/exhaust";
+import { availableHand, cardLocked } from "../ecoArk/shared";
 
 function emptyResolution(): EffectResolution {
   return { missed: [], hit: [] };
@@ -37,7 +38,7 @@ function takePendingDiscardPicks(state: BattleState, amount: number): string[] {
   const selected: string[] = [];
   const remaining: string[] = [];
   for (const uid of state.pendingDiscardPicks) {
-    if (selected.length < amount && state.hand.includes(uid) && !selected.includes(uid)) selected.push(uid);
+    if (selected.length < amount && state.hand.includes(uid) && !cardLocked(state, uid) && !selected.includes(uid)) selected.push(uid);
     else remaining.push(uid);
   }
   state.pendingDiscardPicks = remaining;
@@ -49,10 +50,10 @@ function selectDiscardUids(
   amount: number,
   pick: NonNullable<EffectDescriptor["discardPick"]>,
 ): string[] {
-  if (pick === "handAll") return [...state.hand];
+  if (pick === "handAll") return availableHand(state);
   if (pick === "handRandom") {
     const selected: string[] = [];
-    const pool = [...state.hand];
+    const pool = availableHand(state);
     for (let i = 0; i < amount && pool.length > 0; i++) {
       const uid = rngPick(state, pool);
       selected.push(uid);
@@ -62,7 +63,7 @@ function selectDiscardUids(
   }
 
   const selected = takePendingDiscardPicks(state, amount);
-  const rest = state.hand.filter((uid) => !selected.includes(uid));
+  const rest = availableHand(state).filter((uid) => !selected.includes(uid));
   const fallback = pick === "handBottom" ? rest.slice(-Math.max(0, amount - selected.length)) : rest.slice(0, amount - selected.length);
   return [...selected, ...fallback];
 }
@@ -134,7 +135,7 @@ function applyMarkCards(state: BattleState, effect: EffectDescriptor, targetIds:
   if (effect.markPick === "eventCard") {
     const uid = state.passiveEventCardUid;
     const target = uid ? state.cards[uid] : undefined;
-    if (target && !isPassive(target) && state.hand.includes(target.uid)) markCard(state, target, effect.mark);
+    if (target && !isPassive(target) && state.hand.includes(target.uid) && !cardLocked(state, target.uid)) markCard(state, target, effect.mark);
     return;
   }
   if (effect.markPick === "handAll") {
@@ -249,7 +250,7 @@ function applyCultivateTick(state: BattleState, effect: EffectDescriptor): void 
   const rawAmount = effect.amountFrom ? counterOf(state, effect.amountFrom) : effect.amount ?? 1;
   const amountToTick = Math.min(effect.maxAmount ?? Infinity, Math.max(0, Math.floor(rawAmount)));
   if (amountToTick <= 0) return;
-  const pool = state.hand.filter((uid) => {
+  const pool = availableHand(state).filter((uid) => {
     const card = state.cards[uid];
     return card != null && cultivateCanAdvance(card);
   });
@@ -268,7 +269,7 @@ function applyExhaustHandCards(state: BattleState, effect: EffectDescriptor): vo
   state.lastExhaustedHandCards = 0;
   if (!effect.cardId) return;
   let cardName = "指定牌";
-  for (const uid of [...state.hand]) {
+  for (const uid of availableHand(state)) {
     const card = state.cards[uid];
     if (card?.id !== effect.cardId) continue;
     cardName = card.name;
@@ -284,7 +285,7 @@ function applyExhaustHandCards(state: BattleState, effect: EffectDescriptor): vo
 function applyResonate(state: BattleState, effect: EffectDescriptor): void {
   const amountToResonate = Math.max(0, Math.floor(effect.amount ?? 1));
   const activeCost = state.activeCardCost ?? Infinity;
-  const targets = state.hand.filter((uid) => {
+  const targets = availableHand(state).filter((uid) => {
     const card = state.cards[uid];
     return card?.resonance === true && (effect.resonatePick === "handAll" || card.cost < activeCost);
   });
@@ -297,7 +298,7 @@ function applyResonate(state: BattleState, effect: EffectDescriptor): void {
 // 共鸣崩解: 移除手牌中所有牌的共鸣强化, 总次数供后续效果按 lastStrippedResonance 读取。
 function applyStripResonance(state: BattleState): void {
   let stripped = 0;
-  for (const uid of state.hand) {
+  for (const uid of availableHand(state)) {
     const card = state.cards[uid];
     if (!card?.resonanceStacks) continue;
     stripped += card.resonanceStacks;

@@ -18,6 +18,7 @@ import { transferableMarks } from "../cards/cardMarks";
 import { grantStarPact, starPactCandidates } from "../prophet/starPact";
 import { applyGraft, canGraft, graftCandidates } from "../deck/graft";
 import { exhaustCard } from "../deck/exhaust";
+import { availableHand, cardLocked } from "../ecoArk/shared";
 
 export function resolvePendingChoice(state: BattleState, uid: string): boolean {
   const choice = state.pendingChoice;
@@ -68,7 +69,7 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
     return true;
   }
   if (choice.kind === "pickHandCard") {
-    if (!state.hand.includes(uid)) return false;
+    if (!state.hand.includes(uid) || cardLocked(state, uid)) return false;
     const card = state.cards[uid];
     let dominoMarkConsumed = false;
     if (choice.action === "cultivateTick") {
@@ -119,11 +120,11 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
     const nextRemaining = choice.remaining - 1;
     const canContinue = nextRemaining > 0 && (
       choice.action === "cultivateTick"
-        ? state.hand.some((handUid) => {
+        ? availableHand(state).some((handUid) => {
           const handCard = state.cards[handUid];
           return handCard != null && cultivateCanAdvance(handCard);
         })
-        : choice.action === "grantStarPact" && starPactCandidates(state).length > 0
+        : choice.action === "grantStarPact" && starPactCandidates(state).some((handUid) => !cardLocked(state, handUid))
     );
     if (canContinue) {
       choice.remaining = nextRemaining;

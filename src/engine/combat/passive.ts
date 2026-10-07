@@ -11,6 +11,8 @@ import { withHitRecorder } from "../core/animHits";
 import { currentRecorder, ensureCardFxSnapshot, recordCardTrigger, snapshotHp } from "../cards/cardFx";
 import { isPassive, playableHandUids } from "../cards/passiveCards";
 import { exhaustCard } from "../deck/exhaust";
+import { availableHand } from "../ecoArk/shared";
+import { beginArkAttack, finishArkAttack } from "../ecoArk/guard";
 
 export { isPassive, playableHandUids } from "../cards/passiveCards";
 
@@ -19,7 +21,7 @@ const MAX_PASSIVE_DEPTH = 8;
 let depth = 0;
 
 export function handPassiveUids(state: BattleState): string[] {
-  return state.hand.filter((uid) => isPassive(state.cards[uid]));
+  return availableHand(state).filter((uid) => isPassive(state.cards[uid]));
 }
 
 // 分发一次被动事件: 手牌里每张监听该事件的被动卡各结算一次, 各录一条演出步。
@@ -51,7 +53,9 @@ export function firePassive(state: BattleState, event: PassiveEvent, rec?: Disca
       const effects = card.passive.effectsByTrigger?.[event.type] ?? card.passive.effects;
       let resolution!: EffectResolution;
       const recorded = withHitRecorder(() => {
-        resolution = resolveEffects(state, effects, card.ownerCharId, event.targetId, card);
+        beginArkAttack(state, card);
+        try { resolution = resolveEffects(state, effects, card.ownerCharId, event.targetId, card); }
+        finally { finishArkAttack(state); }
       });
       checkEnd(state);
       if (recorder) recordCardTrigger(state, card, beforeHp, recorder, resolution, false, recorded);

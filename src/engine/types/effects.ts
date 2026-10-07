@@ -8,6 +8,13 @@ import type { StatusKind } from "./statuses";
 // 效果描述符 —— 声明式数据。新增机制 = 新增一个 EffectType + 一个 handler。
 // ---------------------------------------------------------------------------
 export type EffectType =
+  | "ARK_SEIZE_CARD"
+  | "ARK_SEIZE_MANA"
+  | "ARK_CARRY_ROOTS"
+  | "ARK_GERMINATE"
+  | "ARK_MARK_GUARD"
+  | "ARK_TRANSPLANT"
+  | "ARK_BARRAGE"
   | "DAMAGE"
   | "GAIN_SHIELD"
   | "DRAIN_SHIELD"

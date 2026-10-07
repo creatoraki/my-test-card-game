@@ -10,6 +10,7 @@ import { CardCorruption } from "./parts/CardCorruption";
 import { PollutionVirusMark } from "./parts/PollutionVirusMark";
 import { CardMarks } from "./parts/CardMarks";
 import { CardModuleMark } from "./parts/CardModuleMark";
+import { RootedCard } from "./parts/RootedCard";
 import { cx } from "@/ui/common/shared/cx";
 import { stripModuleText, useCardText } from "@/ui/common/shared/cardTextFormat";
 import { CardTextRich } from "@/ui/common/card/CardTextRich";
@@ -44,6 +45,8 @@ interface Props {
    * 具体是哪一种收益仍由既有角标与右侧 CardInfoPanel 分头交代(见 HandCard.activated.module.css)。
    */
   activated?: boolean;
+  onRootRelease?: (uid: string) => void;
+  rootReleaseDisabled?: boolean;
   // ⚠ 这里刻意**没有** onHover —— 悬停不再经过父级。见下方 onMouseEnter 处的注释。
 }
 
@@ -82,6 +85,8 @@ export const HandCard = memo(function HandCard({
   cost,
   starPay = 0,
   activated,
+  onRootRelease,
+  rootReleaseDisabled,
 }: Props) {
   const owner = getCharacter(card.ownerCharId);
   // 被动卡: 无费用、不可打出 —— 卡面上把费用徽章换成"被动"铭牌, 且**不走不可用压暗**,
@@ -150,7 +155,7 @@ export const HandCard = memo(function HandCard({
         onClick?.(card.uid);
       } : undefined}
     >
-      {variant === "hand" && actionBadge && !leaving && (
+      {variant === "hand" && actionBadge && !leaving && !card.rooted && (
         <button
           type="button"
           className={cx(a["hc-action"], a[`hc-action-${actionBadge}`])}
@@ -209,6 +214,7 @@ export const HandCard = memo(function HandCard({
           }}
         >
         {/* 配图层: 卡上段的正方形取景窗, 整幅 1:1 素材完整展示(不裁剪) */}
+        {card.rooted && !leaving && <RootedCard uid={card.uid} onRelease={onRootRelease} disabled={rootReleaseDisabled} />}
         {hasArt && <span className={f["hc-art"]} aria-hidden />}
 
         {/* 机框层: 升级卡凿痕的挂载层。纯装饰, 不吃点击 */}

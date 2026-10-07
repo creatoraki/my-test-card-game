@@ -29,6 +29,7 @@ export interface EnemyMove {
   bias?: MoveBias[];
   hitBonus?: number;
   anim?: CardAnim;
+  description?: string; // 有额外机制的招式使用完整中文说明
 }
 
 export interface EnemyDef {
@@ -43,6 +44,7 @@ export interface EnemyDef {
   /** 攻击型敌人的基础攻击力至少为 100；调整攻击力时同比反向调整伤害及条件追加倍率，保持基础伤害。 */
   stats?: Partial<StatBlock>;
   moves: EnemyMove[];
+  passiveDescription?: string;
   dropTable?: DropEntry[];
   boonTable?: BoonEntry[];
 }

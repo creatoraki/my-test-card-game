@@ -38,6 +38,9 @@ import {
 import { exhaustCard } from "../deck/exhaust";
 import { emptyHexPlay } from "../hexer/hexGate";
 import { cardTickAdvance } from "./playAdvance";
+import { cardLocked } from "../ecoArk/shared";
+import { beginArkAttack, finishArkAttack } from "../ecoArk/guard";
+import { flushArkCardPlayed, queueArkCardPlayed } from "../ecoArk/sentry";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
@@ -72,6 +75,7 @@ export type PlayBlock = null | "mana" | "other";
 export function playBlockReason(state: BattleState, uid: string): PlayBlock {
   const card = state.cards[uid];
   if (!card || state.phase !== "player" || !state.hand.includes(uid)) return "other";
+  if (cardLocked(state, uid)) return "other";
   if (isPassive(card)) return "other"; // 被动卡不可打出, 只在手中生效
   const owner = state.combatants[card.ownerCharId];
   if (!owner || !owner.alive) return "other";
@@ -150,6 +154,7 @@ export function playCard(
   //   而它们各自会产出独立的动画步(见 discard.ts), 兜底扫描会让同一笔伤害飘两次。
   //   引擎里 HP 的写入口只有 dealDamage / heal(markDead 与 maxHp 修正除外), 记录器已经全覆盖。
   const cardHits = withHitRecorder(() => {
+    beginArkAttack(state, card);
     withDiscardRecorder(discardRecorder, () => {
       state.playValueBonusPct = 0;
       revertPlayStatMods(state);
@@ -245,7 +250,7 @@ export function playCard(
         card.resonanceStacks = 0;
         state.waterfallPlay = false;
         state.playValueBonusPct = 0;
-        // ⚠ 必须在 flushAutoPlays 之前撤回: 自动出牌是另一张牌的结算, 不该继承本卡的临时面板。
+        // 自动出牌在本卡结算完成后处理，不继承本卡的临时面板。
         revertPlayStatMods(state);
         runRelicHook(state, "afterCardPlay", card);
         const ownerStatuses = state.combatants[card.ownerCharId]?.statuses ?? [];
@@ -256,8 +261,9 @@ export function playCard(
         fireRelic(state, { type: "cardPlayed", targetId: primaryId }, rec);
         // 无明只覆盖本张牌及其卡上标记；弃牌触发的自动出牌不应消费预选队列。
         state.pendingDiscardPicks = [];
-        flushAutoPlays(state, rec);
       } finally {
+        const frame = finishArkAttack(state);
+        if (state.pendingChoice) state.ark.deferredAttack = frame;
         state.activeCardCost = null;
         state.activeCardType = null;
         state.activeCardStarSpent = 0;
@@ -290,6 +296,11 @@ export function playCard(
 
   // 记录"出牌结算后、敌人行动前"的快照, 供 UI 先展示出牌结果再逐个播放敌人行动。
   if (rec) rec.cardSnapshot = takeDiscardSnapshot(state) ?? structuredClone(state);
+  // 先完成本牌的点名/封锁响应，再逐张处理弃牌触发的自动出牌。
+  queueArkCardPlayed(state, card);
+  flushArkCardPlayed(state, rec);
+  if (!state.pendingChoice) withDiscardRecorder(rec, () => flushAutoPlays(state, rec));
+  checkEnd(state);
 
   if (state.phase === "player") {
     const touchedIds = [...new Set([...cardHit, ...cardMissed, ...(primaryId ? [primaryId] : [])])];

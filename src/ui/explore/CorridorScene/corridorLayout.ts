@@ -12,10 +12,10 @@ const NEAR_FLOOR_Y_AT_1080: Record<NearMapVariant, number> = {
   neonCity1: 632 / 724 * 1080, // 近景1平台顶面
   neonCity2: 611 / 724 * 1080, // 近景2平台顶面
   neonCity3: 608 / 724 * 1080, // 近景3平台顶面
-  ecoArk1: 458 / 724 * 1080,
-  ecoArk2: 458 / 724 * 1080,
-  ecoArk3: 516 / 821 * 1080,
-  ecoArk4: 603 / 821 * 1080,
+  ecoArk1: 600 / 724 * 1080, // 种子培育区平台顶面
+  ecoArk2: 605 / 724 * 1080, // 凝露净化区平台顶面
+  ecoArk3: 599 / 724 * 1080, // 生质循环区平台顶面
+  ecoArk4: 600 / 724 * 1080, // 母树维护区平台顶面
 };
 const NEAR_MAP_OFFSET_Y: Record<NearMapVariant, number> = {
   neonCity1: 0,

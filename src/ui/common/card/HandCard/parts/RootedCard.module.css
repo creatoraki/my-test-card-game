@@ -1,0 +1,33 @@
+.roots {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  background: #0a26165c;
+  font-size: 18px;
+  color: #d4efd0;
+}
+.vines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(35deg, transparent 0 43px, #395b32a6 44px 48px, #97b05e9e 49px 51px, transparent 52px 87px);
+  box-shadow: inset 0 0 24px #0a211cd9;
+}
+.label, .release { position: relative; }
+.label { padding: 5px 12px; background: #142a19e8; border: 1px solid #8aaf6a; }
+.release {
+  padding: 9px 12px;
+  border: 1px solid #91b670;
+  border-radius: 4px;
+  font: inherit;
+  color: #edffdb;
+  background: #244732;
+  cursor: pointer;
+}
+.release:disabled { opacity: 0.55; cursor: default; }
+.release:enabled:hover { background: #386044; }

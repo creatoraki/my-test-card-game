@@ -22,6 +22,9 @@ import { checkChallengesOnWin, noteChallengeKill } from "../challenges";
 import { recordHitPart } from "./animHits";
 import { capStatusStacks, mergeStatus, newSegment, syncSegments } from "../statuses/stacking";
 import { runRelicHook } from "../relics/types";
+import { returnCollateral } from "../ecoArk/resources";
+import { clearGardenMemory } from "../ecoArk/guard";
+import { endBarrage } from "../ecoArk/sentry";
 
 export function log(state: BattleState, text: string): void {
   state.log.push({ round: state.round, tick: state.tick, text });
@@ -68,6 +71,11 @@ export function markDead(state: BattleState, cmb: Combatant): void {
   }
   cmb.hp = 0;
   cmb.alive = false;
+  if (cmb.team === "enemy") {
+    returnCollateral(state, cmb);
+    if (cmb.ark) delete cmb.ark.barrage;
+    clearGardenMemory(state);
+  }
   log(state, `${cmb.emoji} ${cmb.name} 倒下了`);
   if (cmb.team === "player") {
     purgeOwnerCards(state, cmb.charId, `${cmb.emoji} ${cmb.name}`);
@@ -246,6 +254,7 @@ export function applyStatus(
     capStatusStacks(inst, def, cap);
   }
   if (def) def.hooks?.onApplied?.(ctxFor(state, targetId, inst));
+  if (statusId === "stun" && stacks > 0 && t.team === "enemy") endBarrage(state, t, true);
   if (def && overflow > 0) def.hooks?.onOverflow?.(ctxFor(state, targetId, inst), overflow);
   cleanup(t);
   log(state, `${t.emoji} ${t.name} 获得 ${def?.name ?? statusId} ${stacks > 0 ? "+" : ""}${stacks}`);

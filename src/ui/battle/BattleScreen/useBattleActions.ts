@@ -123,7 +123,7 @@ export function useBattleActions({
   }, [battle, camera.aim, choreo, hand, play, playback.animatingRef, setAvidyaPick, setHandAction, setSelectedUid]);
 
   const pickAvidyaCard = useCallback((uid: string) => {
-    if (!battle || !avidyaPick || uid === avidyaPick.uid || !battle.hand.includes(uid)) return;
+    if (!battle || !avidyaPick || uid === avidyaPick.uid || !battle.hand.includes(uid) || battle.cards[uid]?.rooted) return;
     const picked = avidyaPick.picked.includes(uid)
       ? avidyaPick.picked.filter((pickedUid) => pickedUid !== uid)
       : [...avidyaPick.picked, uid];
@@ -199,6 +199,7 @@ export function useBattleActions({
     const block = playBlockReason(battle, uid);
     if (block) {
       if (block === "mana") showBattleToast("费用不足");
+      else if (battle.cards[uid]?.rooted) showBattleToast("这张牌被缠根，请先解缠");
       else if (battle.cards[uid]?.cardType === "passive") showBattleToast("被动卡无法打出");
       return;
     }

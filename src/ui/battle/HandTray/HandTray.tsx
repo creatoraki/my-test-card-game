@@ -3,6 +3,7 @@ import type { BattleState, Card } from "@/engine";
 import { cardActivated, cardCost, playBlockReason, starlightPayment } from "@/engine";
 import { HandCard } from "@/ui/common/card/HandCard";
 import type { HandAction } from "@/ui/battle/HandTools";
+import { useBattleStore } from "@/store/battle/battleStore";
 import s from "./HandTray.module.css";
 
 type HandDisplayAction = HandAction | "choose";
@@ -39,6 +40,7 @@ export const HandTray = memo(function HandTray({
   onCardAction,
   onCardExited,
 }: Props) {
+  const releaseRoot = useBattleStore((state) => state.releaseRoot);
   return (
     <div className={s["hand-panel"]}>
       <div className={s["hand-tray"]} data-hand-tray data-hand-action={handAction ?? undefined}>
@@ -52,7 +54,7 @@ export const HandTray = memo(function HandTray({
           const purged = entry.purged;
           const block = leaving || !isPlayerTurn
             ? "other"
-            : handAction === "choose"
+            : handAction === "choose" && !card.rooted
               ? null
               : playBlockReason(battle, card.uid);
           return (
@@ -73,6 +75,8 @@ export const HandTray = memo(function HandTray({
               onExited={onCardExited}
               onClick={onCardClick}
               onAction={onCardAction}
+              onRootRelease={releaseRoot}
+              rootReleaseDisabled={!isPlayerTurn || Boolean(handAction) || Boolean(battle.pendingChoice) || (battle.resources.mana ?? 0) < 1}
             />
           );
         })}

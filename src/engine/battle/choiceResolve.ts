@@ -11,6 +11,9 @@ import { fillMissingHits, withHitRecorder } from "../core/animHits";
 import { snapshotHp, takeDiscardSnapshot, withDiscardRecorder } from "../cards/cardFx";
 import { advanceTick } from "./scheduler";
 import { cancelPendingChoice, resolvePendingChoice } from "./battleChoices";
+import { flushArkCardPlayed } from "../ecoArk/sentry";
+import { flushAutoPlays } from "../deck/discard";
+import { beginArkAttack, finishArkAttack } from "../ecoArk/guard";
 
 export interface ChoiceRecorder extends FxRecorder {
   // 选牌后续效果的命中(含只吃护盾的目标); 没有后续效果时不写。
@@ -32,6 +35,15 @@ export function settleDeferredAdvance(state: BattleState, rec?: FxRecorder): voi
   if (state.pendingChoice) return;
   const adv = state.deferredTickAdvance;
   state.deferredTickAdvance = 0;
+  delete state.ark.deferredAttack;
+  withDiscardRecorder(rec, () => {
+    flushArkCardPlayed(state, rec);
+    flushAutoPlays(state, rec);
+  });
+  if (state.pendingChoice) {
+    state.deferredTickAdvance = adv;
+    return;
+  }
   if (adv <= 0 || state.phase !== "player") return;
   withDiscardRecorder(rec, () => advanceTick(state, adv, rec));
 }
@@ -43,9 +55,13 @@ export function resolveChoiceRecorded(state: BattleState, uid: string, rec?: Cho
   const beforeHp = snapshotHp(state);
   const beforeShield = snapshotShield(state);
   let ok = false;
+  const deferred = state.ark.deferredAttack;
+  const sourceCard = deferred ? state.cards[deferred.cardUid] : undefined;
   const recorded = withHitRecorder(() => {
     withDiscardRecorder(rec, () => {
-      ok = resolvePendingChoice(state, uid);
+      if (sourceCard) beginArkAttack(state, sourceCard, deferred);
+      try { ok = resolvePendingChoice(state, uid); }
+      finally { if (sourceCard) finishArkAttack(state); }
     });
   });
   if (!ok) return false;

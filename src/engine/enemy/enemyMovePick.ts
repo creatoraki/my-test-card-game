@@ -2,6 +2,7 @@ import type { BattleState, Combatant, Enemy, StatusInstance } from "../types";
 import type { EnemyMove, MoveBiasWhen } from "@/data";
 import { alliesOf, foesOf, tauntedAmong } from "../combat/targeting";
 import { rngPick } from "../core/rng";
+import { arkMoveAvailable } from "../ecoArk/moves";
 
 function hasStatus(status: StatusInstance, statusId: string): boolean {
   return status.id === statusId && status.stacks > 0;
@@ -35,6 +36,7 @@ export function biasConditionMet(state: BattleState, enemy: Enemy, condition: Mo
 }
 
 export function enemyMoveWeight(state: BattleState, enemy: Enemy, move: EnemyMove): number {
+  if (!arkMoveAvailable(state, enemy, move)) return 0;
   return (move.weight ?? 1) * (move.bias ?? []).reduce(
     (weight, bias) => biasConditionMet(state, enemy, bias) ? weight * bias.multiplier : weight,
     1,

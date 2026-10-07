@@ -104,7 +104,7 @@ export const HEXER_STATUS_DEFS: Record<string, StatusDef> = {
     undispellable: true,
     maxStacks: 1,
     stackMode: "max",
-    desc: "不会因行动点达到阈值被强制放大招，下一次抽招不会抽到大招；抽招后移除。不计入减益种类。",
+    desc: "下一次抽招不会抽到大招；抽招后移除。不计入减益种类。",
   },
   plague: {
     id: "plague",

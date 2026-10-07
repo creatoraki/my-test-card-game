@@ -13,8 +13,10 @@ import { PROPHECY_STATUS_DEFS } from "./prophecy";
 import { ABANDONED_FLOOR_STATUS_DEFS } from "./abandonedFloor";
 import { ALCHEMIST_STATUS_DEFS } from "./alchemist";
 import { HEXER_STATUS_DEFS } from "../hexer/hexStatuses";
+import { ECO_ARK_STATUS_DEFS } from "./ecoArk";
 
 export const STATUS_DEFS: Record<string, StatusDef> = {
+  ...ECO_ARK_STATUS_DEFS,
   ...DOT_STATUS_DEFS,
   ...BUFF_STATUS_DEFS,
   ...DEBUFF_STATUS_DEFS,

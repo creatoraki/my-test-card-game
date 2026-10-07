@@ -5,6 +5,7 @@
 import { HEXER_STATUS_ART } from "./hexerStatusArt";
 import { ADDITIONAL_STATUS_ART } from "./additionalStatusArt";
 import { BOTANIST_STATUS_ART } from "./botanistStatusArt";
+import { ECO_ARK_STATUS_ART } from "./ecoArkStatusArt";
 import poisonArt from "@/assets/buffs/状态/持续伤害/中毒.webp";
 import mycoToxinArt from "@/assets/buffs/状态/属性削弱/菌毒.png";
 import shieldArt from "@/assets/buffs/战斗/护盾/护盾.webp";
@@ -75,6 +76,7 @@ export const STATUS_ART: Record<string, string> = {
   ...HEXER_STATUS_ART,
   ...ADDITIONAL_STATUS_ART,
   ...BOTANIST_STATUS_ART,
+  ...ECO_ARK_STATUS_ART,
   starlight: starlightArt,
   ironwall: ironwallArt,
   strength: strengthArt,
@@ -151,6 +153,7 @@ export const STATUS_ART_SOURCES: readonly string[] = [
   ...Object.values(HEXER_STATUS_ART),
   ...Object.values(ADDITIONAL_STATUS_ART),
   ...Object.values(BOTANIST_STATUS_ART),
+  ...Object.values(ECO_ARK_STATUS_ART),
   starlightArt,
   ironwallArt,
   strengthArt,

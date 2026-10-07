@@ -21,8 +21,8 @@ const NEAR_MAP_SOURCE_GEOMETRY = {
   neonCity3: { width: 2172, height: 724 },
   ecoArk1: { width: 2172, height: 724 },
   ecoArk2: { width: 2172, height: 724 },
-  ecoArk3: { width: 1916, height: 821 },
-  ecoArk4: { width: 1916, height: 821 },
+  ecoArk3: { width: 2172, height: 724 },
+  ecoArk4: { width: 2172, height: 724 },
 } satisfies Record<NearMapVariant, { width: number; height: number }>;
 
 /** 近景素材的实际显示倍率。 */

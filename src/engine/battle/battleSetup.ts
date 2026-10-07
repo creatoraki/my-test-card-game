@@ -17,6 +17,7 @@ import { applyStatus, log } from "../core/ops";
 import { rollChallenges } from "../challenges";
 import { emptyHexPlay } from "../hexer/hexGate";
 import { getEncounter, getEnemyDef, slotDefId } from "@/data";
+import { initializeArkBuffs } from "../ecoArk/passiveBuffs";
 
 const isBattleTest = import.meta.env.BattleTest === "true";
 
@@ -89,7 +90,7 @@ export function createBattleState(
   defIds.forEach((defId, i) => {
     const def = getEnemyDef(defId);
     const id = `${defId}#${i}`;
-    const suffix = defCounts[defId] > 1 ? ` ${String.fromCharCode(65 + (defSeen[defId] ?? 0))}` : "";
+    const suffix = defCounts[defId] > 1 ? `（${(defSeen[defId] ?? 0) + 1}）` : "";
     defSeen[defId] = (defSeen[defId] ?? 0) + 1;
     const maxHp = isBattleTest ? 1 : Math.max(1, Math.round(def.maxHp * hpMul));
     const stats = enemyBaselineStats({ ...def.stats, maxHp });
@@ -114,6 +115,7 @@ export function createBattleState(
       ap: 0,
       apPerRound: Math.max(0, def.apPerRound ?? RULES.enemy.apPerRound),
       intent: { moveId: "", name: "", emoji: "", kind: "special" },
+      rhythm: { smallsSinceUltimate: 0 },
     };
     combatants[id] = enemy;
     enemyIds.push(id);
@@ -123,6 +125,7 @@ export function createBattleState(
   for (const card of setup.deck) cards[card.uid] = card;
 
   const state: BattleState = {
+    ark: { attacks: [], pendingPlays: [] },
     encounterId,
     round: 0,
     tick: 0,
@@ -210,6 +213,7 @@ export function createBattleState(
   };
 
   state.draw = shuffle(state, Object.keys(cards));
+  initializeArkBuffs(state);
   state.challenges = rollChallenges(state);
   log(state, `⚔️ 遭遇战: ${enc.name}`);
   for (const status of mod?.enemyStatuses ?? []) {

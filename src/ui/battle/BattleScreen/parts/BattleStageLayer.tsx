@@ -28,6 +28,7 @@ interface Props {
   enemies: Enemy[];
   placements: (EnemyPlacement | undefined)[];
   battle: BattleState;
+  selectedOwnerId?: string;
   isPlayerTurn: boolean;
   needsFoe: boolean | undefined;
   hitPreview: Record<string, number | null> | null;
@@ -82,6 +83,7 @@ export function BattleStageLayer({
   enemies,
   placements,
   battle,
+  selectedOwnerId,
   isPlayerTurn,
   needsFoe,
   hitPreview,
@@ -121,6 +123,8 @@ export function BattleStageLayer({
                 anchorDy={placements[index]?.dy}
               >
                 <CombatantView
+                  battle={battle}
+                  selectedOwnerId={selectedOwnerId}
                   cmb={enemy}
                   currentTick={battle.tick}
                   targetable={isPlayerTurn && !!needsFoe && enemy.alive && validTargetIds.has(enemy.id)}

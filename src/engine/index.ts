@@ -76,7 +76,12 @@ export {
   resolveChoiceRecorded,
   cancelChoiceRecorded,
   playBlockReason,
+  releaseRoot,
 } from "./battle/battle";
+export { gardenReduces, isGardenProtected } from "./ecoArk/guard";
+export { heldManaTotal } from "./ecoArk/resources";
+export { ARK, cardLocked, availableHand } from "./ecoArk/shared";
+export { arkEnemyReadout } from "./ecoArk/readout";
 export type { AllyInit, BattleSetup, ChoiceRecorder, PlayBlock, PlayRecorder } from "./battle/battle";
 export { runEnemyFlee } from "./battle/flee";
 export { foesOf, alliesOf, aliveOf, chooseRandomTarget, tauntedAmong, validFoeTargetIds } from "./combat/targeting";

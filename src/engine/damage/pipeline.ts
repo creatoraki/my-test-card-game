@@ -16,6 +16,7 @@ import { cleanup, ctxFor, log, markDead, ops } from "../core/ops";
 import { STATUS_DEFS } from "../core/hookRegistry";
 import { runGuardHooks, runStatusHooks } from "./hooks";
 import { applyDamageModifiers, collectDamageModifiers, createDamageCtx } from "./modifiers";
+import { noteArkAttackHit } from "../ecoArk/guard";
 
 // 掷一次百分点概率(0~100)。走战斗 RNG, 保证同种子可复现。
 function roll(state: BattleState, chancePct: number): boolean {
@@ -126,6 +127,7 @@ function applyHpLoss(state: BattleState, dmg: DamageCtx, target: Combatant, opts
     (dmg.blocked > 0 ? `(护盾挡下 ${dmg.blocked})` : "");
   log(state, `${target.emoji} ${target.name} 受到 ${dmg.hpLost} 点伤害${marks}`);
   noteChallengeDamage(state, dmg.sourceId, target.id, dmg.hpLost);
+  noteArkAttackHit(state, dmg);
 }
 
 export function dealDamage(

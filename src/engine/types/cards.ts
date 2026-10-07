@@ -159,6 +159,7 @@ export interface CardKeywordRef {
 
 // 运行期卡牌实例(带唯一 uid, 可被单独升级)
 export interface Card extends CardDef {
+  rooted?: boolean; // 缠根：不能使用或操作，下次我方回合开始解除
   uid: string;
   upgraded: boolean;
   contaminated: boolean;

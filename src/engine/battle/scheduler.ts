@@ -9,6 +9,7 @@ import { checkEnd, ops } from "../core/ops";
 import { runTick } from "../combat/statusLifecycle";
 import { actAndRecord } from "../enemy/ai";
 import { noteChallengeEnemyAct } from "../challenges";
+import { tickBarrages } from "../ecoArk/sentry";
 
 // 推进 n 个时刻。每推进 1 时刻, 结算所有 nextActTick <= tick 的存活敌人。
 // fx 存在时, 每次敌人行动与其引发的弃牌触发按真实发生顺序记录。
@@ -17,6 +18,7 @@ export function advanceTick(state: BattleState, n: number, fx?: FxRecorder): voi
     if (state.phase !== "player") return;
     state.tick += 1;
     runTick(state);
+    tickBarrages(state, fx);
     // 时刻推进被动(漏刻): 排在到点敌人行动之前, 本拍上的咒对随后出手的敌人已生效。
     ops.firePassive(state, { type: "tickAdvanced" }, fx);
     if (state.phase !== "player") return;
@@ -53,7 +55,7 @@ export function flushPendingActs(state: BattleState, fx?: FxRecorder): void {
   while (state.phase === "player") {
     const hasPending = state.enemyIds.some((id) => {
       const enemy = state.combatants[id] as Enemy;
-      return enemy.alive && enemy.nextActTick != null;
+      return enemy.alive && (enemy.nextActTick != null || Boolean(enemy.ark?.barrage));
     });
     if (!hasPending) return;
 

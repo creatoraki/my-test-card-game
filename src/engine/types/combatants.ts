@@ -2,6 +2,7 @@ import type { QuirkId } from "../combat/quirks";
 import type { Team } from "./base";
 import type { StatBlock, StatModifier } from "./stats";
 import type { StatusInstance } from "./statuses";
+import type { ArkEnemyState } from "./ecoArk";
 
 // ---------------------------------------------------------------------------
 // 战斗单位
@@ -36,6 +37,8 @@ export interface Intent {
   emoji: string;
   kind: "attack" | "block" | "buff" | "debuff" | "special";
   value?: number; // 预览数值(伤害/护盾)
+  primaryId?: string; // 方舟招式开蓄时选定的目标
+  secondaryId?: string; // 病株移栽的接收者
 }
 
 export interface Enemy extends BaseCombatant {
@@ -48,6 +51,13 @@ export interface Enemy extends BaseCombatant {
   apPerRound: number; // 每回合回复的行动点, 建局时从 EnemyDef 拷入
   intent: Intent;
   aiMemory?: EnemyAiMemory;
+  rhythm: EnemyRhythm;
+  ark?: ArkEnemyState;
+}
+
+// 出招节奏记忆(enemy/enemyRhythm.ts)。
+export interface EnemyRhythm {
+  smallsSinceUltimate: number; // 距上次大招(或上次放弃大招)已发动的小招次数
 }
 
 export interface EnemyAiMemory {

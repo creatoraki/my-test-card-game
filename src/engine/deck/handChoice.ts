@@ -1,6 +1,7 @@
 import type { BattleState, Card, EffectDescriptor } from "../types";
 import { baseEffectsOf } from "../cards/cardEffects";
 import { CARD_MARK_DEFS } from "../cards/cardMarks";
+import { availableHand } from "../ecoArk/shared";
 
 function discardPickCount(effects: EffectDescriptor[]): number {
   return effects.reduce(
@@ -16,6 +17,6 @@ export function avidyaPickCount(state: BattleState, card: Card): number {
   if (!state.hand.some((uid) => state.cards[uid]?.id === "avidya")) return 0;
   const markEffects = (card.marks ?? []).flatMap((markId) => CARD_MARK_DEFS[markId]?.effects ?? []);
   const needed = discardPickCount([...baseEffectsOf(card), ...markEffects]);
-  const available = state.hand.filter((uid) => uid !== card.uid).length;
+  const available = availableHand(state).filter((uid) => uid !== card.uid).length;
   return Math.min(needed, available);
 }

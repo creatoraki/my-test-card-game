@@ -26,6 +26,7 @@ import { conditionMet } from "./effectConditions";
 import { filterByKeywordGate } from "../hexer/hexGate";
 import { applyHexEffect, HEX_EFFECT_TYPES } from "../hexer/hexEffects";
 import { ACTUARY_EFFECT_TYPES, applyActuaryEffect } from "../actuary/actuaryEffects";
+import { ARK_EFFECT_TYPES, applyArkEffect } from "../ecoArk/effects";
 export { conditionMet } from "./effectConditions";
 export { resolveTargets } from "./effectTargets";
 
@@ -84,6 +85,10 @@ function applyEffect(
   const gatedTargets = filterByKeywordGate(state, effect, sourceId, targetIds, primaryId);
   if (!gatedTargets) return resolution;
   targetIds = gatedTargets;
+  if (ARK_EFFECT_TYPES.has(effect.type)) {
+    applyArkEffect(state, effect, sourceId, targetIds);
+    return resolution;
+  }
   if (HEX_EFFECT_TYPES.has(effect.type)) {
     applyHexEffect(state, effect, sourceId, targetIds, primaryId);
     return resolution;

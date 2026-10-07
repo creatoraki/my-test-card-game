@@ -68,7 +68,7 @@ export function BattleHudDock({
   onCardAction,
   onCardExited,
 }: Props) {
-  const handInteractive = isPlayerTurn && (handDisplayAction === "choose" || !battle.pendingChoice);
+  const handInteractive = isPlayerTurn && !animating && (handDisplayAction === "choose" || !battle.pendingChoice);
   return (
     <div className={s["battle-hud"]} onClick={(event) => event.stopPropagation()}>
       <div className={cx(s["party-dock"], playerActing && s["dock-hidden"])}>

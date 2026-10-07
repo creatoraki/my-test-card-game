@@ -87,6 +87,7 @@ function EnemyDetail({ enemy }: { enemy: EnemyDef }) {
       </dl>
       <div className={s["moves"]}>
         <h5>行动模式</h5>
+        {enemy.passiveDescription && <div className={s["move"]}><p>{enemy.passiveDescription}</p></div>}
         {enemy.moves.map((move) => (
           <div key={move.id} className={s["move"]}>
             <div className={s["move-head"]}>

@@ -9,6 +9,7 @@ import { cultivateWitherSoon, notifyCultivateStage, resetCultivate } from "./cul
 import { makeCard } from "@/data";
 import { runRelicHook } from "../relics/types";
 import { exhaustCard } from "./exhaust";
+import { availableHand, cardLocked } from "../ecoArk/shared";
 
 // 抽 n 张(受小队手牌上限限制)。抽牌堆空则把弃牌堆洗回。
 export function drawCards(state: BattleState, n: number): void {
@@ -76,7 +77,7 @@ export function replaceHandCard(
   ownerCharId?: string,
 ): string | undefined {
   const index = state.hand.indexOf(uid);
-  if (index < 0) return undefined;
+  if (index < 0 || cardLocked(state, uid)) return undefined;
   const replacement = makeCard(cardId);
   if (ownerCharId) replacement.ownerCharId = ownerCharId;
   state.cards[replacement.uid] = replacement;
@@ -89,7 +90,7 @@ export function replaceHandCard(
 export const WITHERED_FRUIT_ID = "withered-fruit";
 
 export function witherCards(state: BattleState): void {
-  for (const uid of [...state.hand]) {
+  for (const uid of availableHand(state)) {
     const card = state.cards[uid];
     if (!card || !cultivateWitherSoon(card)) continue;
     const replacementUid = replaceHandCard(state, uid, WITHERED_FRUIT_ID, card.ownerCharId);

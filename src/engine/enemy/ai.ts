@@ -13,6 +13,11 @@ import { pickAllyTarget, pickScriptedTarget } from "./enemyMovePick";
 import { pickScriptedMove, updateAiMemory } from "./enemyScript";
 import { chooseNextMove, hasSoulLock, SOUL_LOCK_STATUS } from "./apPick";
 import { applyGrudgeDoll } from "./grudgeDoll";
+import { noteRhythmMove } from "./enemyRhythm";
+import { arkPrimaryTarget, pickMothFollowUp, prepareArkIntent } from "../ecoArk/moves";
+import { ARK, isArkMinion } from "../ecoArk/shared";
+import { endBarrage, noteSentryMove } from "../ecoArk/sentry";
+import { clearBurstBuff } from "../ecoArk/burstBuff";
 
 // 按行动点抽取下一招并开始蓄力(开蓄即扣点); 抽不到 = 本回合停手攒点。
 // firstOfRound: 回合开始的第一次抽招, 必定出招(每回合至少行动一次)。
@@ -21,6 +26,7 @@ export function startCharge(state: BattleState, enemyId: string, firstOfRound = 
   const def = getEnemyDef(e.enemyDefId);
   const move = e.alive ? chooseNextMove(state, e, def, firstOfRound) : null;
   if (!move) {
+    clearBurstBuff(e);
     e.nextActTick = null;
     return;
   }
@@ -50,8 +56,13 @@ export function startCharge(state: BattleState, enemyId: string, firstOfRound = 
     value,
   };
   e.intent = intent;
+  prepareArkIntent(state, e, move);
   e.nextActTick = state.tick + enemyActDelay(state, e, move.delay + e.moveDelayDelta);
   runEnemyStatusHook(state, e, "onCharge");
+  // 方舟小怪的最终蓄力固定限制在 1–4 拍，包含先手差与蓄力状态修正。
+  if (isArkMinion(e) && e.nextActTick !== null) {
+    e.nextActTick = state.tick + Math.max(1, Math.min(4, e.nextActTick - state.tick));
+  }
 }
 
 // 敌人身上状态的出招周期钩子(迟滞的蓄力推迟 / 出招计次)。
@@ -70,6 +81,9 @@ export interface EnemyActResult {
   moveId: string;
   targetIds: string[]; // 受影响单位(用于闪特效): foe→[primary]; self→[self]; 群体→解析集合; 眩晕→[self]
   missedIds: string[];
+  snapshotBeforeExtra?: BattleState;
+  extra?: { moveId: string; hits: AnimHit[]; snapshot: BattleState };
+  extraTempo?: { hits: AnimHit[]; snapshot: BattleState };
 }
 
 // 归纳一次招式受影响的单位(用于 UI 闪特效)。在结算前按存活集合归纳, 不消耗 RNG。
@@ -126,7 +140,7 @@ function runBeforeActHooks(state: BattleState, e: Enemy): void {
 
 // 敌人执行它当前的意图。返回本次行动的描述(供动画帧记录)。
 // phase 已在外部跑过时直接复用, 不再重复推进节拍。
-export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase): EnemyActResult {
+export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase, scheduleNext = true): EnemyActResult {
   const e = state.combatants[enemyId] as Enemy;
   const enemyDefId = e.enemyDefId;
   if (!e.alive)
@@ -139,8 +153,10 @@ export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase
 
   const stun = getStatus(e, "stun");
   if (stunned || stun) {
+    clearBurstBuff(e);
+    endBarrage(state, e, true);
     log(state, `💫 ${e.name} 被眩晕, 无法行动`);
-    startCharge(state, enemyId);
+    if (scheduleNext) startCharge(state, enemyId);
     return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [enemyId], missedIds: [] };
   }
 
@@ -163,7 +179,8 @@ export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase
   }
 
   let primaryId: string | undefined;
-  if (move.targeting === "foe")
+  if (isArkMinion(e)) primaryId = arkPrimaryTarget(state, e, move);
+  else if (move.targeting === "foe")
     primaryId = pickScriptedTarget(state, e, move) ?? chooseRandomTarget(state, enemyId);
   else if (move.targeting === "ally") primaryId = pickAllyTarget(state, e, move);
 
@@ -186,12 +203,41 @@ export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase
     : baseEffects;
   const resolution = resolveEffects(state, effects, enemyId, primaryId);
   ops.prophecyEvent(state, { type: "afterEnemyAct", enemyId });
+  // 出招节奏按真正发动的招式计(破壳换招后的新招、被眩晕跳过的不算)。
+  noteRhythmMove(e, def, move);
+  noteSentryMove(e, move.id);
 
   if (e.hp <= 0) markDead(state, e);
   // 招式发动后移除的状态(捕虫夹等)与出招计次(迟滞) —— 必须早于 startCharge, 否则会拖累下一招。
   e.statuses = e.statuses.filter((inst) => !STATUS_DEFS[inst.id]?.expiresOnAct);
   if (e.alive) runEnemyStatusHook(state, e, "onAfterAct");
-  startCharge(state, enemyId);
+  let snapshotBeforeExtra: BattleState | undefined;
+  let extraFrame: EnemyActResult["extra"];
+  let extraTempo: EnemyActResult["extraTempo"];
+  // 追加只从小招选：扣点、不蓄力，仍走每次行动的拍点与状态钩子。
+  if (scheduleNext && e.alive && move.id === ARK.groupDance && !getStatus(e, "stun")) {
+    const extra = pickMothFollowUp(state, e, def.moves);
+    if (extra) {
+      snapshotBeforeExtra = structuredClone(state);
+      e.ap -= extra.cost;
+      const oldIntent = e.intent;
+      e.intent = { moveId: extra.id, name: extra.name, emoji: extra.emoji, kind: extra.kind };
+      prepareArkIntent(state, e, extra);
+      log(state, `${e.name} 立即追加 ${extra.name}`);
+      let phase!: TempoPhase;
+      const tempoHits = withHitRecorder(() => { phase = runEnemyTempoPhase(state, enemyId); });
+      if (tempoHits.length) extraTempo = { hits: tempoHits, snapshot: structuredClone(state) };
+      let result!: EnemyActResult;
+      const extraHits = withHitRecorder(() => { result = enemyAct(state, enemyId, phase, false); });
+      const recordedIds = new Set(extraHits.map((hit) => hit.id));
+      const hits = [...extraHits, ...result.targetIds.filter((id) => !recordedIds.has(id))
+        .map((id) => ({ id, hpDelta: 0, missed: result.missedIds.includes(id) }))];
+      if (phase.alive) extraFrame = { moveId: extra.id, hits, snapshot: structuredClone(state) };
+      e.intent = oldIntent;
+    }
+  }
+  if (scheduleNext) startCharge(state, enemyId);
+  if (extraFrame) extraFrame.snapshot = structuredClone(state);
   const hitIds = new Set(resolution.hit);
   return {
     actorId: enemyId,
@@ -199,6 +245,9 @@ export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase
     moveId: move.id,
     targetIds,
     missedIds: [...new Set(resolution.missed)].filter((id) => !hitIds.has(id)),
+    snapshotBeforeExtra,
+    extra: extraFrame,
+    extraTempo,
   };
 }
 
@@ -236,7 +285,7 @@ export function actAndRecord(state: BattleState, enemyId: string, fx?: FxRecorde
         (id) =>
           byId.get(id) ?? {
             id,
-            hpDelta: (beforeHp[id] ?? 0) - state.combatants[id].hp,
+            hpDelta: (beforeHp[id] ?? 0) - (res.snapshotBeforeExtra ?? state).combatants[id].hp,
             missed: res.missedIds.includes(id),
           },
       ),
@@ -250,6 +299,8 @@ export function actAndRecord(state: BattleState, enemyId: string, fx?: FxRecorde
     enemyDefId: res.enemyDefId,
     moveId: res.moveId,
     hits,
-    snapshot: structuredClone(state),
+    snapshot: res.snapshotBeforeExtra ?? structuredClone(state),
   });
+  if (res.extraTempo) fx.steps.push({ kind: "tempo", ownerId: res.actorId, ...res.extraTempo });
+  if (res.extra) fx.steps.push({ kind: "enemy", actorId: res.actorId, enemyDefId: res.enemyDefId, ...res.extra });
 }

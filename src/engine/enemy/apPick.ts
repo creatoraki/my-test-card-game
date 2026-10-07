@@ -1,80 +1,72 @@
 // 敌人行动点抽招: 决定下一招, 或本回合停手攒点(返回 null)。
-// 规则(按顺序):
-//   1. 点数 ≥ 大招消耗 × ultimateForceRatio → 固定放大招(大招 = 消耗最高的招式)
-//   2. 点数 ≥ 大招消耗(付得起所有招式) → 照常抽招, 出完接着判断(可连续行动)
-//   3. 付不起所有招式 → 掷骰: 出招概率 = (点数 − 最低消耗 + 1) / (最高消耗 − 最低消耗 + 1),
-//      剩的点数越多越倾向出招; 出招只在付得起的招式里抽, 否则停手
-//   4. 点数 < 最低消耗 → 停手
-//   例外: 每回合第一次出招(mustAct)不掷骰、不停手 —— 保证每回合至少行动一次
+// 非脚本怪走「小 / 小 / 大」节奏(规则见 enemyRhythm.ts):
+//   1. 已出满小招且点数 ≥ 大招消耗 → 决策点: 掷 ultimateChance 放大招;
+//      没放 → 放弃本轮, 节奏归零, 改出小招(之后本回合有点就连放)
+//   2. 已出满小招但付不起大招 → 攒点期: 只出每回合必出的那一招, 挑招为大招留点
+//   3. 其余情况 → 有点就在小招里按权重抽(可一回合连续行动)
+//   每回合第一次出招(mustAct)必定出招; 一招都付不起时透支出招。
+// 脚本怪(EnemyDef.ai)保留原有规则, 见 apPickScripted.ts。
 
 import type { BattleState, Enemy } from "../types";
 import type { EnemyDef, EnemyMove } from "@/data";
 import { RULES } from "../core/battleRules";
-import { rngFloat, rngPick, rngPickWeighted } from "../core/rng";
+import { rngFloat, rngPickWeighted } from "../core/rng";
 import { enemyMoveWeight } from "./enemyMovePick";
-import { pickScriptedMove, scriptAllowedMoveIds, scriptOpeningPending } from "./enemyScript";
+import { fallbackMove, hasSoulLock, withoutUltimates } from "./apShared";
+import { chooseScriptedApMove } from "./apPickScripted";
+import { keepUltimateReachable, restartRhythm, ultimateCost, ultimateDue, ultimateImminent } from "./enemyRhythm";
 
-function forcedUltimate(state: BattleState, e: Enemy, def: EnemyDef, maxCost: number): EnemyMove | undefined {
-  if (e.ap < maxCost * RULES.enemy.ultimateForceRatio) return undefined;
-  const ultimates = def.moves.filter((move) => move.cost === maxCost);
-  if (def.ai) {
-    // 脚本怪: 开场招优先; 大招须在脚本允许范围内(冷却、禁连发)。
-    if (scriptOpeningPending(e)) return undefined;
-    const allowed = scriptAllowedMoveIds(e, def);
-    const usable = ultimates.filter((move) => allowed.has(move.id));
-    return usable.length > 0 ? rngPick(state, usable) : undefined;
+export { hasSoulLock, SOUL_LOCK_STATUS } from "./apShared";
+
+function pickWeighted(state: BattleState, e: Enemy, moves: EnemyMove[]): EnemyMove {
+  return rngPickWeighted(state, moves, (move) => enemyMoveWeight(state, e, move));
+}
+
+// 决策点掷大招; 大招全被权重条件挡住(权重为 0)时视同没掷中。
+function rollUltimate(state: BattleState, e: Enemy, def: EnemyDef, ultCost: number): EnemyMove | undefined {
+  const usable = def.moves.filter((move) => move.cost === ultCost && enemyMoveWeight(state, e, move) > 0);
+  if (usable.length === 0) return undefined;
+  if (rngFloat(state) * 100 >= RULES.enemy.ultimateChance) return undefined;
+  return pickWeighted(state, e, usable);
+}
+
+// 在付得起的小招里抽; 临近大招时只在为大招留得住点的招里抽。
+function pickSmall(state: BattleState, e: Enemy, smalls: EnemyMove[], ultCost: number | null): EnemyMove {
+  const affordable = smalls.filter((move) => move.cost <= e.ap);
+  const pool = ultCost != null && ultimateImminent(e) ? keepUltimateReachable(e, affordable, ultCost) : affordable;
+  return pickWeighted(state, e, pool);
+}
+
+function chooseRhythmMove(state: BattleState, e: Enemy, def: EnemyDef, mustAct: boolean): EnemyMove | null {
+  const ultCost = ultimateCost(def);
+  const smalls = def.moves.filter((move) => (ultCost == null || move.cost < ultCost) && enemyMoveWeight(state, e, move) > 0);
+  if (smalls.length === 0) {
+    const usable = def.moves.filter((move) => !hasSoulLock(e) && enemyMoveWeight(state, e, move) > 0);
+    const affordable = usable.filter((move) => move.cost <= e.ap);
+    return affordable.length ? pickWeighted(state, e, affordable) : mustAct && usable.length ? fallbackMove(state, e, usable) : null;
   }
-  const usable = ultimates.filter((move) => enemyMoveWeight(state, e, move) > 0);
-  return usable.length > 0 ? rngPickWeighted(state, usable, (move) => enemyMoveWeight(state, e, move)) : undefined;
-}
 
-function pickAffordable(state: BattleState, e: Enemy, def: EnemyDef): EnemyMove | null {
-  const canAfford = (move: EnemyMove) => move.cost <= e.ap;
-  if (def.ai) {
-    const move = pickScriptedMove(state, e, def, canAfford);
-    return canAfford(move) ? move : null;
+  if (ultCost != null && ultimateDue(e) && e.ap >= ultCost) {
+    // 锁魂只挡这一次: 改出小招, 节奏不归零, 下次决策点照样掷大招。
+    if (hasSoulLock(e)) return pickSmall(state, e, smalls, ultCost);
+    const ultimate = rollUltimate(state, e, def, ultCost);
+    if (ultimate) return ultimate;
+    restartRhythm(e);
+    return pickSmall(state, e, smalls, ultCost);
   }
-  const pool = def.moves.filter(canAfford);
-  return pool.length > 0 ? rngPickWeighted(state, pool, (move) => enemyMoveWeight(state, e, move)) : null;
+
+  const minCost = Math.min(...smalls.map((move) => move.cost));
+  if (e.ap < minCost) return mustAct ? fallbackMove(state, e, smalls) : null;
+  if (!mustAct && ultCost != null && ultimateDue(e)) return null;
+  return pickSmall(state, e, smalls, ultCost);
 }
 
-// 保底行动: 在付得起的招式里按权重随机; 一招都付不起时在全部招式里按权重随机,
-// 点数透支(为负), 下回合回复时补上。
-function fallbackMove(state: BattleState, e: Enemy, def: EnemyDef): EnemyMove {
-  const affordable = def.moves.filter((move) => move.cost <= e.ap);
-  const pool = affordable.length > 0 ? affordable : def.moves;
-  return rngPickWeighted(state, pool, (move) => enemyMoveWeight(state, e, move));
-}
-
-// 锁魂(咒术师): 本次抽招不强制放大招, 也不会抽到大招(消耗最高的招式); 只有一档消耗时不受影响。
-export const SOUL_LOCK_STATUS = "soulLock";
-
-export function hasSoulLock(e: Enemy): boolean {
-  return e.statuses.some((status) => status.id === SOUL_LOCK_STATUS && status.stacks > 0);
-}
-
-function withoutUltimates(def: EnemyDef): EnemyDef {
-  const maxCost = Math.max(...def.moves.map((move) => move.cost));
-  const moves = def.moves.filter((move) => move.cost < maxCost);
-  return moves.length > 0 ? { ...def, moves } : def;
-}
-
-// mustAct: 本回合第一次出招 —— 每回合至少行动一次, 跳过待机掷骰。
-export function chooseNextMove(state: BattleState, e: Enemy, baseDef: EnemyDef, mustAct = false): EnemyMove | null {
-  const locked = hasSoulLock(e);
-  const def = locked ? withoutUltimates(baseDef) : baseDef;
+// mustAct: 本回合第一次出招 —— 每回合至少行动一次。
+export function chooseNextMove(state: BattleState, e: Enemy, def: EnemyDef, mustAct = false): EnemyMove | null {
   if (def.moves.length === 0) return null;
-  const costs = def.moves.map((move) => move.cost);
-  const maxCost = Math.max(...costs);
-  const minCost = Math.min(...costs);
-  if (e.ap < minCost) return mustAct ? fallbackMove(state, e, def) : null;
-
-  const ultimate = locked ? undefined : forcedUltimate(state, e, def, maxCost);
-  if (ultimate) return ultimate;
-
-  if (!mustAct && e.ap < maxCost) {
-    const actChance = (e.ap - minCost + 1) / (maxCost - minCost + 1);
-    if (rngFloat(state) >= actChance) return null;
+  if (def.ai) {
+    const locked = hasSoulLock(e);
+    return chooseScriptedApMove(state, e, locked ? withoutUltimates(def) : def, mustAct, locked);
   }
-  return pickAffordable(state, e, def) ?? (mustAct ? fallbackMove(state, e, def) : null);
+  return chooseRhythmMove(state, e, def, mustAct);
 }

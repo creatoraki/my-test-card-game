@@ -26,6 +26,9 @@ import { firePassive } from "../combat/passive";
 import { STATUS_DEFS } from "../core/hookRegistry";
 import { ctxFor } from "../core/ops";
 import { CARD_MARK_DEFS, dropsOnLeaveHand } from "../cards/cardMarks";
+import { cardLocked } from "../ecoArk/shared";
+import { beginArkAttack, finishArkAttack } from "../ecoArk/guard";
+import { flushArkCardPlayed, queueArkCardPlayed } from "../ecoArk/sentry";
 
 export { withDiscardRecorder, takeDiscardSnapshot } from "../cards/cardFx";
 
@@ -67,6 +70,7 @@ export function moveToDiscard(
   reason: DiscardReason,
   rec?: DiscardRecorder,
 ): void {
+  if (cardLocked(state, uid)) return;
   const wasInHand = state.hand.includes(uid);
   state.hand = state.hand.filter((id) => id !== uid);
   if (!state.discard.includes(uid)) state.discard.push(uid);
@@ -150,7 +154,9 @@ function resolveDiscardEffects(
   const primaryId = autoTarget(state, card);
   let resolution!: EffectResolution;
   const recorded = withHitRecorder(() => {
-    resolution = resolveEffects(state, effects, card.ownerCharId, primaryId);
+    beginArkAttack(state, card);
+    try { resolution = resolveEffects(state, effects, card.ownerCharId, primaryId); }
+    finally { finishArkAttack(state); }
   });
   checkEnd(state);
 
@@ -164,7 +170,7 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
   const recorder = currentRecorder(rec);
   let flushed = 0;
   try {
-    while (state.pendingAutoPlays.length > 0 && flushed < 32) {
+    while (state.pendingAutoPlays.length > 0 && flushed < 32 && !state.pendingChoice) {
       const uid = state.pendingAutoPlays.shift();
       if (!uid) continue;
       const card = state.cards[uid];
@@ -172,6 +178,7 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
         state.pendingAutoPlays.length = 0;
         return;
       }
+      if (cardLocked(state, uid) || !state.combatants[card.ownerCharId]?.alive) continue;
 
       const primaryId = autoTarget(state, card);
       if (!primaryId) {
@@ -193,7 +200,12 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
       let recorded: AnimHit[] = [];
       try {
         recorded = withHitRecorder(() => {
-          resolution = resolveEffects(state, card.effects, card.ownerCharId, primaryId);
+          beginArkAttack(state, card);
+          try { resolution = resolveEffects(state, card.effects, card.ownerCharId, primaryId); }
+          finally {
+            const frame = finishArkAttack(state);
+            if (state.pendingChoice) state.ark.deferredAttack = frame;
+          }
         });
       } finally {
         state.activeCardCost = previousCardCost;
@@ -203,9 +215,11 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
       }
       checkEnd(state);
       if (recorder) recordCardTrigger(state, card, beforeHp, recorder, resolution, true, recorded);
+      queueArkCardPlayed(state, card);
+      flushArkCardPlayed(state, recorder);
       flushed += 1;
     }
-    if (state.pendingAutoPlays.length > 0) {
+    if (state.pendingAutoPlays.length > 0 && flushed >= 32) {
       state.pendingAutoPlays.length = 0;
       state.log.push({ round: state.round, tick: state.tick, text: "弃牌自动出牌达到安全上限，已停止继续结算" });
     }

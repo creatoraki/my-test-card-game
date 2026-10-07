@@ -21,8 +21,10 @@ export function StatusPips({
   team = "player",
   frame,
   debuffFrame = false,
+  descriptions,
 }: {
   statuses: StatusInstance[];
+  descriptions?: Record<string, string>;
   /** 调用方的布局类(这一排在自己的槽位里怎么占位)。图标外观一律由本组件持有。 */
   className?: string;
   /** 开启 RailPopover 详情；关闭时仅保留无障碍标签。 */
@@ -139,7 +141,7 @@ export function StatusPips({
           emoji: def?.emoji ?? "❓",
           detailIcon: art ? <img src={art} alt="" aria-hidden /> : (def?.emoji ?? "❓"),
           name: def?.name ?? st.id,
-          desc: def?.desc ?? "暂无说明",
+          desc: descriptions?.[st.id] ?? def?.desc ?? "暂无说明",
           stacks: st.stacks,
           kind: def?.kind ?? "buff",
           duration: st.duration,

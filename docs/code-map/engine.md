@@ -88,11 +88,15 @@
 | --- | --- |
 | [ai.ts](../../src/engine/enemy/ai.ts) | 敌人蓄力、抽招和出手。状态钩子时点：`onBeforeAct`（出招前，捕虫夹）→ 结算 → 移除 `expiresOnAct` → `onAfterAct`（迟滞计次）→ `startCharge` 末尾 `onCharge`（迟滞推迟新招式）。 |
 | [enemyMovePick.ts](../../src/engine/enemy/enemyMovePick.ts) / [enemyScript.ts](../../src/engine/enemy/enemyScript.ts) | 招式权重、条件偏好、目标选择，以及首领的状态机脚本。 |
+| [apPick.ts](../../src/engine/enemy/apPick.ts) / [enemyRhythm.ts](../../src/engine/enemy/enemyRhythm.ts) | 行动点抽招：非脚本怪按「小 / 小 / 大」节奏（出满小招后攒点、决策点掷大招、放弃则连放小招）。 |
+| [apPickScripted.ts](../../src/engine/enemy/apPickScripted.ts) / [apShared.ts](../../src/engine/enemy/apShared.ts) | 脚本怪的行动点抽招（原 1.5 倍强制大招规则）；锁魂判定与透支保底等公共部分。 |
 | [targeting.ts](../../src/engine/combat/targeting.ts) | 敌我查询与嘲讽规则：有嘲讽单位时只能选它，否则在存活单位中随机选。 |
 | [relics/](../../src/engine/relics/relics.ts)（relics.ts + relicBehaviors.ts + basic / uncommon / tutorial） | 声明式遗物的触发，以及行为型遗物（分基础、罕见、教程三组）。`runRelicHook` 从 `hookRegistry` 查行为表。`ops.dealDamage` 与 `ops.draw` 等同样是晚绑定：由 `damage/index`、`deck/deck` 等模块加载时挂到 `ops` 上。 |
 | [challenges/defs.ts](../../src/engine/challenges/defs.ts) / [challenges/index.ts](../../src/engine/challenges/index.ts) | 挑战词条：定义表和运行时钩子。完成后的掉落加成会计入探索掉落系数。 |
 | [animHits.ts](../../src/engine/core/animHits.ts) | 记录多段伤害每一段的命中明细，只给 UI 回放用，不参与结算。 |
 
 ## 测试
+
+生态方舟小怪机制位于 `engine/ecoArk/`：`resources.ts` 处理押品、水晶与解缠，`germination.ts` 处理孢子萌发及蜗牛回灌，`guard.ts` 处理园丁庇护的整张牌记忆，`sentry.ts` 处理出牌后点名、寄生种荚与封锁射击，`moves.ts` 处理可选条件和预告目标，`effects.ts` 分发专属效果，`readout.ts` 提供界面读数。状态登记在 `statuses/ecoArk.ts`，可序列化运行态在 `types/ecoArk.ts`。小怪数据在 `data/enemies/ecoArk/` 按角色拆分。
 
 `battle.test.ts`、`relics.test.ts`。

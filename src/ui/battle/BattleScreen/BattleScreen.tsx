@@ -251,6 +251,7 @@ export function BattleScreen() {
 
         {/* 场景由 rig 直接写入 transform；aim 只作为瞄准态与出牌分镜的交接目标。 */}
         <BattleStageLayer
+          selectedOwnerId={selectedCard?.ownerCharId}
           sceneTargetsRef={camera.sceneTargetsRef}
           worldTargetsRef={camera.worldTargetsRef}
           planeRef={camera.planeRef}

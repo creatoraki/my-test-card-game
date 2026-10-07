@@ -3,6 +3,7 @@ import type { Card, CardType, PendingChoice } from "./cards";
 import type { Combatant } from "./combatants";
 import type { StatBlock } from "./stats";
 import type { StatusInstance } from "./statuses";
+import type { ArkBattleState } from "./ecoArk";
 
 // ---------------------------------------------------------------------------
 // 战斗状态 —— 完全可序列化(无函数), 可 structuredClone / 存 localStorage。
@@ -28,6 +29,7 @@ export interface HexPlayState {
 }
 
 export interface BattleState {
+  ark: ArkBattleState;
   encounterId: string;
   round: number;
   tick: number;

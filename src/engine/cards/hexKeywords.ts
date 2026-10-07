@@ -46,7 +46,7 @@ export const HEX_CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
   {
     id: "soulLock",
     name: "锁魂",
-    desc: "下一次抽招不会抽到大招，也不会因行动点达到阈值被强制放大招；抽招后移除。不计入减益种类。",
+    desc: "下一次抽招不会抽到大招；抽招后移除。不计入减益种类。",
   },
   {
     id: "plague",
