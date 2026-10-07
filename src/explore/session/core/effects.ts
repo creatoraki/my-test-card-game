@@ -1,6 +1,5 @@
 // 事件效果结算 —— ExploreEffect → 会话直接修改。物件效果(curio/effects.ts)未识别的类型也回落到这里。
 
-import { allowsCardRemoval } from "@/data/curios/rules/growthBalance";
 import { getItemDef, makeRolledItemStack } from "@/data";
 import { rngInt } from "@/engine/core/rng";
 import { rollDropTable } from "@/items/drops";
@@ -173,7 +172,6 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
       s.pendingActions.push({ kind: "forgeDraw" });
       return "获得一次免费角色卡组锻造";
     case "FORGE_REMOVE":
-      if (!allowsCardRemoval(s)) return "当前探索未开放删卡服务";
       s.pendingActions.push({ kind: "forgeRemove" });
       return "获得一次免费角色删卡机会";
     case "EQUIP_OFFER": {

@@ -10,6 +10,7 @@ import EnergyReadout from "@/ui/explore/EnergyReadout";
 import { CurioPanel } from "./parts/CurioPanel";
 import { BossGatePanel } from "./parts/BossGatePanel";
 import { WanderingMerchantPanel } from "../WanderingMerchant/WanderingMerchantPanel";
+import { BlacksmithPanel } from "../Blacksmith/BlacksmithPanel";
 import { ExploreDock } from "./parts/ExploreDock";
 import { ExploreInventory } from "./parts/ExploreInventory";
 import { useExploreInventory } from "./useExploreInventory";
@@ -38,8 +39,9 @@ export function ExploreScreen() {
   const currentRoom = session.dungeon.rooms[session.dungeon.currentRoomId];
   const activeObject = session.corridor.objects.find((object) => object.id === session.corridor?.activeObjectId);
   const merchantOpen = Boolean(activeObject?.kind === "merchant" && (phase === "landed" || phase === "shopping"));
+  const blacksmithOpen = Boolean(activeObject?.kind === "blacksmith" && (phase === "landed" || phase === "forging"));
   // 物件事件的掉落在事件面板内直接拾取, 独立拾取浮层只接其他来源; 面板只被真正的弹窗(奖励 / 背包等)遮挡。
-  const curioHandlesLoot = curioOpen && activeObject?.kind !== "merchant";
+  const curioHandlesLoot = curioOpen && activeObject?.kind !== "merchant" && activeObject?.kind !== "blacksmith";
   const curioCovered = inventory.blocked || Boolean(session.pendingActions.length || session.pendingPickup.length);
   const sceneBlocked = blocked || travelTransition.phase !== "idle";
   // 演出结束即进入 inBattle, 此时玻璃碎裂才开始 —— 黑影要一直留到切屏, 否则碎裂瞬间会闪没。
@@ -52,9 +54,10 @@ export function ExploreScreen() {
     <div className={s.readout}><EnergyReadout energy={session.energy} /></div>
     <ExploreInventory session={session} inventory={inventory} />
     <ExploreDock session={session} inventory={inventory} locked={locked} pending={pending} />
-    {curioOpen && !inventory.target && activeObject?.kind !== "merchant" && <CurioPanel session={session} covered={curioCovered} onOpenBag={openBag} />}
+    {curioOpen && !inventory.target && activeObject?.kind !== "merchant" && activeObject?.kind !== "blacksmith" && <CurioPanel session={session} covered={curioCovered} onOpenBag={openBag} />}
     {session.corridor.bossGateOpen && !inventory.target && <BossGatePanel session={session} />}
     {merchantOpen && !inventory.target && <WanderingMerchantPanel session={session} />}
+    {blacksmithOpen && !inventory.target && <BlacksmithPanel key={activeObject?.id} session={session} />}
     <RewardOverlay gate={!locked} />
     {/* 拾取浮层层级高于背包面板: 背包开着时先让开, 拾取框里的物品改由背包面板顶部横幅展示。 */}
     <LootPickup

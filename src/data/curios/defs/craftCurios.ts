@@ -1,7 +1,6 @@
 import { byJob, fail, feedDecision } from "../rules/helpers";
 import type { CurioKind } from "@/explore/corridor/types";
 import type { CurioDef } from "../types";
-import { GROWTH_BALANCE } from "../rules/growthBalance";
 
 export const CRAFT_CURIOS = {
   modBench: {
@@ -41,22 +40,6 @@ export const CRAFT_CURIOS = {
         story: "三件装备被依次锁进改装台，熔炉开始把它们压缩成一件更高阶的装备。",
         select: [[{ match: { category: "equipment" }, count: 3 }]],
         effects: [{ type: "FUSE_EQUIPMENT" }],
-      },
-    ],
-  },
-  cardPrinter: {
-    name: "卡牌打印终端",
-    role: "loot",
-    verb: "接入",
-    size: 210,
-    description: "终端已经恢复常规打印协议。支付任意临期食品一份，就能获得一次无污染的角色卡牌三选一。",
-    decisions: [
-      {
-        id: "print",
-        label: "抽取卡牌（任意食品 ×1）",
-        foodCost: GROWTH_BALANCE.drawFood,
-        story: "终端收下食品并开启稳定模板，一次无污染抽卡机会已就绪。",
-        effects: [{ type: "FORGE_DRAW" }],
       },
     ],
   },

@@ -14,6 +14,7 @@ import { RARITY_ORDER, type ItemRarity } from "@/items/types";
 import { TUTORIAL_DUNGEON_PLAN } from "./tutorialDungeon";
 import type { CurioKind } from "@/explore/corridor/types";
 import { ECO_ARK_MAP } from "./ecoArk";
+import { EMBER_HEAT_WELL_MAP } from "./emberHeatWell";
 
 export interface MapDef {
   id: string;
@@ -120,82 +121,7 @@ export const MAPS: MapDef[] = [
     startingEnergy: 100,
   },
   ECO_ARK_MAP,
-  {
-    id: "indoor-garden",
-    name: "室内花园",
-    desc: "尚未配置事件与怪物场景。",
-    difficulty: 3,
-    emoji: "🌿",
-    maxEquipRarity: "common",
-    roomCount: 12,
-    curioLevelRange: [1, 3],
-    battleEncounters: {
-      t1: [],
-      t2: [],
-      t3: [],
-      t4: [],
-      t5: [],
-    },
-    locked: true,
-    startingEnergy: 100,
-  },
-  {
-    id: "sky-train",
-    name: "天空列车",
-    desc: "尚未配置事件与怪物场景。",
-    difficulty: 3,
-    emoji: "🚆",
-    maxEquipRarity: "common",
-    roomCount: 14,
-    curioLevelRange: [1, 3],
-    battleEncounters: {
-      t1: [],
-      t2: [],
-      t3: [],
-      t4: [],
-      t5: [],
-    },
-    locked: true,
-    startingEnergy: 100,
-  },
-  {
-    id: "glass-walkway",
-    name: "玻璃栈道",
-    desc: "尚未配置事件与怪物场景。",
-    difficulty: 3,
-    emoji: "🌉",
-    maxEquipRarity: "common",
-    roomCount: 14,
-    curioLevelRange: [1, 3],
-    battleEncounters: {
-      t1: [],
-      t2: [],
-      t3: [],
-      t4: [],
-      t5: [],
-    },
-    locked: true,
-    startingEnergy: 100,
-  },
-  {
-    id: "city-zenith",
-    name: "城市天顶",
-    desc: "尚未配置事件与怪物场景。",
-    difficulty: 3,
-    emoji: "🌇",
-    maxEquipRarity: "common",
-    roomCount: 16,
-    curioLevelRange: [1, 3],
-    battleEncounters: {
-      t1: [],
-      t2: [],
-      t3: [],
-      t4: [],
-      t5: [],
-    },
-    locked: true,
-    startingEnergy: 100,
-  },
+  EMBER_HEAT_WELL_MAP,
 ];
 
 export function visibleMaps(clearedMaps: readonly string[]): MapDef[] {

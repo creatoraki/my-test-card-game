@@ -41,8 +41,8 @@ function MapSelectStep({
   // 锁定信息按地图算一次, 三份副本共用。
   const lockInfo = useMemo(
     () => maps.map((map) => ({
-      locked: !isTest && !isMapUnlocked(map.id, clearedMaps),
-      reason: isTest ? null : mapLockReason(map.id, clearedMaps),
+      locked: Boolean(map.locked) || (!isTest && !isMapUnlocked(map.id, clearedMaps)),
+      reason: map.locked || !isTest ? mapLockReason(map.id, clearedMaps) : null,
     })),
     [maps, clearedMaps],
   );

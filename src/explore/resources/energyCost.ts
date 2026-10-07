@@ -13,13 +13,14 @@ function activeCurioKind(s: ExploreState) {
   return id ? s.corridor?.objects.find((object) => object.id === id)?.kind : undefined;
 }
 
-/** 交互当前物件要花多少粒子: 按物件分类分档; 货商与陷阱免费; freeNodes 可免除。 */
+/** 交互当前物件要花多少粒子: 按物件分类分档; NPC 与陷阱免费; freeNodes 可免除。 */
 export function interactionCost(s: ExploreState): number {
   if (s.freeNodes > 0) return 0;
   const prices = EXPLORE_RULES.energyPerInteraction;
   const kind = activeCurioKind(s);
   if (!kind) return prices.event;
   if (kind === "merchant") return prices.merchant;
+  if (kind === "blacksmith") return 0;
   const def = CORRIDOR_CURIOS[kind];
   if (!def || def.forced) return 0;
   if (def.role === "loot" || def.role === "heal" || def.role === "service") return prices[def.role];

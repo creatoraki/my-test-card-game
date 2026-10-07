@@ -50,8 +50,8 @@ export const ARK_CURIOS = {
     decisions: [
       { id: "survey", label: "读取方舟路线与威胁分布", story: "根网中的定位数据被还原成一张完整的区域图。",
         effects: [{ type: "REVEAL_MAP", threats: true }] },
-      { id: "learn", label: "供能并学习战术", foodCost: 1, story: "谱系记录完成了解码，全队获得卡组经验，并得到一次卡牌候选。",
-        effects: [{ type: "GAIN_EXP_PARTY", amount: 4 }, { type: "FORGE_DRAW" }] },
+      { id: "learn", label: "供能并学习战术", foodCost: 1, story: "谱系记录完成了解码，全队获得卡组经验。",
+        effects: [{ type: "GAIN_EXP_PARTY", amount: 4 }] },
     ],
   },
   arkSporeVent: {

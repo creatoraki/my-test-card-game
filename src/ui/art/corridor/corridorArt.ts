@@ -1,3 +1,4 @@
+import blacksmithArt from "@/assets/explore-corridor/公共NPC/锻造师.webp";
 import corridorSafeArt from "@/assets/explore-corridor/废弃楼层/可交互物体/保险箱.webp";
 import corridorMerchantArt from "@/assets/explore-corridor/废弃楼层/可交互物体/货商.webp";
 import corridorVendingArt from "@/assets/explore-corridor/废弃楼层/可交互物体/贩卖机.webp";
@@ -7,7 +8,6 @@ import corridorMedicalArt from "@/assets/explore-corridor/废弃楼层/可交互
 import corridorSinkArt from "@/assets/explore-corridor/废弃楼层/可交互物体/净水槽.webp";
 import corridorRepairPodArt from "@/assets/explore-corridor/废弃楼层/可交互物体/修复舱.webp";
 import corridorModBenchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/改装台.webp";
-import corridorCardPrinterArt from "@/assets/explore-corridor/废弃楼层/可交互物体/打印终端.webp";
 import corridorShrineArt from "@/assets/explore-corridor/废弃楼层/可交互物体/神龛.webp";
 import corridorDispatchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/传送带.webp";
 import corridorCrystalVeinArt from "@/assets/explore-corridor/废弃楼层/可交互物体/矿脉.webp";
@@ -54,7 +54,6 @@ export function getCorridorFarArt(mapId: string | undefined): string {
 const SAFE = sizeCorridorProp(corridorSafeArt, { width: 400, height: 400, top: 26, bottom: 381 }, "medium");
 const REMAINS = sizeCorridorProp(corridorRemainsArt, { width: 400, height: 400, top: 11, bottom: 380 }, "medium");
 const MEDICAL = sizeCorridorProp(corridorMedicalArt, { width: 400, height: 400, top: 19, bottom: 384 }, "medium");
-const CARD_PRINTER = sizeCorridorProp(corridorCardPrinterArt, { width: 400, height: 400, top: 16, bottom: 385 }, "medium");
 const VENDING = sizeCorridorProp(corridorVendingArt, { width: 400, height: 400, top: 4, bottom: 386 }, "medium");
 const MOD_BENCH = sizeCorridorProp(corridorModBenchArt, { width: 400, height: 400, top: 25, bottom: 380 }, "medium");
 const MERCHANT = sizeCorridorProp(corridorMerchantArt, { width: 362, height: 272, top: 3, bottom: 266 }, "medium");
@@ -68,9 +67,6 @@ const CRYSTAL_VEIN = sizeCorridorProp(corridorCrystalVeinArt, { width: 400, heig
 export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
   ...ECO_ARK_PROP_ART,
   equipmentCache: SAFE,
-  fieldTraining: CARD_PRINTER,
-  cardExchange: CARD_PRINTER,
-  cardArchive: CARD_PRINTER,
   bondWorkbench: MOD_BENCH,
   perfectnessWorkbench: MOD_BENCH,
   temporaryRelicCache: SHRINE,
@@ -86,13 +82,12 @@ export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
   // 粒子净化站暂无专属素材，复用修复舱图片。
   energyStation: REPAIR_POD,
   modBench: MOD_BENCH,
-  cardPrinter: CARD_PRINTER,
   shrine: SHRINE,
   dispatch: DISPATCH,
   merchant: MERCHANT,
+  blacksmith: { src: blacksmithArt, width: 512, height: 768, scale: 260 / (741 * 0.5), groundTrim: 23 / 768 },
   tutorialArmory: SAFE,
   tutorialModBench: MOD_BENCH,
-  tutorialForge: CARD_PRINTER,
   tutorialMedical: MEDICAL,
   // 以下物件暂无专属素材，复用已有交互物图片。
   tutorialRelicCache: SHRINE,
@@ -116,9 +111,6 @@ export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
   arkGeneConsole: 0,
   arkSporeVent: 0,
   equipmentCache: 0,
-  fieldTraining: 0,
-  cardExchange: 0,
-  cardArchive: 0,
   bondWorkbench: 0,
   perfectnessWorkbench: 0,
   temporaryRelicCache: 0,
@@ -133,13 +125,12 @@ export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
   repairPod: 0,
   energyStation: 0,
   modBench: 0,
-  cardPrinter: 0,
   shrine: 0,
   dispatch: 0,
   merchant: 0,
+  blacksmith: 0,
   tutorialArmory: 0,
   tutorialModBench: 0,
-  tutorialForge: 0,
   tutorialMedical: 0,
   tutorialRelicCache: 0,
   tutorialCashBox: 0,

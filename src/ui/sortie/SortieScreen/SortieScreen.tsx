@@ -61,13 +61,14 @@ export function SortieScreen() {
   const prepMotion = stepMotion("prep", transition);
   const relicMorph = usePanelMorph<"relic">({ rects: RELIC_PANEL_RECT });
   const openRelicPanel = relicMorph.openPanel;
-  const selectedLocked = !isTest && !isMapUnlocked(selectedMapId, clearedMaps);
+  const selectedMap = maps.find((map) => map.id === selectedMapId);
+  const selectedLocked = Boolean(selectedMap?.locked) || (!isTest && !isMapUnlocked(selectedMapId, clearedMaps));
   const selectedDifficultyUnlocked = !selectedMapId || isDifficultyUnlocked(
     selectedMapId,
     selectedDifficulty,
     clearedDifficulties,
   );
-  const lockReason = isTest ? null : mapLockReason(selectedMapId, clearedMaps);
+  const lockReason = selectedMap?.locked || !isTest ? mapLockReason(selectedMapId, clearedMaps) : null;
 
   useEffect(() => {
     if (maps.some((map) => map.id === selectedMapId)) return;

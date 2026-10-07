@@ -22,6 +22,7 @@ const CURIO_THEME: Record<CurioKind, DossierThemeId> = {
   relicCache: "supply",
   dispatch: "supply",
   merchant: "supply",
+  blacksmith: "blacksmith",
   tutorialArmory: "supply",
   tutorialRelicCache: "supply",
   tutorialCashBox: "supply",
@@ -44,14 +45,9 @@ const CURIO_THEME: Record<CurioKind, DossierThemeId> = {
   temporaryRelicCache: "shrine",
 
   modBench: "terminal",
-  cardPrinter: "terminal",
-  fieldTraining: "terminal",
-  cardExchange: "terminal",
   bondWorkbench: "terminal",
   perfectnessWorkbench: "terminal",
-  cardArchive: "terminal",
   tutorialModBench: "terminal",
-  tutorialForge: "terminal",
 };
 
 export function curioTheme(kind: CurioKind): DossierThemeId {

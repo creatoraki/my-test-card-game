@@ -15,6 +15,7 @@ const THEME_ACCENTS: Record<DossierThemeId, string> = {
   mineral: "#a48cff",
   shrine: "#f5c46b",
   terminal: "#4da6ff",
+  blacksmith: "#bd8cff",
 };
 
 export const DOSSIER_THEMES = Object.fromEntries(

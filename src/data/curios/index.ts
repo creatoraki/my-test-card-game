@@ -33,9 +33,9 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {
  * 普通物件随机投放权重：换金物最常见，其次材料、食品与道具，装备与服务偶尔出现。
  * 治疗与陷阱物件不在这里：治疗由 dungeon/curioPlan.ts 按每房概率投放，陷阱只放进陷阱房。
  *
- * 期望推算：12-16 房地图约 16 次加权抽取，单局期望 ≈ 16 × 权重 / 总权重(约 115)。
+ * NPC 先占房间名额，剩余名额按本表抽取；锻造师每张地图固定一位。
  * · 装备箱 ≈ 0.8 件，与战斗掉落(约 2.1 件)合计约 3 件；
- * · 换卡终端 ≈ 1 次；遗物匣 ≈ 0.28 个，与杂兵掉落的遗物合计约 0.4 个。
+ * · 遗物匣与杂兵掉落共同提供永久遗物。
  */
 export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> = {
   // 换金物 / 材料 / 食品 / 道具
@@ -52,15 +52,11 @@ export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> 
   modBench: 4,
   // 装备、遗物与成长服务
   equipmentCache: 6,
-  cardExchange: 7,
-  fieldTraining: 3,
-  cardPrinter: 3,
   bondWorkbench: 2,
   perfectnessWorkbench: 1,
   relicCache: 2,
   dispatch: 3,
   shrine: 1,
-  cardArchive: 1,
 };
 
 /** 治疗与粒子补给交互：每间非起点房按 healChance 概率投放 1 个。 */
@@ -144,7 +140,7 @@ export function curioEvent(kind: CurioKind): NodeEvent {
   const def = CORRIDOR_CURIOS[kind];
   return {
     id: `corridor-${kind}`,
-    kind: kind === "merchant" ? "merchant" : "loot",
+    kind: kind === "merchant" || kind === "blacksmith" ? "merchant" : "loot",
     title: def.name,
     energyDelta: 0,
     description: def.description,

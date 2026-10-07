@@ -18,31 +18,6 @@ export const GROWTH_CURIOS = {
       ),
     }],
   },
-  fieldTraining: {
-    name: "战术训练终端", role: "loot", verb: "训练", size: 210,
-    description: `终端保存着可直接使用的战术记录。全队各获得 ${balance.trainingExp} 点卡组经验，并免费抽取一次角色卡牌。`,
-    decisions: [{
-      id: "train", label: "学习战术并免费抽卡", story: "小队共享了战术记录，终端开放了一次无污染的卡牌候选。",
-      effects: [{ type: "GAIN_EXP_PARTY", amount: balance.trainingExp }, { type: "FORGE_DRAW" }],
-      failure: fail(
-        0.2,
-        "战术记录里混着一段被污染的影像，执行者看完后头痛欲裂，终端也随即断电。",
-        [{ type: "ADJUST_POLLUTION", target: "actor", amount: 10 }],
-        byJob("prophet", {
-          convert: {
-            story: "预言家察觉到影像里的异常帧，把它剪下来单独解读，全队从中学到了更多。",
-            effects: [{ type: "GAIN_EXP_PARTY", amount: balance.trainingExp }, { type: "FORGE_DRAW" }],
-          },
-        }),
-      ),
-    }],
-  },
-  cardExchange: {
-    name: "卡牌置换终端", role: "service", verb: "置换", size: 210,
-    description: "免费将指定角色的一张卡换为随机普通卡，替换会移除原卡及其模组。",
-    decisions: [{ id: "exchange", label: "选择换卡目标", story: "终端开放了本次置换协议，请选择角色和要替换的卡牌。",
-      effects: [{ type: "REPLACE_CARD_COMMON" }] }],
-  },
   bondWorkbench: {
     name: "羁绊重铸台", role: "service", verb: "重铸", size: 210,
     description: `消耗任意临期食品 ${balance.bondFood} 份，重新随机一条装备羁绊。装备属性和完美度保持不变，选择装备后才扣款。`,
@@ -74,10 +49,5 @@ export const GROWTH_CURIOS = {
         withItem({ familyId: "holy-water" }, { chanceDelta: -0.2, note: "圣水浸透封印，让它安静地碎开" }),
       ),
     }],
-  },
-  cardArchive: {
-    name: "卡组整理终端", role: "service", verb: "整理", size: 210,
-    description: "终端可删除一张卡牌，卡组不能低于最小张数。该服务仅在困难及以上探索开放。",
-    decisions: [{ id: "remove", label: "选择卡牌删除", story: "终端开放了卡组整理权限。", effects: [{ type: "FORGE_REMOVE" }] }],
   },
 } satisfies Partial<Record<CurioKind, CurioDef>>;

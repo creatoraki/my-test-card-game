@@ -8,7 +8,7 @@ export const TUTORIAL_DUNGEON_PLAN: readonly DungeonRoomPlan[] = [
     curios: ["tutorialModBench"],
     guard: { tier: "t1", encounterId: "tut-t1-intro" },
   },
-  { kind: "normal", curios: ["fieldTraining"] },
+  { kind: "normal", curios: ["blacksmith"] },
   {
     kind: "battle",
     curios: ["supplyCrate"],

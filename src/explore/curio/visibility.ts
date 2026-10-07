@@ -4,7 +4,6 @@ import { countByItemId } from "@/items/inventory";
 import { matchOffering, partCanMatch } from "./offering";
 import { curioAtLevel } from "./leveling";
 import type { ExploreState } from "../types";
-import { allowsCardRemoval } from "@/data/curios/rules/growthBalance";
 
 function activeObject(s: ExploreState) {
   const id = s.corridor?.activeObjectId;
@@ -20,7 +19,6 @@ export function feedFoodFor(s: Pick<ExploreState, "backpack">, decision: CurioDe
 
 export function visibleDecisions(s: ExploreState, def: CurioDef): CurioDecision[] {
   return def.decisions.filter((decision) => {
-    if (!allowsCardRemoval(s) && decision.effects.some(effect => effect.type === "FORGE_REMOVE")) return false;
     if (decision.feed) return Boolean(feedFoodFor(s, decision));
     return true;
   });

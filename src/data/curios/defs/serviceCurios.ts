@@ -3,6 +3,15 @@ import { EXPLORE_RULES } from "@/explore/core/exploreRules";
 import type { CurioDef } from "../types";
 
 export const SERVICE_CURIOS = {
+  blacksmith: {
+    name: "锻造师",
+    role: "service",
+    verb: "交谈",
+    size: 260,
+    description: "锻造师提供两种随机卡牌服务。每次相遇只能选择一种，费用以临期食品支付。",
+    persistent: true,
+    decisions: [],
+  },
   dispatch: {
     name: "安全投递柜",
     role: "service",

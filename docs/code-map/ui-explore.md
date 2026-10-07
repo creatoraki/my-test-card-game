@@ -9,6 +9,7 @@
 | [ExploreScreen.tsx](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 页面根组件：只负责组装场景、小地图、底部 HUD 和浮层。画布根节点通过 `data-explore-stage` 向子组件传递状态。 |
 | [ExploreDock.tsx](../../src/ui/explore/ExploreScreen/parts/ExploreDock.tsx) / [ExploreInventory.tsx](../../src/ui/explore/ExploreScreen/parts/ExploreInventory.tsx) + [useExploreInventory.ts](../../src/ui/explore/ExploreScreen/useExploreInventory.ts) | 底部 HUD；背包相关的状态与操作（使用、丢弃、寄回、为目标选择角色）。 |
 | [CurioPanel.tsx](../../src/ui/explore/ExploreScreen/parts/CurioPanel.tsx) + [curioTheme.ts](../../src/ui/explore/ExploreScreen/parts/curioTheme.ts) + [useCurioLoot.ts](../../src/ui/explore/ExploreScreen/useCurioLoot.ts) | 物件交互面板：选择决策和执行者、查看结算结果、领取物品。配色按物件分类取。 |
+| [Blacksmith/](../../src/ui/explore/Blacksmith/BlacksmithPanel.tsx) | 锻造师独立事件页及专属插画；四种服务随机两种，选人选卡、付款和结果展示分模块实现。 |
 | [BossGatePanel.tsx](../../src/ui/explore/ExploreScreen/parts/BossGatePanel.tsx) | BOSS 红门的确认面板：开启后无法返回副本。 |
 | [RelicRail.tsx](../../src/ui/explore/ExploreScreen/parts/RelicRail.tsx) | 探索页的遗物栏。 |
 | [usePortalTravelTransition.ts](../../src/ui/explore/ExploreScreen/usePortalTravelTransition.ts) / [useDialogFocus.ts](../../src/ui/explore/ExploreScreen/useDialogFocus.ts) | 传送时的淡出淡入；浮层的焦点管理。 |

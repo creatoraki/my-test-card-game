@@ -53,6 +53,7 @@
 | [curio/effects.ts](../../src/explore/curio/effects.ts) | 物件效果的落地。 |
 | [curio/offering.ts](../../src/explore/curio/offering.ts) / [foodPayment.ts](../../src/explore/curio/foodPayment.ts) | 黑盒投放物品的匹配规则；服务类物件的食品支付。 |
 | [curio/merchant.ts](../../src/explore/curio/merchant.ts) | 流浪货商：生成货架（固定 6 格，只收两种临期食品）、判断能否购买、付款。 |
+| [curio/blacksmithTypes.ts](../../src/explore/curio/blacksmithTypes.ts) | 锻造师四种服务的费用与房间持久状态；资格判断和同步结算位于 `store/explore/blacksmithRules.ts`、`blacksmithActions.ts`。 |
 | [curio/fusion.ts](../../src/explore/curio/fusion.ts) / [temporaryRelic.ts](../../src/explore/curio/temporaryRelic.ts) / [reveal.ts](../../src/explore/curio/reveal.ts) | 装备融合与遗物升级、发放一次性遗物、揭示整张地图。 |
 
 ## 测试

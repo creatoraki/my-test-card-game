@@ -29,6 +29,7 @@ interface Props {
   caption?: string;
   confirmLabel?: string;
   skipLabel?: string;
+  allowSkip?: boolean;
   /** 返回 false 表示领取失败(如卡组已满): 弹窗保持打开、可重新选择。 */
   onConfirm: (option: CardPickOption) => boolean | void;
   onSkip: () => void;
@@ -41,6 +42,7 @@ export function CardRewardPicker({
   caption,
   confirmLabel = "确认选择",
   skipLabel = "放弃",
+  allowSkip = true,
   onConfirm,
   onSkip,
 }: Props) {
@@ -125,9 +127,9 @@ export function CardRewardPicker({
             ) : "悬停查看详情，点击卡牌进行选择"}
           </span>
           <div className={s.actions} data-sfx="off">
-            <button type="button" className={s.button} onClick={skip}>
+            {allowSkip && <button type="button" className={s.button} onClick={skip}>
               {skipLabel}
-            </button>
+            </button>}
             <button
               type="button"
               className={cx(s.button, s.primary)}

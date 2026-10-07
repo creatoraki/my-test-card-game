@@ -4,11 +4,8 @@
 // ⚠ 与 battleBg.ts 的分工: 那边是**战斗背景**(打起来时铺满屏幕的那张), 这边是**选层时的缩略预览**。
 //   同一张地图两者可以是不同的图, 故刻意分成两张表。
 import ruinedFloorArt from "@/assets/场景/大楼废弃楼层.webp";
-import indoorGardenArt from "@/assets/场景/室内花园.webp";
 import ecoArkArt from "@/assets/场景/生态方舟.webp";
-import skyTrainArt from "@/assets/场景/天空列车.webp";
-import glassWalkwayArt from "@/assets/场景/玻璃栈道.webp";
-import cityZenithArt from "@/assets/场景/城市天顶.webp";
+import emberHeatWellArt from "@/assets/场景/余烬热井.webp";
 import { preloadImage } from "@/ui/art/loader/assetLoader";
 
 const MAP_ART: Record<string, string> = {
@@ -16,10 +13,7 @@ const MAP_ART: Record<string, string> = {
   // 废弃楼层 = 废弃大楼内部, 与这张等距废弃楼层图最贴。
   "neon-city": ruinedFloorArt,
   "eco-ark": ecoArkArt,
-  "indoor-garden": indoorGardenArt,
-  "sky-train": skyTrainArt,
-  "glass-walkway": glassWalkwayArt,
-  "city-zenith": cityZenithArt,
+  "ember-heat-well": emberHeatWellArt,
 };
 
 // 未登记的地图先共用废弃楼层图。

@@ -11,6 +11,7 @@
 import type { CurioKind } from "../corridor/types";
 import type { CurioLevel, MerchantShelf } from "@/data/curios/types";
 import type { BattleTier } from "../types";
+import type { BlacksmithState } from "../curio/blacksmithTypes";
 
 export type PortalDir = "up" | "down" | "left" | "right";
 export type RoomKind = "start" | "normal" | "battle" | "trap" | "boss";
@@ -68,6 +69,7 @@ export interface RoomCurio {
   /** 物件等级(1-5)，生成时按地图区间与房间深度决定，玩家不可见。 */
   level: CurioLevel;
   shelf?: MerchantShelf;
+  blacksmith?: BlacksmithState;
 }
 
 export interface RoomNode {

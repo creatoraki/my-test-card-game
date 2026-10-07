@@ -1,4 +1,4 @@
-// ★ 普通卡替换弹窗 ★ —— 卡牌置换终端(探索待办)与战斗奖励「换牌」共用的独立弹窗。全部免费。
+// 普通卡替换弹窗：探索服务与战斗奖励共用，费用由调用方结算。
 //
 // 两段式:
 //   ① 选卡: 左侧整副卡组(放大 1.1 倍), 右侧置换舱放大展示已选卡并列明结果范围 / 模组去向;
@@ -36,12 +36,14 @@ interface Props {
   lockedCharId: string | null;
   /** 顶部小标题, 区分来源(物件服务 / 战斗奖励)。 */
   kicker?: string;
+  paymentNote?: string;
+  unavailableReason?: string | null;
   /** 执行换卡并把结果写回 action.result; 失败返回 false。 */
   onReplace: (charId: string, uid: string) => boolean;
   onFinish: () => void;
 }
 
-export function CardReplaceModal({ action, members, lockedCharId, kicker = "置换协议 / 服务", onReplace, onFinish }: Props) {
+export function CardReplaceModal({ action, members, lockedCharId, kicker = "置换协议 / 服务", paymentNote, unavailableReason, onReplace, onFinish }: Props) {
   const presence = useRevealPresence(Boolean(action), action ? { action, members, lockedCharId } : null, CLOSE_MS);
   const shown = presence.data;
   const characters = useTownStore((state) => state.characters);
@@ -84,7 +86,7 @@ export function CardReplaceModal({ action, members, lockedCharId, kicker = "置�
     onFinish();
   };
   const confirm = () => {
-    if (!selected || !charId || busy) return;
+    if (!selected || !charId || busy || unavailableReason) return;
     playSfx("confirm");
     setFailed(!onReplace(charId, selected.card.uid));
   };
@@ -154,7 +156,9 @@ export function CardReplaceModal({ action, members, lockedCharId, kicker = "置�
         )}
 
         <footer className={s.foot}>
-          <span className={s.note} data-tone={!result && failed ? "danger" : undefined}>{note}</span>
+          <span className={s.note} data-tone={!result && failed ? "danger" : undefined}>
+            {!result && unavailableReason ? unavailableReason : note}{!result && paymentNote ? ` · ${paymentNote}` : ""}
+          </span>
           <div className={s.actions} data-sfx="off">
             {result ? (
               <button type="button" className={cx(s.button, s.primary)} disabled={phase !== "done"} onClick={finish}>
@@ -163,7 +167,7 @@ export function CardReplaceModal({ action, members, lockedCharId, kicker = "置�
             ) : (
               <>
                 <button type="button" className={s.button} onClick={finish}>放弃置换</button>
-                <button type="button" className={cx(s.button, s.primary)} disabled={!selected} onClick={confirm}>
+                <button type="button" className={cx(s.button, s.primary)} disabled={!selected || Boolean(unavailableReason)} onClick={confirm}>
                   确认替换
                 </button>
               </>

@@ -228,6 +228,7 @@ export type ExplorePhase =
   | "encounter" // 黑影破地演出期间锁定探索，结束后进入卡牌战斗
   | "landed" // ★ 已打开物件, **效果尚未结算**, 等玩家在浮层里选决策。不限时
   | "shopping" // 货商货架开启, 是 landed 之后与 resolving 并列的分叉相
+  | "forging" // 锻造师服务面板，付费抽牌期间不可离开
   | "resolving" // 决策已结算完毕, 等玩家确认
   | "atNode" // 横向场景里的自由行走阶段
   | "inBattle" // 战斗进行中
