@@ -1,11 +1,11 @@
 .equipment {
   position: absolute;
-  right: 18px;
-  bottom: 148px;
+  right: 14px;
+  bottom: 160px;
   z-index: 5;
   display: grid;
-  /* 2 列 × 3 行: 每行一个部位, 左主右副。 */
-  grid-template-columns: repeat(2, 52px);
+  /* 单列贴右缘, 自上而下: 武器主/副 → 防具主/副 → 饰品主/副; 底边压在英文职业名之上, 不再挡名牌。 */
+  grid-template-columns: 52px;
   gap: 8px;
 }
 

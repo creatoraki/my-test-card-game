@@ -1,0 +1,23 @@
+/* 羁绊色签: 主题色压暗做实底 + 提亮描边 + 白字, 不论底下是哪档稀有度色都压得住。
+   ⚠ 默认 18px; 它是角标不是正文, 密集网格(如角色详情装备仓库)可用 --bond-tag-size / --bond-tag-pad 缩小。 */
+.tag {
+  position: absolute;
+  z-index: 3;
+  top: var(--bond-tag-top, 4px);
+  right: var(--bond-tag-right, 4px);
+  max-width: calc(100% - 8px);
+  padding: var(--bond-tag-pad, 2px 6px);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--bond-tag-color) 60%, #ffffff);
+  border-radius: var(--bond-tag-radius, 4px);
+  background: color-mix(in srgb, var(--bond-tag-color) 72%, #0a0e12);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.55), 0 0 8px color-mix(in srgb, var(--bond-tag-color) 45%, transparent);
+  color: #ffffff;
+  font-size: var(--bond-tag-size, 18px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.7);
+  white-space: nowrap;
+  pointer-events: none;
+}

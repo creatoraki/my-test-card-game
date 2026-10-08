@@ -7,10 +7,11 @@
 //       .inner 细内框用同样的双层手法。选中只变色, 不改外形、不加外框。
 
 import type { MouseEvent } from "react";
-import { getBondDef, getItemDef } from "@/data";
+import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/items/itemArt";
-import { BondIcon } from "@/ui/common/bond/BondIcon";
+import { BondTag } from "@/ui/common/bond/BondTag";
+import { stackBond } from "@/ui/common/bond/stackBond";
 import { cx } from "@/ui/common/shared/cx";
 import { ItemTileBand } from "./ItemTileBand";
 import s from "./ItemTile.module.css";
@@ -42,7 +43,7 @@ export default function ItemTile({
   className,
 }: Props) {
   const def = getItemDef(stack.itemId);
-  const bond = getBondDef(stack.affinity ?? def.affinity ?? "");
+  const bond = stackBond(stack);
   const compact = variant === "compact";
 
   return (
@@ -65,17 +66,16 @@ export default function ItemTile({
       <span className={s.inner} aria-hidden="true" />
 
       {!locked && <span className={s.badge}>
-        {bond && <BondIcon bondId={bond.id} className={s.bond} />}
         <span className={s.tag} aria-hidden="true">ITEM</span>
+        {stack.disposable && <span className={s.disposable} aria-hidden="true">弃</span>}
       </span>}
+
+      {!locked && bond && <BondTag def={bond} className={s.bond} />}
 
       <span className={s.art} aria-hidden="true">{locked ? "？" : itemIcon(def)}</span>
 
       {!compact && <span className={s.name}>{locked ? "未收录" : def.name}</span>}
 
-      {!locked && stack.disposable && (
-        <span className={s.disposable} aria-hidden="true">弃</span>
-      )}
       {!locked && stack.count > 1 && <span className={s.count}>×{stack.count}</span>}
 
       {!locked && <ItemTileBand rarity={def.rarity} />}

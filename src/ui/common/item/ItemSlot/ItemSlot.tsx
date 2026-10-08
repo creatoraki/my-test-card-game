@@ -4,8 +4,9 @@
 
 import type { MouseEvent } from "react";
 import type { ItemStack } from "@/items/types";
-import { getBondDef, getItemDef } from "@/data";
-import { BondIcon } from "@/ui/common/bond/BondIcon";
+import { getItemDef } from "@/data";
+import { BondTag } from "@/ui/common/bond/BondTag";
+import { stackBond } from "@/ui/common/bond/stackBond";
 import { cx } from "@/ui/common/shared/cx";
 import { itemIcon } from "@/ui/art/items/itemArt";
 import s from "./ItemSlot.module.css";
@@ -42,9 +43,9 @@ export default function ItemSlot({
   className,
 }: Props) {
   const def = getItemDef(stack.itemId);
-  // 羁绊词条角标 —— 装备调配页要在一堆候选里挑"缺的那一条羁绊",
-  // 每件都点开看详情太慢, 所以在格子上直接露出词条图标。
-  const bond = getBondDef(stack.affinity ?? def.affinity ?? "");
+  // 羁绊色签 —— 装备调配页要在一堆候选里挑"缺的那一条羁绊",
+  // 每件都点开看详情太慢, 所以在格子右上角直接露出羁绊名。
+  const bond = stackBond(stack);
   return (
     <button
       type="button"
@@ -69,7 +70,7 @@ export default function ItemSlot({
         </span>
       )}
       {showCount && stack.count > 1 && <span className={s["item-slot-count"]}>{stack.count}</span>}
-      {showBond && bond && <BondIcon bondId={bond.id} className={s["item-slot-bond"]} />}
+      {showBond && bond && <BondTag def={bond} />}
     </button>
   );
 }

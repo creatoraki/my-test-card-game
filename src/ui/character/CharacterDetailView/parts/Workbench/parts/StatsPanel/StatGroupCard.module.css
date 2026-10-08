@@ -107,7 +107,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: space-between;
-  gap: 12px 28px;
+  gap: 12px 20px;
 }
 
 @keyframes statGroupIn {

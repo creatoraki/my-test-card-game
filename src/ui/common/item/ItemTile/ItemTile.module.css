@@ -10,7 +10,8 @@
   --tile-stroke: 2px;
   --tile-pad: 12px;
   --tile-band-h: 40px;
-  --tile-bond-size: 36px;
+  /* 顶部给 ITEM 徽记 / 羁绊色签留的空位。 */
+  --tile-top-gap: 22px;
   --tile-name-size: 22px;
   --tile-edge: color-mix(in srgb, var(--rr) 72%, #151a1f);
   --tile-inner-line: color-mix(in srgb, var(--rr) 30%, transparent);
@@ -23,7 +24,7 @@
   aspect-ratio: 300 / 445;
   grid-template-rows: minmax(0, 1fr) auto;
   padding:
-    calc(var(--tile-pad) + var(--tile-bond-size) * 0.6)
+    calc(var(--tile-pad) + var(--tile-top-gap))
     calc(var(--tile-pad) + 10px)
     calc(var(--tile-pad) + var(--tile-band-h) + 10px);
   color: var(--rr); /* ★ itemIcon 的 stroke="currentColor" 吃这一行 */
@@ -113,7 +114,7 @@
   pointer-events: none;
 }
 
-/* ── 左上角: 羁绊图标 + ITEM ── */
+/* ── 左上角: ITEM + 一次性「弃」; 右上角: 羁绊色签(common/bond/BondTag) ── */
 .badge {
   position: absolute;
   z-index: 2;
@@ -126,10 +127,10 @@
   pointer-events: none;
 }
 
-.bond {
-  width: var(--tile-bond-size);
-  height: var(--tile-bond-size);
-  line-height: 1;
+.tile .bond {
+  --bond-tag-top: calc(var(--tile-pad) + 8px);
+  --bond-tag-right: calc(var(--tile-pad) + 8px);
+  max-width: calc(100% - var(--tile-pad) * 2 - 16px);
 }
 
 .tag {
@@ -195,10 +196,6 @@
 }
 
 .disposable {
-  position: absolute;
-  z-index: 3;
-  top: calc(var(--tile-pad) + 8px);
-  right: calc(var(--tile-pad) + 8px);
   padding: 1px 5px;
   background: #401e22e8;
   color: #ffd8d3;
@@ -214,7 +211,6 @@
   --tile-notch: 10px;
   --tile-pad: 8px;
   --tile-band-h: 34px;
-  --tile-bond-size: 28px;
   /* 格子更窄: 收紧底条留白与字距, 保证 LEGENDARY 放得下。 */
   --tile-band-gap: 8px;
   --tile-band-pad-x: 10px;

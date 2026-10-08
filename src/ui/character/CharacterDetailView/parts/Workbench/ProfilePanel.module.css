@@ -4,9 +4,10 @@
   display: grid;
   min-height: 0;
   flex: 1 1 auto;
-  /* 首列 = 装备配置栏。⚠ 稿子上 180px × 1.6(稿→设计 px 的换算比) ≈ 288px。 */
-  grid-template-columns: 288px minmax(0, 1fr);
-  gap: 19px;
+  /* 首列 = 装备配置栏。⚠ 362px 是按格子 1:1 反推的: 面板高 673 → 三行各约 188, 扣部位名后格高约 160;
+     两格各 160 + 格距 10 + 左右内距 16×2 = 362。改面板高度或装备栏内距时要一起重算。 */
+  grid-template-columns: 362px minmax(0, 1fr);
+  gap: 16px;
   animation: profileIn 380ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 

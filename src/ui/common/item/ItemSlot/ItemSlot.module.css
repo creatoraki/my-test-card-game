@@ -150,7 +150,7 @@
   text-shadow: 0 0 4px #000;
 }
 
-/* 一次性物品「弃」角标 —— 左下角: 左上让给羁绊角标、右下让给数量。
+/* 一次性物品「弃」角标 —— 左下角: 右上让给羁绊色签(common/bond/BondTag)、右下让给数量。
    底边若压着别的装饰(如背包分区色条), 调用方用 --item-slot-disposable-bottom 抬高。 */
 .item-slot-disposable {
   position: absolute;
@@ -165,19 +165,6 @@
   font-weight: 700;
   line-height: 1.1;
   text-shadow: 0 1px 4px #000;
-  pointer-events: none;
-}
-
-/* 羁绊词条角标默认放左上角，调用方可按格子布局调整位置与尺寸。 */
-.item-slot-bond {
-  position: absolute;
-  z-index: 1;
-  top: var(--item-slot-bond-top, 2px);
-  left: var(--item-slot-bond-left, 3px);
-  right: var(--item-slot-bond-right, auto);
-  width: var(--item-slot-bond-size, 16px);
-  height: var(--item-slot-bond-size, 16px);
-  line-height: 1;
   pointer-events: none;
 }
 

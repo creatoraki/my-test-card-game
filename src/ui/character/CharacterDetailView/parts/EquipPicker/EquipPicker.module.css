@@ -46,7 +46,6 @@
 .label,
 .count,
 .footer,
-.candidateRarity,
 .compareName > span,
 .compareName > small {
   font-size: var(--fm-fs-l3, 18px);
@@ -105,12 +104,15 @@
   gap: 10px;
 }
 
+/* 一行 4 格的纯图标网格: 名称/稀有度文字全部隐藏, 靠格子底色认稀有度、右上角标认羁绊, 详情走悬浮浮层。 */
 .grid {
   display: grid;
   min-height: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-content: start;
-  gap: 12px;
+  gap: 10px;
+  /* 格子悬浮会上抬 2px, 顶部留出余量免得被滚动容器裁掉。 */
+  padding-top: 2px;
   overflow-y: auto;
   scrollbar-width: none;
 }
@@ -119,63 +121,44 @@
   display: none;
 }
 
+/* 外层只负责悬浮/聚焦事件, 外观全交给 ItemSlot(稀有度底色 + 斜切角)。 */
 .candidate {
-  composes: glass from "../../../styles/equipmentGlass.module.css";
   display: grid;
   min-width: 0;
-  gap: 5px;
-  padding: 7px;
-  color: var(--cd-ink);
-
   outline: none;
-  transition: border-color 150ms ease, background 150ms ease;
-}
-
-.candidate:hover,
-.candidate:focus-visible {
-  background: linear-gradient(145deg, rgb(185 193 201 / 0.24), rgb(42 48 55 / 0.46));
-  border-color: var(--cd-glow);
 }
 
 .candidate .candidateSlot {
-  background: transparent;
-  border: none;
-  clip-path: none;
-  --item-slot-halo: 0px;
-  --item-slot-halo-core: 0px;
-  --item-slot-icon-size: 72%;
-  --item-slot-bond-size: 32px;
-  --item-slot-bond-top: 8px;
-  --item-slot-bond-left: 8px;
   width: 100%;
+  --item-slot-pad: 0;
+  --item-slot-icon-size: 70%;
+  --item-slot-halo: 12px;
+  /* 格子只有约 100px, 羁绊色签收成小角标, 不抢图标。 */
+  --bond-tag-size: 13px;
+  --bond-tag-pad: 1px 4px;
+  --bond-tag-radius: 3px;
+  --bond-tag-top: 3px;
+  --bond-tag-right: 3px;
 }
 
-.candidateSlot.candidateSlot:hover {
-  border-color: transparent;
-  box-shadow: none;
-  transform: none;
+.candidate:focus-visible .candidateSlot {
+  border-color: var(--cd-glow);
 }
 
-.candidateName {
-  overflow: hidden;
-  color: var(--cd-ink);
-  font-size: var(--fm-fs-l3, 18px);
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* 悬浮联动: 同羁绊的其他装备描边提亮, 不同羁绊的压暗。 */
+.candidate .candidateSlot {
+  transition: transform 0.12s ease, opacity 160ms ease, filter 160ms ease;
 }
 
-.candidateRarity {
-  color: var(--rr);
-  text-align: center;
+.candidate.isKin .candidateSlot {
+  /* 格子带 clip-path, 外发光会被裁掉, 只靠白描边。 */
+  border-color: #ffffff;
 }
 
-.candidate.r-common { --rr: var(--rarity-common); }
-.candidate.r-fine { --rr: var(--rarity-fine); }
-.candidate.r-rare { --rr: var(--rarity-rare); }
-.candidate.r-epic { --rr: var(--rarity-epic); }
-.candidate.r-legendary { --rr: var(--rarity-legendary); }
-
+.candidate.isDim .candidateSlot {
+  opacity: 0.35;
+  filter: saturate(0.4);
+}
 .emptyText,
 .noChange {
   margin: auto;
@@ -265,9 +248,3 @@
 
 .is-up { color: #287a49; }
 .is-down { color: #9b3442; }
-
-@media (prefers-reduced-motion: reduce) {
-  .candidate {
-    transition: none;
-  }
-}

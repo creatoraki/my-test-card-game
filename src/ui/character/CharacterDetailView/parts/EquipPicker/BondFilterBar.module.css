@@ -1,0 +1,49 @@
+/* 羁绊筛选芯片: 常态 = 主题色描边 + 淡底; 选中 = 主题色实底(与格子上的色签同一观感)。
+   ⚠ 选择器写成 .bar .chip, 特异性 (0,2,0) 压住全局 base.css 的 button 暗底 HUD 样式。 */
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bar .chip {
+  --chip-color: #9fb4c8;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--chip-color) 70%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--chip-color) 14%, rgb(10 14 18 / 0.6));
+  color: color-mix(in srgb, var(--chip-color) 55%, #ffffff);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.1;
+  clip-path: none;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.bar .chip b {
+  font-weight: 700;
+  opacity: 0.72;
+}
+
+.bar .chip:hover,
+.bar .chip:focus-visible {
+  border-color: color-mix(in srgb, var(--chip-color) 60%, #ffffff);
+  background: color-mix(in srgb, var(--chip-color) 30%, rgb(10 14 18 / 0.6));
+  color: #ffffff;
+  outline: none;
+  transform: none;
+}
+
+.bar .chip.isOn {
+  border-color: color-mix(in srgb, var(--chip-color) 60%, #ffffff);
+  background: color-mix(in srgb, var(--chip-color) 72%, #0a0e12);
+  color: #ffffff;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--chip-color) 45%, transparent);
+}
+
+.bar .chip.isOn b {
+  opacity: 0.9;
+}

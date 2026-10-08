@@ -58,7 +58,6 @@
 .item {
   --item-slot-icon-size: 70%;
   --item-slot-notch: 10px;
-  --item-slot-bond-size: 24px;
   --item-slot-name-size: 18px;
   --item-slot-count-size: 18px;
   width: 132px;
