@@ -139,6 +139,8 @@ export interface StatusDef {
   expiresOnRoundEnd?: true; // 「本回合」状态: 回合结束(下回合开始前)移除, 不随节拍计时
   // 标记: 以减益形态挂在敌人身上, 但不计入减益种类(恶毒), 也不会被转移、复制、汇集。
   mark?: true;
+  // 瞄准: 实例的 targetId 即被瞄准的单位, 该单位立绘框显示统一的被瞄准特效(见 combat/aim.ts)。
+  aims?: true;
   // 诅咒: 咒术师的专属减益(痛楚 / 怨咒 / 厄运 / 封印 / 停摆)。汇集、继承、复制、交换只搬运诅咒。
   curse?: true;
   blocksBuffs?: true; // 持有者无法获得增益(封印)

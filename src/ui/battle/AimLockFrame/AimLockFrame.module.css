@@ -1,0 +1,189 @@
+/* 被瞄准立绘框特效(ui/battle/AimLockFrame)。宿主需为定位祖先, 本层铺满宿主。
+   --aim-color: 主警示色; 宿主可覆盖。 */
+.aim-lock {
+  --aim-color: #ff5a4a;
+  --aim-glow: #ff2a1f;
+  --aim-chamfer: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* 边缘红色警示: 与卡框同一斜切轮廓, 内缘发红并呼吸。 */
+.wash {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  clip-path: var(--aim-chamfer);
+  background:
+    radial-gradient(ellipse at 50% 42%, transparent 48%, color-mix(in srgb, var(--aim-glow) 34%, transparent) 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--aim-glow) 18%, transparent), transparent 22%);
+  animation:
+    aimWashIn 420ms ease-out both,
+    aimWashPulse 1.6s ease-in-out 420ms infinite;
+}
+/* 自上而下的锁定扫描线 */
+.scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--aim-color) 25%, #ffd6cf 50%, var(--aim-color) 75%, transparent);
+  box-shadow: 0 0 10px var(--aim-glow), 0 0 22px color-mix(in srgb, var(--aim-glow) 60%, transparent);
+  opacity: 0.7;
+  animation: aimScan 2.4s linear infinite;
+}
+
+/* 头部附近的准星: 进场由大收拢, 之后慢转 */
+.reticle {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  width: 92px;
+  height: 92px;
+  translate: -50% -50%;
+  color: var(--aim-color);
+  filter: drop-shadow(0 0 6px var(--aim-glow));
+  animation:
+    aimReticleIn 560ms cubic-bezier(0.2, 0.9, 0.25, 1) both,
+    aimReticleBlink 1.6s ease-in-out 560ms infinite;
+}
+.reticle-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  animation: aimSpin 7s linear infinite;
+}
+.reticle-dot {
+  fill: currentColor;
+}
+
+/* 四角锁定括号: 从外向内收拢咬合, 之后轻微张合。--sx/--sy 为各角的外扩方向。 */
+.corner {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 0 solid var(--aim-color);
+  filter: drop-shadow(0 0 4px var(--aim-glow)) drop-shadow(0 0 10px var(--aim-glow));
+  animation:
+    aimCornerLock 520ms cubic-bezier(0.2, 0.9, 0.25, 1) both,
+    aimCornerBreath 1.6s ease-in-out 520ms infinite;
+}
+.tl { top: -5px; left: -5px; border-top-width: 4px; border-left-width: 4px; --sx: -1; --sy: -1; }
+.tr { top: -5px; right: -5px; border-top-width: 4px; border-right-width: 4px; --sx: 1; --sy: -1; }
+.bl { bottom: -5px; left: -5px; border-bottom-width: 4px; border-left-width: 4px; --sx: -1; --sy: 1; }
+.br { bottom: -5px; right: -5px; border-bottom-width: 4px; border-right-width: 4px; --sx: 1; --sy: 1; }
+
+/* 左上角铭牌: 唯一可悬停的部分, 悬停列出瞄准来源。 */
+.tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px 2px 6px;
+  pointer-events: auto;
+  cursor: var(--cursor-default);
+  white-space: nowrap;
+  color: #ffe4df;
+  background: linear-gradient(90deg, #5a0f0ae6, #2a0806d9);
+  border: 1px solid var(--aim-color);
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  font-family: var(--font-num);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 26px;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 6px var(--aim-glow);
+  animation: aimTagIn 480ms ease-out 200ms both;
+  outline: none;
+}
+.tag-icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  color: var(--aim-color);
+  stroke: currentColor;
+  animation: aimSpin 3.2s linear infinite;
+}
+.tag-count {
+  color: #fff;
+  font-weight: 900;
+}
+
+/* 悬浮详情里的来源列表 */
+.list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+.item-art {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  object-fit: contain;
+}
+.item-source {
+  font-weight: 800;
+  color: #fff;
+}
+.item-skill {
+  color: #ff8b7d;
+}
+
+@keyframes aimWashIn {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  45% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+@keyframes aimWashPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+@keyframes aimScan {
+  0% { top: -4px; }
+  100% { top: 100%; }
+}
+@keyframes aimReticleIn {
+  0% { opacity: 0; scale: 1.9; }
+  60% { opacity: 0.9; scale: 0.92; }
+  100% { opacity: 0.6; scale: 1; }
+}
+@keyframes aimReticleBlink {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.35; }
+}
+@keyframes aimSpin {
+  to { rotate: 360deg; }
+}
+@keyframes aimCornerLock {
+  0% { opacity: 0; translate: calc(var(--sx) * 26px) calc(var(--sy) * 26px); }
+  55% { opacity: 1; translate: calc(var(--sx) * -3px) calc(var(--sy) * -3px); }
+  70% { opacity: 0.4; }
+  100% { opacity: 1; translate: 0 0; }
+}
+@keyframes aimCornerBreath {
+  0%, 100% { translate: 0 0; }
+  50% { translate: calc(var(--sx) * 4px) calc(var(--sy) * 4px); }
+}
+@keyframes aimTagIn {
+  0% { opacity: 0; translate: -12px 0; }
+  40% { opacity: 1; }
+  55% { opacity: 0.3; }
+  70% { opacity: 1; translate: 0 0; }
+  100% { opacity: 1; translate: 0 0; }
+}

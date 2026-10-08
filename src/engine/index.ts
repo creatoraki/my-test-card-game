@@ -86,6 +86,8 @@ export type { AllyInit, BattleSetup, ChoiceRecorder, PlayBlock, PlayRecorder } f
 export { runEnemyFlee } from "./battle/flee";
 export { foesOf, alliesOf, aliveOf, chooseRandomTarget, tauntedAmong, validFoeTargetIds } from "./combat/targeting";
 export { getStatus } from "./core/ops";
+export { aimLocksByTarget } from "./combat/aim";
+export type { AimLock } from "./combat/aim";
 export { growInsurance, insuranceStacksOf, partyInsuranceStacks } from "./combat/insurance";
 export { claimInsurance } from "./actuary/claims";
 export { enemyMoveWeight, biasConditionMet, pickScriptedTarget, pickAllyTarget } from "./enemy/enemyMovePick";

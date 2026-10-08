@@ -11,7 +11,7 @@ export const ECO_ARK_STATUS_DEFS: Record<string, StatusDef> = {
   },
   arkNamedBurst: {
     id: "arkNamedBurst", name: "点名齐射", emoji: "🎯", kind: "buff",
-    maxStacks: 1, expiresOnAct: true,
+    maxStacks: 1, expiresOnAct: true, aims: true,
     desc: "锁定点名齐射的攻击目标。蓄力期间，角色打出卡牌会将点名转移到该角色。持续时间：永久；发动齐射或取消蓄力后移除。",
   },
   arkRootReturn: {

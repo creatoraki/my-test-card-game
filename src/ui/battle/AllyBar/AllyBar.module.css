@@ -323,6 +323,10 @@ span.ally-portrait {
    ⚠ 不能走 box-shadow: 卡框带 clip-path, 而 clip-path 会把外阴影一起裁掉(整条不可见)。
    filter 在裁切**之后**生效, drop-shadow 因此沿着斜切角的真实轮廓发光 —— 与 .combatant
    那套沿立绘轮廓发光是同一个理由。 */
+/* 被瞄准(ui/battle/AimLockFrame 叠在卡框上): 卡框描边转红; 写在 targetable 之前, 选目标时让位。 */
+.ally-bar .ally-slot[data-aimed] .ally-frame {
+  border-color: #ff5a4acc;
+}
 .ally-bar .ally-slot[data-targetable] .ally-frame {
   border-color: var(--accent);
   animation: allyGlassPulse 1.1s infinite;

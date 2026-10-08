@@ -1,5 +1,5 @@
-import { memo } from "react";
-import type { Ally, Card, Combatant } from "@/engine";
+import { memo, useMemo } from "react";
+import type { Ally, BattleState, Card, Combatant } from "@/engine";
 import { getStatusDef } from "@/engine";
 import { getCharacter } from "@/data";
 import type { HitFx } from "@/ui/battle/choreo/animations";
@@ -13,6 +13,7 @@ import { HpBar } from "@/ui/common/bar/HpBar";
 import { ShieldBar } from "@/ui/common/bar/ShieldBar";
 import { StatusPips } from "@/ui/common/bar/StatusPips";
 import { PollutionMeter } from "@/ui/common/bar/PollutionMeter/PollutionMeter";
+import { AimLockFrame, aimMarksByTarget, aimMarksFor, type AimMark } from "@/ui/battle/AimLockFrame";
 import s from "./AllyBar.module.css";
 // 敌我两种外壳共用的两枚徽章。同域共享样式模块, 双方各自 import(样式铁律 1)。
 import ub from "@/ui/battle/styles/unitBadges.module.css";
@@ -23,6 +24,7 @@ import ub from "@/ui/battle/styles/unitBadges.module.css";
 const ALLY_SLOTS = 3;
 
 interface Props {
+  battle: BattleState; // 只用于解析瞄准关系(被瞄准立绘框特效)
   allies: Combatant[];
   hits: Record<string, HitFx>; // 各目标当前的受击特效
   attackerId: string | null; // 正在弹出的施法者
@@ -52,6 +54,7 @@ interface Props {
 //   整个战斗界面重渲染一遍。代价是悬停变化时本组件必然重渲染, 所以下面的 AllySlot 必须
 //   用 React.memo 挡住: 三格里只有「刚失焦」和「刚聚焦」那两格的 props 真的变了。
 export function AllyBar({
+  battle,
   allies,
   hits,
   attackerId,
@@ -64,6 +67,8 @@ export function AllyBar({
   deathVanishMs = DEATH.allyVanish,
 }: Props) {
   const focusCharId = useHandHoverOwner() ?? focusFallbackCard?.ownerCharId;
+  // 按 battle 引用缓存: 悬停手牌引起的重渲染不重算, 未被瞄准的槽位拿到共享空数组以保住 memo。
+  const aims = useMemo(() => aimMarksByTarget(battle), [battle]);
   return (
     <div
       className={s["ally-bar"]}
@@ -79,6 +84,7 @@ export function AllyBar({
             hit={hits[cmb.id] ?? null}
             attacking={cmb.id === attackerId}
             focused={cmb.id === focusCharId}
+            aims={aimMarksFor(aims, cmb.id)}
             targetable={targetable && cmb.alive && cmb.id !== excludeTargetId}
             deathPhase={deathPhaseOf(cmb.id)}
             // ⚠ 直接透传而不是 `() => onSelect(cmb.id)` —— 内联箭头每次渲染都是新引用,
@@ -96,6 +102,7 @@ interface SlotProps {
   hit: HitFx | null;
   attacking: boolean;
   focused: boolean;
+  aims: AimMark[]; // 正瞄准该角色的技能; 非空时叠被瞄准立绘框特效
   targetable: boolean;
   deathPhase: DeathPhase;
   onClick: (id: string) => void; // 收 id 而非零参闭包, 才能让父级透传同一个引用(见上)
@@ -119,6 +126,7 @@ const AllySlot = memo(function AllySlot({
   hit,
   attacking,
   focused,
+  aims,
   targetable,
   deathPhase,
   onClick,
@@ -136,6 +144,7 @@ const AllySlot = memo(function AllySlot({
       // fx/HitFxLayer.module.css, 它够不着本文件被哈希的类名。
       // `card-focus` 是**本组件独有**的(敌人没有手牌归属聚焦), 故仍是普通局部类。
       {...unitShellAttrs({ side: "player", dead, downed, death: deathPhase, targetable, attacking, react })}
+      data-aimed={aims.length && !dead ? "" : undefined}
       className={cx(s["ally-slot"], focused && s["card-focus"])}
       style={{ "--owner-color": ownerColor, ...vars } as React.CSSProperties}
       // 只有在卡牌要求选择友军时响应点击, 普通状态下角色卡保持纯展示。
@@ -182,6 +191,8 @@ const AllySlot = memo(function AllySlot({
           <ShieldBar shield={cmb.shield} maxHp={cmb.maxHp} flush />
         </div>
       </div>
+
+      {!dead && <AimLockFrame marks={aims} />}
 
       <HitFxLayer hit={hit} />
 

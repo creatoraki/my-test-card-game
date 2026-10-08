@@ -86,6 +86,7 @@ export function BattleHudDock({
         <SquadBuffBar battle={battle} />
         <ManaBar battle={battle} />
         <AllyBar
+          battle={battle}
           allies={allies}
           hits={hits}
           attackerId={attackerId}
