@@ -7,7 +7,8 @@ import { getBondDef, getItemDef } from "@/data";
 import { GEAR_SLOT_LABEL, GEAR_SLOT_UNLOCK, type GearSlot } from "@/items/gearSlots";
 import { RARITY_LABEL, type ItemStack } from "@/items/types";
 import { LockGlyph } from "@/ui/character/glyphs/deckGlyphs";
-import { ArcanaIcon, getArcanaAccent } from "@/ui/common/icon/ArcanaIcon";
+import { ArcanaIcon } from "@/ui/common/icon/ArcanaIcon";
+import { bondAccent } from "@/ui/common/bond/BondTag";
 import ItemIconFrame from "@/ui/common/item/ItemIconFrame";
 import { cx } from "@/ui/common/shared/cx";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
@@ -85,7 +86,7 @@ export function EquipCard({
         {bonds.length > 0 ? (
           <span className={s.bonds}>
             {bonds.map((bond, index) => {
-              const accent = getArcanaAccent(bond.id) ?? bond.color;
+              const accent = bondAccent(bond);
               return (
                 <span key={`${bond.id}-${index}`} className={s.bond} style={{ "--bond": accent } as CSSProperties}>
                   <ArcanaIcon id={bond.id} size={26} bare accent={accent} />

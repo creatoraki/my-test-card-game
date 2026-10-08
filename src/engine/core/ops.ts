@@ -21,7 +21,7 @@ import { addMod, healValue, offenseStatOf, statOf } from "../combat/stats";
 import { checkChallengesOnWin, noteChallengeKill } from "../challenges";
 import { recordHitPart } from "./animHits";
 import { capStatusStacks, mergeStatus, newSegment, syncSegments } from "../statuses/stacking";
-import { runRelicHook } from "../relics/types";
+import { runRelicHook, type StatusApplyInfo } from "../relics/types";
 import { returnCollateral } from "../ecoArk/resources";
 import { clearGardenMemory } from "../ecoArk/guard";
 import { endBarrage } from "../ecoArk/sentry";
@@ -81,7 +81,10 @@ export function markDead(state: BattleState, cmb: Combatant): void {
     purgeOwnerCards(state, cmb.charId, `${cmb.emoji} ${cmb.name}`);
     runRelicHook(state, "onAllyDeath", cmb.id);
   }
-  if (cmb.team === "enemy") noteChallengeKill(state, cmb);
+  if (cmb.team === "enemy") {
+    noteChallengeKill(state, cmb);
+    runRelicHook(state, "afterEnemyDeath", cmb.id);
+  }
 }
 
 // 死者的个人卡牌立刻退场: 抽牌堆/手牌/弃牌堆一并清空。
@@ -91,6 +94,7 @@ function purgeOwnerCards(state: BattleState, ownerId: string, ownerLabel: string
   state.draw = state.draw.filter((uid) => !ownsCard(uid));
   state.hand = state.hand.filter((uid) => !ownsCard(uid));
   state.discard = state.discard.filter((uid) => !ownsCard(uid));
+  if (state.bond) state.bond.suspended = state.bond.suspended.filter((uid) => !ownsCard(uid));
   if (state.pendingChoice?.kind === "recoverFromDiscard" && ownsCard(state.pendingChoice.sourceCardUid))
     state.pendingChoice = null;
   log(state, `${ownerLabel} 的个人卡牌已清场`);
@@ -155,7 +159,7 @@ export function heal(
   recordHitPart(targetId, before - t.hp);
   const healed = t.hp - before;
   if (opts.out) opts.out.final = Math.round(final);
-  runRelicHook(state, "afterHeal", { targetId, hpBefore: before, overflow: Math.max(0, Math.round(final) - healed) });
+  runRelicHook(state, "afterHeal", { targetId, sourceId, hpBefore: before, overflow: Math.max(0, Math.round(final) - healed) });
   if (opts.single && !opts.splash) {
     incomingHeal.amount = final;
     incomingHeal.healed = healed;
@@ -218,8 +222,9 @@ export function applyStatus(
     }
   }
 
-  const info = { targetId, statusId, stacks };
+  const info: StatusApplyInfo = { targetId, statusId, stacks, sourceId };
   runRelicHook(state, "modifyStatusApply", info);
+  if (info.cancelled) return;
   stacks = info.stacks;
 
   const existing = getStatus(t, statusId);
@@ -258,7 +263,10 @@ export function applyStatus(
   if (def && overflow > 0) def.hooks?.onOverflow?.(ctxFor(state, targetId, inst), overflow);
   cleanup(t);
   log(state, `${t.emoji} ${t.name} 获得 ${def?.name ?? statusId} ${stacks > 0 ? "+" : ""}${stacks}`);
-  if (stacks > 0) notifyOwnerStatusApplied(state, targetId, statusId, stacks, duration, data, sourceId);
+  if (stacks > 0) {
+    notifyOwnerStatusApplied(state, targetId, statusId, stacks, duration, data, sourceId);
+    runRelicHook(state, "afterStatusApplied", { targetId, statusId, stacks, duration, data, sourceId });
+  }
 }
 
 // 持有者身上的其他状态监听"获得状态"(疫病)。遍历快照, 监听方自己的状态不回调。

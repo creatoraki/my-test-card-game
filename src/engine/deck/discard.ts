@@ -29,6 +29,8 @@ import { CARD_MARK_DEFS, dropsOnLeaveHand } from "../cards/cardMarks";
 import { cardLocked } from "../ecoArk/shared";
 import { beginArkAttack, finishArkAttack } from "../ecoArk/guard";
 import { flushArkCardPlayed, queueArkCardPlayed } from "../ecoArk/sentry";
+import { runRelicHook } from "../relics/types";
+import { hermitManualTriggers } from "../bonds/bondPlay";
 
 export { withDiscardRecorder, takeDiscardSnapshot } from "../cards/cardFx";
 
@@ -82,7 +84,12 @@ export function moveToDiscard(
     // 星印与纳刀离开手牌即移除, 不结算收益; 常驻增益(星契)保留。
     card.marks = card.marks?.filter((mark) => !dropsOnLeaveHand(mark));
   }
-  const rule = RULES.discard.reasons[reason];
+  const baseRule = RULES.discard.reasons[reason];
+  // 隐者 9: 本回合第一次主动弃牌按「会触发」处理(只在这张牌真有弃置效果时才消耗次数)。
+  const hasDiscardEffect = Boolean(card?.onDiscard || card?.marks?.some((markId) => CARD_MARK_DEFS[markId]?.onDiscardEffects?.length));
+  const rule = !baseRule.trigger && hasDiscardEffect && hermitManualTriggers(state, reason)
+    ? { ...baseRule, trigger: true }
+    : baseRule;
   if (rule.count) {
     state.discardsThisRound += 1;
     state.discardsThisBattle += 1;
@@ -134,6 +141,7 @@ export function moveToDiscard(
         STATUS_DEFS[inst.id]?.hooks?.onCardDiscarded?.(ctxFor(state, allyId, inst), uid);
     }
     firePassive(state, { type: "cardDiscarded", cardUid: uid }, rec);
+    runRelicHook(state, "onCardDiscarded", uid, reason);
   }
 }
 

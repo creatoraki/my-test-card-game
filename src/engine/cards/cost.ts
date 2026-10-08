@@ -1,5 +1,6 @@
 import type { BattleState, Card } from "../types";
 import { CARD_MARK_DEFS } from "./cardMarks";
+import { bondCostRule } from "../bonds/bondPlay";
 
 export function cardCost(state: BattleState | null, card: Card): number {
   const rule = card.costRule;
@@ -30,7 +31,10 @@ export function cardCost(state: BattleState | null, card: Card): number {
   const returnDelta = card.marks?.includes("returnTax")
     ? (card.costStacks ?? 0)
     : 0;
-  return Math.max(0, (override ?? auraCost ?? card.cost) + delta + stackDelta + markDelta + returnDelta);
+  // 羁绊: 恶魔 12 直接免费; 力量 9 让本回合第一张重攻 −1。
+  const bond = bondCostRule(state, card);
+  if (bond.override != null) return bond.override;
+  return Math.max(0, (override ?? auraCost ?? card.cost) + delta + stackDelta + markDelta + returnDelta + bond.delta);
 }
 
 export function starPayable(card: Card): boolean {

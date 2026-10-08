@@ -1,12 +1,12 @@
 // 掉落系数与掉落上下文 —— 战斗掉落、物件奖励与开箱共用。
 
 import {
-  ROLLABLE_BOND_IDS,
   equipmentDefsBySlot,
   getItemDef,
   getItemFamily,
   difficultyEquipRarities,
   makeItemStack,
+  mapBondPool,
 } from "@/data";
 import type { DropContext } from "@/items/drops";
 import type { ItemRarity } from "@/items/types";
@@ -44,8 +44,8 @@ export function dropContext(s: ExploreState, k = dropCoefficient(s)): DropContex
     getDef: getItemDef,
     getFamily: getItemFamily,
     makeStack: (itemId, count, extra) => makeItemStack(itemId, count, extra),
-    // ★ 随机羁绊词条的抽取池 —— 只含**已实装**的羁绊, 见 data/roster/bonds.ts 的说明。
-    affinityPool: ROLLABLE_BOND_IDS,
+    // ★ 随机羁绊词条的抽取池 —— 按地图偏向的系别加权(见 data/roster/bonds/families.ts)。
+    affinityPool: mapBondPool(s.mapId),
     equipmentFamilyIds: EQUIPMENT_FAMILY_IDS,
     equipRarities: difficultyEquipRarities(s.mapId, s.difficulty),
     excludeItemIds: [

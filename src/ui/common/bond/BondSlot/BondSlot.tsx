@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { BondDef, BondTier } from "@/data/roster/bonds";
-import { ArcanaIcon, getArcanaAccent } from "@/ui/common/icon/ArcanaIcon";
+import { ArcanaIcon } from "@/ui/common/icon/ArcanaIcon";
+import { bondAccent } from "@/ui/common/bond/BondTag";
 import { BondTooltip } from "@/ui/common/bond/BondTooltip";
 import { RailPopover } from "@/ui/common/tooltip/RailPopover";
 import { cx } from "@/ui/common/shared/cx";
@@ -45,7 +46,7 @@ export function BondSlot({
 }: BondSlotProps) {
   const inactive = tierIndex < 0;
   const compact = variant === "compact";
-  const accent = getArcanaAccent(def.id) ?? def.color;
+  const accent = bondAccent(def);
   const style = {
     "--slot-icon": `${iconSize}px`,
     "--slot-accent": accent,

@@ -1,4 +1,5 @@
-import { ArcanaIcon, getArcanaAccent } from "@/ui/common/icon/ArcanaIcon";
+import { getBondDef } from "@/data";
+import { ArcanaIcon } from "@/ui/common/icon/ArcanaIcon";
 
 export function BondIcon({
   bondId,
@@ -13,7 +14,7 @@ export function BondIcon({
     <ArcanaIcon
       id={bondId}
       bare
-      accent={getArcanaAccent(bondId)}
+      accent={getBondDef(bondId)?.color}
       className={className}
       ariaLabel={title}
     />

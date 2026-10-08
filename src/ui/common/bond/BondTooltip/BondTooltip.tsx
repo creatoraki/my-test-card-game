@@ -1,8 +1,9 @@
 // 羁绊悬浮详情：直接展示各档效果与门槛，保留当前档位和未激活提示。
 
-import type { BondDef, BondTier } from "@/data/roster/bonds";
-import { ArcanaIcon, getArcanaAccent } from "@/ui/common/icon/ArcanaIcon";
+import { bondFamilyName, type BondDef, type BondTier } from "@/data/roster/bonds";
+import { ArcanaIcon } from "@/ui/common/icon/ArcanaIcon";
 import { BondEffect } from "@/ui/common/bond/BondEffect";
+import { bondAccent } from "@/ui/common/bond/BondTag";
 import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 
 export function BondTooltip({
@@ -20,7 +21,7 @@ export function BondTooltip({
   extraNote?: string;
 }) {
   const inactive = tierIndex < 0;
-  const accent = getArcanaAccent(def.id) ?? def.color;
+  const accent = bondAccent(def);
   const notes = [
     ...(extraNote ? [{ text: extraNote }] : []),
     ...(inactive && next ? [{ text: `还差 ${next.count - count} 点` }] : []),
@@ -29,8 +30,8 @@ export function BondTooltip({
   return (
     <TooltipCard
       icon={<ArcanaIcon id={def.id} size={96} chrome={false} accent={accent} inactive={inactive} />}
-      title={def.name}
-      meta={`${count} 点 · ${inactive ? "未激活" : `第 ${tierIndex + 1} 档`}`}
+      title={`${def.name}·${def.title}`}
+      meta={`${bondFamilyName(def.family)}系 · ${count} 点 · ${inactive ? "未激活" : `第 ${tierIndex + 1} 档`}`}
       accent={accent}
       notes={notes.length > 0 ? notes : undefined}
     >

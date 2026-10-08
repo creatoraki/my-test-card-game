@@ -19,6 +19,7 @@ import { grantStarPact, starPactCandidates } from "../prophet/starPact";
 import { applyGraft, canGraft, graftCandidates } from "../deck/graft";
 import { exhaustCard } from "../deck/exhaust";
 import { availableHand, cardLocked } from "../ecoArk/shared";
+import { suspendable } from "../bonds/behaviors/chrono";
 
 export function resolvePendingChoice(state: BattleState, uid: string): boolean {
   const choice = state.pendingChoice;
@@ -51,6 +52,14 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
     log(state, `获得 ${name}`);
     return true;
   }
+  if (choice.kind === "pickFromDraw" && choice.toTop) {
+    // 隐者 6 的预知: 选中的牌置于抽牌堆顶。
+    if (!choice.options.includes(uid) || !state.draw.includes(uid)) return false;
+    state.draw = [uid, ...state.draw.filter((drawUid) => drawUid !== uid)];
+    state.pendingChoice = null;
+    log(state, `${state.cards[uid]?.name ?? "卡牌"} 已置于抽牌堆顶`);
+    return true;
+  }
   if (choice.kind === "pickFromDraw") {
     if (!choice.options.includes(uid) || !state.draw.includes(uid) || state.hand.length >= partyHandLimit(state))
       return false;
@@ -72,7 +81,14 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
     if (!state.hand.includes(uid) || cardLocked(state, uid)) return false;
     const card = state.cards[uid];
     let dominoMarkConsumed = false;
-    if (choice.action === "cultivateTick") {
+    if (choice.action === "bondSuspend") {
+      // 倒吊人 9: 牌离开手牌进入悬置区, 下回合开始自动打出。
+      if (!suspendable(state, uid)) return false;
+      state.hand = state.hand.filter((handUid) => handUid !== uid);
+      state.bond.suspended.push(uid);
+      state.bond.round.hangedSuspendUsed = true;
+      log(state, `倒吊人·悬停：${card?.name ?? "卡牌"} 已悬置`);
+    } else if (choice.action === "cultivateTick") {
       if (!card || !cultivateCanAdvance(card)) return false;
       advanceCultivate(state, card, 1);
       log(state, `${card.name} 的培育层数 -1`);
@@ -155,7 +171,8 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
 
 export function cancelPendingChoice(state: BattleState): boolean {
   if (!state.pendingChoice) return false;
-  if (state.pendingChoice.kind === "pickHandCard") return false;
+  // 选手牌一般是已发生结算的一部分, 不能放弃; 倒吊人的悬置是「可以选择」, 允许跳过。
+  if (state.pendingChoice.kind === "pickHandCard" && state.pendingChoice.action !== "bondSuspend") return false;
   // 组装成功后的保留 / 提纯的分类选择属于已发生的结算, 不能放弃。
   if (state.pendingChoice.kind === "pickSquadBuff" &&
     (state.pendingChoice.mode === "keep" || state.pendingChoice.mode === "purify")) return false;

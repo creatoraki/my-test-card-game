@@ -43,13 +43,11 @@ export function launchBattle(encounterId: string): void {
   applyPendingContamination(session.party.map((p) => p.charId));
   const { characters, party, squadTalent } = useTownStore.getState();
 
-  // ★ 羁绊在**开战瞬间快照**, 与负重同一个范式(见 engine/stats.burdenValue 的注释):
-  //   局外算好, 灌进面板, 引擎不认识羁绊 —— 正如它不认识装备与背包。
-  //   刻意不进 deriveStats: 那是**单角色**换算点(角色详情/编队页都在用), 而羁绊是**全队**系统,
-  //   塞进去会让「看某个角色的面板」凭空多出队友装备带来的加成。
+  // ★ 羁绊在**开战瞬间快照**, 与负重同一个范式: 局外算好计数与档位, 引擎只收「id + 档位」,
+  //   规则行为由 engine/bonds 按 id 结算; 抽牌 / 法力 / 待机这类资源项并进小队资源修正。
+  //   刻意不进 deriveStats: 那是**单角色**换算点, 而羁绊是**全队**系统。
   const active = activeBonds(bondCountsOf(characters, party));
-  const bondMods = mergeMods(active.map((a) => a.tier.mods)); // 每人各叠一份
-  // 背包遗物的属性修正走同一条合成 —— 引擎不认识物品容器, 它只收一份算好的面板。
+  // 背包遗物的属性修正 —— 引擎不认识物品容器, 它只收一份算好的面板。
   // ⚠ 这一份修正对**每一名角色各叠一次** ⇒ 里面绝不能出现 burdenAdapt 这类「小队合计」属性。
   const relicMods = mergeMods([
     ...session.backpack
@@ -65,16 +63,15 @@ export function launchBattle(encounterId: string): void {
   const battleDeck: Card[] = alive.flatMap((p) => structuredClone(characters[p.charId].deck));
   const allies: AllyInit[] = alive.map((p) => {
     const c = getCharacter(p.charId);
-    // 局外第一层(角色基础 + 装备)已由 deriveStats 算完; 羁绊是叠在它之上的第二层。
-    let s = applyModifier(deriveStats(characters[p.charId]), bondMods);
-    s = applyModifier(s, relicMods);
+    // 局外第一层(角色基础 + 装备)已由 deriveStats 算完; 遗物修正叠在它之上。
+    const s = applyModifier(deriveStats(characters[p.charId]), relicMods);
     const characterState = characters[p.charId];
     return {
       id: c.id,
       charId: c.id,
       name: c.name,
       emoji: c.emoji,
-      stats: s, // ★ 局外已结算的完整面板(角色基础 + 装备 + 羁绊)
+      stats: s, // ★ 局外已结算的完整面板(角色基础 + 装备 + 遗物)
       startHp: p.hp, // ★ 血量跨战斗继承
       startHpLimit: p.hpLimit,
       pollution: characterState.pollution,
@@ -104,6 +101,7 @@ export function launchBattle(encounterId: string): void {
         squadMods,
         squadBuffRewardPools: ASSEMBLE_REWARD_POOLS,
         relics: relicIds,
+        bonds: active.map((a) => ({ id: a.def.id, tier: a.tierIndex + 1 })),
       },
       undefined,
       mod,

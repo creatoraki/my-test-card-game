@@ -1,4 +1,4 @@
-import type { CostCheck } from "@/data";
+import type { BondFamily, CostCheck } from "@/data";
 import type { ItemDef, ItemStack } from "@/items/types";
 import type { PendingReforge } from "@/store/townSlices/equipCraftSlice";
 import type { EquipTab } from "@/ui/common/item/shared/itemFilters";
@@ -19,6 +19,8 @@ interface Props {
   pending: PendingReforge | null;
   notice: string;
   canRoll: boolean;
+  family: BondFamily | null;
+  onFamily: (family: BondFamily | null) => void;
   onRoll: () => void;
   onApply: (keepNew: boolean) => void;
   onShowTooltip: (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => void;
@@ -37,6 +39,8 @@ export function ReforgeBoard({
   pending,
   notice,
   canRoll,
+  family,
+  onFamily,
   onRoll,
   onApply,
   onShowTooltip,
@@ -69,6 +73,8 @@ export function ReforgeBoard({
         pending={pending}
         notice={notice}
         canRoll={canRoll}
+        family={family}
+        onFamily={onFamily}
         onRoll={onRoll}
         onApply={onApply}
       />

@@ -18,6 +18,7 @@ import { arkPrimaryTarget, pickMothFollowUp, prepareArkIntent } from "../ecoArk/
 import { ARK, isArkMinion } from "../ecoArk/shared";
 import { endBarrage, noteSentryMove } from "../ecoArk/sentry";
 import { clearBurstBuff } from "../ecoArk/burstBuff";
+import { emperorCollapse } from "../bonds/bondTargets";
 
 // 按行动点抽取下一招并开始蓄力(开蓄即扣点); 抽不到 = 本回合停手攒点。
 // firstOfRound: 回合开始的第一次抽招, 必定出招(每回合至少行动一次)。
@@ -188,14 +189,18 @@ export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase
   const grudge = move.kind === "attack" ? applyGrudgeDoll(state, e, move.effects) : null;
   if (grudge?.reversed) primaryId = e.id;
 
+  // 皇帝 8: 本回合第一次纯全体攻击收束为只打生命最高的队友。
+  const collapse = grudge?.reversed ? null : emperorCollapse(state, e, grudge?.effects ?? move.effects);
+  if (collapse) primaryId = collapse.primaryId;
+
   // 在结算前归纳受影响单位(此时目标仍存活, 死掉的目标也应闪特效)
-  const targetIds = grudge?.reversed ? [e.id] : collectMoveTargets(state, e, move, primaryId);
+  const targetIds = grudge?.reversed ? [e.id] : collapse ? [collapse.primaryId] : collectMoveTargets(state, e, move, primaryId);
 
   log(state, `${e.emoji} ${e.name} 使用 ${move.name}`);
   // 凶兆: 在招式结算前判定应验 / 落空; 应验时标记在本次结算期间削弱攻击, 结算后移除。
   ops.prophecyEvent(state, { type: "beforeEnemyAct", enemyId, moveKind: move.kind });
   const moveHitBonus = move.hitBonus ?? 0;
-  const baseEffects = grudge?.effects ?? move.effects;
+  const baseEffects = collapse?.effects ?? grudge?.effects ?? move.effects;
   const effects = moveHitBonus
     ? baseEffects.map((eff) =>
         eff.type === "DAMAGE" && eff.hitBonus == null ? { ...eff, hitBonus: moveHitBonus } : eff,

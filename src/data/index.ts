@@ -27,15 +27,20 @@ export { ASSEMBLE_REWARD_POOLS } from "./cards/alchemist";
 export { CHARACTERS, type CharacterDef } from "./roster/characters";
 export {
   BOND_DEFS,
-  BOND_BIAS,
+  BOND_FAMILIES,
   ROLLABLE_BOND_IDS,
   activeBonds,
+  bondFamilyName,
+  bondIdsOfFamily,
   bondPool,
   getBondDef,
+  mapBondPool,
   mergeMods,
   nextTier,
   rerollBond,
   type BondDef,
+  type BondFamily,
+  type BondFamilyDef,
   type BondTier,
 } from "./roster/bonds";
 export { ENEMIES, isBossEnemyDefId, type EnemyDef, type EnemyMove, type MoveBias, type MoveBiasWhen } from "./enemies";

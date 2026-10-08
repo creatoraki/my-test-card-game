@@ -4,12 +4,12 @@
 
 import type { CSSProperties } from "react";
 import type { BondDef } from "@/data/roster/bonds";
-import { getArcanaAccent } from "@/ui/common/icon/ArcanaIcon";
 import { cx } from "@/ui/common/shared/cx";
 import s from "./BondTag.module.css";
 
+// 羁绊主题色: 同系同色相、系内分明度(见 data/roster/bonds 各定义的 color)。所有羁绊界面统一读这里。
 export function bondAccent(def: BondDef): string {
-  return getArcanaAccent(def.id) ?? def.color;
+  return def.color;
 }
 
 export function BondTag({ def, className }: { def: BondDef; className?: string }) {

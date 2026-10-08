@@ -19,6 +19,7 @@ import { STATUS_DEFS } from "../statuses";
 // ★ 副作用导入: 遗物行为表、伤害管线与预言框架在加载时向 hookRegistry / ops 注册自己(见 hookRegistry.ts),
 //   战斗入口必须保证它们已加载 —— 不能指望别处碰巧先 import 过。
 import "../relics/relicBehaviors";
+import "../bonds/bondBehaviors";
 import "../damage";
 import "../prophecy/prophecy";
 import { allyTempoIds, purgeRoundStatuses, runAllyTempo, runOwnerTempo } from "../combat/statusLifecycle";
@@ -39,9 +40,11 @@ import { exhaustCard } from "../deck/exhaust";
 import { CARD_MARK_DEFS } from "../cards/cardMarks";
 import { availableHand, cardLocked } from "../ecoArk/shared";
 import { clearRoots } from "../ecoArk/resources";
+import { bondManaCarry, hermitRoundEnd, openBondChoices, startBondRound } from "../bonds/bondRound";
+import { playSuspendedCards } from "../bonds/bondAutoPlay";
 export { releaseRoot } from "../ecoArk/resources";
 
-export { canPlay, playBlockReason, playCard } from "./playCard";
+export { bloodPactCostOf, canPlay, playBlockReason, playCard } from "./playCard";
 export type { PlayBlock, PlayRecorder } from "./playCard";
 
 export type { AllyInit, BattleSetup } from "./battleSetup";
@@ -92,6 +95,7 @@ function recoverNotoCards(state: BattleState): void {
 
 export function startRound(state: BattleState): void {
   state.round += 1;
+  const bondExtraDraw = startBondRound(state);
   state.tick = RULES.timeline.startTick;
   purgeRoundStatuses(state);
   clearRoots(state);
@@ -115,7 +119,9 @@ export function startRound(state: BattleState): void {
   log(state, `—— 第 ${state.round} 回合(第 ${state.tick} 时刻)——`);
 
   const rn = RULES.resource.name;
-  state.resources[rn] = partyManaPerRound(state) + (RULES.resource.carryOver ? state.resources[rn] ?? 0 : 0);
+  const leftover = state.round > 1 ? state.resources[rn] ?? 0 : 0;
+  state.resources[rn] = partyManaPerRound(state) +
+    (RULES.resource.carryOver ? leftover : bondManaCarry(state, leftover));
 
   for (const id of state.enemyIds) {
     const e = state.combatants[id] as Enemy;
@@ -126,10 +132,13 @@ export function startRound(state: BattleState): void {
 
   // 状态的回合开始钩子(罗生门等)。★ 必须排在抽牌之前 —— 它们大多是"回合开始时抽牌"。
   runRoundStartHooks(state);
+  // 倒吊人 9: 上回合悬置的牌先于抽牌自动打出。
+  playSuspendedCards(state);
+  if (state.phase !== "player") return;
 
-  // 第 1 回合抽开局张数(5), 之后每回合抽小队抽牌数(2), 均抽到手牌上限为止。
+  // 第 1 回合抽开局张数(5), 之后每回合抽小队抽牌数(2), 均抽到手牌上限为止。隐者 3 补上回合末弃置的张数。
   const limit = partyHandLimit(state);
-  const want = state.round === 1 ? partyOpeningDrawCount(state) : partyDrawCount(state);
+  const want = (state.round === 1 ? partyOpeningDrawCount(state) : partyDrawCount(state)) + bondExtraDraw;
   drawCards(state, Math.max(0, Math.min(want, limit - state.hand.length)));
   firePassive(state, { type: "roundStart" });
   recoverNotoCards(state);
@@ -167,6 +176,11 @@ export function waitTick(state: BattleState, rec?: FxRecorder): boolean {
   state.waitsThisRound += 1;
   runRelicHook(state, "onWait");
   log(state, `⏳ 待机 —— 推进 ${RULES.timeline.waitAdvance} 时刻`);
+  // 倒吊人 9 的悬置选择: 先等玩家选完(或放弃)再推进, 见 choiceResolve.settleDeferredAdvance。
+  if (state.pendingChoice) {
+    state.deferredTickAdvance = RULES.timeline.waitAdvance;
+    return true;
+  }
   withDiscardRecorder(rec, () => advanceTick(state, RULES.timeline.waitAdvance, rec));
   return true;
 }
@@ -180,6 +194,7 @@ export function discardHandCard(state: BattleState, uid: string, rec?: FxRecorde
   log(state, `${card.name} 已丢弃`);
   flushAutoPlays(state, rec);
   checkEnd(state);
+  openBondChoices(state);
   return true;
 }
 
@@ -229,6 +244,8 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
         if (!isPassive(state.cards[cardUid])) moveToDiscard(state, cardUid, "roundEnd");
       }
     }
+    // 隐者 3 / 9: 从手牌最后一张开始弃置, 下回合开始补抽。
+    hermitRoundEnd(state, rec);
     firePassive(state, { type: "roundEnd" }, rec);
     fireRelic(state, { type: "roundEnd" }, rec);
     runRelicHook(state, "onRoundEnd");

@@ -120,6 +120,25 @@ export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
     effects: [],
     onDiscardEffects: [{ type: "COPY_CARD_TO_HAND" }],
   },
+  // 羁绊(星星 3 / 愚者 12)每回合开始挂上的临时标记, 打出或回合结束移除。
+  bondStar: {
+    id: "bondStar",
+    name: "星引",
+    emoji: "✨",
+    desc: "星星·指引：本回合打出时视为速攻，不推进时刻。",
+    effects: [],
+    playsAsFast: true,
+    expiresOnRoundEnd: true,
+  },
+  bondFool: {
+    id: "bondFool",
+    name: "启程",
+    emoji: "🃏",
+    desc: "愚者·启程：本回合费用 -1。",
+    effects: [],
+    costDelta: -1,
+    expiresOnRoundEnd: true,
+  },
   noto: {
     id: "noto",
     name: "纳刀",

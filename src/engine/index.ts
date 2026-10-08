@@ -76,8 +76,10 @@ export {
   resolveChoiceRecorded,
   cancelChoiceRecorded,
   playBlockReason,
+  bloodPactCostOf,
   releaseRoot,
 } from "./battle/battle";
+export { HERMIT_PEEK_SOURCE } from "./bonds/bondRound";
 export { gardenReduces, isGardenProtected } from "./ecoArk/guard";
 export { heldManaTotal } from "./ecoArk/resources";
 export { ARK, cardLocked, availableHand } from "./ecoArk/shared";

@@ -9,6 +9,7 @@
 
 import type { DropEntry, EquipSlot, ItemRarity, ItemStack } from "@/items/types";
 import type { MapDifficulty } from "@/data/maps/mapDifficulty";
+import type { BondFamily } from "@/data/roster/bonds/types";
 import type { Card } from "@/engine";
 
 // cardReplace 不进 boonTable: 它是 cardOffer 掷中后的内部分支(见 core/boons.ts), 不另占掉率。
@@ -94,7 +95,8 @@ export type ExploreEffect =
   | { type: "REFORGE_BOND"; bias?: BondBias }
   | { type: "START_NODE_BATTLE"; tier?: BattleTier; encounterId?: string };
 
-export type BondBias = "offense" | "defense";
+// 重铸偏向 = 羁绊系别(《羁绊重构设计文档》6.1): 选定后只在该系别内重掷。
+export type BondBias = BondFamily;
 
 export interface ChoiceCost {
   itemId: string;

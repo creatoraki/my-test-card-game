@@ -1,5 +1,6 @@
 import type {
   Ally,
+  BattleBond,
   BattleState,
   Card,
   Combatant,
@@ -18,6 +19,7 @@ import { rollChallenges } from "../challenges";
 import { emptyHexPlay } from "../hexer/hexGate";
 import { getEncounter, getEnemyDef, slotDefId } from "@/data";
 import { initializeArkBuffs } from "../ecoArk/passiveBuffs";
+import { createBondRuntime } from "../bonds/bondState";
 
 const isBattleTest = import.meta.env.BattleTest === "true";
 
@@ -42,6 +44,8 @@ export interface BattleSetup {
   squadMods?: SquadResourceMods;
   squadBuffRewardPools?: SquadBuffRewardPools;
   relics?: string[];
+  // 已激活的羁绊(局外按装备计数算好的「id + 档位」), 规则行为见 engine/bonds。
+  bonds?: BattleBond[];
 }
 
 export function createBattleState(
@@ -135,6 +139,7 @@ export function createBattleState(
     enemyIds,
     cards,
     relics: [...new Set(setup.relics ?? [])].map((id) => ({ id, counter: 0 })),
+    bond: createBondRuntime(setup.bonds),
     draw: [],
     hand: [],
     discard: [],

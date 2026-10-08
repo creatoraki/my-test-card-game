@@ -3,6 +3,8 @@
 //     乘区修正 → 命中前 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → 扣血前 → HP → 结算后
 //   固定伤害跳过"防御"与"格挡"两段, 但仍可被护盾吸收。
 // 新机制优先写成状态/遗物钩子, 不要在这里按状态 id 写特判。
+// 钩子可往 dmg.flags 写入的规则改写(羁绊等使用):
+//   mustHit 必中 · noDefense 无视防御(仍判格挡) · noBlock 不判格挡 · pierceShield 无视护盾
 // ============================================================================
 
 import type { BattleState, Combatant, DamageCtx, DamageOpts, DamageResult } from "../types";
@@ -11,7 +13,7 @@ import { rngFloat } from "../core/rng";
 import { critChance, defenseMultiplier, hitChance, statOf } from "../combat/stats";
 import { noteChallengeDamage } from "../challenges";
 import { recordHitPart } from "../core/animHits";
-import { runRelicHook } from "../relics/types";
+import { runRelicHook, type CritChanceInfo } from "../relics/types";
 import { cleanup, ctxFor, log, markDead, ops } from "../core/ops";
 import { STATUS_DEFS } from "../core/hookRegistry";
 import { runGuardHooks, runStatusHooks } from "./hooks";
@@ -44,20 +46,22 @@ function markMissed(dmg: DamageCtx): "missed" {
 // 命中与暴击。返回 false 表示本次攻击落空。
 function rollHitAndCrit(state: BattleState, dmg: DamageCtx, src: Combatant | undefined, target: Combatant, opts: DamageOpts): boolean {
   if (!dmg.isAttack || !src) return true;
-  if (!opts.mustHit && !roll(state, hitChance(state, src, target, opts.hitBonus ?? 0))) {
+  const mustHit = opts.mustHit || dmg.flags.includes("mustHit");
+  if (!mustHit && !roll(state, hitChance(state, src, target, opts.hitBonus ?? 0))) {
     log(state, `${target.emoji} ${target.name} 闪避了这次攻击`);
     return false;
   }
-  const critInfo = { sourceId: src.id, targetId: target.id, bonus: 0 };
+  const critInfo: CritChanceInfo = { sourceId: src.id, targetId: target.id, bonus: 0 };
   runRelicHook(state, "modifyCritChance", critInfo);
   // 目标身上的状态(厄运)给攻击者的暴击率加成。
   for (const inst of target.statuses)
     critInfo.bonus += STATUS_DEFS[inst.id]?.hooks?.modifyIncomingCrit?.(ctxFor(state, target.id, inst), src.id) ?? 0;
   const crit = capProb(critChance(state, src) + critInfo.bonus);
-  if (roll(state, crit)) {
+  if (critInfo.force || roll(state, crit)) {
     dmg.crit = true;
     opts.onCrit?.();
     dmg.amount *= statOf(src, "critDamage") / 100;
+    runRelicHook(state, "onCritRolled", dmg);
   }
   return true;
 }
@@ -65,15 +69,17 @@ function rollHitAndCrit(state: BattleState, dmg: DamageCtx, src: Combatant | und
 function applyDefenseAndBlock(state: BattleState, dmg: DamageCtx, src: Combatant | undefined, target: Combatant): void {
   // ignoreDefense: 无视防御与格挡(万咒归宗); noBlock: 只跳过格挡(恶毒模组)。
   if (dmg.fixed || dmg.flags.includes("ignoreDefense")) return;
-  dmg.amount *= defenseMultiplier(target, src);
+  if (!dmg.flags.includes("noDefense")) dmg.amount *= defenseMultiplier(target, src);
   if (!dmg.flags.includes("noBlock") && roll(state, statOf(target, "blockRate"))) {
     dmg.blockRolled = true;
+    const before = dmg.amount;
     dmg.amount *= RULES.combat.blockReduction;
+    dmg.blockReduced = Math.round(before - dmg.amount);
   }
 }
 
 function absorbByShield(dmg: DamageCtx, target: Combatant, opts: DamageOpts): void {
-  if (opts.unblockable || target.shield <= 0) return;
+  if (opts.unblockable || dmg.flags.includes("pierceShield") || target.shield <= 0) return;
   const absorbed = Math.min(target.shield, dmg.amount);
   target.shield -= absorbed;
   dmg.amount -= absorbed;
@@ -83,7 +89,10 @@ function absorbByShield(dmg: DamageCtx, target: Combatant, opts: DamageOpts): vo
 // 受击后的联动: 荆棘、护盾击破、暴击遗物、同伴受击等。
 function runAfterHit(state: BattleState, dmg: DamageCtx, target: Combatant, shieldBefore: number): void {
   runStatusHooks(state, target.id, "onAfterAttacked", dmg);
-  if (shieldBefore > 0 && target.shield === 0) runStatusHooks(state, target.id, "onShieldBroken", dmg);
+  if (shieldBefore > 0 && target.shield === 0) {
+    runStatusHooks(state, target.id, "onShieldBroken", dmg);
+    runRelicHook(state, "onShieldBroken", dmg, shieldBefore);
+  }
   if (dmg.crit) runRelicHook(state, "onCrit", dmg);
 }
 
@@ -114,6 +123,7 @@ function applyHpLoss(state: BattleState, dmg: DamageCtx, target: Combatant, opts
     target.hpLimit = Math.max(1, target.hp);
   target.hp = target.team === "player" ? Math.max(0, target.hp - dmg.amount) : target.hp - dmg.amount;
   dmg.hpLost = dmg.amount;
+  if (target.team === "enemy" && target.hp < 0) dmg.overkill = -target.hp;
   opts.onDealt?.(dmg.hpLost);
   recordHitPart(target.id, dmg.hpLost, false, dmg.crit, {
     shield: dmg.blocked,
@@ -149,11 +159,12 @@ export function dealDamage(
   runRelicHook(state, "afterDamageModified", dmg);
 
   // ---- 命中前: 状态可直接判定闪避(罗生门)。★ 必须排在命中掷骰之前, 否则会白白消耗一次战斗 RNG ----
+  const amountBeforeHit = dmg.amount;
   if (!opts.pure) runStatusHooks(state, targetId, "onBeforeHitRoll", dmg);
-  if (dmg.missed) return markMissed(dmg);
+  if (dmg.missed) return markDodged(state, dmg, amountBeforeHit);
 
   // ---- 1. 命中 / 2. 暴击 —— 只有"攻击"需要; 无施法者(中毒/荆棘等)直接跳过 ----
-  if (!rollHitAndCrit(state, dmg, src, target, opts)) return markMissed(dmg);
+  if (!rollHitAndCrit(state, dmg, src, target, opts)) return markDodged(state, dmg, amountBeforeHit);
 
   // ---- 3. 防御减伤 / 4. 格挡 / 5. 护盾吸收 ----
   applyDefenseAndBlock(state, dmg, src, target);
@@ -185,5 +196,13 @@ export function dealDamage(
   cleanup(target);
 
   if (target.team !== "player" && target.hp <= 0) markDead(state, target);
+  runRelicHook(state, "afterDamageDealt", dmg);
   return "hit";
+}
+
+// 攻击落空: 先记录落空, 再通知「闪避成功」(正义 6 读取落空前的伤害)。
+function markDodged(state: BattleState, dmg: DamageCtx, amountBefore: number): "missed" {
+  const result = markMissed(dmg);
+  if (dmg.isAttack) runRelicHook(state, "onAttackDodged", dmg, amountBefore);
+  return result;
 }

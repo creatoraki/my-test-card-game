@@ -186,7 +186,8 @@ export type PendingChoice =
       kind: "pickHandCard";
       sourceCardUid: string;
       ownerCharId: string;
-      action: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks" | "grantStarPact" | "graft";
+      // bondSuspend: 倒吊人 9 的悬置(可放弃)。
+      action: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks" | "grantStarPact" | "graft" | "bondSuspend";
       remaining: number;
       followUp?: EffectDescriptor[];
     }
@@ -195,6 +196,8 @@ export type PendingChoice =
       sourceCardUid: string;
       options: string[];
       mark?: string;
+      // true = 选中的牌置于抽牌堆顶而不是加入手牌(隐者 6 的预知)。
+      toTop?: boolean;
     }
   | {
       kind: "pickSquadBuff";

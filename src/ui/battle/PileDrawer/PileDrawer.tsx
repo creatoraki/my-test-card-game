@@ -3,9 +3,13 @@ import { cardCost, starlightPayment, type BattleState, type Card } from "@/engin
 import { HandCard } from "@/ui/common/card/HandCard";
 import s from "./PileDrawer.module.css";
 
-type Pile = "draw" | "discard" | "exhaust";
+type Pile = "draw" | "discard" | "exhaust" | "suspended";
 
-const LABELS: Record<Pile, string> = { draw: "抽牌堆", discard: "弃牌堆", exhaust: "消耗堆" };
+const LABELS: Record<Pile, string> = { draw: "抽牌堆", discard: "弃牌堆", exhaust: "消耗堆", suspended: "悬置区" };
+
+function pileUids(battle: BattleState, pile: Pile): string[] {
+  return pile === "suspended" ? battle.bond?.suspended ?? [] : battle[pile];
+}
 
 interface Props {
   battle: BattleState;
@@ -53,7 +57,7 @@ export function PileDrawer({ battle, pile, uids, title, onClose, choiceMode = fa
   }, [shown, closing, onClose]);
 
   if (!shown) return null;
-  const sourceUids = uids ?? battle[shown];
+  const sourceUids = uids ?? pileUids(battle, shown);
   const pileCards = sourceUids.map((uid) => battle.cards[uid]).filter(Boolean) as Card[];
   const cards = uids ? pileCards : [...pileCards].sort(
     (a, b) => a.name.localeCompare(b.name, "zh-Hans-CN") || a.uid.localeCompare(b.uid),

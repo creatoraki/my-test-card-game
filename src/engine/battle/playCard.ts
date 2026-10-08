@@ -41,6 +41,8 @@ import { cardTickAdvance } from "./playAdvance";
 import { cardLocked } from "../ecoArk/shared";
 import { beginArkAttack, finishArkAttack } from "../ecoArk/guard";
 import { flushArkCardPlayed, queueArkCardPlayed } from "../ecoArk/sentry";
+import { bloodPactHpCost, consumeBondPlay, payWithBloodPact, starReturnsToHand } from "../bonds/bondPlay";
+import { openBondChoices } from "../bonds/bondRound";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
@@ -81,7 +83,19 @@ export function playBlockReason(state: BattleState, uid: string): PlayBlock {
   if (!owner || !owner.alive) return "other";
   if (owner.statuses.some((status) => status.id === "stun" && status.stacks > 0)) return "other";
   if (state.pendingChoice) return "other";
-  return (state.resources[RULES.resource.name] ?? 0) >= manaCostOf(state, card) ? null : "mana";
+  const manaCost = manaCostOf(state, card);
+  if ((state.resources[RULES.resource.name] ?? 0) >= manaCost) return null;
+  // 恶魔 4 · 血契: 只差 1 点法力时可以用生命代付(界面先弹确认, 见 bloodPactCostOf)。
+  return bloodPactHpCost(state, card, manaCost) > 0 ? null : "mana";
+}
+
+/** 打出这张牌需要以多少生命代付 1 点法力; 0 = 法力足够或血契不可用。界面据此弹确认。 */
+export function bloodPactCostOf(state: BattleState, uid: string): number {
+  const card = state.cards[uid];
+  if (!card) return 0;
+  const manaCost = manaCostOf(state, card);
+  if ((state.resources[RULES.resource.name] ?? 0) >= manaCost) return 0;
+  return bloodPactHpCost(state, card, manaCost);
 }
 
 export function canPlay(state: BattleState, uid: string): boolean {
@@ -122,11 +136,17 @@ export function playCard(
 
   const faceCost = cardCost(state, card);
   const starPayment = starlightPayment(state, card);
-  const manaPayment = faceCost - starPayment;
+  // 羁绊对本张牌的改写(力量 9 / 战车 9 视为速攻、恶魔 12 免费计数)。
+  // ★ 必须在 cardCost 读完费用之后、血契扣血之前(扣血会改变恶魔 12 的低血判定)。
+  const bondPlay = consumeBondPlay(state, card);
+  // 恶魔 4 · 血契: 法力差 1 点时由出牌角色以生命代付。
+  const manaPayment = payWithBloodPact(state, card, faceCost - starPayment);
+  if (state.bond) state.bond.play = { touched: [], healAll: false };
   // 流光: 本次出牌视为速攻(不推进时刻, 出牌记录按速攻计入)。
-  let playedType: Card["cardType"] = cardMarksAtPlay.some((markId) => CARD_MARK_DEFS[markId]?.playsAsFast)
-    ? "fast"
-    : card.cardType;
+  let playedType: Card["cardType"] =
+    bondPlay.asFast || cardMarksAtPlay.some((markId) => CARD_MARK_DEFS[markId]?.playsAsFast)
+      ? "fast"
+      : card.cardType;
   // 倒泻每次出牌都要判定: 递减则保留, 否则移除 —— 与这张牌有没有瀑布效果无关。
   const cascadeHolds = evaluateCascade(state, faceCost);
   // 瀑布只看"能打出的手牌" —— 被动卡无费用, 不参与任何费用比较。天顶星放在最后, 前两者成立时不消耗。
@@ -209,7 +229,11 @@ export function playCard(
           state.hand.length < partyHandLimit(state);
         // 咒术师回手：手牌已满时照常进弃牌堆。
         const hexReturns = !returnsToHand && state.hexPlay.returnToHand && state.hand.length < partyHandLimit(state);
+        // 星星 9: 本回合第一张速攻牌回手(不加回手负担)。
+        const starReturns = !returnsToHand && !hexReturns && state.hand.length < partyHandLimit(state) &&
+          starReturnsToHand(state, card, playedType === "fast" || state.hexPlay.asFast);
         if (card.exhaust) exhaustCard(state, uid);
+        else if (starReturns) state.hand.push(uid);
         else if (returnsToHand || hexReturns) {
           state.hand.push(uid);
           const costDelta = returnsToHand ? card.playReturn!.costDelta : 1;
@@ -290,6 +314,7 @@ export function playCard(
   };
   state.lastPlayedCard = played;
   state.playedThisRound.push(played);
+  runRelicHook(state, "onCardPlayRecorded", played);
   noteChallengePlay(state, card, faceCost);
 
   checkEnd(state);
@@ -301,6 +326,8 @@ export function playCard(
   flushArkCardPlayed(state, rec);
   if (!state.pendingChoice) withDiscardRecorder(rec, () => flushAutoPlays(state, rec));
   checkEnd(state);
+  // 隐者 6 的预知: 本张牌的弃牌联动全部结算完, 且没有别的待选时才弹出。
+  openBondChoices(state);
 
   if (state.phase === "player") {
     const touchedIds = [...new Set([...cardHit, ...cardMissed, ...(primaryId ? [primaryId] : [])])];

@@ -8,9 +8,9 @@ export interface ReforgeView {
   notice: string;
 }
 
-export function useReforgeView(stack: ItemStack | null, storage: ItemStack[]): ReforgeView {
+export function useReforgeView(stack: ItemStack | null, storage: ItemStack[], directed = false): ReforgeView {
   const def = stack ? getItemDef(stack.itemId) : null;
-  const check = reforgeCheck(def, storage);
+  const check = reforgeCheck(def, storage, directed);
   const canRoll = Boolean(stack && def?.category === "equipment" && def.affinityRollable && check.ok);
 
   let notice = "选择一件装备重掷它的羁绊。";

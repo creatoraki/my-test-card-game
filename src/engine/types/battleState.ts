@@ -4,6 +4,7 @@ import type { Combatant } from "./combatants";
 import type { StatBlock } from "./stats";
 import type { StatusInstance } from "./statuses";
 import type { ArkBattleState } from "./ecoArk";
+import type { BondRuntime } from "./bonds";
 
 // ---------------------------------------------------------------------------
 // 战斗状态 —— 完全可序列化(无函数), 可 structuredClone / 存 localStorage。
@@ -40,6 +41,8 @@ export interface BattleState {
   cards: Record<string, Card>;
   // 遗物运行态只保存 id 与 every 计数, 定义从 data/items/relics 读取。
   relics: BattleRelic[];
+  // 羁绊: 开战快照的「id + 档位」与各条规则的回合 / 战斗计数(见 engine/bonds)。
+  bond: BondRuntime;
   draw: string[]; // 卡牌 uid
   hand: string[];
   discard: string[];

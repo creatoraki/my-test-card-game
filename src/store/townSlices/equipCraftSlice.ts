@@ -7,6 +7,7 @@ import {
   upgradeCheck,
   upgradeRecipe,
   rerollBond,
+  type BondFamily,
 } from "@/data";
 import { consumeItems } from "@/items/inventory";
 import { upgradeEquipment } from "@/items/equipRoll";
@@ -27,7 +28,8 @@ export interface PendingReforge {
 export interface EquipCraftSlice {
   pendingReforge: PendingReforge | null;
   upgradeEquip: (target: EquipTarget) => void;
-  rollReforge: (target: EquipTarget) => void;
+  // family: 定向重铸的系别(双倍材料); 缺省 = 全池随机。
+  rollReforge: (target: EquipTarget, family?: BondFamily) => void;
   applyReforge: (keepNew: boolean) => void;
 }
 
@@ -95,7 +97,7 @@ export function createEquipCraftSlice(
       });
     },
 
-    rollReforge: (target) => {
+    rollReforge: (target, family) => {
       const state = get();
       if (state.pendingReforge) return;
       const stack = readEquip(state, target);
@@ -103,10 +105,10 @@ export function createEquipCraftSlice(
       const def = getItemDef(stack.itemId);
       if (def.category !== "equipment" || !def.affinityRollable) return;
 
-      const check = reforgeCheck(def, state.storage);
+      const check = reforgeCheck(def, state.storage, Boolean(family));
       if (!check.ok) return;
-      const cost = reforgeCost(itemRegionId(def));
-      const affinity = rerollBond(stack.affinity ?? def.affinity, randomPick);
+      const cost = reforgeCost(itemRegionId(def), Boolean(family));
+      const affinity = rerollBond(stack.affinity ?? def.affinity, randomPick, family);
       if (!affinity) return;
 
       set({

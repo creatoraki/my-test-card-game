@@ -14,6 +14,7 @@ import { cancelPendingChoice, resolvePendingChoice } from "./battleChoices";
 import { flushArkCardPlayed } from "../ecoArk/sentry";
 import { flushAutoPlays } from "../deck/discard";
 import { beginArkAttack, finishArkAttack } from "../ecoArk/guard";
+import { openBondChoices } from "../bonds/bondRound";
 
 export interface ChoiceRecorder extends FxRecorder {
   // 选牌后续效果的命中(含只吃护盾的目标); 没有后续效果时不写。
@@ -40,6 +41,8 @@ export function settleDeferredAdvance(state: BattleState, rec?: FxRecorder): voi
     flushArkCardPlayed(state, rec);
     flushAutoPlays(state, rec);
   });
+  // 隐者 6 的预知可能在选择结算中被触发: 弹出后继续等待, 推进留到它也结算完。
+  openBondChoices(state);
   if (state.pendingChoice) {
     state.deferredTickAdvance = adv;
     return;

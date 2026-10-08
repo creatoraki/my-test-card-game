@@ -8,6 +8,7 @@ import { ops } from "../core/ops";
 import { addMod, attackDamage, healValue, offenseStatOf, statOf } from "../combat/stats";
 import { drawCards } from "../deck/deck";
 import { resolveTargets } from "./effectTargets";
+import { bondRetarget } from "../bonds/bondTargets";
 import { counterOf } from "../combat/counters";
 import { getStatusDef } from "../statuses";
 import { runStatusTickNow } from "../combat/statusLifecycle";
@@ -354,7 +355,8 @@ export function resolveEffects(
   for (const effect of effects) {
     const times = effect.repeatFrom ? Math.max(0, Math.floor(counterOf(state, effect.repeatFrom))) : 1;
     for (let i = 0; i < times; i++) {
-      const targets = filterFullDrawTargets(state, effect, resolveTargets(state, effect, sourceId, primaryId));
+      const resolved = bondRetarget(state, effect, sourceId, resolveTargets(state, effect, sourceId, primaryId));
+      const targets = filterFullDrawTargets(state, effect, resolved);
       mergeResolution(resolution, applyEffect(state, effect, sourceId, targets, primaryId, contextCard));
     }
   }

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { getCharacter, getItemDef } from "@/data";
+import { getCharacter, getItemDef, type BondFamily } from "@/data";
+import { BondFamilyPicker } from "@/ui/common/bond/BondFamilyPicker";
 import type { ExploreState, PendingAction } from "@/explore/types";
 import { serviceFoodCount } from "@/explore/curio/foodPayment";
-import { canTuneEquipment, tuneExploreEquipment, type ExploreEquipmentTarget } from "@/store/explore/exploreGrowthServices";
+import { canTuneEquipment, equipmentTuneCost, tuneExploreEquipment, type ExploreEquipmentTarget } from "@/store/explore/exploreGrowthServices";
 import { GEAR_SLOTS } from "@/items/gearSlots";
 import { useTownStore } from "@/store/town/townStore";
 import type { ItemStack } from "@/items/types";
@@ -16,6 +17,7 @@ export function EquipmentTuneReward({ session, action, onFinish }: {
 }) {
   const characters = useTownStore(state => state.characters);
   const [selected, setSelected] = useState<ExploreEquipmentTarget | null>(null);
+  const [family, setFamily] = useState<BondFamily | null>(null);
   const [hovered, setHovered] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
   const choices: { stack: ItemStack; target: ExploreEquipmentTarget; label: string }[] = [
     ...session.backpack.map(stack => ({ stack, target: { kind: "backpack" as const, uid: stack.uid }, label: "探索背包" })),
@@ -27,6 +29,7 @@ export function EquipmentTuneReward({ session, action, onFinish }: {
   const validSelection = choices.some(choice => choice.stack.uid === selected?.uid);
   const food = serviceFoodCount(session);
   const label = action.mode === "bond" ? "重铸羁绊" : "重置完美度";
+  const cost = action.result ? action.foodCost : equipmentTuneCost(action.foodCost, action.mode === "bond" ? family : null);
   const result = action.result;
   const showItem = (stack: ItemStack, caption: string, target?: ExploreEquipmentTarget) => <div key={`${caption}-${stack.uid}`} className={s.choice}
     onPointerEnter={event => setHovered({ stack, point: tooltipPointFromElement(event.currentTarget) })}
@@ -37,16 +40,17 @@ export function EquipmentTuneReward({ session, action, onFinish }: {
   </div>;
   return <EventPanelStage>
     <EventPanelBody caption={result ? `${label}已完成，可悬浮查看前后变化。`
-      : `${label}消耗任意临期食品 ${action.foodCost} 份，当前持有 ${food} 份。${action.mode === "bond" ? "保留属性与完美度。" : "保留羁绊与负面代价，完美度可能提高或降低。"}`}>
+      : `${label}消耗任意临期食品 ${cost} 份，当前持有 ${food} 份。${action.mode === "bond" ? "保留属性与完美度。" : "保留羁绊与负面代价，完美度可能提高或降低。"}`}>
       {result ? <div className={s.items}>{showItem(result.before, "重置前")}{showItem(result.after, "重置后")}</div>
         : choices.length ? <div className={s.items}>{choices.map(choice => showItem(choice.stack, choice.label, choice.target))}</div>
           : <EventPanelNotice>没有可处理的装备，本次可免费结束。</EventPanelNotice>}
+      {!result && action.mode === "bond" && choices.length > 0 && <BondFamilyPicker value={family} onChange={setFamily} />}
     </EventPanelBody>
     {hovered && <ItemTooltip stack={hovered.stack} point={hovered.point} />}
-    <EventPanelFoot note={result ? `已消耗食品 ×${action.foodCost}` : food < action.foodCost ? "食品不足，可取消，未扣款" : "选择目标后确认才扣款，只有一次机会"}>
+    <EventPanelFoot note={result ? `已消耗食品 ×${action.foodCost}` : food < cost ? "食品不足，可取消，未扣款" : "选择目标后确认才扣款，只有一次机会"}>
       <EventPanelButton onClick={onFinish}>{result ? "完成" : "取消服务"}</EventPanelButton>
-      {!result && <EventPanelButton tone="primary" disabled={!validSelection || food < action.foodCost}
-        onClick={() => { if (selected && tuneExploreEquipment(selected)) setHovered(null); }}>确认{label}</EventPanelButton>}
+      {!result && <EventPanelButton tone="primary" disabled={!validSelection || food < cost}
+        onClick={() => { if (selected && tuneExploreEquipment(selected, family)) setHovered(null); }}>确认{label}</EventPanelButton>}
     </EventPanelFoot>
   </EventPanelStage>;
 }

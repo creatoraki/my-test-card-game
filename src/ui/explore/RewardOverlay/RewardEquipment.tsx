@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { getCharacter, getItemDef } from "@/data";
+import { bondFamilyName, getCharacter, getItemDef, type BondFamily } from "@/data";
 import { GEAR_SLOTS, GEAR_SLOT_LABEL, type GearSet, type GearSlot } from "@/items/gearSlots";
 import type { ItemStack } from "@/items/types";
 import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
@@ -80,7 +80,7 @@ export function ReforgePicker({
 }: {
   backpack: ItemStack[];
   characters: { charId: string; character: { equipped: GearSet } }[];
-  bias?: "offense" | "defense";
+  bias?: BondFamily;
   onBackpack: (uid: string) => void;
   onEquipped: (charId: string, slot: GearSlot) => void;
   onSkip: () => void;
@@ -108,7 +108,7 @@ export function ReforgePicker({
   return (
     <EventPanelStage>
       <EventPanelBody
-        caption={`选择一件装备重铸羁绊${bias ? `，当前偏向${bias === "offense" ? "攻击" : "防御"}` : ""}。`}
+        caption={`选择一件装备重铸羁绊${bias ? `，当前偏向${bondFamilyName(bias)}系` : ""}。`}
       >
         {backpackEquipment.length || equipped.length ? (
           <div className={s["reforge-groups"]}>

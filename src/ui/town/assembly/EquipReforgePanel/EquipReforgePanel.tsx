@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { getItemDef } from "@/data";
+import { getItemDef, type BondFamily } from "@/data";
 import type { ItemStack } from "@/items/types";
 import type { EquipTarget } from "@/store/townSlices/equipCraftSlice";
 import { useTownStore } from "@/store/town/townStore";
@@ -19,6 +19,7 @@ export function EquipReforgePanel() {
   const rollReforge = useTownStore((state) => state.rollReforge);
   const applyReforge = useTownStore((state) => state.applyReforge);
   const [selected, setSelected] = useState<EquipTarget | null>(null);
+  const [family, setFamily] = useState<BondFamily | null>(null);
   const [equipTab, setEquipTab] = useState<import("@/ui/common/item/shared/itemFilters").EquipTab>("all");
   const [hovered, setHovered] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
 
@@ -45,7 +46,7 @@ export function EquipReforgePanel() {
 
   const target = pending?.target ?? selected;
   const current = equipStackOf(storage, characters, target);
-  const view = useReforgeView(current, storage);
+  const view = useReforgeView(current, storage, Boolean(family));
   const selectedKey = pending
     ? equipTargetKey(pending.target)
     : selected
@@ -76,7 +77,9 @@ export function EquipReforgePanel() {
           ? "请选择要保留的羁绊，放弃新羁绊不会返还材料。"
           : view.notice}
         canRoll={view.canRoll}
-        onRoll={() => target && rollReforge(target)}
+        family={family}
+        onFamily={setFamily}
+        onRoll={() => target && rollReforge(target, family ?? undefined)}
         onApply={applyReforge}
         onShowTooltip={showTooltip}
         onHideTooltip={() => setHovered(null)}

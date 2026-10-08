@@ -38,6 +38,7 @@ import { useBattleChoreo } from "./useBattleChoreo";
 import { useFallenNotice } from "./useFallenNotice";
 import { useHandRender } from "./useHandRender";
 import { usePlayback } from "./usePlayback";
+import { useSuspendSkip } from "./useSuspendSkip";
 import { BattleStageLayer } from "./parts/BattleStageLayer";
 import { BattleHudDock } from "./parts/BattleHudDock";
 import { ScreenFxLayer } from "./parts/ScreenFxLayer";
@@ -123,6 +124,8 @@ export function BattleScreen() {
     [playback.fxRate, playback.speed2x],
   );
 
+  useSuspendSkip(battle, playback.animating, actions.skipSuspend);
+
   const aliveEnemyIds = useMemo(
     () => (battle ? battle.enemyIds.filter((id) => battle.combatants[id].alive) : []),
     [battle],
@@ -189,6 +192,7 @@ export function BattleScreen() {
       stripMarks: "请选择要分解的手牌",
       grantStarPact: "请选择要赋予星契的手牌",
       graft: "请选择要嫁接的其他角色手牌",
+      bondSuspend: "倒吊人·悬停：选择 1 张手牌悬置，下回合开始自动打出（右键或 Esc 跳过）",
     };
     showBattleToast(prompts[action] ?? "请选择一张手牌");
   }, [battle?.pendingChoice]);
@@ -332,7 +336,9 @@ export function BattleScreen() {
           battle={battle}
           pile={openPile}
           uids={battle.pendingChoice?.kind === "pickFromDraw" ? battle.pendingChoice.options : undefined}
-          title={battle.pendingChoice?.kind === "pickFromDraw" ? "占星术：选择 1 张加入手牌" : undefined}
+          title={battle.pendingChoice?.kind === "pickFromDraw"
+            ? battle.pendingChoice.toTop ? "隐者·提灯：选择 1 张置于抽牌堆顶" : "占星术：选择 1 张加入手牌"
+            : undefined}
           choiceMode={battle.pendingChoice?.kind === "recoverFromDiscard" || battle.pendingChoice?.kind === "pickFromDraw"}
           onPick={battle.pendingChoice?.kind === "pickFromDraw" ? actions.pickFromDraw : actions.pickFromDiscard}
           onClose={actions.closePile}

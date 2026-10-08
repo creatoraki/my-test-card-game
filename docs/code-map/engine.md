@@ -69,6 +69,21 @@
 
 「本回合」状态(`StatusDef.expiresOnRoundEnd`)在下回合开始时由 `statusLifecycle.purgeRoundStatuses` 统一移除。
 
+## 羁绊
+
+开战时局外把激活羁绊(id + 档位)经 `BattleSetup.bonds` 传入, 写在 `BattleState.bond`(类型见 `types/bonds.ts`)。规则口径见《羁绊重构设计文档》。
+
+| 文件 | 作用 |
+| --- | --- |
+| [bonds/bondBehaviors.ts](../../src/engine/bonds/bondBehaviors.ts) | 汇总六个系别的行为(`bonds/behaviors/*`)并注册进 `hookRegistry.BOND_BEHAVIORS`; `relics/types.runRelicHook` 在遗物之后按档位派发, 时点与遗物共用。 |
+| [bonds/bondState.ts](../../src/engine/bonds/bondState.ts) | 运行态创建与每回合计数重置、档位查询、重攻 / 攻击牌判定等小工具。 |
+| [bonds/bondPlay.ts](../../src/engine/bonds/bondPlay.ts) | 出牌改写: 力量 9 / 恶魔 12 的费用(`cards/cost` 读取)、力量 9 / 战车 9 视为速攻、星星 9 回手、恶魔 4 血契代付、隐者 9 主动弃牌触发。 |
+| [bonds/bondRound.ts](../../src/engine/bonds/bondRound.ts) | 回合边界: 魔术师法力结转、隐者回合末弃末张与下回合补抽、隐者 6 预知选择(当前动作结算完才弹出)。 |
+| [bonds/bondTargets.ts](../../src/engine/bonds/bondTargets.ts) | 目标改写: 女祭司 9 单体治疗变全体(`effects.resolveEffects`)、皇帝 8 群攻收束(`enemy/ai`)。 |
+| [bonds/bondAutoPlay.ts](../../src/engine/bonds/bondAutoPlay.ts) | 羁绊自动出牌: 命运之轮 9 翻抽牌堆顶、倒吊人 9 悬置区(回合开始先于抽牌)。0 费、不推进时刻。 |
+
+伤害管线可由钩子写入 `dmg.flags` 的规则改写: `mustHit` / `noDefense` / `noBlock` / `pierceShield`; 新增时点 `onCritRolled`、`afterDamageDealt`、`onAttackDodged`、`onShieldBroken`、`afterStatusApplied`、`afterEnemyDeath`、`onTickAdvanced`(回合末清算不触发)、`onCardPlayRecorded`、`onCardDiscarded`。
+
 ## 伤害与状态
 
 | 文件 | 作用 |

@@ -36,7 +36,7 @@ export function SquadBondBar({
       aria-label="队伍羁绊"
     >
       {bonds.length === 0 ? (
-        <p className={s.empty}>暂无羁绊词条</p>
+        <p className={s.empty}>装备上的色签就是羁绊，同名凑满 3 / 4 / 6 件即可激活</p>
       ) : (
         <div className={s.items}>
           {bonds.map(({ def, count, tierIndex }) => {

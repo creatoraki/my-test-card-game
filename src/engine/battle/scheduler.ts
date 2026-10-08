@@ -10,6 +10,9 @@ import { runTick } from "../combat/statusLifecycle";
 import { actAndRecord } from "../enemy/ai";
 import { noteChallengeEnemyAct } from "../challenges";
 import { tickBarrages } from "../ecoArk/sentry";
+import { runRelicHook } from "../relics/types";
+
+let roundEndFlush = false;
 
 // 推进 n 个时刻。每推进 1 时刻, 结算所有 nextActTick <= tick 的存活敌人。
 // fx 存在时, 每次敌人行动与其引发的弃牌触发按真实发生顺序记录。
@@ -21,6 +24,9 @@ export function advanceTick(state: BattleState, n: number, fx?: FxRecorder): voi
     tickBarrages(state, fx);
     // 时刻推进被动(漏刻): 排在到点敌人行动之前, 本拍上的咒对随后出手的敌人已生效。
     ops.firePassive(state, { type: "tickAdvanced" }, fx);
+    // 羁绊(命运之轮)的时刻里程碑: 同样排在到点敌人行动之前。
+    // 回合结束清算剩余招式时的推进不算玩家「让时间流逝」, 不触发。
+    if (!roundEndFlush) runRelicHook(state, "onTickAdvanced");
     if (state.phase !== "player") return;
     resolveDueEnemies(state, fx);
     checkEnd(state);
@@ -52,14 +58,19 @@ function resolveDueEnemies(state: BattleState, fx?: FxRecorder): void {
 // 回合结束时清算所有仍在蓄力的招式。使用真实时刻推进, 以保持 runTick 生命周期口径一致。
 export function flushPendingActs(state: BattleState, fx?: FxRecorder): void {
   let guard = 0;
-  while (state.phase === "player") {
-    const hasPending = state.enemyIds.some((id) => {
-      const enemy = state.combatants[id] as Enemy;
-      return enemy.alive && (enemy.nextActTick != null || Boolean(enemy.ark?.barrage));
-    });
-    if (!hasPending) return;
+  roundEndFlush = true;
+  try {
+    while (state.phase === "player") {
+      const hasPending = state.enemyIds.some((id) => {
+        const enemy = state.combatants[id] as Enemy;
+        return enemy.alive && (enemy.nextActTick != null || Boolean(enemy.ark?.barrage));
+      });
+      if (!hasPending) return;
 
-    advanceTick(state, 1, fx);
-    if (++guard > 999) return;
+      advanceTick(state, 1, fx);
+      if (++guard > 999) return;
+    }
+  } finally {
+    roundEndFlush = false;
   }
 }

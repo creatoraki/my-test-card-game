@@ -38,6 +38,7 @@ export const RULES = {
       roundEnd: { trigger: false, count: false },
       passiveEnd: { trigger: false, count: false },
       play: { trigger: false, count: false },
+      bond: { trigger: false, count: true },
     },
   },
 

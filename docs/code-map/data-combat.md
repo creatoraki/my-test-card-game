@@ -46,5 +46,5 @@
 | [cardModules/character.ts](../../src/data/cardModules/character.ts) | 角色关键词模组：在研究中心制造，只能装到非制造者角色的卡上。 |
 | [cardModules/genericT1.ts](../../src/data/cardModules/genericT1.ts) | 1 阶通用模组：只能从战斗掉落，只看卡牌的结构条件。 |
 | [moduleCrafting.ts](../../src/data/crafting/moduleCrafting.ts) | 模组制造配方：消耗角色经验和仓库材料，并提供制造前的检查。 |
-| [bonds.ts](../../src/data/roster/bonds.ts) | 羁绊：由上阵队伍 9 个装备槽上的羁绊标签驱动的全队加成，包括分级、重铸和激活计算。 |
+| [bonds/](../../src/data/roster/bonds/index.ts) | 羁绊：18 条规则型羁绊(三份定义按系别成对拆分)、六个系别与地图掉落偏向(`families.ts`)、激活计算、系别重铸池与地图加权掉落池。规则行为在 `engine/bonds`。 |
 | [squadTalents.ts](../../src/data/roster/squadTalents.ts) | 小队徽章和天赋节点图：路径、花费、激活与退还的判定（训练室的数据真相点）。 |

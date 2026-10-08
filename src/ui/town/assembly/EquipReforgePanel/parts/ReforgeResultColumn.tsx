@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import type { ItemDef, ItemStack } from "@/items/types";
 import type { PendingReforge } from "@/store/townSlices/equipCraftSlice";
 import { EquipAction, EquipGainHead } from "../../EquipParts";
+import type { BondFamily } from "@/data";
 import { BondCard } from "./BondCard";
+import { BondFamilyPicker } from "@/ui/common/bond/BondFamilyPicker";
 import s from "./ReforgeResultColumn.module.css";
 
 interface Props {
@@ -11,6 +13,8 @@ interface Props {
   pending: PendingReforge | null;
   notice: string;
   canRoll: boolean;
+  family: BondFamily | null;
+  onFamily: (family: BondFamily | null) => void;
   onRoll: () => void;
   onApply: (keepNew: boolean) => void;
 }
@@ -21,6 +25,8 @@ export function ReforgeResultColumn({
   pending,
   notice,
   canRoll,
+  family,
+  onFamily,
   onRoll,
   onApply,
 }: Props) {
@@ -58,7 +64,10 @@ export function ReforgeResultColumn({
           />
         </div>
       ) : (
-        <BondCard bondId={affinityId} />
+        <>
+          <BondCard bondId={affinityId} />
+          {def && <BondFamilyPicker value={family} onChange={onFamily} />}
+        </>
       )}
 
       <EquipAction

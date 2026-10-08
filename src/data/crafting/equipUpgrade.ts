@@ -74,12 +74,13 @@ export function upgradeCheck(nextDef: ItemDef, loot: number, storage: ItemStack[
   return { loot: lootCheck, materials, ok: lootCheck.ok && materials.every((material) => material.ok) };
 }
 
-export function reforgeCost(regionId = DEFAULT_REGION_ID): MaterialCost {
-  return { itemId: regionalMaterial(regionId, "boss").id, count: 1 };
+// 定向重铸(指定系别)消耗双倍材料; 不限系别时全池随机, 价格更低(《羁绊重构设计文档》6.1)。
+export function reforgeCost(regionId = DEFAULT_REGION_ID, directed = false): MaterialCost {
+  return { itemId: regionalMaterial(regionId, "boss").id, count: directed ? 2 : 1 };
 }
 
-export function reforgeCheck(def: ItemDef | null, storage: ItemStack[]): CostCheck {
-  const cost = reforgeCost(def ? itemRegionId(def) : DEFAULT_REGION_ID);
+export function reforgeCheck(def: ItemDef | null, storage: ItemStack[], directed = false): CostCheck {
+  const cost = reforgeCost(def ? itemRegionId(def) : DEFAULT_REGION_ID, directed);
   const have = countByItemId(storage, cost.itemId);
   const material = {
     itemId: cost.itemId,

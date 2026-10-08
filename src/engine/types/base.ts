@@ -21,7 +21,8 @@ export type DiscardReason =
   | "redraw"
   | "roundEnd"
   | "play"
-  | "passiveEnd"; // 回合结束把手牌里的被动卡收进弃牌堆; 不计数也不触发弃牌联动
+  | "passiveEnd" // 回合结束把手牌里的被动卡收进弃牌堆; 不计数也不触发弃牌联动
+  | "bond"; // 羁绊规则的弃牌(隐者回合末): 计入弃牌数, 不触发被弃置效果
 export type CounterSource =
   | "discardsThisRound"
   | "fastPlaysThisRound"

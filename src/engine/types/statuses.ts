@@ -55,6 +55,9 @@ export interface DamageCtx {
   downed?: boolean; // 目标处于我方濒死态, 本次伤害触发死亡骰
   fatal?: boolean; // 濒死死亡骰命中
   keepHpLimit?: boolean; // 由 onBeforeHpLoss 设置: 本次扣血不压低体力极限
+  dot?: boolean; // 持续伤害(中毒 / 灼烧 / 痛楚等, 即 noLimitLoss 的伤害)
+  blockReduced?: number; // 格挡成功时被减掉的伤害量
+  overkill?: number; // 敌人被这次伤害打到负血的溢出量(击杀时才有)
 }
 
 export interface HealCtx {

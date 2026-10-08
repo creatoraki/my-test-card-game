@@ -20,7 +20,7 @@ export const GROWTH_CURIOS = {
   },
   bondWorkbench: {
     name: "羁绊重铸台", role: "service", verb: "重铸", size: 210,
-    description: `消耗任意临期食品 ${balance.bondFood} 份，重新随机一条装备羁绊。装备属性和完美度保持不变，选择装备后才扣款。`,
+    description: `消耗任意临期食品 ${balance.bondFood} 份，重新随机一条装备羁绊；指定系别时只在该系别内重掷，消耗翻倍。装备属性和完美度保持不变，选择装备后才扣款。`,
     decisions: [{ id: "bond", label: "选择装备重铸羁绊", story: "重铸台开始读取装备接口，等待小队指定目标。",
       effects: [{ type: "TUNE_EQUIPMENT", mode: "bond", foodCost: balance.bondFood }] }],
   },

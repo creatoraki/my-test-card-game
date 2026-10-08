@@ -1,6 +1,7 @@
 import { useCallback, type Dispatch, type SetStateAction } from "react";
 import type { BattleState } from "@/engine";
-import { avidyaPickCount, effectiveTargeting, playBlockReason } from "@/engine";
+import { avidyaPickCount, bloodPactCostOf, effectiveTargeting, playBlockReason } from "@/engine";
+import { confirm } from "@/ui/common/control/ConfirmDialog";
 import { cardAnim } from "@/ui/battle/choreo/animations";
 import { useBattleStore, type ChoicePlan, type EndPlan } from "@/store/battle/battleStore";
 import { playSfx } from "@/ui/audio";
@@ -48,6 +49,7 @@ export interface BattleActionsApi {
   pickHandCard: (uid: string) => void;
   pickSquadBuff: (id: string) => void;
   cancelSquadBuff: () => void;
+  skipSuspend: () => void;
   closePile: () => void;
 }
 
@@ -205,13 +207,30 @@ export function useBattleActions({
     }
     const card = battle.cards[uid];
     const targeting = effectiveTargeting(card);
-    if (targeting === "foe" || targeting === "ally" || targeting === "any") {
-      const selecting = selectedUid !== uid;
-      setSelectedUid(selecting ? uid : null);
-      if (selecting) playSfx("cardSelect");
-    } else {
-      triggerPlay(uid);
+    const proceed = () => {
+      if (targeting === "foe" || targeting === "ally" || targeting === "any") {
+        const selecting = selectedUid !== uid;
+        setSelectedUid(selecting ? uid : null);
+        if (selecting) playSfx("cardSelect");
+      } else {
+        triggerPlay(uid);
+      }
+    };
+    // 恶魔·契约(血契): 法力只差 1 点时, 先确认是否以生命代付再进入选目标 / 出牌。
+    const bloodCost = selectedUid === uid ? 0 : bloodPactCostOf(battle, uid);
+    if (bloodCost > 0) {
+      const owner = battle.combatants[card.ownerCharId];
+      confirm({
+        title: "恶魔·契约",
+        text: `法力还差 1 点。是否由${owner?.name ?? "出牌角色"}支付 ${bloodCost} 点生命代替？`,
+        detail: "血契每回合只能使用 1 次，不会因此进入濒死。",
+        confirmLabel: "以生命支付",
+        danger: true,
+        onConfirm: proceed,
+      });
+      return;
     }
+    proceed();
   }, [avidyaPick, battle, handAction, pickAvidyaCard, pickChoice, playback.animating, selectedUid, setSelectedUid, triggerPlay]);
 
   const onCombatantClick = useCallback((id: string) => {
@@ -253,6 +272,15 @@ export function useBattleActions({
     cancelChoice();
   }, [battle, cancelChoice]);
 
+  // 倒吊人·悬停的悬置是「可以选择」: 允许跳过, 跳过后补上待机的时刻推进。
+  const skipSuspend = useCallback(() => {
+    if (battle?.pendingChoice?.kind !== "pickHandCard" || battle.pendingChoice.action !== "bondSuspend") return;
+    if (cancelChoice()) {
+      resetHandHover();
+      showBattleToast("已跳过悬置");
+    }
+  }, [battle, cancelChoice]);
+
   const closePile = useCallback(() => {
     if (battle?.pendingChoice?.kind === "recoverFromDiscard" || battle?.pendingChoice?.kind === "pickFromDraw") {
       if (!cancelChoice()) return;
@@ -271,6 +299,7 @@ export function useBattleActions({
     pickHandCard,
     pickSquadBuff,
     cancelSquadBuff,
+    skipSuspend,
     closePile,
   };
 }

@@ -7,13 +7,15 @@ export function createDamageCtx(
   sourceId: string | undefined,
   targetId: string,
   amount: number,
-  opts: Pick<DamageOpts, "flags" | "isAttack" | "fixed" | "single" | "guarded">,
+  opts: Pick<DamageOpts, "flags" | "isAttack" | "fixed" | "single" | "guarded" | "noLimitLoss">,
 ): DamageCtx {
   return {
     sourceId,
     targetId,
     amount,
-    flags: opts.flags ?? [],
+    // 复制一份: 钩子会往本次伤害的 flags 里追加规则改写, 不能写回效果描述符。
+    flags: [...(opts.flags ?? [])],
+    dot: opts.noLimitLoss === true,
     isAttack: opts.isAttack ?? false,
     fixed: opts.fixed ?? false,
     single: opts.single ?? false,
