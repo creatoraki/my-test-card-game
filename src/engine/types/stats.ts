@@ -20,7 +20,7 @@ export interface StatBlock {
   dodgeRate: number; // 闪避率(百分点, 最终值 70 封顶)
   critRate: number; // 暴击率(百分点, 最终值 70 封顶)
   critDamage: number; // 爆伤(百分点, 150 = 暴击伤害为 1.5 倍)
-  precision: number; // 精准(百分点, 只抵消目标闪避, 不封顶)
+  precision: number; // 精准(百分点, 只抵消目标格挡率, 不参与命中; 负重扣减后下限 0)
   // 节奏 / 防护 / 异常
   initiative: number; // 先手: 敌人招式发动时刻 = max(1, 招式延迟 + 我方均值 − 敌方先手)
   blockRate: number; // 格挡率(百分点, 最终值 70 封顶); 成功则本次伤害 ×RULES.combat.blockReduction

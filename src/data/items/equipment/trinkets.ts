@@ -5,7 +5,7 @@ const TRINKET_FAMILIES: EquipFamily[] = [
   {
     familyId: "tactical-goggles",
     name: "战术目镜",
-    desc: "以精准和命中率为核心，稳定突破敌方闪避。",
+    desc: "以命中率和精准为核心，稳定突破敌方闪避与格挡。",
     affixes: ["precision", "hitRate"],
   },
   {

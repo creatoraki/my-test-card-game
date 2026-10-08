@@ -30,7 +30,7 @@ export const SERVICE_CURIOS = {
     role: "service",
     verb: "查看",
     size: 220,
-    description: "货商把一辆旧推车停在房间角落，六个货架格位里摆着装备、卡牌和奇怪的补给。",
+    description: "货商把一辆香料交换车停在房间角落，六个货架格位里摆着装备、卡牌和奇怪的补给。",
     persistent: true,
     decisions: [],
   },

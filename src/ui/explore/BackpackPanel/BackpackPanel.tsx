@@ -186,7 +186,7 @@ export default function BackpackPanel({
               <div className={s["bp-detail"]}>
                 <ItemDetail
                   stack={sel}
-                  placeholder="背包里的东西都会占格子——每 4 格让全队命中降 1%，每 2 格让闪避和精准各降 1%。"
+                  placeholder="背包里的东西都会占格子——每 2 格让全队命中、闪避、精准各降 1%（命中与精准最多各降 10%）。"
                 >
                   {sel && selDef && (
                     <>

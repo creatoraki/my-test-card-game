@@ -4,32 +4,32 @@ import type { CurioDef } from "../types";
 
 export const CRAFT_CURIOS = {
   modBench: {
-    name: "街边改装台",
+    name: "赤铜锻造台",
     role: "loot",
-    verb: "改装",
+    verb: "锻造",
     size: 205,
-    description: "改装台的工具仍然锋利，台面上还留着可识别的加工协议，也能把三件装备熔成一件。",
+    description: "锻造台的炉火仍在低声燃烧，铁砧旁留着还能用的零件，也能把三件装备熔铸成一件。",
     decisions: [
       {
         id: "salvage",
-        label: "取下台面零件",
-        story: "执行者赶在机械臂复位前，抢下了台面上的零件。",
+        label: "取下铁砧旁的零件",
+        story: "执行者赶在风箱拉杆回弹前，抢下了铁砧旁的零件。",
         effects: [{ type: "GAIN_POOL_ITEM", pool: "generalMaterial", count: 1 }],
         failure: fail(
           0.4,
-          "改装台的机械臂突然夹紧，执行者的手被夹出一道血痕。",
+          "挂在工具壁上的铁钳突然滑落，执行者的手被夹出一道血痕。",
           [{ type: "DAMAGE_MEMBER_PERCENT", target: "actor", percent: 0.08 }],
           byJob("swordsman", {
             chanceDelta: -0.25,
             bonusEffects: [{ type: "GAIN_POOL_ITEM", pool: "generalMaterial", count: 1 }],
-            note: "剑士卡住了机械臂的关节，多拆下一份零件",
+            note: "剑士卡住了风箱拉杆，多拆下一份零件",
           }),
         ),
       },
       feedDecision(
         "feedBeetle",
-        "喂给工具槽里的甲虫",
-        "甲虫吃饱后钻进夹层，把一枚随机模组推了出来。",
+        "喂给工具壁里的甲虫",
+        "甲虫吃饱后钻进工具壁的夹层，把一枚随机模组推了出来。",
         "beetle",
         2,
         [{ type: "GAIN_POOL_ITEM", pool: "module", count: 1 }],
@@ -37,34 +37,34 @@ export const CRAFT_CURIOS = {
       {
         id: "fuseEquipment",
         label: "选择三件装备熔合",
-        story: "三件装备被依次锁进改装台，熔炉开始把它们压缩成一件更高阶的装备。",
+        story: "三件装备被依次投进炉膛，炉火开始把它们熔铸成一件更高阶的装备。",
         select: [[{ match: { category: "equipment" }, count: 3 }]],
         effects: [{ type: "FUSE_EQUIPMENT" }],
       },
     ],
   },
   shrine: {
-    name: "路边神龛",
+    name: "潮汐祈愿门",
     role: "service",
     verb: "祈愿",
     size: 190,
-    description: "神龛里的电子烛火仍在燃烧。它接受遗物，也接受一枚最普通的硬币作为回应。",
+    description: "珊瑚拱门里的潮水从未退去。它接受遗物，也接受一枚最普通的硬币作为回应。",
     decisions: [
       {
         id: "pray",
-        label: "触碰烛火",
-        story: "烛火短暂地照亮了队伍，神龛只从口袋里取走了一枚铜币。",
+        label: "触碰潮水",
+        story: "潮水短暂地漫过队伍的脚踝，祈愿门只从口袋里取走了一枚铜币。",
         effects: [
           { type: "CONSUME_ITEM", itemId: "copper-coin", count: 1 },
           { type: "ADJUST_POLLUTION", target: "party", amount: -8 },
         ],
         failure: fail(
           0.3,
-          "烛火忽然转成暗红，一股阴冷顺着执行者的手臂爬了上来。",
+          "潮水忽然转成暗红，一股阴冷顺着执行者的手臂爬了上来。",
           [{ type: "ADJUST_POLLUTION", target: "actor", amount: 12 }],
           byJob("prophet", {
             convert: {
-              story: "烛火变色的一刻，预言家听见了神龛背后的城市脉搏，完整地图和所有战斗与陷阱位置被同时揭示。",
+              story: "潮水变色的一刻，预言家听见了拱门背后的潮汐脉搏，完整地图和所有战斗与陷阱位置被同时揭示。",
               effects: [{ type: "REVEAL_MAP", threats: true }],
             },
           }),
@@ -73,7 +73,7 @@ export const CRAFT_CURIOS = {
       {
         id: "tradeRelic",
         label: "选择祝福遗物献上",
-        story: "神龛回应了遗物的光芒，远处更高阶的祝福正在向这里靠近。",
+        story: "祈愿门回应了遗物的光芒，更高阶的祝福正随潮水向这里靠近。",
         select: [[{ match: { relicPolarity: "blessing" }, count: 1 }]],
         effects: [{ type: "UPGRADE_RELIC" }],
       },

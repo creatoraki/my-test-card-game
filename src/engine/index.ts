@@ -27,6 +27,8 @@ export {
   damageMasteryOf,
   statOf,
   hitChance,
+  blockChance,
+  effectivePrecision,
   critChance,
   burdenOf,
   defenseMultiplier,

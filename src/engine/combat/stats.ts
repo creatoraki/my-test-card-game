@@ -143,10 +143,9 @@ export function burdenOf(state: BattleState, cmb: Combatant): number {
   return cmb.team === "player" ? state.burden : 0;
 }
 
-// 命中概率(百分点, 已截断到 5%~100%)。攻击方 vs 防御方各出一半属性。
-// ★ 负重的三项惩罚都减在 statOf **之后** —— capProb 会把闪避的下限截到 0,
-//   先扣再进 statOf 会被那条下限吞掉; 精准不封顶, 被压成负值后会反向放大目标闪避,
-//   对 0 闪避的目标也等效为一次额外的命中惩罚, 这是设计上有意保留的叠加。
+// 命中概率(百分点, 已截断到 5%~100%)。命中 = 基础 + 攻击方命中率 − 目标闪避 − 负重命中惩罚。
+// ★ 精准不参与命中 —— 它只抵消格挡(见 blockChance)。
+// ★ 负重惩罚都减在 statOf **之后** —— capProb 会把闪避的下限截到 0, 先扣再进 statOf 会被那条下限吞掉。
 export function hitChance(
   state: BattleState,
   attacker: Combatant,
@@ -154,17 +153,25 @@ export function hitChance(
   bonusPct = 0,
 ): number {
   const c = RULES.combat;
-  const precision =
-    statOf(attacker, "precision") - burdenPrecisionPenalty(burdenOf(state, attacker));
-  const dodge = statOf(defender, "dodgeRate") - burdenDodgePenalty(burdenOf(state, defender));
-  const effectiveDodge = Math.max(0, dodge - precision);
+  const dodge = Math.max(0, statOf(defender, "dodgeRate") - burdenDodgePenalty(burdenOf(state, defender)));
   const raw =
     c.baseHitChance +
-    statOf(attacker, "hitRate") +
-    -effectiveDodge -
+    statOf(attacker, "hitRate") -
+    dodge -
     burdenHitPenalty(burdenOf(state, attacker)) +
     bonusPct;
   return Math.max(c.hitFloorPct, Math.min(c.hitCeilPct, raw));
+}
+
+// 攻击方的有效精准: 面板精准 − 负重精准惩罚, 下限 0 —— 负重只会抵掉精准, 不会反向放大目标格挡。
+export function effectivePrecision(state: BattleState, attacker: Combatant): number {
+  return Math.max(0, statOf(attacker, "precision") - burdenPrecisionPenalty(burdenOf(state, attacker)));
+}
+
+// 格挡概率(百分点): 目标格挡率(已截到 0~70) − 攻击方有效精准, 下限 0。无攻击者(持续伤害等)按面板值。
+export function blockChance(state: BattleState, attacker: Combatant | undefined, defender: Combatant): number {
+  const precision = attacker ? effectivePrecision(state, attacker) : 0;
+  return Math.max(0, statOf(defender, "blockRate") - precision);
 }
 
 // 暴击概率(百分点)。保留独立 helper 供 ops 与 UI 使用。
@@ -264,7 +271,7 @@ export function burdenValue(occupiedSlots = 0, partyBurdenAdapt = 0): number {
 }
 
 export function burdenHitPenalty(burden: number): number {
-  return Math.floor(burden / RULES.burden.hitPer);
+  return Math.min(RULES.burden.hitMax, Math.floor(burden / RULES.burden.hitPer));
 }
 
 export function burdenDodgePenalty(burden: number): number {
@@ -272,7 +279,7 @@ export function burdenDodgePenalty(burden: number): number {
 }
 
 export function burdenPrecisionPenalty(burden: number): number {
-  return Math.floor(burden / RULES.burden.precisionPer);
+  return Math.min(RULES.burden.precisionMax, Math.floor(burden / RULES.burden.precisionPer));
 }
 
 // 敌人面板基线。★ 怪物的基础命中与基础格挡在这里并入, 不在 hitChance 里做阵营特判 ——

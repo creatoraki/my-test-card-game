@@ -10,7 +10,7 @@
 import type { BattleState, Combatant, DamageCtx, DamageOpts, DamageResult } from "../types";
 import { RULES, capProb } from "../core/battleRules";
 import { rngFloat } from "../core/rng";
-import { critChance, defenseMultiplier, hitChance, statOf } from "../combat/stats";
+import { blockChance, critChance, defenseMultiplier, hitChance, statOf } from "../combat/stats";
 import { noteChallengeDamage } from "../challenges";
 import { recordHitPart } from "../core/animHits";
 import { runRelicHook, type CritChanceInfo } from "../relics/types";
@@ -70,7 +70,7 @@ function applyDefenseAndBlock(state: BattleState, dmg: DamageCtx, src: Combatant
   // ignoreDefense: 无视防御与格挡(万咒归宗); noBlock: 只跳过格挡(恶毒模组)。
   if (dmg.fixed || dmg.flags.includes("ignoreDefense")) return;
   if (!dmg.flags.includes("noDefense")) dmg.amount *= defenseMultiplier(target, src);
-  if (!dmg.flags.includes("noBlock") && roll(state, statOf(target, "blockRate"))) {
+  if (!dmg.flags.includes("noBlock") && roll(state, blockChance(state, src, target))) {
     dmg.blockRolled = true;
     const before = dmg.amount;
     dmg.amount *= RULES.combat.blockReduction;

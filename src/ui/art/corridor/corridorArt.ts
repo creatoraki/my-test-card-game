@@ -1,16 +1,8 @@
 import blacksmithArt from "@/assets/explore-corridor/公共NPC/锻造师.webp";
-import corridorSafeArt from "@/assets/explore-corridor/废弃楼层/可交互物体/保险箱.webp";
-import corridorMerchantArt from "@/assets/explore-corridor/废弃楼层/可交互物体/货商.webp";
 import corridorVendingArt from "@/assets/explore-corridor/废弃楼层/可交互物体/贩卖机.webp";
-import corridorRemainsArt from "@/assets/explore-corridor/废弃楼层/可交互物体/遗骸.webp";
 import corridorCompactorArt from "@/assets/explore-corridor/废弃楼层/可交互物体/压缩舱.webp";
-import corridorMedicalArt from "@/assets/explore-corridor/废弃楼层/可交互物体/医疗柜.webp";
 import corridorSinkArt from "@/assets/explore-corridor/废弃楼层/可交互物体/净水槽.webp";
-import corridorRepairPodArt from "@/assets/explore-corridor/废弃楼层/可交互物体/修复舱.webp";
-import corridorModBenchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/改装台.webp";
-import corridorShrineArt from "@/assets/explore-corridor/废弃楼层/可交互物体/神龛.webp";
 import corridorDispatchArt from "@/assets/explore-corridor/公共交互物/羽翼信使.webp";
-import corridorCrystalVeinArt from "@/assets/explore-corridor/废弃楼层/可交互物体/矿脉.webp";
 import corridorFarArt from "@/assets/explore-corridor/废弃楼层/无限远景.webp";
 import neonCityNear1Art from "@/assets/explore-corridor/废弃楼层/近景/近景1.webp";
 import neonCityNear2Art from "@/assets/explore-corridor/废弃楼层/近景/近景2.webp";
@@ -20,6 +12,7 @@ import type { CurioKind } from "@/explore/corridor/types";
 import { ECO_ARK_SCENERY, ECO_ARK_SCENERY_SOURCES } from "../ecoArk/ecoArkScenery";
 import { ECO_ARK_NEAR_ART } from "../ecoArk/ecoArkNearArt";
 import { ECO_ARK_PROP_ART } from "../ecoArk/ecoArkPropArt";
+import { COMMON_PROP_ART } from "./commonPropArt";
 import { sizeCorridorProp } from "./corridorPropSizing";
 
 export { CORRIDOR_PROP_BASE_SCALE } from "./corridorPropSizing";
@@ -33,7 +26,7 @@ export interface CorridorPropArt {
   groundTrim: number;
 }
 
-/** 废弃楼层专属背景与物件素材登记；每类交互物使用自己的透明 PNG。 */
+/** 废弃楼层专属背景登记；交互物素材见下方 CORRIDOR_PROP_ART。 */
 export const CORRIDOR_FAR_ART = corridorFarArt;
 export const CORRIDOR_NEAR_ART: Record<NearMapVariant, string> = {
   ...ECO_ARK_NEAR_ART,
@@ -47,57 +40,22 @@ export function getCorridorFarArt(mapId: string | undefined): string {
 }
 
 /**
- * 废弃楼层交互物按主体高度对齐角色身高分档(小 70% / 中 135% / 大 170%)。
+ * 交互物按主体高度对齐角色身高分档(小 70% / 中 135% / 大 170%)。
  * 边界为素材不透明区域的上下像素，换图后需重新测量。
+ * 通用事件池素材登记在 commonPropArt.ts；这里只保留羽翼信使与废弃楼层专属陷阱。
  * 房间传送门与首领红门由着色器绘制(ui/art/portal)，不在此登记。
  */
-const SAFE = sizeCorridorProp(corridorSafeArt, { width: 400, height: 400, top: 26, bottom: 381 }, "medium");
-const REMAINS = sizeCorridorProp(corridorRemainsArt, { width: 400, height: 400, top: 11, bottom: 380 }, "medium");
-const MEDICAL = sizeCorridorProp(corridorMedicalArt, { width: 400, height: 400, top: 19, bottom: 384 }, "medium");
-const VENDING = sizeCorridorProp(corridorVendingArt, { width: 400, height: 400, top: 4, bottom: 386 }, "medium");
-const MOD_BENCH = sizeCorridorProp(corridorModBenchArt, { width: 400, height: 400, top: 25, bottom: 380 }, "medium");
-const MERCHANT = sizeCorridorProp(corridorMerchantArt, { width: 362, height: 272, top: 3, bottom: 266 }, "medium");
-const SHRINE = sizeCorridorProp(corridorShrineArt, { width: 308, height: 308, top: 13, bottom: 280 }, "medium");
 const DISPATCH = sizeCorridorProp(corridorDispatchArt, { width: 400, height: 400, top: 4, bottom: 368 }, "medium");
 const SINK = sizeCorridorProp(corridorSinkArt, { width: 400, height: 400, top: 101, bottom: 326 }, "small");
-const REPAIR_POD = sizeCorridorProp(corridorRepairPodArt, { width: 400, height: 400, top: 81, bottom: 304 }, "small");
 const COMPACTOR = sizeCorridorProp(corridorCompactorArt, { width: 400, height: 400, top: 29, bottom: 374 }, "large");
-const CRYSTAL_VEIN = sizeCorridorProp(corridorCrystalVeinArt, { width: 400, height: 400, top: 24, bottom: 379 }, "large");
+const VENDING = sizeCorridorProp(corridorVendingArt, { width: 400, height: 400, top: 4, bottom: 386 }, "medium");
 
 export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
   ...ECO_ARK_PROP_ART,
-  equipmentCache: SAFE,
-  bondWorkbench: MOD_BENCH,
-  perfectnessWorkbench: MOD_BENCH,
-  temporaryRelicCache: SHRINE,
-  relicCache: SHRINE,
-  safe: SAFE,
-  crystalVein: CRYSTAL_VEIN,
-  vending: VENDING,
-  remains: REMAINS,
-  compactor: COMPACTOR,
-  medical: MEDICAL,
-  sink: SINK,
-  repairPod: REPAIR_POD,
-  // 粒子净化站暂无专属素材，复用修复舱图片。
-  energyStation: REPAIR_POD,
-  modBench: MOD_BENCH,
-  shrine: SHRINE,
+  ...COMMON_PROP_ART,
   dispatch: DISPATCH,
-  merchant: MERCHANT,
   blacksmith: { src: blacksmithArt, width: 512, height: 768, scale: 390 / (741 * 0.5), groundTrim: 23 / 768 },
-  tutorialArmory: SAFE,
-  tutorialModBench: MOD_BENCH,
-  tutorialMedical: MEDICAL,
-  // 以下物件暂无专属素材，复用已有交互物图片。
-  tutorialRelicCache: SHRINE,
-  tutorialCashBox: REMAINS,
-  supplyCrate: SAFE,
-  toolLocker: MOD_BENCH,
-  courierDrone: DISPATCH,
-  cashBox: REMAINS,
-  // 封存的模组箱暂无专属 2D 场景素材，复用保险箱图片(物品图标不能当场景物件)。
-  moduleCase: SAFE,
+  // 陷阱仍用废弃楼层的科技风素材。
   collapsedCeiling: COMPACTOR,
   leakingPipe: SINK,
   rogueDrone: VENDING,
