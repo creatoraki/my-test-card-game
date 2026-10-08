@@ -7,7 +7,7 @@ import type { ExploreState } from "@/explore/types";
 import { addCardToDeck, availablePools, commonReplaceCandidates, rollRarity } from "../town/deckCards";
 import { useTownStore } from "../town/townStore";
 import { useExploreStore } from "./exploreStore";
-import { activeBlacksmith, blacksmithCardReason, blacksmithServiceReason } from "./blacksmithRules";
+import { activeBlacksmith, blacksmithCardReason, blacksmithCharacterReason, blacksmithServiceReason } from "./blacksmithRules";
 
 export function openBlacksmith(): boolean {
   const current = useExploreStore.getState().session;
@@ -31,7 +31,7 @@ function recordService(session: ExploreState, forge: BlacksmithState): void {
   const service = BLACKSMITH_SERVICES[forge.selected];
   const result = forge.result;
   const note = result?.after ? `获得「${cardDisplayName(result.after)}」`
-    : result?.before ? `删除「${cardDisplayName(result.before)}」` : service.name;
+    : result?.before ? `删除「${cardDisplayName(result.before)}」` : "已放弃服务";
   session.history.push({
     slot: "node", round: session.round, segment: room.curios.indexOf(object), lane: 0,
     roomLabel: room.label, eventId: "curio-blacksmith", eventTitle: "锻造师", eventKind: "merchant",
@@ -41,23 +41,58 @@ function recordService(session: ExploreState, forge: BlacksmithState): void {
   session.log.push(`${room.label}号房间：锻造师 · ${service.name} · ${note} · 临期食品−${service.food}`);
 }
 
-/** 选人后确认抽牌：候选保存在探索房间，不占用据点的抽卡待办。 */
+/** 选择服务即扣除临期食品并锁定该服务，随后由卡组面板选人选卡；另一项服务随即失效。 */
+export function payBlacksmithService(service: BlacksmithService): boolean {
+  const current = useExploreStore.getState().session;
+  if (!current || current.phase !== "forging") return false;
+  const forge = activeBlacksmith(current)?.blacksmith;
+  const town = useTownStore.getState();
+  if (!forge?.services.includes(service) || blacksmithServiceReason(current, town.characters, service)) return false;
+  const draft = structuredClone(current);
+  if (!payServiceFood(draft, BLACKSMITH_SERVICES[service].food)) return false;
+  const nextForge = activeBlacksmith(draft)!.blacksmith!;
+  nextForge.status = "paid";
+  nextForge.selected = service;
+  useExploreStore.setState({ session: draft });
+  return true;
+}
+
+/** 已付费的服务中途放弃：不退款，本次相遇直接结束。 */
+export function abandonBlacksmithService(): boolean {
+  const current = useExploreStore.getState().session;
+  if (!current || current.phase !== "forging") return false;
+  const forge = activeBlacksmith(current)?.blacksmith;
+  if (forge?.status !== "paid" && forge?.status !== "drawing") return false;
+  const draft = structuredClone(current);
+  const nextForge = activeBlacksmith(draft)!.blacksmith!;
+  nextForge.status = "completed";
+  nextForge.offers = undefined;
+  nextForge.result = undefined;
+  recordService(draft, nextForge);
+  useExploreStore.setState({ session: draft });
+  return true;
+}
+
+function paidFor(session: ExploreState, service: BlacksmithService): boolean {
+  const forge = activeBlacksmith(session)?.blacksmith;
+  return forge?.status === "paid" && forge.selected === service;
+}
+
+/** 已付费后选人生成候选：候选保存在探索房间，不占用据点的抽卡待办。 */
 export function startBlacksmithDraw(charId: string): boolean {
   const current = useExploreStore.getState().session;
   const town = useTownStore.getState();
   const character = town.characters[charId];
-  if (!current || current.phase !== "forging" || !character) return false;
-  const forge = activeBlacksmith(current)?.blacksmith;
-  if (!forge?.services.includes("draw") || blacksmithServiceReason(current, town.characters, "draw")) return false;
+  if (!current || current.phase !== "forging" || !character || !paidFor(current, "draw")) return false;
+  if (blacksmithCharacterReason(character, "draw")) return false;
   if (!current.party.some(member => member.charId === charId && member.alive)) return false;
   const draft = structuredClone(current);
   const pools = availablePools(character);
   const rarity = rollRarity(character.deckLevel, pools, () => rngFloat(draft));
   const options = shuffle(draft, pools[rarity]).slice(0, RULES.deck.drawChoices);
-  if (!options.length || !payServiceFood(draft, BLACKSMITH_SERVICES.draw.food)) return false;
+  if (!options.length) return false;
   const nextForge = activeBlacksmith(draft)!.blacksmith!;
   nextForge.status = "drawing";
-  nextForge.selected = "draw";
   nextForge.charId = charId;
   nextForge.offers = options.map(id => makeCard(id));
   useExploreStore.setState({ session: draft });
@@ -86,14 +121,12 @@ export function pickBlacksmithDraw(uid: string): boolean {
   return true;
 }
 
-/** 三种指定卡牌的服务在同步操作内校验和结算，失败不提交任何修改。 */
+/** 三种指定卡牌的服务(已付费)在同步操作内校验和结算，失败不提交任何修改。 */
 export function performBlacksmithService(service: Exclude<BlacksmithService, "draw">, charId: string, uid: string): boolean {
   const current = useExploreStore.getState().session;
   const town = useTownStore.getState();
   const character = town.characters[charId];
-  if (!current || current.phase !== "forging" || !character) return false;
-  const forge = activeBlacksmith(current)?.blacksmith;
-  if (!forge?.services.includes(service) || blacksmithServiceReason(current, town.characters, service)) return false;
+  if (!current || current.phase !== "forging" || !character || !paidFor(current, service)) return false;
   if (!current.party.some(member => member.alive && member.charId === charId)) return false;
   const before = character.deck.find(card => card.uid === uid);
   if (!before || blacksmithCardReason(character, service, before)) return false;
@@ -109,10 +142,8 @@ export function performBlacksmithService(service: Exclude<BlacksmithService, "dr
     if (!addCardToDeck(nextCharacter, before.id)) return false;
     after = nextCharacter.deck[nextCharacter.deck.length - 1];
   }
-  if (!payServiceFood(draft, BLACKSMITH_SERVICES[service].food)) return false;
   const nextForge = activeBlacksmith(draft)!.blacksmith!;
   nextForge.status = "completed";
-  nextForge.selected = service;
   nextForge.result = { charId, before: structuredClone(before), after: after ? structuredClone(after) : undefined };
   recordService(draft, nextForge);
   useTownStore.setState({ characters: { ...town.characters, [charId]: nextCharacter } });

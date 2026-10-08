@@ -1,22 +1,34 @@
-// 置换弹窗右侧的「置换舱」: 放大展示已放入的卡, 并把这次置换会发生什么逐条讲清楚 ——
-// 换出范围(随机普通卡、几种可能)、原卡模组去向。
-import { cardDisplayName, type Card } from "@/engine";
+// 卡组面板右侧的舱位: 放大展示已放入的卡, 并把这次服务会发生什么逐条讲清楚(事实表由调用方按服务给出)。
+import type { ReactNode } from "react";
+import { type Card } from "@/engine";
 import { HandCard } from "@/ui/common/card/HandCard";
 import s from "./ReplaceChamber.module.css";
 
-interface Props {
-  card: Card | null;
-  candidates: number;
+export interface ChamberFact {
+  label: string;
+  value: string;
+  tone?: "warn";
 }
 
-export function ReplaceChamber({ card, candidates }: Props) {
+interface Props {
+  /** 舱位名称, 如「置换舱」「删除舱」。 */
+  label: string;
+  card: Card | null;
+  facts: ChamberFact[];
+  /** 已就绪(放入卡牌或选定角色)。 */
+  ready: boolean;
+  /** 舱位为空时的提示。 */
+  emptyText: ReactNode;
+}
+
+export function ReplaceChamber({ label, card, facts, ready, emptyText }: Props) {
   return (
     <aside className={s.chamber}>
       <header className={s.head}>
-        <span className={s.label}>置换舱</span>
-        <span className={s.status} data-ready={card ? "" : undefined}>
+        <span className={s.label}>{label}</span>
+        <span className={s.status} data-ready={ready ? "" : undefined}>
           <i aria-hidden />
-          {card ? "目标已锁定" : "等待放入"}
+          {ready ? "目标已锁定" : "等待放入"}
         </span>
       </header>
 
@@ -36,24 +48,18 @@ export function ReplaceChamber({ card, candidates }: Props) {
         ) : (
           <div className={s.empty}>
             <span className={s.emptyGlyph} aria-hidden>？</span>
-            <span>从左侧选择一张卡牌</span>
+            <span>{emptyText}</span>
           </div>
         )}
       </div>
 
       <dl className={s.facts}>
-        <div className={s.fact}>
-          <dt>放入卡牌</dt>
-          <dd>{card ? `「${cardDisplayName(card)}」` : "未选择"}</dd>
-        </div>
-        <div className={s.fact}>
-          <dt>置换结果</dt>
-          <dd>{card ? `随机普通卡 · ${candidates} 种可能` : "随机普通卡"}</dd>
-        </div>
-        <div className={s.fact} data-tone={card?.cardModule ? "warn" : undefined}>
-          <dt>原卡模组</dt>
-          <dd>{card ? (card.cardModule ? "将随原卡一并移除" : "无模组") : "—"}</dd>
-        </div>
+        {facts.map((fact) => (
+          <div key={fact.label} className={s.fact} data-tone={fact.tone}>
+            <dt>{fact.label}</dt>
+            <dd>{fact.value}</dd>
+          </div>
+        ))}
       </dl>
     </aside>
   );

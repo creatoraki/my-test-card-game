@@ -144,7 +144,8 @@ export function dismissCorridorObject(s: ExploreState): boolean {
   if (!s.corridor || (s.phase !== "landed" && s.phase !== "shopping" && s.phase !== "forging") || hasCorridorRewards(s)) return false;
   const room = s.dungeon?.rooms[s.dungeon.currentRoomId];
   const forge = room?.curios.find(object => object.id === s.corridor?.activeObjectId)?.blacksmith;
-  if (forge?.status === "drawing") return false;
+  // 已付费的服务必须在卡组面板里完成或放弃，不能直接关掉事件。
+  if (forge?.status === "paid" || forge?.status === "drawing") return false;
   const active = s.corridor.objects.find((object) => object.id === s.corridor?.activeObjectId);
   // 陷阱物件必须做出选择; 结算完成(resolving)后走 confirmNode, 不经过这里。
   if (active && !active.used && CORRIDOR_CURIOS[active.kind]?.forced) return false;

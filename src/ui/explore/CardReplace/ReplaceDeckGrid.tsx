@@ -1,5 +1,5 @@
-// 置换弹窗左侧的卡组网格: 整副卡组都列出来, 无法替换的卡压暗并注明原因, 让玩家知道不是漏了。
-// 点击只「放入置换舱」(可改选), 真正执行由底栏「确认替换」完成。
+// 卡组面板左侧的卡组网格: 整副卡组都列出来, 无法处理的卡压暗并注明原因, 让玩家知道不是漏了。
+// 点击只「放入舱位」(可改选), 真正执行由底栏确认按钮完成; readOnly(抽牌)时只供查看。
 // 选中表现与卡牌奖励三选一一致: 四角 L 型提示框点亮 + 轻微上浮, 其余卡退后一步。
 import { memo, type CSSProperties } from "react";
 import { cardDisplayName, type Card } from "@/engine";
@@ -10,17 +10,25 @@ import s from "./ReplaceDeckGrid.module.css";
 
 export interface ReplaceDeckEntry {
   card: Card;
-  /** 可能换出的普通卡种数; 0 = 这张卡无法替换。 */
-  candidates: number;
+  /** 无法处理的原因; null = 可选。 */
+  lockedReason: string | null;
+}
+
+/** 卡位底部提示: 悬停未选 / 已选。 */
+export interface DeckSlotLabels {
+  idle: string;
+  picked: string;
 }
 
 interface Props {
   entries: ReplaceDeckEntry[];
   selectedUid: string | null;
+  labels: DeckSlotLabels;
+  readOnly?: boolean;
   onSelect: (uid: string) => void;
 }
 
-export function ReplaceDeckGrid({ entries, selectedUid, onSelect }: Props) {
+export function ReplaceDeckGrid({ entries, selectedUid, labels, readOnly = false, onSelect }: Props) {
   return (
     <div className={s.scroller}>
       <div className={s.grid} data-pick-grid>
@@ -31,6 +39,8 @@ export function ReplaceDeckGrid({ entries, selectedUid, onSelect }: Props) {
             index={index}
             selected={entry.card.uid === selectedUid}
             dimmed={selectedUid !== null && entry.card.uid !== selectedUid}
+            labels={labels}
+            readOnly={readOnly}
             onSelect={onSelect}
           />
         ))}
@@ -39,15 +49,28 @@ export function ReplaceDeckGrid({ entries, selectedUid, onSelect }: Props) {
   );
 }
 
-const DeckSlot = memo(function DeckSlot({ entry, index, selected, dimmed, onSelect }: {
+const DeckSlot = memo(function DeckSlot({ entry, index, selected, dimmed, labels, readOnly, onSelect }: {
   entry: ReplaceDeckEntry;
   index: number;
   selected: boolean;
   dimmed: boolean;
+  labels: DeckSlotLabels;
+  readOnly: boolean;
   onSelect: (uid: string) => void;
 }) {
-  const { card, candidates } = entry;
-  const locked = candidates <= 0;
+  const { card, lockedReason } = entry;
+  const locked = !readOnly && Boolean(lockedReason);
+  if (readOnly) {
+    return (
+      <div className={s.slot} data-readonly="" style={{ "--slot-delay": `${Math.min(index, 11) * 40 + 80}ms` } as CSSProperties}>
+        <div className={s.cardBox}>
+          <div className={s.scale}>
+            <HandCard card={card} variant="pile" playable selected={false} />
+          </div>
+        </div>
+      </div>
+    );
+  }
   const select = () => {
     if (locked) {
       playSfx("disabled");
@@ -69,7 +92,7 @@ const DeckSlot = memo(function DeckSlot({ entry, index, selected, dimmed, onSele
       tabIndex={locked ? -1 : 0}
       aria-pressed={selected}
       aria-disabled={locked}
-      aria-label={`放入置换舱：${cardDisplayName(card)}`}
+      aria-label={`${labels.idle}：${cardDisplayName(card)}`}
       onClick={select}
       onKeyDown={(event) => {
         if (event.key !== "Enter" && event.key !== " ") return;
@@ -85,7 +108,7 @@ const DeckSlot = memo(function DeckSlot({ entry, index, selected, dimmed, onSele
         {!locked && <InteractiveHint active={selected} />}
       </div>
       <span className={s.state}>
-        {locked ? "没有可换出的普通卡" : selected ? "已放入置换舱" : "点击放入置换舱"}
+        {locked ? lockedReason : selected ? labels.picked : labels.idle}
       </span>
     </div>
   );

@@ -8,10 +8,13 @@ export interface BlacksmithResult {
   after?: Card;
 }
 
-/** 随房间保存，抽牌一经付费便锁定候选，不能通过重新打开刷新。 */
+/**
+ * 随房间保存。选择服务即付费并锁定(paid)，之后在卡组面板里选人选卡；
+ * 抽牌生成候选后进入 drawing，候选不能通过重新打开刷新。放弃不退款，直接 completed 且没有 result。
+ */
 export interface BlacksmithState {
   services: [BlacksmithService, BlacksmithService];
-  status: "available" | "drawing" | "completed";
+  status: "available" | "paid" | "drawing" | "completed";
   selected?: BlacksmithService;
   charId?: string;
   offers?: Card[];
