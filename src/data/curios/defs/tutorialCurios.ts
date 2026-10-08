@@ -4,16 +4,16 @@ import type { CurioDef } from "../types";
 /** 新手固定蓝图专用物件；不进入普通地图的随机物件池。 */
 export const TUTORIAL_CURIOS = {
   tutorialArmory: {
-    name: "训练装备匣",
+    name: "训练装备邮筒",
     role: "loot",
-    enName: "TRAINING EQUIPMENT CHEST",
+    enName: "TRAINING EQUIPMENT MAILBOX",
     verb: "领取",
     size: 210,
-    description: "训练装备匣已经为小队备好一件校准完成的装备。是否现在领取补给？",
+    description: "训练装备邮筒已经为小队寄存好一件校准完成的装备。是否现在领取补给？",
     decisions: [{
       id: "claimEquip",
       label: "领取训练装备",
-      story: "匣盖弹开，一件校准完成的装备被送入待拾取框。",
+      story: "邮筒门弹开，一件校准完成的装备被送入待拾取框。",
       effects: [{ type: "GRANT_EQUIP" }],
     }],
   },
@@ -48,15 +48,15 @@ export const TUTORIAL_CURIOS = {
     }],
   },
   tutorialRelicCache: {
-    name: "遗物储备宝库",
+    name: "遗物储备龛",
     role: "loot",
     verb: "开启",
     size: 190,
-    description: "储备宝库里封存着三种不同的祝福遗物，开启后可以当场挑走一件。",
+    description: "储备龛里供奉着三种不同的祝福遗物，开启后可以当场挑走一件。",
     decisions: [{
       id: "openCache",
-      label: "开启储备宝库",
-      story: "扇贝壳盖缓缓张开，三件祝福遗物同时在珍珠光里亮起。",
+      label: "开启储备龛",
+      story: "龛门缓缓打开，三件祝福遗物同时在烛火里亮起。",
       effects: [{
         type: "RELIC_OFFER",
         relicIds: ["relic-heart-mirror", "relic-old-clockwork", "relic-light-feather"],

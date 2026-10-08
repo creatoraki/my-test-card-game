@@ -34,8 +34,8 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {
  * 治疗与陷阱物件不在这里：治疗由 dungeon/curioPlan.ts 按每房概率投放，陷阱只放进陷阱房。
  *
  * NPC 先占房间名额，剩余名额按本表抽取；锻造师每张地图固定一位。
- * · 潮汐机械宝匣(装备) ≈ 0.8 件，与战斗掉落(约 2.1 件)合计约 3 件；
- * · 珊瑚宝库(遗物)与杂兵掉落共同提供永久遗物。
+ * · 苔铃寄存邮筒(装备) ≈ 0.8 件，与战斗掉落(约 2.1 件)合计约 3 件；
+ * · 尘封的遗物匣与杂兵掉落共同提供永久遗物。
  */
 export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> = {
   // 换金物 / 材料 / 食品 / 道具

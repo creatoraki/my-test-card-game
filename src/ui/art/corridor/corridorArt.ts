@@ -1,4 +1,3 @@
-import blacksmithArt from "@/assets/explore-corridor/公共NPC/锻造师.webp";
 import corridorVendingArt from "@/assets/explore-corridor/废弃楼层/可交互物体/贩卖机.webp";
 import corridorCompactorArt from "@/assets/explore-corridor/废弃楼层/可交互物体/压缩舱.webp";
 import corridorSinkArt from "@/assets/explore-corridor/废弃楼层/可交互物体/净水槽.webp";
@@ -54,7 +53,6 @@ export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
   ...ECO_ARK_PROP_ART,
   ...COMMON_PROP_ART,
   dispatch: DISPATCH,
-  blacksmith: { src: blacksmithArt, width: 512, height: 768, scale: 390 / (741 * 0.5), groundTrim: 23 / 768 },
   // 陷阱仍用废弃楼层的科技风素材。
   collapsedCeiling: COMPACTOR,
   leakingPipe: SINK,

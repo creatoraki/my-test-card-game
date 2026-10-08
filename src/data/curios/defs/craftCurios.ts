@@ -44,27 +44,27 @@ export const CRAFT_CURIOS = {
     ],
   },
   shrine: {
-    name: "潮汐祈愿门",
+    name: "路边神龛",
     role: "service",
     verb: "祈愿",
     size: 190,
-    description: "珊瑚拱门里的潮水从未退去。它接受遗物，也接受一枚最普通的硬币作为回应。",
+    description: "神龛里的电子烛火仍在燃烧。它接受遗物，也接受一枚最普通的硬币作为回应。",
     decisions: [
       {
         id: "pray",
-        label: "触碰潮水",
-        story: "潮水短暂地漫过队伍的脚踝，祈愿门只从口袋里取走了一枚铜币。",
+        label: "触碰烛火",
+        story: "烛火短暂地照亮了队伍，神龛只从口袋里取走了一枚铜币。",
         effects: [
           { type: "CONSUME_ITEM", itemId: "copper-coin", count: 1 },
           { type: "ADJUST_POLLUTION", target: "party", amount: -8 },
         ],
         failure: fail(
           0.3,
-          "潮水忽然转成暗红，一股阴冷顺着执行者的手臂爬了上来。",
+          "烛火忽然转成暗红，一股阴冷顺着执行者的手臂爬了上来。",
           [{ type: "ADJUST_POLLUTION", target: "actor", amount: 12 }],
           byJob("prophet", {
             convert: {
-              story: "潮水变色的一刻，预言家听见了拱门背后的潮汐脉搏，完整地图和所有战斗与陷阱位置被同时揭示。",
+              story: "烛火变色的一刻，预言家听见了神龛背后的城市脉搏，完整地图和所有战斗与陷阱位置被同时揭示。",
               effects: [{ type: "REVEAL_MAP", threats: true }],
             },
           }),
@@ -73,7 +73,7 @@ export const CRAFT_CURIOS = {
       {
         id: "tradeRelic",
         label: "选择祝福遗物献上",
-        story: "祈愿门回应了遗物的光芒，更高阶的祝福正随潮水向这里靠近。",
+        story: "神龛回应了遗物的光芒，远处更高阶的祝福正在向这里靠近。",
         select: [[{ match: { relicPolarity: "blessing" }, count: 1 }]],
         effects: [{ type: "UPGRADE_RELIC" }],
       },

@@ -17,7 +17,7 @@ interface EventDossierPanelProps {
   /** 事件主题: 决定插图与主题色, 默认物资青色。accent / art 可单独覆盖。 */
   theme?: DossierThemeId;
   accent?: string;
-  /** 页眉位置文字，例如"训练装备匣 · 1号房间"。 */
+  /** 页眉位置文字，例如"训练装备邮筒 · 1号房间"。 */
   kicker: string;
   title: string;
   enTitle: string;

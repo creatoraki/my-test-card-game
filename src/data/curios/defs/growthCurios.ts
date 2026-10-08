@@ -5,16 +5,16 @@ import type { CurioDef } from "../types";
 
 export const GROWTH_CURIOS = {
   equipmentCache: {
-    name: "潮汐机械宝匣", role: "loot", verb: "领取", size: 210,
-    description: "宝匣的潮汐齿轮已经停转，匣内留着一件完整装备。无需投入材料即可领取，装备品质仍由当前地图决定。",
+    name: "苔铃寄存邮筒", role: "loot", verb: "领取", size: 210,
+    description: "长满青苔的蘑菇邮筒里寄存着一件完整装备，取件口的锁扣已经松开。无需投入材料即可领取，装备品质仍由当前地图决定。",
     decisions: [{
-      id: "claim", label: "领取装备", story: "匣盖弹开，一件完整装备被送入待拾取框。",
+      id: "claim", label: "领取装备", story: "邮筒门弹开，一件完整装备被送入待拾取框。",
       effects: [{ type: "GRANT_EQUIP" }],
       failure: fail(
         0.15,
-        "匣盖弹开的同时触发了连锁机关，守卫循声而来，装备被锁回了匣底。",
+        "邮筒门弹开的同时碰响了顶上的苔铃，守卫循声而来，装备被锁回了筒底。",
         [{ type: "ALARM_BATTLE" }],
-        byJob("swordsman", { chanceDelta: -0.15, note: "剑士先一步卡住了连锁机关" }),
+        byJob("swordsman", { chanceDelta: -0.15, note: "剑士先一步按住了苔铃" }),
       ),
     }],
   },
@@ -32,21 +32,21 @@ export const GROWTH_CURIOS = {
   },
   temporaryRelicCache: {
     name: "临时祝福匣", role: "loot", verb: "领取", size: 190,
-    description: "珊瑚壳盖里封存着一件可直接领取的一次性祝福遗物。它仅在本次探索生效，不能寄回，离开远征后消失。",
-    decisions: [{ id: "blessing", label: "领取一次性遗物", story: "壳盖缓缓张开，短暂的祝福化作一件可携带的遗物。",
+    description: "神龛的供台上放着一只祝福匣，封存着一件可直接领取的一次性祝福遗物。它仅在本次探索生效，不能寄回，离开远征后消失。",
+    decisions: [{ id: "blessing", label: "领取一次性遗物", story: "匣上的封印松开，短暂的祝福化作一件可携带的遗物。",
       effects: [{ type: "GRANT_DISPOSABLE_RELIC" }] }],
   },
   relicCache: {
-    name: "珊瑚宝库", role: "loot", verb: "开启", size: 190,
-    description: "扇贝壳盖紧紧合拢，正中的珍珠锁扣仍在微微发光。开启后可直接获得一件随机遗物。",
+    name: "尘封的遗物匣", role: "loot", verb: "开启", size: 190,
+    description: "神龛的供台落满灰尘，供奉的遗物匣封印仍在微微发光。开启后可直接获得一件随机遗物。",
     decisions: [{
-      id: "open", label: "开启宝库", story: "珍珠锁扣碎裂，一件遗物从宝库中浮起，被送入待拾取框。",
+      id: "open", label: "开启遗物匣", story: "封印碎裂，一件遗物从匣底浮起，被送入待拾取框。",
       effects: [{ type: "GRANT_RANDOM_RELIC" }],
       failure: fail(
         0.2,
-        "锁扣碎裂时的反冲灌进执行者体内，遗物的光芒也随之熄灭。",
+        "封印碎裂时的反冲灌进执行者体内，遗物的光芒也随之熄灭。",
         [{ type: "ADJUST_POLLUTION", target: "actor", amount: 15 }],
-        withItem({ familyId: "holy-water" }, { chanceDelta: -0.2, note: "圣水浸透锁扣，让它安静地碎开" }),
+        withItem({ familyId: "holy-water" }, { chanceDelta: -0.2, note: "圣水浸透封印，让它安静地碎开" }),
       ),
     }],
   },

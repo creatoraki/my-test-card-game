@@ -75,11 +75,11 @@ export const LOOT_CURIOS = {
     },
   },
   courierDrone: {
-    name: "苔铃蘑菇邮筒",
+    name: "鼓胀的旅行布袋",
     role: "loot",
     verb: "拆开",
     size: 210,
-    description: "长满青苔的蘑菇邮筒塞得鼓鼓囊囊，里面的包裹一直没有人来取。",
+    description: "草药旅行布袋塞得鼓鼓囊囊，里面捆着几件一直没送到的包裹。",
     decisions: [{
       id: "openParcel",
       label: "拆开包裹",
@@ -90,7 +90,7 @@ export const LOOT_CURIOS = {
       ],
       failure: fail(
         0.25,
-        "邮筒顶上的苔铃被碰响，清脆的铃声在走廊里回荡开来。",
+        "系在袋口的铜铃被碰响，清脆的铃声在走廊里回荡开来。",
         [{ type: "ALARM_BATTLE" }],
         byJob("prophet", {
           convert: {
