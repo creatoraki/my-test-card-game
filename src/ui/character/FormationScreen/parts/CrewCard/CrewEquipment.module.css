@@ -1,7 +1,7 @@
 .equipment {
   position: absolute;
   right: 18px;
-  bottom: 132px;
+  bottom: 148px;
   z-index: 5;
   display: grid;
   gap: 8px;

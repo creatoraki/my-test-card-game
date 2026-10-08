@@ -10,6 +10,8 @@ import scorchingArt from "@/assets/buffs/标记/卡牌标记/灼热.webp";
 import divineSightArt from "@/assets/buffs/标记/卡牌标记/神眼.webp";
 import notoArt from "@/assets/buffs/标记/卡牌标记/纳刀.webp";
 import countercurrentArt from "@/assets/buffs/标记/卡牌标记/逆流.webp";
+// 孢囊暂无专属图标，借用孢子状态图。
+import sporeSacArt from "@/assets/buffs/状态/触发联动/孢子.webp";
 
 export const CARD_MARK_ART: Record<string, string> = {
   swordMound: swordMoundArt,
@@ -25,6 +27,7 @@ export const CARD_MARK_ART: Record<string, string> = {
   divineSight: divineSightArt,
   noto: notoArt,
   countercurrent: countercurrentArt,
+  sporeSac: sporeSacArt,
 };
 
 export const CARD_MARK_ART_SOURCES: readonly string[] = [...new Set(Object.values(CARD_MARK_ART))];

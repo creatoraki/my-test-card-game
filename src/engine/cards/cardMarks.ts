@@ -60,6 +60,13 @@ export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
     desc: "打出后，所属角色获得 2 层灼烧，持续 2 拍。",
     effects: [{ type: "APPLY_STATUS", status: "burn", stacks: 2, duration: 2, target: "self" }],
   },
+  sporeSac: {
+    id: "sporeSac",
+    name: "孢囊",
+    emoji: "🍄",
+    desc: "打出后，所属角色获得 1 层孢子。",
+    effects: [{ type: "APPLY_STATUS", status: "arkSpore", stacks: 1, target: "self" }],
+  },
   countercurrent: {
     id: "countercurrent",
     name: "逆流",

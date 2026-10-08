@@ -1,7 +1,11 @@
 import type { BattleState } from "../types";
 import { getStatus, log, ops } from "../core/ops";
-import { rngPick } from "../core/rng";
+import { shuffle } from "../core/rng";
 import { ARK, livingEnemies } from "./shared";
+
+// 孢子萌发：缠根张数与附带中毒（层数 / 持续拍数）。
+export const GERMINATE_ROOTS = 2;
+export const GERMINATE_POISON = { stacks: 2, duration: 3 } as const;
 
 export function germinate(state: BattleState, targetId: string): void {
   const target = state.combatants[targetId];
@@ -14,11 +18,12 @@ export function germinate(state: BattleState, targetId: string): void {
     const candidates = state.hand.filter((uid) =>
       state.cards[uid]?.ownerCharId === target.charId && !state.cards[uid].rooted,
     );
-    if (candidates.length) {
-      const card = state.cards[rngPick(state, candidates)];
+    for (const uid of shuffle(state, candidates).slice(0, GERMINATE_ROOTS)) {
+      const card = state.cards[uid];
       card.rooted = true;
       log(state, `「${card.name}」被缠根，下次我方回合开始解除`);
     }
+    ops.applyStatus(state, target.id, "poison", GERMINATE_POISON.stacks, GERMINATE_POISON.duration);
   }
   for (const snail of livingEnemies(state).filter((enemy) => getStatus(enemy, "arkRootReturn"))) {
     const allies = livingEnemies(state);

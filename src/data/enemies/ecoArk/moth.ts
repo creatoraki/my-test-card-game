@@ -6,7 +6,8 @@ export const SPORE_MOTH: EnemyDef = {
   stats: { attack: 100, defense: 0, dodgeRate: 12, initiative: 26, critDamage: 150 },
   moves: [
     { id: "ark-moth-strike", name: "鳞翅连击", emoji: "🦋", cost: 3, delay: 1, kind: "attack", targeting: "foe", weight: 3, anim: "slash",
-      effects: [{ type: "DAMAGE", multiplier: 0.225, hits: 2, target: "primary" }] },
+      effects: [{ type: "DAMAGE", multiplier: 0.225, hits: 2, target: "primary" },
+        { type: "MARK_CARDS", mark: "sporeSac", markPick: "targetHandRandom", amount: 1, target: "primary" }] },
     { id: "ark-moth-pollen", name: "授粉催行", emoji: "🌼", cost: 4, delay: 2, kind: "buff", targeting: "ally", weight: 1.5, anim: "buff",
       effects: [{ type: "GAIN_ENEMY_AP", amount: 2, target: "primary" }] },
     { id: "ark-moth-dance", name: "孢光群舞", emoji: "🍄", cost: 6, delay: 3, kind: "attack", targeting: "allFoes", weight: 1, anim: "poison",

@@ -30,7 +30,7 @@ export const ECO_ARK_STATUS_DEFS: Record<string, StatusDef> = {
   [ARK.spore]: {
     id: ARK.spore, name: "孢子", emoji: "🍄", kind: "debuff",
     stackMode: "add", resistMode: "stacks",
-    desc: "不会自然衰减，可被净化。满 3 层立即萌发并清空，随机缠住一张所属手牌；没有所属手牌也会触发萌发治疗。",
+    desc: "不会自然衰减，可被净化。满 3 层立即萌发并清空：随机缠住 2 张所属手牌，并获得 2 层中毒，持续 3 拍；没有所属手牌也会触发萌发治疗。",
     detailStats: (inst) => [{ label: "距萌发还差", value: Math.max(0, 3 - inst.stacks), suffix: "层" }],
     hooks: { onApplied: (c) => { if (c.inst.stacks >= 3) germinate(c.state, c.ownerId); } },
   },
