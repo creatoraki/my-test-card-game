@@ -18,7 +18,7 @@ import type {
 import { STATUS_DEFS } from "./hookRegistry";
 import { rngFloat } from "./rng";
 import { addMod, healValue, offenseStatOf, statOf } from "../combat/stats";
-import { checkChallengesOnWin, noteChallengeKill } from "../challenges";
+import { checkChallengesOnWin, noteChallengeKill, noteChallengeStatus } from "../challenges";
 import { recordHitPart } from "./animHits";
 import { capStatusStacks, mergeStatus, newSegment, syncSegments } from "../statuses/stacking";
 import { runRelicHook, type StatusApplyInfo } from "../relics/types";
@@ -264,6 +264,7 @@ export function applyStatus(
   cleanup(t);
   log(state, `${t.emoji} ${t.name} 获得 ${def?.name ?? statusId} ${stacks > 0 ? "+" : ""}${stacks}`);
   if (stacks > 0) {
+    noteChallengeStatus(state, t, sourceId, def?.name ?? statusId, def?.kind === "debuff" && !def.mark);
     notifyOwnerStatusApplied(state, targetId, statusId, stacks, duration, data, sourceId);
     runRelicHook(state, "afterStatusApplied", { targetId, statusId, stacks, duration, data, sourceId });
   }

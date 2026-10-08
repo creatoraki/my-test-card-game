@@ -315,7 +315,7 @@ export function playCard(
   state.lastPlayedCard = played;
   state.playedThisRound.push(played);
   runRelicHook(state, "onCardPlayRecorded", played);
-  noteChallengePlay(state, card, faceCost);
+  noteChallengePlay(state, card, played);
 
   checkEnd(state);
 

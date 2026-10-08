@@ -15,7 +15,7 @@ import { enemyBaselineStats } from "../combat/stats";
 import { shuffle } from "../core/rng";
 import { RULES } from "../core/battleRules";
 import { applyStatus, log } from "../core/ops";
-import { rollChallenges } from "../challenges";
+import { regicideTargetIds, rollChallenges } from "../challenges";
 import { emptyHexPlay } from "../hexer/hexGate";
 import { getEncounter, getEnemyDef, slotDefId } from "@/data";
 import { initializeArkBuffs } from "../ecoArk/passiveBuffs";
@@ -165,7 +165,8 @@ export function createBattleState(
     challenges: [],
     challengeKillRound: null,
     challengeFocusTargetId: null,
-    challengeEnemyActRound: null,
+    challengeLoneBladeId: null,
+    challengeRegicideIds: [],
     attackedThisRound: [],
     echoGainedThisRound: false,
     lifelineUsed: [],
@@ -220,6 +221,7 @@ export function createBattleState(
   state.draw = shuffle(state, Object.keys(cards));
   initializeArkBuffs(state);
   state.challenges = rollChallenges(state);
+  state.challengeRegicideIds = regicideTargetIds(state);
   log(state, `⚔️ 遭遇战: ${enc.name}`);
   for (const status of mod?.enemyStatuses ?? []) {
     for (const id of enemyIds) applyStatus(state, id, status.id, status.stacks, status.duration);

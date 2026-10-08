@@ -1,6 +1,6 @@
-// 高难档挑战图标: 及时治疗 / 抢拍 / 唯快不破 / 大屠杀 / 轮转。
+// 高难档挑战图标: 及时治疗 / 独当一面 / 大屠杀 / 轮转。
 import { PixelCanvas } from "../pixel/PixelCanvas";
-import { CORAL, CREAM, GOLD, GREEN, INK, RED, SKY, TEAL, VIOLET } from "../pixel/palette";
+import { CORAL, CREAM, GOLD, GREEN, INK, RED, SKY, STEEL, TEAL, VIOLET } from "../pixel/palette";
 
 /** 四角星闪光, 以 (x,y) 为中心。 */
 function sparkle(c: PixelCanvas, x: number, y: number, color: string, core: string) {
@@ -32,49 +32,38 @@ export function drawUntouched() {
   return c;
 }
 
-/** 抢拍: 秒针疾走的怀表式秒表。 */
-export function drawTempo() {
+/** 独当一面: 光芒中独自竖立的长剑。 */
+export function drawLoneBlade() {
   const c = new PixelCanvas();
 
-  const speed = new PixelCanvas();
-  speed.rect(0, 14, 4, 1, SKY.hi).rect(1, 18, 3, 1, SKY.base).rect(0, 22, 4, 1, SKY.hi);
-  c.stamp(speed);
+  const aura = new PixelCanvas();
+  aura.ring(16, 13, 10.5, 12, GOLD.lo, 200, 340);
+  sparkle(aura, 5, 7, GOLD.base, GOLD.hi);
+  sparkle(aura, 27, 10, GOLD.base, GOLD.hi);
+  aura.dots([[4, 18], [28, 19], [9, 2]], GOLD.hi);
+  c.stamp(aura);
 
-  const watch = new PixelCanvas();
-  watch.rect(16, 1, 5, 2, GOLD.base).rect(17, 3, 3, 3, GOLD.lo);
-  watch.poly([[26, 5], [29, 8], [27, 10], [24, 7]], GOLD.lo);
-  watch.disc(18.5, 18, 12.4, GOLD.base);
-  watch.shade(GOLD.base, GOLD.hi, GOLD.lo, 2);
-  watch.disc(18.5, 18, 9.8, CREAM.base);
-  watch.recolor(CREAM.base, CREAM.lo, (x, y) => Math.hypot(x + 0.5 - 17, y + 0.5 - 16.5) > 9.6);
-  [[18, 9], [18, 26], [9, 17], [27, 17]].forEach(([x, y]) => watch.rect(x, y, 1, 2, INK));
-  watch.rect(9, 17, 2, 1, INK).rect(26, 17, 2, 1, INK).rect(18, 9, 1, 2, INK);
-  watch.line(18, 18, 18, 11, INK, 2);
-  watch.line(18, 18, 24, 13, RED.base);
-  watch.line(18, 18, 15, 21, RED.base);
-  watch.rect(17, 17, 2, 2, RED.lo);
-  watch.dots([[11, 11], [12, 10]], "#ffffff");
-  c.stamp(watch, INK);
-  return c;
-}
+  // 剑身单独描外轮廓再盖上去, 光晕与星芒保持无描边的柔和。
+  const sword = new PixelCanvas();
+  const blade = new PixelCanvas();
+  blade.poly([[16, 0], [19, 4], [19, 21], [13, 21], [13, 4]], STEEL.base);
+  blade.recolor(STEEL.base, STEEL.lo, (x) => x >= 16);
+  blade.rect(14, 4, 1, 16, STEEL.hi);
+  blade.rect(16, 5, 1, 15, STEEL.dk);
+  blade.dots([[15, 1], [15, 2]], "#ffffff");
+  sword.stamp(blade, INK);
 
-/** 唯快不破: 迸出火花的闪电。 */
-export function drawBlitz() {
-  const c = new PixelCanvas();
-
-  const glow = new PixelCanvas();
-  sparkle(glow, 5, 6, SKY.base, SKY.hi);
-  sparkle(glow, 27, 24, SKY.base, SKY.hi);
-  glow.dots([[26, 4], [4, 24], [29, 15]], SKY.hi);
-  c.stamp(glow);
-
-  const bolt = new PixelCanvas();
-  bolt.poly([[20, 0], [7, 18], [15, 18], [10, 32], [26, 12], [18, 12], [25, 0]], GOLD.base);
-  bolt.shade(GOLD.base, GOLD.hi, GOLD.lo, 2);
-  bolt.recolor(GOLD.base, GOLD.hi, (x, y) => x + y < 24);
-  bolt.poly([[21, 3], [12, 16], [14, 16]], "#fffbe0");
-  c.stamp(bolt, INK);
-  return c.outline(INK);
+  const hilt = new PixelCanvas();
+  hilt.rect(8, 21, 17, 3, GOLD.base);
+  hilt.disc(7.5, 22.5, 1.8, GOLD.base).disc(25.5, 22.5, 1.8, GOLD.base);
+  hilt.shade(GOLD.base, GOLD.hi, GOLD.lo);
+  hilt.rect(15, 21, 3, 3, RED.base).set(15, 21, RED.hi);
+  hilt.rect(14, 24, 5, 5, VIOLET.lo);
+  [25, 27].forEach((y) => hilt.rect(14, y, 5, 1, VIOLET.dk));
+  hilt.disc(16.5, 30, 2.2, GOLD.base);
+  hilt.set(15, 29, GOLD.hi);
+  sword.stamp(hilt, INK);
+  return c.stamp(sword.outline(INK));
 }
 
 /** 大屠杀: 交叉骨上的红眼骷髅。 */

@@ -27,7 +27,12 @@ import { drawCards, witherCards } from "../deck/deck";
 import { startCharge } from "../enemy/ai";
 import { advanceTick, flushPendingActs } from "./scheduler";
 import { runRelicHook } from "../relics/types";
-import { checkChallengesOnEndTurn, checkMassacreOnRoundSettle, noteChallengeRedraw } from "../challenges";
+import {
+  checkChallengesOnEndTurn,
+  checkChallengesOnRoundSettle,
+  noteChallengeRedraw,
+  noteChallengeWait,
+} from "../challenges";
 import { flushAutoPlays, moveToDiscard, withDiscardRecorder } from "../deck/discard";
 import { firePassive, isPassive, recycleHandPassives } from "../combat/passive";
 import { fireRelic } from "../relics/relics";
@@ -174,6 +179,7 @@ export function redrawHandCard(state: BattleState, uid: string): boolean {
 export function waitTick(state: BattleState, rec?: FxRecorder): boolean {
   if (state.pendingChoice || state.phase !== "player" || state.waitsThisRound >= partyWaitLimit(state)) return false;
   state.waitsThisRound += 1;
+  noteChallengeWait(state);
   runRelicHook(state, "onWait");
   log(state, `⏳ 待机 —— 推进 ${RULES.timeline.waitAdvance} 时刻`);
   // 倒吊人 9 的悬置选择: 先等玩家选完(或放弃)再推进, 见 choiceResolve.settleDeferredAdvance。
@@ -237,7 +243,7 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
     runAllyTempoRecorded(state, rec);
     checkEnd(state);
     if (state.phase !== "player") return;
-    checkMassacreOnRoundSettle(state);
+    checkChallengesOnRoundSettle(state);
 
     if (RULES.hand.discardLeftoversOnRoundEnd) {
       for (const cardUid of [...state.hand]) {

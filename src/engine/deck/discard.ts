@@ -31,6 +31,7 @@ import { beginArkAttack, finishArkAttack } from "../ecoArk/guard";
 import { flushArkCardPlayed, queueArkCardPlayed } from "../ecoArk/sentry";
 import { runRelicHook } from "../relics/types";
 import { hermitManualTriggers } from "../bonds/bondPlay";
+import { noteChallengeDiscard } from "../challenges";
 
 export { withDiscardRecorder, takeDiscardSnapshot } from "../cards/cardFx";
 
@@ -94,6 +95,7 @@ export function moveToDiscard(
     state.discardsThisRound += 1;
     state.discardsThisBattle += 1;
   }
+  if (card) noteChallengeDiscard(state, reason, card.name);
   const trigger = card?.onDiscard;
   const triggerable = card != null && trigger != null &&
     (rule.trigger || (reason === "roundEnd" && trigger.alsoOnRoundEnd));

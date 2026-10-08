@@ -8,7 +8,6 @@ import type { BattleState, Enemy, FxRecorder } from "../types";
 import { checkEnd, ops } from "../core/ops";
 import { runTick } from "../combat/statusLifecycle";
 import { actAndRecord } from "../enemy/ai";
-import { noteChallengeEnemyAct } from "../challenges";
 import { tickBarrages } from "../ecoArk/sentry";
 import { runRelicHook } from "../relics/types";
 
@@ -45,7 +44,6 @@ function resolveDueEnemies(state: BattleState, fx?: FxRecorder): void {
 
     for (const e of due) {
       if (!e.alive || state.phase !== "player") continue;
-      noteChallengeEnemyAct(state); // 抢拍: 每回合第一次敌人行动前查一次法力余额
       actAndRecord(state, e.id, fx); // 内部已重排 nextActTick
       ops.flushAutoPlays(state);
       checkEnd(state);

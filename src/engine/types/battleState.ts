@@ -124,8 +124,10 @@ export interface BattleState {
   challengeKillRound: number | null;
   // 聚焦: 本回合我方实际打掉过血的敌人 id; 出现第二个即打破。每回合开始重置。
   challengeFocusTargetId: string | null;
-  // 抢拍: 已对哪一回合做过判定 —— 保证每回合只在敌人第一次行动前判一次。
-  challengeEnemyActRound: number | null;
+  // 独当一面: 整场第一位让敌人实际掉血的我方单位 id; 之后换人即打破。
+  challengeLoneBladeId: string | null;
+  // 擒贼擒王: 开场时生命上限并列最高的敌人 id; 首杀不在其中即打破。
+  challengeRegicideIds: string[];
   // 本回合实际被敌方攻击命中的我方单位 id, 回合开始清空。
   attackedThisRound: string[];
   // 回响网络本回合新增人数上限为 1。
