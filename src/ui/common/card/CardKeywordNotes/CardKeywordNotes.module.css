@@ -16,7 +16,7 @@
 }
 
 .note strong {
-  color: var(--accent);
+  color: var(--card-kw-color, var(--accent));
   font-weight: 800;
 }
 

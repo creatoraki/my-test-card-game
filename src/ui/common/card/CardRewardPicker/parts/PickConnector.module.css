@@ -1,0 +1,48 @@
+.connector {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: visible;
+  fill: none;
+  pointer-events: none;
+}
+
+.glow,
+.core {
+  stroke-dasharray: 1;
+  stroke-linejoin: miter;
+  animation: pickConnectorDraw 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.glow {
+  stroke: var(--pk-violet);
+  stroke-width: 6;
+  opacity: 0.25;
+}
+
+.core {
+  stroke-width: 1.6;
+}
+
+.stopFar {
+  stop-color: #6a4ad0;
+}
+
+.stopNear {
+  stop-color: var(--pk-violet-hi);
+}
+
+.dot {
+  fill: var(--pk-violet-hi);
+  animation: pickConnectorDot 200ms ease-out 400ms both;
+}
+
+@keyframes pickConnectorDraw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes pickConnectorDot {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

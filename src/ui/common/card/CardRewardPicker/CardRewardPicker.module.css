@@ -1,16 +1,14 @@
 /* 卡牌奖励三选一弹窗(设计 px, 1920×1080 画布)。
-   ★ 外框固定 880 宽、居中; 卡牌详情挂在外框右外侧 36px(880/2 + 36 + 320 = 796 < 960, 不越出画布)。
-   ★ 外框描边: ::before 画边线色、::after 内缩 1px 画面板底, 两层同一条斜切 clip-path ——
-     clip-path 会裁掉 border / box-shadow, 只能这样出描边(同 ConfirmDialog)。
-   ★ 卡面统一 220 × (220 + 88), 与探索奖励面板、牌堆弹窗的原尺寸卡面一致。 */
+   ★ 面板固定 1400×916、居中; 内部各区块按面板坐标绝对落位, 常量见 parts/pickGeometry.ts。
+   ★ 外框不再走 ::before/::after + clip-path(只能做规则切角), 改由 parts/PickFrame 的 SVG 绘制。
+   ★ 配色按设计稿固定为紫 + 冰青, 不跟随全站强调色; 令牌 --pk-* 在 .frame 上下发给所有部件。 */
 .layer {
   position: absolute;
   z-index: 300;
   inset: 0;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(ellipse at 50% 45%, #0a161bcc 0%, #02070aeb 70%);
+  background: radial-gradient(ellipse at 50% 45%, #0a0e24b3 0%, #03050fe6 72%);
   backdrop-filter: blur(6px) saturate(0.85);
   animation: pickLayerIn 220ms ease-out both;
 }
@@ -21,206 +19,61 @@
 }
 
 .frame {
-  --k: var(--accent);
-  --pick-chamfer: 28px;
+  --pk-violet: #8f4dff;
+  --pk-violet-hi: #c39bff;
+  --pk-violet-deep: #5a28d6;
+  --pk-cyan: #3fd2ff;
+  --pk-line: #6573e6;
+  --pk-dim: #aeb7d8;
+  --card-kw-color: #ffd84a;
   position: relative;
-  display: flex;
-  width: 880px;
-  flex-direction: column;
-  padding: 36px 56px 32px;
-  color: var(--text);
-  /* ⚠ 投影用 box-shadow 而不是 filter: drop-shadow —— 滤镜会把卡面 L 型提示框的辉光重采样发糊
-     (见 InteractiveHint 文件头)。isolation 让两层斜切伪元素(z-index:-1)压在本框自己的层里。 */
+  width: 1400px;
+  height: 916px;
+  color: #e6ebff;
   isolation: isolate;
-  box-shadow: 0 28px 60px -12px #000c;
-  animation: pickFrameIn 420ms cubic-bezier(0.16, 1, 0.3, 1) 40ms both;
-}
-
-.frame::before,
-.frame::after {
-  position: absolute;
-  z-index: -1;
-  content: "";
-  clip-path: polygon(
-    var(--pick-chamfer) 0, 100% 0, 100% calc(100% - var(--pick-chamfer)),
-    calc(100% - var(--pick-chamfer)) 100%, 0 100%, 0 var(--pick-chamfer)
-  );
-}
-
-.frame::before {
-  inset: 0;
-  background: linear-gradient(
-    160deg,
-    color-mix(in srgb, var(--k) 70%, transparent),
-    #3b474b 38%,
-    #2a3337 70%,
-    color-mix(in srgb, var(--k) 55%, transparent)
-  );
-}
-
-.frame::after {
-  inset: 1px;
-  background:
-    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--k) 10%, transparent), transparent 60%),
-    linear-gradient(165deg, #141d20f5, #0a0f11fa 58%, #070b0cfc);
+  animation: pickFrameIn 460ms cubic-bezier(0.16, 1, 0.3, 1) 40ms both;
 }
 
 .layer[data-closing] .frame {
   animation: pickFrameOut 200ms ease-in both;
 }
 
-/* ── 页眉 ── */
-.head {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  margin-bottom: 28px;
-  text-align: center;
-}
-
-.kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--k);
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.32em;
-}
-
-.kicker::before,
-.kicker::after {
-  width: 36px;
-  height: 1px;
-  content: "";
-  background: linear-gradient(90deg, transparent, var(--k));
-}
-
-.kicker::after {
-  background: linear-gradient(270deg, transparent, var(--k));
-}
-
-.title {
-  margin: 0;
-  color: #f4f8ef;
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  text-shadow: 0 0 18px color-mix(in srgb, var(--k) 24%, transparent);
-}
-
-.caption {
-  margin: 0;
-  color: #9fb0b0;
-  font-size: 18px;
-  line-height: 1.5;
-}
-
-/* ── 候选网格 ── */
+/* ── 候选网格: 左上 (109, 218), 三列 350, 列距 46 ──
+   卡面放大到 350×490(仍是 1:1.4), 同时经 HandCard 的变量钩子把徽章、卡名、说明字号一并放大,
+   说明区净高 = 140 − 3 − 2×14 = 109px: 22px×3 行 / 20px×4 行 / 18px×4 行。
+   卡名纯白、说明提亮, 按设计稿; 卡外圈的银色钢框由 parts/PickCardRim 叠加, 不改 HandCard 本体。 */
 .grid {
-  --hand-card-w: 220px;
-  --hc-text-h: 88px;
+  --hand-card-w: 350px;
+  --hc-text-h: 140px;
   --hand-card-h: calc(var(--hand-card-w) + var(--hc-text-h));
-  position: relative;
-  z-index: 1;
+  --hc-cost-size: 70px;
+  --hc-crystal-size: 56px;
+  --hc-cost-font: 30px;
+  --hc-title-h: 46px;
+  --hc-title-font: 28px;
+  --hc-title-pad: 22px;
+  --hc-title-color: #ffffff;
+  --hc-text-pad: 14px 18px;
+  --hc-text-color: #e3e9f2;
+  --hc-text-lg: 22px;
+  --hc-text-lg-lines: 3;
+  --hc-text-md: 20px;
+  --hc-text-md-lines: 4;
+  --hc-text-sm: 18px;
+  --hc-text-sm-lines: 4;
+  position: absolute;
+  z-index: 2;
+  top: 218px;
+  left: 109px;
   display: grid;
   grid-template-columns: repeat(3, var(--hand-card-w));
-  justify-content: center;
-  gap: 40px;
-}
-
-/* ── 底栏 ── */
-.foot {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid #ffffff14;
-}
-
-.note {
-  min-width: 0;
-  overflow: hidden;
-  color: #9fb0b0;
-  font-size: 18px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  gap: 46px;
 }
 
 .noteName {
-  color: var(--k);
-  font-weight: 700;
-}
-
-.actions {
-  display: flex;
-  flex: none;
-  gap: 14px;
-}
-
-.button {
-  min-width: 148px;
-  height: 52px;
-  padding: 0 26px;
-  color: #c6d0cd;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  background: linear-gradient(180deg, #1a2326, #0e1416);
-  border: 1px solid #3e4a4d;
-  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-  cursor: var(--cursor-pointer);
-  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, filter 160ms ease;
-}
-
-.button:hover,
-.button:focus-visible {
-  outline: none;
-  color: #eef4f0;
-  border-color: #6b7a7d;
-  background: linear-gradient(180deg, #243034, #121a1c);
-}
-
-.button:active {
-  filter: brightness(0.9);
-}
-
-.primary {
-  color: #11160a;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 92%, #fff), var(--k));
-  border-color: var(--k);
-  box-shadow: inset 0 1px 0 #ffffff66;
-}
-
-.primary:hover,
-.primary:focus-visible {
-  color: #0b0f06;
-  border-color: var(--k);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 70%, #fff), color-mix(in srgb, var(--k) 92%, #fff));
-}
-
-.primary:disabled {
-  color: #6f7a74;
-  background: #151c1e;
-  border-color: #2e383b;
-  box-shadow: none;
-  cursor: var(--cursor-default, default);
-}
-
-/* ── 右外侧卡牌详情 ── */
-.detail {
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  left: calc(100% + 36px);
-  pointer-events: none;
-  animation: pickDetailIn 200ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+  color: var(--pk-violet-hi);
+  font-weight: 800;
+  text-shadow: 0 0 10px #8f4dff88;
 }
 
 @keyframes pickLayerIn {
@@ -252,16 +105,5 @@
   to {
     opacity: 0;
     transform: translateY(10px) scale(0.98);
-  }
-}
-
-@keyframes pickDetailIn {
-  from {
-    opacity: 0;
-    translate: -8px 0;
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
   }
 }

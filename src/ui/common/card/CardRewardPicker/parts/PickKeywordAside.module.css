@@ -1,0 +1,33 @@
+/* 词条释义浮层: 盖在相邻卡上方, 不吃命中(否则会挡住对相邻卡的悬停与点击)。 */
+.aside {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  animation: pickAsideIn 180ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.aside[data-side="left"] {
+  --from-x: 8px;
+}
+
+.notes.notes {
+  gap: 10px;
+  padding: 14px 16px;
+  color: #d4dbf2;
+  background: linear-gradient(180deg, #141b3cf5, #0b1028f7);
+  border: 1px solid #5866d4aa;
+  box-shadow: 0 16px 36px -10px #000d, inset 0 1px 0 #8ea6ff33;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+@keyframes pickAsideIn {
+  from {
+    opacity: 0;
+    translate: var(--from-x, -8px) 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}

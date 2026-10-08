@@ -37,14 +37,14 @@
   z-index: 6;
   left: 12px;
   top: 12px;
-  width: 46px;
-  height: 46px;
+  width: var(--hc-cost-size, 46px);
+  height: var(--hc-cost-size, 46px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #f4f8fb;
   font-weight: 800;
-  font-size: 20px;
+  font-size: var(--hc-cost-font, 20px);
   /* ⚠ 旧版这两道投影是偏蓝的(#02152f / #0a3a6e), 跟着已删除的青蓝 --card-hue 来的。
      卡面中性化后换成纯暗色, 否则数字周围会浮起一圈蓝雾。 */
   text-shadow: 0 1px 2px #05080a, 0 0 6px #05080acc;
@@ -54,12 +54,13 @@
   /* 全站无圆角 ⇒ 徽章也走斜切角(8px, 比卡的 14 小一号), 与整体倒角语言一致 */
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
 }
-/* 水晶尺寸通过 CSS 变量下发；徽章 46 见方, 水晶 34 见方 ⇒ 四周各余 6px。 */
+/* 水晶尺寸通过 CSS 变量下发；徽章 46 见方, 水晶 34 见方 ⇒ 四周各余 6px。
+   ★ --hc-cost-size / --hc-crystal-size 是给放大卡面(如卡牌三选一)用的钩子, 缺省即手牌原尺寸。 */
 .hc-cost-crystal {
   position: absolute;
-  left: 6px;
-  top: 6px;
-  --mana-crystal-size: 34px;
+  left: calc((var(--hc-cost-size, 46px) - var(--hc-crystal-size, 34px)) / 2);
+  top: calc((var(--hc-cost-size, 46px) - var(--hc-crystal-size, 34px)) / 2);
+  --mana-crystal-size: var(--hc-crystal-size, 34px);
   /* 比通用 .mana-crystal 更重的投影 + 辉光 —— 水晶是卡面上**唯一**允许发光的实体件。
      ★ 辉光色走全站令牌 --accent(src/styles/tokens.css 的荧光黄绿), 与整站归队。
        卡面已全面中性化 ⇒ 这一点黄绿是整张卡上唯一的高饱和色, 视线自然被拉到费用上 ——
@@ -140,16 +141,16 @@
   left: 3px;
   right: 3px;
   bottom: var(--hc-text-h, 88px);
-  height: 30px;
+  height: var(--hc-title-h, 30px);
   display: flex;
   align-items: center;
-  padding: 0 10px 0 14px;
+  padding: 0 10px 0 var(--hc-title-pad, 14px);
   background: linear-gradient(180deg, transparent, #05080ab8 40%, #05080aef);
-  font-size: 18px;
+  font-size: var(--hc-title-font, 18px);
   font-weight: var(--ui-weight);
   letter-spacing: var(--ui-tracking);
   line-height: 1.1;
-  color: var(--ui-value);
+  color: var(--hc-title-color, var(--ui-value));
   text-shadow: var(--ui-glow), 0 1px 3px #000e, 0 0 8px #000a;
   white-space: nowrap;
   overflow: hidden;
@@ -196,7 +197,7 @@
   right: 3px;
   bottom: 3px;
   height: calc(var(--hc-text-h, 88px) - 3px);
-  padding: 9px 12px;
+  padding: var(--hc-text-pad, 9px 12px);
   overflow: hidden;
   /* 上沿的斜面转折(1px 亮 + 其下 1px 暗)走**背景图层**而不是 ::before —— 本元素是 -webkit-box
      (见下方行数截断), 伪元素会被当成一个盒子参与排版、吃掉一行。第三层才是底色。 */
@@ -207,7 +208,7 @@
   background-position: left top, left 1px, 0 0;
   background-size: 100% 1px, 100% 1px, auto;
   background-repeat: no-repeat, no-repeat, repeat;
-  color: #c6d8e4;
+  color: var(--hc-text-color, #c6d8e4);
   font-weight: 500;
   line-height: 1.35;
   text-align: justify;
@@ -220,17 +221,19 @@
    档位阈值见 ui/HandCard.tsx 的 textSize —— 改这里的字号就要回去核那两个字数阈值。
    ⓘ 卡高虽从 336 降到 308, 但这块的净高反而从 66 涨到 67(顶行那 52px 实位省下来后, 说明区
      从 84 加到了 88) ⇒ 三档字号与字数阈值**一个都不用改**。 */
+/* ★ 字号/行数同样留了变量钩子(--hc-text-lg 等), 放大卡面按自己的净高重配, 缺省即手牌原值。
+   卡名/说明的字色也有钩子(--hc-title-color / --hc-text-color), 同样缺省即原值。 */
 .hc-text.lg {
-  font-size: 13px;
-  -webkit-line-clamp: 3;
+  font-size: var(--hc-text-lg, 13px);
+  -webkit-line-clamp: var(--hc-text-lg-lines, 3);
 }
 .hc-text.md {
-  font-size: 12px;
-  -webkit-line-clamp: 4;
+  font-size: var(--hc-text-md, 12px);
+  -webkit-line-clamp: var(--hc-text-md-lines, 4);
 }
 .hc-text.sm {
-  font-size: 11px;
-  -webkit-line-clamp: 4;
+  font-size: var(--hc-text-sm, 11px);
+  -webkit-line-clamp: var(--hc-text-sm-lines, 4);
 }
 
 /* 选中态仍只改说明区上沿的亮度, 与卡面其余选中态保持同源。 */

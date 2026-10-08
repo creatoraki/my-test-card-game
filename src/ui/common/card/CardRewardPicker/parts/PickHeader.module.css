@@ -1,0 +1,84 @@
+/* 页眉落位(面板坐标): 小标签 (61, 40) 高 30; 标题 (113, 74) 字号 60; 说明 (113, 156) 字号 22。
+   标题与说明相对小标签缩进 52px(= 箭头宽), 文字左缘对齐箭头之后。 */
+.head {
+  position: absolute;
+  z-index: 2;
+  top: 40px;
+  left: 61px;
+  right: 120px;
+  animation: pickHeadIn 480ms cubic-bezier(0.16, 1, 0.3, 1) 160ms both;
+}
+
+.kicker {
+  display: flex;
+  height: 30px;
+  align-items: center;
+  gap: 12px;
+}
+
+.arrow {
+  width: 52px;
+  height: 14px;
+  flex: none;
+  color: var(--pk-violet);
+}
+
+.kickerText {
+  color: #d9caff;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.4em;
+  line-height: 1;
+  text-shadow: 0 0 10px #8f4dff80;
+}
+
+.kickerLine {
+  width: 120px;
+  height: 1px;
+  background: linear-gradient(90deg, #8f4dffaa, transparent);
+}
+
+/* 渐变字不能直接带 text-shadow(阴影会透过透明字形露出来) ⇒ 辉光由 ::before 复制一层同文字的实色字垫底。 */
+.title {
+  position: relative;
+  margin: 4px 0 0 52px;
+  color: transparent;
+  width: fit-content;
+  font-size: 60px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 68px;
+  white-space: nowrap;
+  /* 设计稿: 前半段近白偏冷, 后半段明显转向紫粉。fit-content 让渐变按文字宽度铺满, 而不是按整行。 */
+  background: linear-gradient(90deg, #f2f8ff 0%, #ece6ff 38%, #d9b4ff 72%, #c592ff 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.title::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: attr(data-text);
+  color: #0a0f24;
+  text-shadow: 0 0 22px #8f4dff80, 0 0 6px #b98cff40, 0 2px 0 #05071a;
+}
+
+.caption {
+  margin: 12px 0 0 52px;
+  color: var(--pk-dim);
+  font-size: 22px;
+  line-height: 30px;
+  white-space: nowrap;
+}
+
+@keyframes pickHeadIn {
+  from {
+    opacity: 0;
+    translate: -16px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}

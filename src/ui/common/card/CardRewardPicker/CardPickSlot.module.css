@@ -1,55 +1,57 @@
-/* 三选一候选格: 角色行(26) + 10 + 卡面(--hand-card-h) + 12 + 状态标签(26)。
-   卡面尺寸由父级网格下发(--hand-card-w / --hand-card-h), 本格只负责竖向排布与状态表现。 */
+/* 三选一候选格: 归属行(32) + 14 + 卡面(350×490)。尺寸常量与 parts/pickGeometry.ts 同步。
+   卡面放大的字号/徽章钩子由父级网格(CardRewardPicker.module.css .grid)下发。 */
 .slot {
   position: relative;
   display: grid;
-  grid-template-rows: 26px auto 26px;
-  row-gap: 10px;
-  justify-items: center;
+  grid-template-rows: 32px auto;
+  row-gap: 14px;
   width: var(--hand-card-w);
   outline: none;
   cursor: var(--cursor-pointer);
-  animation: pickSlotIn 360ms cubic-bezier(0.16, 0.84, 0.3, 1) var(--pick-delay, 0ms) both;
+  animation: pickSlotIn 420ms cubic-bezier(0.16, 0.84, 0.3, 1) var(--pick-delay, 0ms) both;
   transition: transform 200ms cubic-bezier(0.2, 0.72, 0.28, 1), filter 200ms ease;
 }
 
 .slot:hover,
 .slot:focus-visible {
-  transform: translateY(-4px);
-}
-
-.slot[data-selected] {
   transform: translateY(-6px);
 }
 
-/* 已经选了别的: 其余候选退后一步, 悬停时恢复全亮以便比较。 */
+.slot[data-selected] {
+  transform: translateY(-4px);
+}
+
+/* 已经选了别的: 其余候选轻微退后(设计稿里未选卡几乎不压暗), 悬停时恢复全亮以便比较。 */
 .slot[data-dimmed]:not(:hover):not(:focus-visible) {
-  filter: brightness(0.62) saturate(0.8);
+  filter: brightness(0.86) saturate(0.92);
 }
 
 .slot:active {
-  transform: translateY(-2px) scale(0.985);
+  transform: translateY(-2px) scale(0.99);
   transition-duration: 90ms;
 }
 
 .owner {
   display: flex;
-  width: 100%;
   align-items: center;
-  gap: 8px;
-  color: #dbe5df;
-  font-size: 18px;
-  font-weight: 700;
+  gap: 10px;
+  padding-left: 8px;
+  color: #f2f4ff;
+  font-size: 24px;
+  font-weight: 800;
   letter-spacing: 0.08em;
-  line-height: 26px;
+  line-height: 32px;
 }
 
-.ownerMark {
-  width: 4px;
-  height: 18px;
+/* 职业徽记按设计稿做成实心发光: 填充压到 60%, 再垫一圈同色辉光(图标很小, 滤镜辉光的柔化可以接受)。 */
+.ownerGlyph {
+  width: 32px;
+  height: 32px;
   flex: none;
-  background: var(--owner-color);
-  box-shadow: 0 0 8px var(--owner-color);
+  color: var(--owner-color);
+  fill: color-mix(in srgb, var(--owner-color) 60%, transparent);
+  stroke-width: 2.4;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--owner-color) 70%, transparent));
 }
 
 .ownerName {
@@ -58,38 +60,17 @@
   white-space: nowrap;
 }
 
-/* 四角提示框的宿主: 尺寸与卡面一致, 框线外扩到卡边外侧(InteractiveHint 宿主三条要求见其 CSS 头部)。 */
+/* 选中框宿主: 尺寸与卡面一致, 选中框 SVG 向外溢出(不能 overflow: hidden)。 */
 .cardBox {
   position: relative;
   width: var(--hand-card-w);
   height: var(--hand-card-h);
 }
 
-.state {
-  color: var(--muted);
-  font-size: 18px;
-  letter-spacing: 0.16em;
-  line-height: 26px;
-  opacity: 0;
-  transition: opacity 160ms ease, color 160ms ease;
-}
-
-.slot:hover .state,
-.slot:focus-visible .state {
-  opacity: 1;
-}
-
-.slot[data-selected] .state {
-  color: var(--k, var(--accent));
-  font-weight: 700;
-  opacity: 1;
-  text-shadow: 0 0 10px color-mix(in srgb, var(--k, var(--accent)) 55%, transparent);
-}
-
 @keyframes pickSlotIn {
   from {
     opacity: 0;
-    translate: 0 22px;
+    translate: 0 26px;
   }
   to {
     opacity: 1;

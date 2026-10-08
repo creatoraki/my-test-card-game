@@ -1,0 +1,183 @@
+/* 三选一面板外框与底层。颜色令牌(--pk-*)由 CardRewardPicker.module.css 的 .frame 下发。
+   层序(自下而上): 全息投影 → 暗底(外轮廓裁切) → 锻造师底图(内轮廓裁切) → 网格 → 刻度 → SVG 描边。 */
+.decor {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ── 全息卡牌投影: 面板右外侧漂浮, 左缘压进面板 60px, 被面板底盖住一截 ── */
+.hologram {
+  position: absolute;
+  top: 110px;
+  left: 1340px;
+  width: 300px;
+  height: 400px;
+  object-fit: contain;
+  opacity: 0.62;
+  animation:
+    pickHoloIn 600ms ease-out 360ms both,
+    pickHoloFloat 6.4s ease-in-out 960ms infinite;
+}
+
+/* ── 暗底: 上方更透(露出背后已被遮罩模糊的场景), 下方更实。
+   ⚠ 不再叠 backdrop-filter: 外层遮罩已经模糊过背景, 嵌套毛玻璃只会增加合成开销。 ── */
+.base {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0a1028b8 0%, #0a1028d6 40%, #080c1ef0 100%);
+}
+
+/* ── 锻造师底图: 靠右上铺开, 整体偏紫蓝, 越往下越暗(卡面与按钮区几乎不透图) ── */
+.art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-image: var(--pick-panel-art);
+  background-repeat: no-repeat;
+  background-size: 1220px auto;
+  background-position: right -40px top -60px;
+  opacity: 0.56;
+  /* 设计稿里面板内透出的场景是虚的, 只给氛围不抢卡面; 静态层, 模糊只算一次。 */
+  filter: blur(2px);
+}
+
+/* 色调统一: 用 color 混合把暖橙底图拉向紫蓝, 保留明暗层次。 */
+.art::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(160deg, #3b2c9e, #24308c);
+  mix-blend-mode: color;
+  opacity: 0.55;
+}
+
+.art::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(90deg, #080c20e6 0%, #080c2099 28%, transparent 55%),
+    linear-gradient(180deg, #0a102833 0%, #0a1028a6 26%, #080c1ee8 48%, #070a1af7 72%, #060918fc 100%);
+}
+
+/* ── 极淡的科技网格, 只在上半部可见 ── */
+.grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, #6f7dff12 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(0deg, #6f7dff12 1px, transparent 1px) 0 0 / 44px 44px;
+  mask-image: linear-gradient(180deg, #000 0%, transparent 40%);
+}
+
+/* ── 左缘竖向刻度 ── */
+.rail {
+  position: absolute;
+  top: 200px;
+  left: 16px;
+  width: 6px;
+  height: 500px;
+  background: repeating-linear-gradient(180deg, #5866d466 0 2px, transparent 2px 16px);
+}
+
+/* ── SVG 描边层 ── */
+.lines {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  fill: none;
+  stroke-linejoin: miter;
+}
+
+.inner {
+  stroke: #3e4aa6;
+  stroke-width: 1;
+  opacity: 0.8;
+}
+
+.outlineGlow {
+  stroke: var(--pk-line);
+  stroke-width: 8;
+  opacity: 0.2;
+}
+
+.outline {
+  stroke: var(--pk-line);
+  stroke-width: 2;
+  stroke-dasharray: 1;
+  animation: pickOutlineDraw 900ms cubic-bezier(0.3, 0.7, 0.2, 1) 120ms both;
+}
+
+.accent {
+  --tone: var(--pk-violet);
+  --tone-hi: var(--pk-violet-hi);
+  animation: pickAccentIn 500ms ease-out 700ms both;
+}
+
+.accent[data-tone="cyan"] {
+  --tone: var(--pk-cyan);
+  --tone-hi: #b8f0ff;
+}
+
+.accentHalo {
+  stroke: var(--tone);
+  stroke-width: 12;
+  opacity: 0.1;
+}
+
+.accentGlow {
+  stroke: var(--tone);
+  stroke-width: 6;
+  opacity: 0.32;
+}
+
+.accentCore {
+  stroke: var(--tone-hi);
+  stroke-width: 3;
+}
+
+/* 主标题左侧的竖向护板: 暗蓝实心条 + 冰青外缘, 下方一列短刻度。 */
+.bracket {
+  fill: #18225a;
+  stroke: #5f8dff;
+  stroke-width: 1.5;
+}
+
+.bracketEdge {
+  stroke: var(--pk-cyan);
+  stroke-width: 2.5;
+}
+
+.bracketTicks {
+  stroke: #5f8dff;
+  stroke-width: 1.5;
+  opacity: 0.5;
+}
+
+@keyframes pickOutlineDraw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes pickAccentIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pickHoloIn {
+  from {
+    opacity: 0;
+    translate: 24px 0;
+  }
+  to {
+    opacity: 0.62;
+    translate: 0 0;
+  }
+}
+
+@keyframes pickHoloFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}

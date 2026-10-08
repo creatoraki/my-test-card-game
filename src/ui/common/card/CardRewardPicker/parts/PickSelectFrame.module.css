@@ -1,0 +1,86 @@
+/* 选中框: 宿主(卡面盒)需 position: relative; 本层画在卡面上方且不吃命中。 */
+.frame {
+  position: absolute;
+  z-index: 4;
+  overflow: visible;
+  fill: none;
+  pointer-events: none;
+  stroke-linejoin: miter;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.frame[data-state] {
+  opacity: 1;
+}
+
+.halo {
+  stroke: var(--pk-violet);
+  stroke-width: 22;
+  opacity: 0.14;
+}
+
+.mid {
+  stroke: var(--pk-violet);
+  stroke-width: 9;
+  opacity: 0.42;
+}
+
+.core {
+  stroke: var(--pk-violet-hi);
+  stroke-width: 3.2;
+}
+
+.inner {
+  stroke: #efe2ff;
+  stroke-width: 1.2;
+  opacity: 0.75;
+}
+
+.side {
+  stroke: #e3cfff;
+  stroke-width: 3;
+}
+
+.arrow {
+  fill: var(--pk-violet-hi);
+}
+
+/* ── 悬停(未选中): 只留一道淡紫主线 ── */
+.frame[data-state="hover"] .glow,
+.frame[data-state="hover"] .inner,
+.frame[data-state="hover"] .side,
+.frame[data-state="hover"] .arrow {
+  opacity: 0;
+}
+
+.frame[data-state="hover"] .core {
+  stroke: var(--pk-violet);
+  stroke-width: 1.5;
+  opacity: 0.7;
+}
+
+/* ── 选中: 辉光呼吸 + 入场时框线略微收拢 ── */
+.frame[data-state="selected"] {
+  animation: pickSelectIn 260ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.frame[data-state="selected"] .glow {
+  animation: pickSelectBreath 2.4s ease-in-out 260ms infinite;
+}
+
+@keyframes pickSelectIn {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pickSelectBreath {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}

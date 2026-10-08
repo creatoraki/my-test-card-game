@@ -1,0 +1,228 @@
+/* 底栏按钮。落位(left/top/宽高)由组件按 pickGeometry 内联下发; 斜切量 22px 与 BUTTON_CHAMFER 同步。 */
+.button {
+  --edge: #4f6ae0;
+  --edge-hi: #9fb6ff;
+  position: absolute;
+  z-index: 3;
+  padding: 0;
+  color: #dce6ff;
+  background: none;
+  border: 0;
+  cursor: var(--cursor-pointer);
+  transition: filter 160ms ease, transform 160ms ease;
+}
+
+.button:focus-visible {
+  outline: none;
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  clip-path: polygon(22px 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%, 0 22px);
+  background:
+    radial-gradient(70% 90% at 12% 0%, #4f6ae02e, transparent 70%),
+    repeating-linear-gradient(115deg, #ffffff06 0 2px, transparent 2px 8px),
+    linear-gradient(180deg, #1b2556, #0c1230);
+  transition: background 160ms ease;
+}
+
+/* 悬停扫光: 一道斜向高光条从左扫到右, 只播一次。 */
+.face::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 30%;
+  content: "";
+  background: linear-gradient(100deg, transparent, #ffffff2e, transparent);
+  transform: skewX(-20deg);
+  opacity: 0;
+}
+
+.button:not(:disabled):hover .face::after,
+.button:not(:disabled):focus-visible .face::after {
+  animation: pickButtonSweep 620ms ease-out both;
+}
+
+.edge {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  fill: none;
+  pointer-events: none;
+  stroke-linejoin: miter;
+}
+
+.halo {
+  stroke: var(--edge);
+  stroke-width: 7;
+  opacity: 0.16;
+}
+
+.line {
+  stroke: var(--edge);
+  stroke-width: 1.5;
+}
+
+.innerLine {
+  stroke: var(--edge);
+  stroke-width: 1;
+  opacity: 0.4;
+}
+
+.corner {
+  stroke: var(--edge-hi);
+  stroke-width: 2.5;
+}
+
+.foot {
+  stroke: var(--edge);
+  stroke-width: 2;
+  opacity: 0.8;
+}
+
+.content {
+  position: relative;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-shadow: 0 1px 2px #05071a;
+}
+
+/* 中文字距在最后一个字后也会留白 ⇒ 用负右边距抵消, 视觉居中。 */
+.label {
+  margin-right: -0.18em;
+}
+
+.button:not(:disabled):hover {
+  filter: brightness(1.16);
+}
+
+.button:not(:disabled):hover .face {
+  background:
+    radial-gradient(70% 90% at 12% 0%, #6f86ff3d, transparent 70%),
+    repeating-linear-gradient(115deg, #ffffff08 0 2px, transparent 2px 8px),
+    linear-gradient(180deg, #232e66, #10183c);
+}
+
+.button:not(:disabled):active {
+  transform: translateY(1px);
+  filter: brightness(0.92);
+}
+
+/* ── 主按钮「确认选择」: 紫色渐变填充 + 亮紫描边与外发光 ── */
+.primary {
+  --edge: var(--pk-violet-hi);
+  --edge-hi: #f0e4ff;
+  color: #ffffff;
+}
+
+.primary .face {
+  background:
+    linear-gradient(180deg, #ffffff2e, transparent 46%),
+    radial-gradient(60% 120% at 30% 50%, #a970ff66, transparent 70%),
+    linear-gradient(90deg, #6128df 0%, #8a48ff 50%, #6a30e8 100%);
+}
+
+.primary:not(:disabled):hover .face {
+  background:
+    linear-gradient(180deg, #ffffff3a, transparent 46%),
+    radial-gradient(60% 120% at 30% 50%, #b98cff73, transparent 70%),
+    linear-gradient(90deg, #6e34ec 0%, #9d62ff 50%, #7a40f0 100%);
+}
+
+.primary .halo {
+  stroke: var(--pk-violet);
+  stroke-width: 14;
+  opacity: 0.4;
+}
+
+.haloWide {
+  stroke: var(--pk-violet);
+  stroke-width: 30;
+  opacity: 0.12;
+}
+
+.bay {
+  stroke: #7a52e8;
+  stroke-width: 1.2;
+  opacity: 0.7;
+}
+
+/* 主按钮内亮线: 设计稿里是一圈很亮的近白紫线, 内缩 5px。 */
+.primary .innerLine {
+  stroke: #f1e6ff;
+  stroke-width: 1.6;
+  opacity: 0.85;
+}
+
+.primary .content {
+  font-size: 28px;
+  text-shadow: 0 0 12px #c39bffaa, 0 1px 2px #2a0f6e;
+}
+
+.primary .content > svg {
+  width: 38px;
+  height: 28px;
+  flex: none;
+  color: #9ff4ff;
+  filter: drop-shadow(0 0 6px #5fd8ff99);
+  transition: translate 200ms ease;
+}
+
+.primary:not(:disabled):hover .content > svg {
+  translate: 5px 0;
+}
+
+/* 未选中候选: 去饱和、无辉光。 */
+.primary:disabled {
+  --edge: #3c3f66;
+  --edge-hi: #4c5080;
+  color: #7a7f9e;
+  cursor: var(--cursor-default, default);
+}
+
+.primary:disabled .face {
+  background: linear-gradient(180deg, #1a1c38, #11132a);
+}
+
+.primary:disabled .halo,
+.primary:disabled .haloWide,
+.primary:disabled .innerLine {
+  opacity: 0;
+}
+
+.primary:disabled .bay {
+  stroke: #3c3f66;
+}
+
+.primary:disabled .content {
+  text-shadow: none;
+}
+
+.primary:disabled .content > svg {
+  color: #4c5080;
+  filter: none;
+}
+
+@keyframes pickButtonSweep {
+  0% {
+    left: -40%;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    left: 120%;
+    opacity: 0;
+  }
+}

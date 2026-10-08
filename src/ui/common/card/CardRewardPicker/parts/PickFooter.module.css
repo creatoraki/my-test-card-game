@@ -1,0 +1,48 @@
+/* 底栏不占布局: 提示行与按钮各自按面板坐标绝对落位。 */
+.foot {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  pointer-events: none;
+  animation: pickFootIn 420ms ease-out 360ms both;
+}
+
+.foot > * {
+  pointer-events: auto;
+}
+
+.hint {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--pk-dim);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.icon {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  color: #8f9bcc;
+}
+
+.note {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes pickFootIn {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
