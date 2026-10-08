@@ -212,6 +212,7 @@ export function CharacterDetailView({
             preview={previewStats}
             // 预热层里 21 条属性各起一路 rAF 滚数值纯属空转 —— 那一屏没人在看。
             rolling={!morphing && !leaving && !prewarm}
+            level={cs.deckLevel}
             equipped={cs.equipped}
             activeSlot={activeSlot}
             onSelect={(slot) => {
@@ -241,7 +242,7 @@ export function CharacterDetailView({
           slot={activeSlot}
           candidates={candidates}
           onEquip={(uid) => {
-            equipItem(charId, uid);
+            equipItem(charId, uid, activeSlot);
             equipPreview.clear();
           }}
           onClose={equipPreview.clear}

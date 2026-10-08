@@ -4,6 +4,8 @@
   bottom: 148px;
   z-index: 5;
   display: grid;
+  /* 2 列 × 3 行: 每行一个部位, 左主右副。 */
+  grid-template-columns: repeat(2, 52px);
   gap: 8px;
 }
 
@@ -39,6 +41,32 @@
 }
 
 .empty svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* 未解锁副格: 虚线 + 压暗 + 小锁, 悬浮提示解锁等级。 */
+.slot.locked {
+  border-style: dashed;
+  border-color: rgb(255 255 255 / 0.12);
+  background: linear-gradient(145deg, rgb(90 96 104 / 0.1), rgb(14 16 20 / 0.46));
+}
+
+.slot.locked:hover,
+.slot.locked:focus-visible {
+  border-color: rgb(255 255 255 / 0.3);
+  background: linear-gradient(145deg, rgb(110 116 124 / 0.14), rgb(14 16 20 / 0.46));
+}
+
+.lock {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: rgb(218 230 234 / 0.36);
+}
+
+.lock svg {
   width: 100%;
   height: 100%;
 }

@@ -7,7 +7,11 @@
 }
 .equipment-slots-head { display: flex; align-items: flex-start; padding: 0 4px; }
 .equipment-slots-label { color: #f7f9ff; font-size: 30px; font-weight: 700; letter-spacing: 3px; line-height: 1; }
-.equipment-slots-grid { display: grid; flex: 1 1 auto; min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 13px; }
+/* 按部位成行: 行头一个部位名, 下面一主一副两格; 三行平分剩余高度。 */
+.equipment-slots-rows { display: grid; flex: 1 1 auto; min-height: 0; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.equipment-row { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 8px; min-height: 0; }
+.equipment-row-name { padding: 0 4px; color: #dce8e9; font-size: 20px; font-weight: 700; letter-spacing: 3px; line-height: 1; text-shadow: 0 1px 3px #000; }
+.equipment-row-cells { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; min-height: 0; }
 .equipment-slot {
   composes: glass from "../styles/equipmentGlass.module.css";
   --equipment-glass-radius: 12px;
@@ -19,19 +23,25 @@
 .equipment-slot-item, .equipment-slot-empty { grid-column: 1; grid-row: 1; width: 100%; height: 100%; min-width: 0; padding: 0; border: 0; border-radius: 12px; background: transparent; clip-path: none; }
 .equipment-slot .equipment-slot-item { aspect-ratio: auto; min-height: 0; --item-slot-pad: 0; --item-slot-gap: 0; --item-slot-icon-size: 70%; --item-slot-halo: 0px; --item-slot-halo-core: 0px; background: transparent; border: 0; clip-path: none; }
 .equipment-slot-item {
-  --item-slot-bond-size: 32px;
-  --item-slot-bond-top: 12px;
+  --item-slot-bond-size: 28px;
+  --item-slot-bond-top: 8px;
   --item-slot-bond-left: auto;
-  --item-slot-bond-right: 12px;
+  --item-slot-bond-right: 8px;
 }
 .equipment-slot .equipment-slot-item:hover, .equipment-slot .equipment-slot-item:focus-visible, .equipment-slot .equipment-slot-empty:hover, .equipment-slot .equipment-slot-empty:focus-visible { background: transparent; border: 0; box-shadow: none; transform: none; outline: none; }
-.equipment-slot-unequip { position: absolute; right: 10px; bottom: 10px; z-index: 3; padding: 5px 11px; color: #ffd8df; font-size: 18px; background: rgb(0 0 0 / 0.58); border: 1px solid #c25a6e8f; border-radius: 8px; clip-path: none; opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity 150ms ease, transform 150ms ease; }
+.equipment-slot-unequip { position: absolute; right: 8px; bottom: 8px; z-index: 3; padding: 5px 11px; color: #ffd8df; font-size: 18px; background: rgb(0 0 0 / 0.58); border: 1px solid #c25a6e8f; border-radius: 8px; clip-path: none; opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity 150ms ease, transform 150ms ease; }
 .equipment-slot:hover .equipment-slot-unequip, .equipment-slot:focus-within .equipment-slot-unequip { opacity: 1; pointer-events: auto; transform: none; }
 .equipment-slot .equipment-slot-unequip:hover, .equipment-slot .equipment-slot-unequip:focus-visible { color: #fff; background: #421c28; border-color: #e68ba0; transform: none; }
 .equipment-slot-empty { display: grid; place-items: center; position: relative; color: rgb(218 230 234 / 0.32); }
 .equipment-slot-empty svg { width: 42%; height: 42%; }
-.equipment-slot-name { position: absolute; bottom: 16px; left: 18px; z-index: 2; color: #dce8e9; font-size: 22px; font-weight: 700; letter-spacing: 3px; pointer-events: none; text-shadow: 0 1px 3px #000; }
-.equipment-slot-add { position: absolute; top: 16px; right: 16px; width: 28px; height: 28px; border: 1px solid #ffffff2e; border-radius: 50%; background: #ffffff0a; }
+.equipment-slot-add { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border: 1px solid #ffffff2e; border-radius: 50%; background: #ffffff0a; }
 .equipment-slot-add::before, .equipment-slot-add::after { position: absolute; top: 50%; left: 50%; content: ""; background: #dce8e980; transform: translate(-50%, -50%); }
 .equipment-slot-add::before { width: 12px; height: 2px; }
 .equipment-slot-add::after { width: 2px; height: 12px; }
+
+/* 未解锁副格: 压暗的磨砂底 + 锁 + 解锁等级, 不可点但可悬浮看条件。 */
+.equipment-slot.is-locked { place-items: center; align-content: center; gap: 6px; background: linear-gradient(145deg, rgb(90 96 104 / 0.12), rgb(14 16 20 / 0.5)); border-style: dashed; border-color: rgb(255 255 255 / 0.14); outline: none; }
+.equipment-slot.is-locked:hover, .equipment-slot.is-locked:focus-visible { border-color: rgb(255 255 255 / 0.32); background: linear-gradient(145deg, rgb(110 116 124 / 0.16), rgb(14 16 20 / 0.5)); }
+.equipment-slot-lock { display: block; width: 40px; height: 40px; color: rgb(218 230 234 / 0.4); }
+.equipment-slot-lock svg { width: 100%; height: 100%; }
+.equipment-slot-unlock { color: rgb(218 230 234 / 0.55); font-size: 18px; letter-spacing: 1px; white-space: nowrap; }

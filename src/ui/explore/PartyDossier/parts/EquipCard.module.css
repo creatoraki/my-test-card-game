@@ -1,12 +1,14 @@
-/* 大装备卡: 稀有度色(--rr)驱动顶边亮条、描边与大图光晕; 空槽压成虚线暗卡。
-   卡面只放大图 + 羁绊 + 「更换」按钮, 不写装备名、不列属性词条。 */
+/* 装备卡(横向紧凑版): 稀有度色(--rr)驱动顶边亮条、描边与大图光晕; 空槽压成虚线暗卡。
+   左列大图跨三行, 右列依次是 页眉 / 羁绊 / 「更换」按钮; 不写装备名、不列属性词条。 */
 .card {
   position: relative;
-  display: flex;
+  display: grid;
   min-width: 0;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px 14px;
+  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  min-height: 124px;
+  padding: 12px 12px 12px 14px;
   border: 1px solid color-mix(in srgb, var(--rr) 46%, #ffffff14);
   background:
     radial-gradient(ellipse 60% 70% at 18% 30%, color-mix(in srgb, var(--rr) 16%, transparent), transparent 70%),
@@ -52,6 +54,8 @@
 }
 
 .head {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -74,11 +78,12 @@
 
 .main {
   position: relative;
+  grid-column: 1;
+  grid-row: 1 / 4;
   display: grid;
   min-height: 0;
-  flex: 1;
   place-items: center;
-  padding: 6px 0;
+  padding: 0;
   border: 0;
   background: none;
   color: inherit;
@@ -100,7 +105,7 @@
 .icon::before {
   position: absolute;
   z-index: -1;
-  inset: -22px;
+  inset: -14px;
   background: radial-gradient(circle, color-mix(in srgb, var(--rr) 30%, transparent), transparent 68%);
   content: "";
   pointer-events: none;
@@ -108,26 +113,36 @@
 
 /* 两段类名压过 ItemIconFrame 自带的 .size-xl(132px)。 */
 .icon .iconFrame {
-  --icon-frame-size: 168px;
+  --icon-frame-size: 96px;
 }
 
 .emptyIcon {
   display: grid;
-  width: 168px;
-  height: 168px;
+  width: 96px;
+  height: 96px;
   flex: none;
   place-items: center;
   border: 1px dashed #ffffff33;
   color: #5d7177;
-  font-size: 32px;
+  font-size: 28px;
 }
 
-/* 底栏: 左羁绊词条, 右「更换」按钮。 */
+/* 右列下半: 羁绊词条占中行, 「更换」按钮落在末行右侧。
+   display: contents 让两个子元素直接参与卡片网格。 */
 .foot {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
+  display: contents;
+}
+
+.foot > :first-child {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
+}
+
+.foot > .swap {
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: end;
 }
 
 .bonds {
@@ -182,3 +197,39 @@
   color: #ffffff;
 }
 
+/* 未解锁副格: 左侧锁图标替代大图, 右侧部位名 + 解锁等级。 */
+.locked {
+  outline: none;
+  cursor: default;
+}
+
+.locked:hover,
+.locked:focus-visible {
+  border-color: #ffffff4d;
+}
+
+.lockIcon {
+  grid-column: 1;
+  grid-row: 1 / 4;
+  display: grid;
+  width: 96px;
+  height: 96px;
+  place-self: center;
+  place-items: center;
+  border: 1px dashed #ffffff24;
+  color: #5d7177;
+}
+
+.lockIcon svg {
+  width: 44px;
+  height: 44px;
+}
+
+.lockText {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
+  color: #6f878d;
+  font-size: 18px;
+  letter-spacing: 1px;
+}

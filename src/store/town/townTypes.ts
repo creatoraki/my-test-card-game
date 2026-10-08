@@ -2,7 +2,8 @@
 
 import type { Card, QuirkId } from "@/engine";
 import type { TechTreeState } from "@/data";
-import type { EquipSlot, ItemStack } from "@/items/types";
+import type { ItemStack } from "@/items/types";
+import type { GearSet, GearSlot } from "@/items/gearSlots";
 import type { BondBias } from "@/explore/types";
 import type { CurioTownSlice } from "../townSlices/curioTownSlice";
 import type { DailyClearState, MapProgressSlice } from "../townSlices/mapProgressSlice";
@@ -19,8 +20,8 @@ export interface CharacterState {
   deck: Card[]; // 个人卡组(实例); 战斗卡组 = 上阵角色个人卡组的集合
   deckLevel: number; // 卡组等级, 从 0 起, 满级 RULES.deck.levelMax; 只影响抽卡时的稀有度权重
   minDeckSize: number; // 当前最小卡组下限, 删卡不能把卡组删到它以下
-  // 已穿戴的三件装备(物品实例本身, 不是修正层)。★ 穿在身上的**不占背包/仓库格**。
-  equipped: Record<EquipSlot, ItemStack | null>;
+  // 已穿戴的装备(物品实例本身, 不是修正层), 6 格见 items/gearSlots。★ 穿在身上的**不占背包/仓库格**。
+  equipped: GearSet;
   pendingDraw: string[] | null; // 抽卡进行中的候选 defId; 持久化 => 刷新也躲不掉 3 选 1
   forgeDay: number; // 上次锻造发生在第几日, 与 TownStore.day 比对
   drawUsedToday: number; // 今日已扩充次数
@@ -104,13 +105,13 @@ export interface TownStore extends CurioTownSlice {
   discardStored: (uid: string) => void; // 仓库里丢弃(二次确认在 UI)
   withdraw: (uid: string) => ItemStack | null; // 出击准备: 把一整堆从仓库取出交给调用方
   sellItem: (uid: string) => void; // 回收台: 按统一售价函数出售换居民积分
-  equipItem: (charId: string, uid: string) => void; // 从仓库取一件穿上
-  unequipItem: (charId: string, slot: EquipSlot) => void; // 卸下, 退回仓库
+  equipItem: (charId: string, uid: string, slot?: GearSlot) => void; // 从仓库取一件穿上; 不指定格子则自动挑
+  unequipItem: (charId: string, slot: GearSlot) => void; // 卸下, 退回仓库
   // ---- 不经仓库的两个原子操作 ----
   // ★ 远征途中换装(探索页的角色档案)要把物品在**背包**与槽位之间搬, 与仓库无关。
   //   编排在 runStore(唯一同时认识城镇与探索的那一层), 这里只负责槽位这一半。
-  wearStack: (charId: string, stack: ItemStack) => ItemStack | null; // 穿上, 返回被替下的旧件
-  takeOffStack: (charId: string, slot: EquipSlot) => ItemStack | null; // 卸下并交出
+  wearStack: (charId: string, stack: ItemStack, slot?: GearSlot) => ItemStack | null; // 穿上, 返回被替下的旧件
+  takeOffStack: (charId: string, slot: GearSlot) => ItemStack | null; // 卸下并交出
   equipCardModule: (charId: string, cardUid: string, moduleUid: string) => void;
   /** 直接把一件**不在仓库里**的模组装到**空槽**卡上。成功返回 true。 */
   installModuleStack: (charId: string, cardUid: string, stack: ItemStack) => boolean;
@@ -163,7 +164,7 @@ export interface TownStore extends CurioTownSlice {
   pickPartyDraw: (charId: string, cardDefId: string) => boolean;
   removeCard: (charId: string, uid: string) => void; // 花 removeCost 经验删一张卡
   removeCardFree: (charId: string, uid: string) => void; // 不消耗经验删一张卡
-  reforgeEquipped: (charId: string, slot: EquipSlot, bias?: BondBias) => void;
+  reforgeEquipped: (charId: string, slot: GearSlot, bias?: BondBias) => void;
   lowerMinDeck: (charId: string) => void; // 花经验把最小卡组下限降 1
   pendingReforge: import("../townSlices/equipCraftSlice").PendingReforge | null;
   upgradeEquip: import("../townSlices/equipCraftSlice").EquipCraftSlice["upgradeEquip"];

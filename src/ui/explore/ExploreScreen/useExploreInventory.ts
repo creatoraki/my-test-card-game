@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getItemDef } from "@/data";
 import { canOpenBackpack, canUseItem } from "@/explore/session";
 import type { ExploreState } from "@/explore/types";
+import type { GearSlot } from "@/items/gearSlots";
 import { TARGETED_ITEM_USE_KINDS, type ItemStack, type EquipSlot } from "@/items/types";
 import { useExploreStore } from "@/store/explore/exploreStore";
 import { useRunStore } from "@/store/run/runStore";
@@ -65,11 +66,11 @@ export function useExploreInventory(session: ExploreState | null) {
     setDetailCharId((selected) => current.party.some((member) => member.charId === selected && member.alive) ? selected : first.charId);
   }, []);
   const closeDetail = () => { setDetailCharId(null); setEquipFocus(null); };
-  const equip = (uid: string) => {
+  const equip = (uid: string, slot: GearSlot) => {
     if (!detailCharId) return;
-    if (useRunStore.getState().equipFromBackpack(detailCharId, uid)) setEquipFocus(null);
+    if (useRunStore.getState().equipFromBackpack(detailCharId, uid, slot)) setEquipFocus(null);
   };
-  const unequip = (slot: EquipSlot) => {
+  const unequip = (slot: GearSlot) => {
     if (!detailCharId) return;
     useRunStore.getState().unequipToBackpack(detailCharId, slot);
   };

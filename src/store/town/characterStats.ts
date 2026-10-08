@@ -6,7 +6,7 @@ import {
 } from "@/engine";
 import { getBondDef, getCharacter, getItemDef } from "@/data";
 import { rollToFlat } from "@/items/equipRoll";
-import type { EquipSlot } from "@/items/types";
+import { GEAR_SLOTS } from "@/items/gearSlots";
 import type { CharacterState } from "./townStore";
 import type { StatBlock } from "@/engine/types";
 
@@ -15,12 +15,10 @@ export interface EquipmentMods {
   pct?: Partial<StatBlock>;
 }
 
-export const EQUIP_SLOTS: EquipSlot[] = ["weapon", "armor", "trinket"];
-
 export function equipModsOf(cs: CharacterState): EquipmentMods {
   const flat: EquipmentMods["flat"] = {};
   const pct: EquipmentMods["pct"] = {};
-  for (const slot of EQUIP_SLOTS) {
+  for (const slot of GEAR_SLOTS) {
     const st = cs.equipped?.[slot];
     if (!st) continue;
     const def = getItemDef(st.itemId);
@@ -48,7 +46,7 @@ export function bondCountsOf(
   for (const charId of party) {
     const cs = characters[charId];
     if (!cs) continue;
-    for (const slot of EQUIP_SLOTS) {
+    for (const slot of GEAR_SLOTS) {
       const st = cs.equipped?.[slot];
       if (!st) continue;
       bump(getItemDef(st.itemId).affinity);

@@ -1,4 +1,4 @@
-import type { ItemStack, EquipSlot } from "@/items/types";
+import type { GearSet, GearSlot } from "@/items/gearSlots";
 import { EquipmentSlots } from "@/ui/character/EquipmentSlots";
 import type { StatBlock } from "@/engine";
 import { StatsPanel } from "./parts/StatsPanel";
@@ -9,17 +9,19 @@ interface Props {
   stats: StatBlock;
   preview?: StatBlock | null;
   rolling: boolean;
-  equipped: Record<EquipSlot, ItemStack | null>;
-  activeSlot: EquipSlot | null;
-  onSelect: (slot: EquipSlot) => void;
-  onUnequip: (slot: EquipSlot) => void;
+  level: number;
+  equipped: GearSet;
+  activeSlot: GearSlot | null;
+  onSelect: (slot: GearSlot) => void;
+  onUnequip: (slot: GearSlot) => void;
 }
 
-export function ProfilePanel({ exp, stats, preview, rolling, equipped, activeSlot, onSelect, onUnequip }: Props) {
+export function ProfilePanel({ exp, stats, preview, rolling, level, equipped, activeSlot, onSelect, onUnequip }: Props) {
   return (
     <div className={s.panel}>
       <EquipmentSlots
         className={s.slots}
+        level={level}
         equipped={equipped}
         activeSlot={activeSlot}
         onSelect={onSelect}

@@ -4,7 +4,7 @@
 import type { QuirkId } from "@/engine";
 import { getItemDef } from "@/data";
 import { canOpenBackpack } from "@/explore/session";
-import type { EquipSlot } from "@/items/types";
+import { resolveGearSlot, type GearSlot } from "@/items/gearSlots";
 import { useExploreStore } from "../explore/exploreStore";
 import { useTownStore } from "../town/townStore";
 import { alivePartyIds, syncMemberStats } from "./party";
@@ -12,7 +12,7 @@ import { alivePartyIds, syncMemberStats } from "./party";
 // 背包 → 装备槽。★ 顺序是刻意的: **先**把新件从背包取走再校验旧件放不放得下 ——
 // 同类装备互换时净占格为 0, 反过来先放旧件会在满包时误判为"装不下"。
 // 任何一步失败都把背包恢复原状(新件刚腾出的格子必然还在, 放回必成)。
-export function equipFromBackpack(charId: string, uid: string): boolean {
+export function equipFromBackpack(charId: string, uid: string, slot?: GearSlot): boolean {
   const explore = useExploreStore.getState();
   const session = explore.session;
   if (!session || !canOpenBackpack(session)) return false;
@@ -21,22 +21,25 @@ export function equipFromBackpack(charId: string, uid: string): boolean {
   if (!stack) return false;
   const def = getItemDef(stack.itemId);
   if (def.category !== "equipment" || !def.slot) return false;
+  const cs = useTownStore.getState().characters[charId];
+  const target = cs ? resolveGearSlot(cs.equipped, cs.deckLevel, def.slot, slot) : null;
+  if (!target) return false;
 
   const taken = explore.takeBackpackItem(uid);
   if (!taken) return false;
   const town = useTownStore.getState();
-  const old = town.characters[charId]?.equipped?.[def.slot] ?? null;
+  const old = town.characters[charId]?.equipped?.[target] ?? null;
   if (old && !useExploreStore.getState().putBackpackItems([old])) {
     useExploreStore.getState().putBackpackItems([taken]); // 回滚
     return false;
   }
-  town.wearStack(charId, taken);
+  town.wearStack(charId, taken, target);
   syncMemberStats(charId);
   return true;
 }
 
 // 装备槽 → 背包。★ 先校验容量再卸 —— 满包时不能出现"卸下来了但没地方放"的中间态。
-export function unequipToBackpack(charId: string, slot: EquipSlot): boolean {
+export function unequipToBackpack(charId: string, slot: GearSlot): boolean {
   const explore = useExploreStore.getState();
   const session = explore.session;
   if (!session || !canOpenBackpack(session)) return false;

@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { getCharacter, getItemDef } from "@/data";
-import { EQUIP_SLOTS } from "@/store/town/townStore";
-import { SLOT_LABEL, type EquipSlot, type ItemStack } from "@/items/types";
+import { GEAR_SLOTS, GEAR_SLOT_LABEL, type GearSet, type GearSlot } from "@/items/gearSlots";
+import type { ItemStack } from "@/items/types";
 import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import { inventoryThemeVars } from "@/ui/common/item/shared/inventoryTheme";
@@ -79,15 +79,15 @@ export function ReforgePicker({
   onSkip,
 }: {
   backpack: ItemStack[];
-  characters: { charId: string; character: { equipped: Record<EquipSlot, ItemStack | null> } }[];
+  characters: { charId: string; character: { equipped: GearSet } }[];
   bias?: "offense" | "defense";
   onBackpack: (uid: string) => void;
-  onEquipped: (charId: string, slot: EquipSlot) => void;
+  onEquipped: (charId: string, slot: GearSlot) => void;
   onSkip: () => void;
 }) {
   const backpackEquipment = backpack.filter((stack) => getItemDef(stack.itemId).category === "equipment");
   const equipped = characters.flatMap(({ charId, character }) =>
-    EQUIP_SLOTS.flatMap((slot) => {
+    GEAR_SLOTS.flatMap((slot) => {
       const stack = character.equipped?.[slot];
       return stack ? [{ charId, slot, stack }] : [];
     }),
@@ -152,7 +152,7 @@ export function ReforgePicker({
                     }
                   >
                     <ItemSlot stack={stack} showName={false} onClick={() => onEquipped(charId, slot)} />
-                    <span>{getCharacter(charId).name} · {SLOT_LABEL[slot]}</span>
+                    <span>{getCharacter(charId).name} · {GEAR_SLOT_LABEL[slot]}</span>
                   </div>
                 ))}
               </div>

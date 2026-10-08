@@ -1,16 +1,21 @@
-// 单个部位的大装备卡: 部位 + 稀有度页眉、居中大图、底栏羁绊词条 + 「更换」按钮。
+// 单个装备格的装备卡: 左侧大图, 右侧部位 + 稀有度页眉、羁绊词条、「更换」按钮。
+// ★ 6 格(3 部位 × 主副)同屏, 所以卡片是横向紧凑版; 未解锁副格用 LockedEquipCard。
 // ★ 卡面不写装备名、不列具体属性 —— 悬停大图看物品详情, 整体数值看下方属性面板。
 // ★ 点大图或「更换」都会打开背包候选, 候选浮层锚在整张卡上。
 import type { CSSProperties } from "react";
 import { getBondDef, getItemDef } from "@/data";
-import { RARITY_LABEL, SLOT_LABEL, type EquipSlot, type ItemStack } from "@/items/types";
+import { GEAR_SLOT_LABEL, GEAR_SLOT_UNLOCK, type GearSlot } from "@/items/gearSlots";
+import { RARITY_LABEL, type ItemStack } from "@/items/types";
+import { LockGlyph } from "@/ui/character/glyphs/deckGlyphs";
 import { ArcanaIcon, getArcanaAccent } from "@/ui/common/icon/ArcanaIcon";
 import ItemIconFrame from "@/ui/common/item/ItemIconFrame";
 import { cx } from "@/ui/common/shared/cx";
+import { HoverTooltip, useHoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
+import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import s from "./EquipCard.module.css";
 
 interface Props {
-  slot: EquipSlot;
+  slot: GearSlot;
   stack: ItemStack | null;
   active: boolean;
   highlighted?: boolean;
@@ -37,6 +42,7 @@ export function EquipCard({
 }: Props) {
   const def = stack ? getItemDef(stack.itemId) : null;
   const bonds = stack ? bondsOf(stack) : [];
+  const label = GEAR_SLOT_LABEL[slot];
   const style = { "--rr": def ? `var(--rarity-${def.rarity})` : "#5d7177" } as CSSProperties;
 
   const open = (trigger: HTMLElement) => {
@@ -49,17 +55,17 @@ export function EquipCard({
       className={cx(s.card, active && s.active, highlighted && s.highlighted)}
       style={style}
       data-empty={stack ? undefined : ""}
-      aria-label={`${SLOT_LABEL[slot]}：${def?.name ?? "空槽"}`}
+      aria-label={`${label}：${def?.name ?? "空槽"}`}
     >
       <header className={s.head}>
-        <span className={s.slot}>{SLOT_LABEL[slot]}</span>
+        <span className={s.slot}>{label}</span>
         {def && <span className={s.rarity}>{RARITY_LABEL[def.rarity]}</span>}
       </header>
 
       <button
         type="button"
         className={s.main}
-        aria-label={`更换${SLOT_LABEL[slot]}`}
+        aria-label={`更换${label}`}
         onClick={(event) => open(event.currentTarget)}
       >
         {stack ? (
@@ -89,7 +95,7 @@ export function EquipCard({
             })}
           </span>
         ) : (
-          <span className={s.noBond}>{stack ? "无羁绊词条" : `未装备${SLOT_LABEL[slot]}`}</span>
+          <span className={s.noBond}>{stack ? "无羁绊词条" : `未装备${label}`}</span>
         )}
         <button
           type="button"
@@ -101,6 +107,34 @@ export function EquipCard({
         </button>
       </footer>
 
+    </article>
+  );
+}
+
+/** 未解锁副格: 虚线暗卡 + 锁 + 解锁等级, 悬浮说明解锁条件。 */
+export function LockedEquipCard({ slot }: { slot: GearSlot }) {
+  const { point, bind } = useHoverTooltip();
+  const label = GEAR_SLOT_LABEL[slot];
+  const level = GEAR_SLOT_UNLOCK[slot];
+  return (
+    <article
+      className={cx(s.card, s.locked)}
+      style={{ "--rr": "#5d7177" } as CSSProperties}
+      data-empty=""
+      tabIndex={0}
+      aria-label={`${label}：${level}级解锁`}
+      {...bind}
+    >
+      <span className={s.lockIcon} aria-hidden="true"><LockGlyph /></span>
+      <header className={s.head}>
+        <span className={s.slot}>{label}</span>
+      </header>
+      <span className={s.lockText}>{level}级解锁</span>
+      {point && (
+        <HoverTooltip point={point}>
+          <TooltipCard title={`${label}未解锁`} desc={`卡组等级达到 ${level} 级后开放此装备格。`} />
+        </HoverTooltip>
+      )}
     </article>
   );
 }

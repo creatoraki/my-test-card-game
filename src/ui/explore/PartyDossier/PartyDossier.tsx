@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { getCharacter, getItemDef } from "@/data";
 import type { ExploreState } from "@/explore/types";
+import type { GearSlot } from "@/items/gearSlots";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { deriveStats, useTownStore } from "@/store/town/townStore";
 import { playSfx } from "@/ui/audio";
@@ -40,8 +41,8 @@ interface Props {
   allowed: boolean;
   equipFocus?: { slot: EquipSlot } | null;
   onSelect: (charId: string) => void;
-  onEquip: (uid: string) => void;
-  onUnequip: (slot: EquipSlot) => void;
+  onEquip: (uid: string, slot: GearSlot) => void;
+  onUnequip: (slot: GearSlot) => void;
   onClose: () => void;
   /** 遮罩层附加类名 —— 场景据此压 z-index。 */
   className?: string;
@@ -61,7 +62,7 @@ export function PartyDossier({
   const characters = useTownStore((state) => state.characters);
   const townParty = useTownStore((state) => state.party);
   const [tab, setTab] = useState<DossierTab>("loadout");
-  const [hoverPreview, setHoverPreview] = useState<{ slot: EquipSlot; stack: ItemStack } | null>(null);
+  const [hoverPreview, setHoverPreview] = useState<{ slot: GearSlot; stack: ItemStack } | null>(null);
   const [tooltip, setTooltip] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
   const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
   const { panel, onKeyDown: onDialogKeyDown } = useDialogFocus({ active: true, onEscape: onClose });
@@ -192,10 +193,11 @@ export function PartyDossier({
                 {tab === "loadout" ? (
                   <>
                     <EquipRow
+                      level={character.deckLevel}
                       equipped={character.equipped}
                       candidates={candidates}
                       lockedReason={lockedReason}
-                      highlightedSlot={equipFocus?.slot}
+                      highlightedKind={equipFocus?.slot}
                       onEquip={onEquip}
                       onUnequip={onUnequip}
                       onPreview={setHoverPreview}

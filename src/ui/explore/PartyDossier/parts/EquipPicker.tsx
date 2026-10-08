@@ -3,7 +3,8 @@
 import { createPortal } from "react-dom";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { getItemDef } from "@/data";
-import { SLOT_LABEL, type EquipSlot, type ItemStack } from "@/items/types";
+import { GEAR_SLOT_KIND, GEAR_SLOT_LABEL, type GearSlot } from "@/items/gearSlots";
+import { SLOT_LABEL, type ItemStack } from "@/items/types";
 import { designScaleOf, stageHostOf } from "@/ui/app/shared/stage";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import { cx } from "@/ui/common/shared/cx";
@@ -13,7 +14,7 @@ const GAP = 10;
 const MARGIN = 12;
 
 interface Props {
-  slot: EquipSlot;
+  slot: GearSlot;
   anchor: HTMLElement;
   /** 背包里该部位的候选装备。 */
   candidates: ItemStack[];
@@ -94,14 +95,14 @@ export function EquipPicker({
   } as CSSProperties;
 
   return createPortal(
-    <div ref={ref} className={s.picker} style={style} role="dialog" aria-label={`更换${SLOT_LABEL[slot]}`}>
+    <div ref={ref} className={s.picker} style={style} role="dialog" aria-label={`更换${GEAR_SLOT_LABEL[slot]}`}>
       <div className={s.head}>
-        <span className={s.title}>更换{SLOT_LABEL[slot]}</span>
+        <span className={s.title}>更换{GEAR_SLOT_LABEL[slot]}</span>
         <span className={cx(s.note, locked && s.warn)}>{lockedReason ?? `背包候选 ${candidates.length} 件`}</span>
       </div>
 
       {candidates.length === 0 ? (
-        <p className={s.empty}>背包里没有可用的{SLOT_LABEL[slot]}</p>
+        <p className={s.empty}>背包里没有可用的{SLOT_LABEL[GEAR_SLOT_KIND[slot]]}</p>
       ) : (
         <div className={s.grid}>
           {candidates.map((stack) => (
@@ -137,7 +138,7 @@ export function EquipPicker({
             onClose();
           }}
         >
-          卸下当前{SLOT_LABEL[slot]}
+          卸下当前{GEAR_SLOT_LABEL[slot]}
         </button>
       )}
     </div>,

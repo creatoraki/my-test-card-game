@@ -1,4 +1,5 @@
-import type { EquipSlot, ItemStack } from "@/items/types";
+import { GEAR_SLOTS } from "@/items/gearSlots";
+import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "./exploreStore";
 import { deriveStats, useTownStore, type ContaminationHit } from "../town/townStore";
 import { takePendingPollution } from "@/explore/session";
@@ -49,7 +50,7 @@ export function settleFallenGear(): void {
   if (!ids.length) return;
   const town = useTownStore.getState();
   const dropped = ids.flatMap((charId) =>
-    (["weapon", "armor", "trinket"] as EquipSlot[])
+    GEAR_SLOTS
       .map((slot) => town.takeOffStack(charId, slot))
       .filter((stack): stack is ItemStack => Boolean(stack)),
   );

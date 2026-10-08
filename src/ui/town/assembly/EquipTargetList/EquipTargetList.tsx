@@ -1,6 +1,7 @@
 import type { CharacterState } from "@/store/town/townStore";
 import type { EquipTarget } from "@/store/townSlices/equipCraftSlice";
 import { getCharacter, getItemDef } from "@/data";
+import { GEAR_SLOTS } from "@/items/gearSlots";
 import type { ItemStack } from "@/items/types";
 
 export interface EquipTargetEntry {
@@ -33,7 +34,7 @@ export function buildEquipTargets(
     .filter((stack) => getItemDef(stack.itemId).category === "equipment")
     .map((stack) => ({ target: { kind: "storage", uid: stack.uid } as EquipTarget, stack }));
   const equipped = Object.values(characters).flatMap((character) =>
-    (["weapon", "armor", "trinket"] as const).flatMap((slot) => {
+    GEAR_SLOTS.flatMap((slot) => {
       const stack = character.equipped?.[slot];
       if (!stack) return [];
       return [{

@@ -3,7 +3,8 @@ import { getCharacter, getItemDef } from "@/data";
 import type { ExploreState, PendingAction } from "@/explore/types";
 import { serviceFoodCount } from "@/explore/curio/foodPayment";
 import { canTuneEquipment, tuneExploreEquipment, type ExploreEquipmentTarget } from "@/store/explore/exploreGrowthServices";
-import { EQUIP_SLOTS, useTownStore } from "@/store/town/townStore";
+import { GEAR_SLOTS } from "@/items/gearSlots";
+import { useTownStore } from "@/store/town/townStore";
 import type { ItemStack } from "@/items/types";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
@@ -18,8 +19,8 @@ export function EquipmentTuneReward({ session, action, onFinish }: {
   const [hovered, setHovered] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
   const choices: { stack: ItemStack; target: ExploreEquipmentTarget; label: string }[] = [
     ...session.backpack.map(stack => ({ stack, target: { kind: "backpack" as const, uid: stack.uid }, label: "探索背包" })),
-    ...session.party.filter(member => member.alive).flatMap(member => EQUIP_SLOTS.flatMap(slot => {
-      const stack = characters[member.charId]?.equipped[slot];
+    ...session.party.filter(member => member.alive).flatMap(member => GEAR_SLOTS.flatMap(slot => {
+      const stack = characters[member.charId]?.equipped[slot] ?? null;
       return stack ? [{ stack, target: { kind: "equipped" as const, charId: member.charId, slot, uid: stack.uid }, label: getCharacter(member.charId).name }] : [];
     })),
   ].filter(choice => canTuneEquipment(choice.stack, action.mode));

@@ -5,13 +5,14 @@ import { payServiceFood } from "@/explore/curio/foodPayment";
 import { syncPartyVitals } from "@/explore/session";
 import { resetPerfectness } from "@/items/equipRoll";
 import type { CardReplaceResult, ExploreState } from "@/explore/types";
-import type { EquipSlot, ItemStack } from "@/items/types";
+import type { GearSlot } from "@/items/gearSlots";
+import type { ItemStack } from "@/items/types";
 import { deriveStats, shiftVitals } from "../town/characterStats";
 import { useExploreStore } from "./exploreStore";
 import { useTownStore } from "../town/townStore";
 
 export type ExploreEquipmentTarget = { kind: "backpack"; uid: string }
-  | { kind: "equipped"; charId: string; slot: EquipSlot; uid: string };
+  | { kind: "equipped"; charId: string; slot: GearSlot; uid: string };
 
 export function canTuneEquipment(stack: ItemStack, mode: "bond" | "perfectness"): boolean {
   const def = getItemDef(stack.itemId);

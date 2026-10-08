@@ -12,7 +12,8 @@ import { getItemDef } from "@/data";
 import type { MapDifficulty } from "@/data/maps/mapDifficulty";
 import type { OfferingPick } from "@/explore/curio/offering";
 import type { ExploreState } from "@/explore/types";
-import type { EquipSlot, ItemStack } from "@/items/types";
+import type { GearSlot } from "@/items/gearSlots";
+import type { ItemStack } from "@/items/types";
 import { useBattleStore } from "../battle/battleStore";
 import { useExploreStore } from "../explore/exploreStore";
 import { ensureTownSnapshot } from "./expeditionBackup";
@@ -53,8 +54,8 @@ interface RunStore extends RunState {
   confirmExpReport: () => void; // 战斗小结确认 → 回探索场景, 或进通关结算
   // ---- 远征途中换装(探索页的角色档案 Modal) ----
   // 返回 false = 没做任何改动(阶段不允许 / 背包装不下 / 目标非法), UI 据此飘一条提示。
-  equipFromBackpack: (charId: string, uid: string) => boolean;
-  unequipToBackpack: (charId: string, slot: EquipSlot) => boolean;
+  equipFromBackpack: (charId: string, uid: string, slot?: GearSlot) => boolean;
+  unequipToBackpack: (charId: string, slot: GearSlot) => boolean;
   resolvePendingHeal: (charId: string, limit: boolean) => void;
   resolvePendingQuirk: (charId?: string, quirkId?: QuirkId) => void;
   resolvePendingPollution: (charId?: string) => void;

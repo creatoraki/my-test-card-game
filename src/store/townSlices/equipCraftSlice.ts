@@ -10,13 +10,14 @@ import {
 } from "@/data";
 import { consumeItems } from "@/items/inventory";
 import { upgradeEquipment } from "@/items/equipRoll";
-import type { EquipSlot, ItemStack } from "@/items/types";
+import type { GearSlot } from "@/items/gearSlots";
+import type { ItemStack } from "@/items/types";
 import { shiftVitals } from "../town/characterStats";
 import type { TownStore } from "../town/townStore";
 
 export type EquipTarget =
   | { kind: "storage"; uid: string }
-  | { kind: "equipped"; charId: string; slot: EquipSlot };
+  | { kind: "equipped"; charId: string; slot: GearSlot };
 
 export interface PendingReforge {
   target: EquipTarget;

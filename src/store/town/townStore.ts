@@ -30,7 +30,6 @@ import { freshProfile, freshStorage, purifiedRelicId } from "./townProfile";
 import type { CodexState, SanctuaryState, TownStore } from "./townTypes";
 
 export {
-  EQUIP_SLOTS,
   bondCountsOf,
   deriveStats,
   equipModsOf,

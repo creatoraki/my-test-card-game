@@ -2,6 +2,7 @@
 
 import { getItemDef, sellPriceOf } from "@/data";
 import { removeByUid } from "@/items/inventory";
+import { resolveGearSlot } from "@/items/gearSlots";
 import type { ItemStack } from "@/items/types";
 import { shiftVitals } from "../town/characterStats";
 import type { TownGet, TownSet, TownStore } from "../town/townTypes";
@@ -85,19 +86,20 @@ export function createStorageSlice(set: TownSet, get: TownGet): StorageSlice {
       return sold;
     },
 
-    // ---- 三装备槽(《物品设计.md》第二章) ----
+    // ---- 装备格(每部位一主一副, 副格随卡组等级解锁, 见 items/gearSlots) ----
     // 穿上 = 从仓库移出、进角色的槽位; 被替下的旧装备退回仓库, 不会凭空消失。
-    // ⚠ 同一角色的同类槽位只能有一件; 不同角色可以各装一件同类装备。
-    equipItem: (charId, uid) => {
+    equipItem: (charId, uid, slot) => {
       const { storage, characters } = get();
       const st = storage.find((s) => s.uid === uid);
-      if (!st || !characters[charId]) return;
+      const cs = characters[charId];
+      if (!st || !cs) return;
       const def = getItemDef(st.itemId);
       if (def.category !== "equipment" || !def.slot) return;
+      if (!resolveGearSlot(cs.equipped, cs.deckLevel, def.slot, slot)) return;
       // ⚠ 守卫全部走完才动手: 先把物品从仓库拿走再穿 —— 反过来的话 wearStack 交回的旧件
       //   会被这次 set 的 storage 快照(仍含新件)覆盖掉。
       set({ storage: removeByUid(storage, uid) });
-      const old = get().wearStack(charId, st);
+      const old = get().wearStack(charId, st, slot);
       if (old) set({ storage: [...get().storage, old] });
     },
 
@@ -108,20 +110,22 @@ export function createStorageSlice(set: TownSet, get: TownGet): StorageSlice {
     },
 
     // 穿上一件**已经在调用方手里**的装备(不从仓库取)。返回被替下的旧件, 由调用方决定它去哪。
-    wearStack: (charId, stack) => {
+    wearStack: (charId, stack, slot) => {
       const { characters } = get();
       const cs = characters[charId];
       if (!cs) return null;
       const def = getItemDef(stack.itemId);
       if (def.category !== "equipment" || !def.slot) return null;
+      const target = resolveGearSlot(cs.equipped, cs.deckLevel, def.slot, slot);
+      if (!target) return null;
 
-      const old = cs.equipped[def.slot];
+      const old = cs.equipped[target] ?? null;
       set({
         characters: {
           ...characters,
           [charId]: shiftVitals(cs, {
             ...cs,
-            equipped: { ...cs.equipped, [def.slot]: { ...stack } },
+            equipped: { ...cs.equipped, [target]: { ...stack } },
           }),
         },
       });

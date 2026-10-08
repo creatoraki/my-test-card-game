@@ -11,6 +11,7 @@ import {
   type CharacterDef,
   type TechTreeState,
 } from "@/data";
+import { emptyGear } from "@/items/gearSlots";
 import type { ItemStack } from "@/items/types";
 import type { CharacterState, CodexState, SquadTalentState, TownStore } from "./townTypes";
 
@@ -38,7 +39,7 @@ export function freshCharacter(def: CharacterDef): CharacterState {
     deck: def.startingCardIds.map((cid) => ({ ...makeCard(cid) })),
     deckLevel: 0,
     minDeckSize: RULES.deck.initialMinSize,
-    equipped: { weapon: null, armor: null, trinket: null },
+    equipped: emptyGear(),
     pendingDraw: null,
     forgeDay: 1,
     drawUsedToday: 0,

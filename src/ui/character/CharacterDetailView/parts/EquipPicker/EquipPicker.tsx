@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { getItemDef } from "@/data";
-import type { EquipSlot, ItemStack } from "@/items/types";
+import { GEAR_SLOT_KIND, GEAR_SLOT_LABEL, type GearSlot } from "@/items/gearSlots";
+import type { ItemStack } from "@/items/types";
 import { RARITY_LABEL, SLOT_LABEL } from "@/items/types";
 import { useHoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
@@ -9,7 +10,7 @@ import { cx } from "@/ui/common/shared/cx";
 import s from "./EquipPicker.module.css";
 
 interface Props {
-  slot: EquipSlot;
+  slot: GearSlot;
   candidates: ItemStack[];
   onEquip: (uid: string) => void;
   onClose: () => void;
@@ -26,11 +27,11 @@ export function EquipPicker({
   style,
 }: Props) {
   return (
-    <section className={s.picker} style={style} aria-label={`${SLOT_LABEL[slot]}装备仓库`}>
+    <section className={s.picker} style={style} aria-label={`${GEAR_SLOT_LABEL[slot]}装备仓库`}>
       <header className={s.head}>
         <div>
           <span className={s.kicker}>装备配置 / 仓库</span>
-          <h2 className={s.title}>仓库 · {SLOT_LABEL[slot]}</h2>
+          <h2 className={s.title}>仓库 · {GEAR_SLOT_LABEL[slot]}</h2>
         </div>
         <button className={s.close} type="button" onClick={onClose} aria-label="关闭装备仓库">
           ×
@@ -54,7 +55,7 @@ export function EquipPicker({
             ))}
           </div>
         ) : (
-          <p className={s.emptyText}>仓库中暂无可用的{SLOT_LABEL[slot]}。</p>
+          <p className={s.emptyText}>仓库中暂无可用的{SLOT_LABEL[GEAR_SLOT_KIND[slot]]}。</p>
         )}
       </div>
 

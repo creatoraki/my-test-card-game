@@ -1,11 +1,12 @@
 import type { StatBlock } from "@/engine";
-import type { EquipSlot, ItemStack } from "@/items/types";
+import type { GearSlot } from "@/items/gearSlots";
+import type { ItemStack } from "@/items/types";
 import { deriveStats, type CharacterState } from "@/store/town/townStore";
 
 /** 把某个部位换成 stack 后的面板属性，沿用城镇实际穿戴的派生口径。 */
 export function previewStatsWith(
   cs: CharacterState,
-  slot: EquipSlot,
+  slot: GearSlot,
   stack: ItemStack | null,
 ): StatBlock {
   return deriveStats({

@@ -148,7 +148,7 @@ function CrewCardView({
             <CrewVitals cs={cs} detail={detail} />
           </div>
 
-          {!detail && <CrewEquipment equipped={cs.equipped} />}
+          {!detail && <CrewEquipment level={cs.deckLevel} equipped={cs.equipped} />}
           <CrewToggle
             upgrade={detail}
             upgradeDisabled={upgradeDisabled}

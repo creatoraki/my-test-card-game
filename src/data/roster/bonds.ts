@@ -2,8 +2,9 @@
 // 羁绊注册表 —— 装备驱动的**全队构筑系统**(《羁绊设计概览.md》)。
 // 惯例与 engine/statuses.ts 的 STATUS_DEFS 一致: 一张 Record + 一个 getter, 新增羁绊 = 加一条。
 //
-// ★ 羁绊不是角色职业, 也不是卡牌关键词 —— 它由**上阵队伍的 9 个装备槽**(3 角色 × 3 槽)
-//   上的羁绊词条计数驱动, 达到门槛就整队生效。计数在 store/townStore.bondCountsOf,
+// ★ 羁绊不是角色职业, 也不是卡牌关键词 —— 它由**上阵队伍的装备格**(每人 3~6 格, 副格随卡组等级解锁)
+//   上的羁绊词条计数驱动, 达到门槛就整队生效。
+// ★ 门槛只有三种规格: 3 档 = 3/6/9, 4 档 = 4/8/12, 6 档 = 6/12。计数在 store/townStore.bondCountsOf,
 //   生效在 store/runStore.launchBattle(开战瞬间快照, 与负重惩罚同一个范式)。
 //
 // ⚠ 本期只实装**纯属性型**的 6 个 —— 它们能直接落在 StatBlock 上, engine 一行不用改。
@@ -107,14 +108,14 @@ export const BOND_DEFS: Record<string, BondDef> = {
     desc: "毫无计划地起步，反而看见更多的路。",
     color: "#7ce08a",
     tiers: [
-      { count: 4, desc: "每回合额外抽 1 张牌", squadMods: { drawCount: 1 } },
-      { count: 8, desc: "每回合额外抽 2 张牌", squadMods: { drawCount: 2 } },
+      { count: 6, desc: "每回合额外抽 1 张牌", squadMods: { drawCount: 1 } },
+      { count: 12, desc: "每回合额外抽 2 张牌", squadMods: { drawCount: 2 } },
     ],
   },
 };
 
 // 掉落时随机羁绊词条的抽取池。
-// ★ 只放**已实装**的羁绊 —— 一共只有 9 个装备槽, 22 张塔罗牌全进池时每种期望 0.4 点,
+// ★ 只放**已实装**的羁绊 —— 装备格有限(3 人满级也才 18 格), 22 张塔罗牌全进池时每种平均摊不到几点,
 //   连最低的 3 点门槛都凑不出来, 羁绊系统等于摆设。日后每实装一个就往这里加一个 id。
 export const ROLLABLE_BOND_IDS: string[] = Object.keys(BOND_DEFS);
 
