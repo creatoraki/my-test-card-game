@@ -1,4 +1,4 @@
-// 右栏顶部常驻的「小队羁绊」条: 只排羁绊图标(复用战斗羁绊栏的 BondSlot compact),
+// 右栏顶部常驻的「小队羁绊」卡: 只排羁绊图标(复用战斗羁绊栏的 BondSlot compact),
 // 档位 / 本队员贡献全部收进悬浮详情; **当前队员**贡献了点数的那几枚额外亮起顶边 + 外发光。
 // ★ 计数口径与开战快照同一份(townStore.bondCountsOf + 城镇 party), 这里只画结论。
 import { useMemo } from "react";
@@ -33,7 +33,12 @@ export function SquadBondStrip({ characters, party, charId }: Props) {
   return (
     <section className={s.strip} aria-label="小队羁绊">
       <div className={s.label} data-rail-item tabIndex={0}>
-        <span className={s.index} aria-hidden="true">02</span>
+        <svg className={s.icon} viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="30" cy="15" r="7" />
+          <path d="M18 40c0-8 5.4-13 12-13s12 5 12 13Z" />
+          <circle cx="16" cy="19" r="5.5" opacity="0.7" />
+          <path d="M5 40c0-6.6 4.6-10.5 10-10.5 2 0 3.8.5 5.3 1.5-2.6 2.4-4.1 5.6-4.3 9Z" opacity="0.7" />
+        </svg>
         <div className={s.labelText}>
           <h3 className={s.title}>小队羁绊</h3>
           <span className={s.summary}>
@@ -71,7 +76,7 @@ export function SquadBondStrip({ characters, party, charId }: Props) {
               count={count}
               tierIndex={tierIndex}
               next={next}
-              iconSize={58}
+              iconSize={56}
               variant="compact"
               popoverSide="bottom"
               tooltipNote={mine > 0 ? `本队员贡献 ${mine} 点` : undefined}

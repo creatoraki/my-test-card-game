@@ -1,4 +1,4 @@
-// 编队卡名牌上方的职业徽记。线条走 currentColor, 由名牌统一染成角色色。
+// 角色职业徽记(编队卡名牌、探索队员档案共用)。线条走 currentColor, 由使用方染成角色色。
 // 未登记的角色用通用菱形徽记兜底。
 
 import type { ReactNode } from "react";

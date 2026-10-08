@@ -1,5 +1,5 @@
 // 卡组页悬停卡牌时, 盖在左栏立绘舞台上的大卡详情(卡面放大 + 词条释义)。
-// 纯展示、不吃指针; 位置由所在 DossierSection 的 body 决定(铺满并居中)。
+// 纯展示、不吃指针; 铺满 PartyDossier 的左栏(810×904)并居中。
 import type { Card } from "@/engine";
 import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
 import s from "./DeckCardPeek.module.css";

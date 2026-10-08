@@ -3,7 +3,7 @@
 //   改这里的 .name 要一并改那两个常量, 否则点卡起飞时名字会跳一下。
 
 import { cx } from "@/ui/common/shared/cx";
-import { CrewClassGlyph } from "./CrewClassGlyph";
+import { CrewClassGlyph } from "@/ui/character/glyphs/CrewClassGlyph";
 import { crewEnName } from "./crewCardDecor";
 import s from "./CrewNameplate.module.css";
 

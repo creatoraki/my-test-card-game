@@ -1,20 +1,20 @@
 .equipment {
   position: absolute;
   right: 14px;
-  bottom: 160px;
+  bottom: 148px;
   z-index: 5;
   display: grid;
   /* 单列贴右缘, 自上而下: 武器主/副 → 防具主/副 → 饰品主/副; 底边压在英文职业名之上, 不再挡名牌。 */
-  grid-template-columns: 52px;
-  gap: 8px;
+  grid-template-columns: 44px;
+  gap: 6px;
 }
 
 .slot {
   composes: glass from "../../../styles/equipmentGlass.module.css";
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   transition: border-color 160ms ease, background 160ms ease;
 }
 
@@ -30,13 +30,14 @@
   background: transparent;
   border: none;
   clip-path: none;
+  --icon-frame-size: 36px;
 }
 
 .empty {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   color: rgb(218 230 234 / 0.32);
 }
 
@@ -61,8 +62,8 @@
 .lock {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   color: rgb(218 230 234 / 0.36);
 }
 

@@ -27,6 +27,10 @@ export function openBlacksmith(): boolean {
 function recordService(session: ExploreState, forge: BlacksmithState): void {
   if (!forge.selected) return;
   const object = activeBlacksmith(session)!;
+  // 服务完成或付费后放弃时，同步房间与当前场景的使用状态，复用普通交互物的变灰表现。
+  object.used = true;
+  const sceneObject = session.corridor?.objects.find(candidate => candidate.id === object.id);
+  if (sceneObject) sceneObject.used = true;
   const room = session.dungeon!.rooms[session.dungeon!.currentRoomId];
   const service = BLACKSMITH_SERVICES[forge.selected];
   const result = forge.result;

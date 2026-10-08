@@ -1,26 +1,29 @@
-/* 羁绊条: 左侧编号标签 + 右侧横排羁绊图标(详情全在悬浮层)。外形与 DossierSection 同一套切角暗板, 但不占页眉行。 */
+/* 小队羁绊卡(556×101): 左上切角暗板 + 琥珀切角线; 左侧标签区 273 宽, 竖线后横排羁绊图标(详情全在悬浮层)。 */
 .strip {
-  --cut: 12px;
+  --cut: 16px;
   position: relative;
   display: grid;
+  width: 556px;
+  height: 101px;
   flex: none;
-  grid-template-columns: 196px minmax(0, 1fr);
+  grid-template-columns: 273px minmax(0, 1fr);
   align-items: center;
-  min-height: 96px;
-  padding: 10px 16px 10px 20px;
-  border: 1px solid color-mix(in srgb, var(--k) 22%, #ffffff14);
+  padding: 0 16px 0 0;
+  border: 1px solid #ffffff1f;
   background:
-    radial-gradient(ellipse 30% 80% at 0% 50%, color-mix(in srgb, var(--k) 10%, transparent), transparent 72%),
-    linear-gradient(180deg, #0c1519f2, #060b0ef2);
-  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+    radial-gradient(ellipse 34% 90% at 10% 50%, color-mix(in srgb, var(--k) 12%, transparent), transparent 72%),
+    linear-gradient(180deg, #151413ee, #0a0908f2);
+  box-shadow: inset 0 1px 0 #ffffff12, 0 14px 30px -18px #000;
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%, 0 var(--cut));
 }
 
-/* 左上切角处的主题色斜线 + 顶边短亮条。 */
+/* 左上切角斜线 + 顶边 / 左边短亮条。 */
 .strip::before {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(var(--k), var(--k)) var(--cut) 0 / 24px 2px no-repeat,
+    linear-gradient(var(--k), var(--k)) var(--cut) 0 / 46px 2px no-repeat,
+    linear-gradient(var(--k), var(--k)) 0 var(--cut) / 2px 30px no-repeat,
     linear-gradient(135deg, transparent calc(50% - 1.4px), var(--k) calc(50% - 1.4px) calc(50% + 1.4px), transparent calc(50% + 1.4px)) 0 0 / var(--cut) var(--cut) no-repeat;
   content: "";
   pointer-events: none;
@@ -28,11 +31,21 @@
 
 .label {
   display: flex;
+  height: 62px;
   align-items: center;
-  gap: 10px;
-  padding-right: 16px;
-  border-right: 1px solid #ffffff1a;
+  gap: 18px;
+  padding-left: 30px;
+  border-right: 1px solid #ffffff24;
   cursor: help;
+  outline: none;
+}
+
+.icon {
+  width: 50px;
+  height: 50px;
+  flex: none;
+  fill: var(--k);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--k) 50%, transparent));
 }
 
 .details {
@@ -45,59 +58,53 @@
 
 .detailHeading {
   margin: 0 0 8px;
-  color: #eef6f7;
+  color: #f2ece0;
   font-size: 18px;
   font-weight: 700;
 }
 
 .detailNote {
   margin: 8px 0 0;
-  color: #8fa6ac;
+  color: #a39c8f;
   font-size: 18px;
-}
-
-.index {
-  color: var(--k);
-  font-family: var(--font-family);
-  font-size: 32px;
-  line-height: 1;
-  text-shadow: 0 0 10px color-mix(in srgb, var(--k) 50%, transparent);
 }
 
 .labelText {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .title {
   margin: 0;
-  color: #eef6f7;
-  font-size: 22px;
-  font-weight: 700;
+  color: #f6f1e6;
+  font-size: 24px;
+  font-weight: 800;
   letter-spacing: 1px;
 }
 
 .summary {
-  color: #8fa6ac;
-  font-size: 18px;
+  color: #d8d1c3;
+  font-size: 20px;
 }
 
 .summary b {
   color: var(--k);
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .empty {
-  margin: 0 0 0 20px;
-  color: #7d9399;
+  margin: 0 0 0 22px;
+  color: #a39c8f;
   font-size: 18px;
+  outline: none;
 }
 
 .list {
   display: flex;
   min-width: 0;
+  align-items: center;
   gap: 10px;
-  padding: 10px 0 4px 16px;
+  padding: 0 0 0 22px;
   overflow-x: auto;
   scrollbar-width: none;
 }

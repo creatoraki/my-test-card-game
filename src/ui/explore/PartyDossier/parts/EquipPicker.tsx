@@ -8,6 +8,7 @@ import { SLOT_LABEL, type ItemStack } from "@/items/types";
 import { designScaleOf, stageHostOf } from "@/ui/app/shared/stage";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import { cx } from "@/ui/common/shared/cx";
+import { ARCHIVE_ACCENT } from "../partyDossierTheme";
 import s from "./EquipPicker.module.css";
 
 const GAP = 10;
@@ -90,6 +91,7 @@ export function EquipPicker({
   const style = {
     left: `${placed?.left ?? 0}px`,
     top: `${placed?.top ?? 0}px`,
+    "--k": ARCHIVE_ACCENT,
     "--picker-max-h": `${maxHeight}px`,
     visibility: placed ? undefined : "hidden",
   } as CSSProperties;

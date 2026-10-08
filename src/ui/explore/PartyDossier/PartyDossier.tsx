@@ -1,10 +1,9 @@
 // ★ 探索场景的队员档案 ★ —— 底栏点立绘或背包选择装备时打开。
 //
-// 版面: 左栏 = 「01 队员」立绘舞台 + 生命污染 + 队员切换条; 右栏 = 「02 小队羁绊」常驻条
-//   + 「03 队员配置」主分区(页签: 属性装备 / 卡组)。
-// 视觉: 外壳沿用探索浮层的折角外框与展开动画(explorePanel.panel-box), 分区用研究中心式编号面板,
-//   主题色统一走 --k。
-// ★ 卡组页悬停卡牌时, 大卡详情(DeckCardPeek)盖在左栏立绘舞台上, 与城镇角色详情同一套。
+// 版面(琥珀工业, 面板 1700×904): 整面铺场景插图; 左栏 = 无框大立绘 + 名牌 + 生命污染 + 队员切换条;
+//   右栏 = 小队羁绊卡 + 页签栏 + 内容面板(属性装备 / 卡组)。
+// 视觉: 外壳沿用探索浮层的折角外框与展开动画(explorePanel.panel-box), 主题色统一走 --k(琥珀)。
+// ★ 卡组页悬停卡牌时, 大卡详情(DeckCardPeek)盖在左栏立绘区上, 与城镇角色详情同一套。
 // ★ 页签、悬停预览等状态都挂在本组件上, 切换队员只换 charId —— 页签不会被重置回属性页。
 // ★ 换装规则不在这里: 能不能换由 allowed + 队员存活给出理由, 换装回调直达 runStore。
 
@@ -14,25 +13,25 @@ import type { ExploreState } from "@/explore/types";
 import type { GearSlot } from "@/items/gearSlots";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { deriveStats, useTownStore } from "@/store/town/townStore";
+import { partyDossierScene } from "@/ui/art/explore/partyDossierArt";
 import { playSfx } from "@/ui/audio";
 import { previewStatsWith } from "@/ui/character/CharacterDetailView/equipPreview";
 import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import { cx } from "@/ui/common/shared/cx";
-import { DOSSIER_ACCENT } from "@/ui/explore/EventDossier";
 import { useDialogFocus } from "@/ui/explore/ExploreScreen/useDialogFocus";
 import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import { DeckBoard } from "./parts/DeckBoard";
 import { DeckCardPeek } from "./parts/DeckCardPeek";
-import { DossierSection } from "./parts/DossierSection";
+import { DossierBackdrop } from "./parts/DossierBackdrop";
+import { DossierFrameDecor } from "./parts/DossierFrameDecor";
 import { DossierTabs, type DossierTab } from "./parts/DossierTabs";
 import { EquipRow } from "./parts/EquipRow";
 import { MemberStage } from "./parts/MemberStage";
 import { MemberSwitcher } from "./parts/MemberSwitcher";
 import { SquadBondStrip } from "./parts/SquadBondStrip";
 import { StatsBoard } from "./parts/StatsBoard";
+import { ARCHIVE_ACCENT } from "./partyDossierTheme";
 import s from "./PartyDossier.module.css";
-
-const pad2 = (value: number) => String(value).padStart(2, "0");
 
 interface Props {
   session: ExploreState;
@@ -126,91 +125,72 @@ export function PartyDossier({
       <section
         ref={panel}
         className={cx(s.panel, s.reveal)}
-        style={{ "--k": DOSSIER_ACCENT, ...panelRevealVars() } as CSSProperties}
+        style={{ "--k": ARCHIVE_ACCENT, ...panelRevealVars() } as CSSProperties}
         role="dialog"
         aria-modal="true"
         aria-label={`${def.name} · 队员档案`}
         tabIndex={-1}
         onKeyDown={onKeyDown}
       >
+        <DossierBackdrop scene={partyDossierScene(charId)} />
         <span className={s.scan} aria-hidden="true" />
 
+        <div className={s.left}>
+          <MemberStage
+            charId={charId}
+            name={def.name}
+            emoji={def.emoji}
+            color={def.color}
+            rank={{ index: index + 1, total: session.party.length }}
+            vitals={{ hp: member.hp, hpLimit: member.hpLimit, maxHp: member.maxHp }}
+            pollution={character.pollution}
+            sick={character.sick}
+            quirks={character.quirks}
+            down={!member.alive}
+          />
+          <MemberSwitcher members={session.party} selected={charId} onSelect={onSelect} />
+          {hoveredCard && <DeckCardPeek card={hoveredCard} />}
+        </div>
+
+        <DossierFrameDecor />
+
         <header className={s.top}>
-          <span className={s.tag}>档案</span>
-          <p className={s.kicker}>远征小队 · 队员档案</p>
-          <i className={s.kickerRule} aria-hidden="true" />
-          <span className={s.hint}>左右方向键切换队员</span>
-          <button type="button" className={s.close} aria-label="关闭队员档案" onClick={onClose}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
-          </button>
+          <h2 className={s.title}>远征小队 · 队员档案</h2>
+          <i className={s.slashes} aria-hidden="true" />
+          <i className={s.titleRule} aria-hidden="true" />
         </header>
+        <button type="button" className={s.close} aria-label="关闭队员档案" onClick={onClose}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
 
-        <div className={s.body}>
-          <DossierSection
-            index="01"
-            title="队员"
-            deco="OPERATOR"
-            extra={
-              <span className={s.rank}>
-                {pad2(index + 1)}
-                <i> / {pad2(session.party.length)}</i>
-              </span>
-            }
-            bodyClassName={s.memberBody}
-          >
-            <MemberStage
-              charId={charId}
-              name={def.name}
-              emoji={def.emoji}
-              vitals={{ hp: member.hp, hpLimit: member.hpLimit, maxHp: member.maxHp }}
-              pollution={character.pollution}
-              sick={character.sick}
-              quirks={character.quirks}
-              down={!member.alive}
-            />
-            <MemberSwitcher members={session.party} selected={charId} onSelect={onSelect} />
-            {hoveredCard && <DeckCardPeek card={hoveredCard} />}
-          </DossierSection>
-
-          <div className={s.right}>
-            <SquadBondStrip characters={characters} party={townParty} charId={charId} />
-            <DossierSection
-              index="03"
-              title="队员配置"
-              deco="LOADOUT"
-              extra={
+        <div className={s.right}>
+          <SquadBondStrip characters={characters} party={townParty} charId={charId} />
+          <DossierTabs value={tab} deckCount={character.deck.length} onChange={setTab} />
+          <div className={s.content}>
+            {/* key = 页签: 切页时内容重新入场; 换队员不换 key, 页签与滚动位置都留着。 */}
+            <div key={tab} className={s.pane}>
+              {tab === "loadout" ? (
                 <>
-                  <DossierTabs value={tab} deckCount={character.deck.length} onChange={setTab} />
+                  <EquipRow
+                    level={character.deckLevel}
+                    equipped={character.equipped}
+                    candidates={candidates}
+                    lockedReason={lockedReason}
+                    highlightedKind={equipFocus?.slot}
+                    onEquip={onEquip}
+                    onUnequip={onUnequip}
+                    onPreview={setHoverPreview}
+                    onShowTooltip={(element, stack) => setTooltip({ stack, point: tooltipPointFromElement(element) })}
+                    onHideTooltip={() => setTooltip(null)}
+                  />
+                  <StatsBoard stats={stats} preview={preview} />
                 </>
-              }
-              className={s.main}
-              bodyClassName={s.mainBody}
-            >
-              {/* key = 页签: 切页时内容重新入场; 换队员不换 key, 页签与滚动位置都留着。 */}
-              <div key={tab} className={s.pane}>
-                {tab === "loadout" ? (
-                  <>
-                    <EquipRow
-                      level={character.deckLevel}
-                      equipped={character.equipped}
-                      candidates={candidates}
-                      lockedReason={lockedReason}
-                      highlightedKind={equipFocus?.slot}
-                      onEquip={onEquip}
-                      onUnequip={onUnequip}
-                      onPreview={setHoverPreview}
-                      onShowTooltip={(element, stack) => setTooltip({ stack, point: tooltipPointFromElement(element) })}
-                      onHideTooltip={() => setTooltip(null)}
-                    />
-                    <StatsBoard stats={stats} preview={preview} />
-                  </>
-                ) : (
-                  <DeckBoard deck={character.deck} hoveredUid={hoveredCardUid} onHoverCard={setHoveredCardUid} />
-                )}
-              </div>
-            </DossierSection>
+              ) : (
+                <DeckBoard deck={character.deck} hoveredUid={hoveredCardUid} onHoverCard={setHoveredCardUid} />
+              )}
+            </div>
           </div>
         </div>
 

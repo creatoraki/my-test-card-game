@@ -1,29 +1,39 @@
-/* 队员档案外壳。外框几何沿用探索浮层的折角 panel-box(高度同为 904),
-   只把宽度放到 1600 —— 立绘栏 + 属性 / 卡组栏并排需要更宽的版面。 */
+/* 队员档案外壳(琥珀工业)。外框几何沿用探索浮层的折角 panel-box(高度同为 904),
+   宽度放到 1700 —— 设计图比例下左栏立绘 810 + 右栏内容 879。
+   层序: 场景背景 0–1 → 左栏立绘 2 → 右栏 4 → 装饰 5 → 页眉 6 → 关闭 8 → 外框描边 20 → 展开亮条 30。 */
 .layer {
   position: absolute;
   inset: 0;
   z-index: 46;
   display: grid;
   place-items: center;
-  background: #020709a8;
+  background: #050403b0;
   backdrop-filter: blur(6px);
 }
 
 .panel {
   composes: panel-box from "../styles/explorePanel.module.css";
-  --bg: color-mix(in srgb, var(--k) 6%, #03121b);
-  position: relative;
-  display: grid;
-  width: 1600px;
-  grid-template-rows: 82px minmax(0, 1fr);
+  --panel-line: color-mix(in srgb, var(--k) 62%, transparent);
+  --ink: #f2ece0;
+  --ink-dim: #a39c8f;
+  --rule: #ffffff14;
   overflow: hidden;
   outline: none;
-  background:
-    radial-gradient(ellipse 40% 50% at 100% 0%, color-mix(in srgb, var(--k) 8%, transparent), transparent 70%),
-    var(--bg);
-  color: #e6eef0;
+  color: var(--ink);
   font-family: var(--font-family);
+}
+
+/* ⚠ 与 panel-box / panel-shell 同名的属性(宽度、切角、底色)必须用两级选择器覆盖:
+   composes 进来的规则与本文件同为 (0,1,0), 谁赢取决于 CSS 注入顺序, 不可靠。 */
+.layer > .panel {
+  --bg: #0a0907;
+  --cut-tl: 18px;
+  --cut-tr: 0px;
+  --cut-br: 26px;
+  --cut-bl: 0px;
+  position: relative;
+  width: 1700px;
+  background: var(--bg);
 }
 
 .reveal {
@@ -32,140 +42,141 @@
 
 .bar {
   composes: panel-bar from "../styles/explorePanel.module.css";
-  z-index: 30;
 }
 
 .scan {
   composes: panel-scan from "../styles/explorePanel.module.css";
 }
 
-/* ── 页眉: 「档案」标签 + 位置文字 + 细线, 右侧关闭按钮(与事件档案页眉同一套语言) ── */
-.top {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 0 34px 0 44px;
+.panel > .bar {
+  z-index: 30;
 }
 
-.tag {
-  position: relative;
-  padding: 0 22px 0 18px;
-  border: 1.5px solid var(--k);
-  background: color-mix(in srgb, var(--k) 12%, #031a22);
-  color: var(--k);
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 28px;
-  letter-spacing: 0.2em;
-  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
-  text-shadow: 0 0 6px color-mix(in srgb, var(--k) 60%, transparent);
+.panel > .scan {
+  z-index: 1;
 }
 
-.tag::before {
+/* ── 左栏: 立绘可越过 810 压到右栏底下 ── */
+.left {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
-  width: 6px;
-  background: var(--k);
-  content: "";
+  z-index: 2;
+  width: 810px;
 }
 
-.kicker {
+/* ── 页眉: 标题 + 琥珀斜杠 + 下划细线 ── */
+.top {
+  position: absolute;
+  top: 0;
+  left: 42px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 82px;
+  padding-left: 110px;
+  pointer-events: none;
+}
+
+.title {
   margin: 0;
-  color: #eef4f6;
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  color: #f6f1e6;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   white-space: nowrap;
+  text-shadow: 0 2px 12px #000c;
 }
 
-.kickerRule {
-  width: 200px;
+.slashes {
+  width: 54px;
+  height: 22px;
+  background: repeating-linear-gradient(
+    115deg,
+    transparent 0 5px,
+    var(--k) 5px 10px,
+    transparent 10px 15px
+  );
+  opacity: 0.9;
+}
+
+.titleRule {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  width: 504px;
   height: 1px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--k) 55%, transparent), transparent);
-}
-
-.hint {
-  margin-left: auto;
-  color: #6f878d;
-  font-size: 18px;
+  background: linear-gradient(
+    90deg,
+    #ffffff4d,
+    #ffffff26 72%,
+    color-mix(in srgb, var(--k) 70%, transparent) 86%,
+    transparent
+  );
 }
 
 .close {
+  position: absolute;
+  top: 11px;
+  right: 32px;
+  z-index: 8;
   display: grid;
-  width: 46px;
-  height: 46px;
+  width: 52px;
+  height: 52px;
   place-items: center;
   padding: 0;
-  border: 1px solid #ffffff2a;
-  background: #0a1215cc;
-  color: #a9bec3;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  border: 1px solid #ffffff40;
+  background: #0b0a09cc;
+  color: #ddd6c9;
   cursor: var(--cursor-pointer);
   transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
 }
 
 .close svg {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.2;
+  stroke-width: 1.8;
   stroke-linecap: round;
 }
 
 .close:hover,
 .close:focus-visible {
   border-color: var(--k);
-  background: color-mix(in srgb, var(--k) 16%, #061014);
-  color: #f4feff;
+  background: color-mix(in srgb, var(--k) 16%, #0b0a09);
+  color: #fff8ea;
+  outline: none;
 }
 
-/* ── 主体两栏 ── */
-.body {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  min-height: 0;
-  grid-template-columns: 470px minmax(0, 1fr);
-  gap: 20px;
-  padding: 0 34px 30px 40px;
-}
-
-.memberBody {
-  min-height: 0;
-}
-
-.rank {
-  color: #f2f8f9;
-  font-family: var(--font-family);
-  font-size: 28px;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.rank i {
-  color: #6f878d;
-  font-style: normal;
-}
-
+/* ── 右栏: 羁绊卡 → 页签栏 → 内容面板 ── */
 .right {
+  position: absolute;
+  top: 79px;
+  right: 13px;
+  bottom: 20px;
+  left: 828px;
+  z-index: 4;
   display: flex;
-  min-width: 0;
-  min-height: 0;
   flex-direction: column;
-  gap: 16px;
 }
 
-.main {
+/* 内容面板比页签栏向左多出 20px, 顶边一道琥珀细线与选中页签的发光线相接。 */
+.content {
+  position: relative;
+  display: flex;
+  min-height: 0;
   flex: 1;
-}
-
-.mainBody {
-  padding: 14px 18px 18px;
+  flex-direction: column;
+  margin-left: -20px;
+  padding: 22px 20px 16px;
+  border-top: 1px solid color-mix(in srgb, var(--k) 45%, transparent);
+  background:
+    radial-gradient(ellipse 60% 18% at 12% 0%, color-mix(in srgb, var(--k) 9%, transparent), transparent 72%),
+    linear-gradient(180deg, #0e0d0ce8, #090807ee 40%, #070605f2);
+  box-shadow: inset 1px 0 0 #ffffff0d, 0 18px 40px -20px #000;
 }
 
 .pane {
@@ -173,7 +184,7 @@
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  gap: 14px;
+  gap: 29px;
   animation: paneIn 300ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 

@@ -1,63 +1,81 @@
+/* 页签栏(高 53): 右侧斜切的梯形页签紧挨排列, 选中项底边发光线压在内容面板顶边上。 */
 .tabs {
   display: flex;
-  gap: 6px;
+  height: 53px;
+  flex: none;
+  align-items: stretch;
+  margin-top: 19px;
 }
 
-/* 斜切页签: 选中态主题色底 + 底边亮条; 未选中只留细描边。 */
 .tab {
   position: relative;
   display: inline-flex;
+  min-width: 207px;
   align-items: center;
-  gap: 8px;
-  height: 38px;
-  padding: 0 22px;
-  border: 1px solid #ffffff24;
-  background: #0a1215cc;
-  color: #a9bec3;
-  font-size: 20px;
-  letter-spacing: 2px;
-  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  justify-content: center;
+  gap: 14px;
+  padding: 0 44px 0 30px;
+  border: 0;
+  background: linear-gradient(180deg, #1a1918e6, #0e0d0cf0);
+  box-shadow: inset 0 1px 0 #ffffff1f;
+  color: #d8d1c3;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 100%, 0 100%);
   cursor: var(--cursor-pointer);
-  transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+  transition: color 160ms ease, background 160ms ease;
+}
+
+.tab + .tab {
+  min-width: 242px;
+  margin-left: -10px;
+  padding-left: 40px;
 }
 
 .tab:hover:not(.active),
 .tab:focus-visible {
-  border-color: color-mix(in srgb, var(--k) 50%, transparent);
-  color: #e6eef0;
+  color: #fbf7ee;
+  background: linear-gradient(180deg, #24211ee6, #12100ef0);
+  outline: none;
 }
 
 .tab.active {
-  border-color: var(--k);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 26%, #061014), color-mix(in srgb, var(--k) 10%, #061014));
-  color: #f4feff;
-  font-weight: 700;
-  text-shadow: 0 0 8px color-mix(in srgb, var(--k) 60%, transparent);
+  z-index: 1;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--k) 30%, #1a1208), color-mix(in srgb, var(--k) 8%, #0c0a07) 80%);
+  box-shadow: inset 0 2px 0 var(--k), inset 2px 0 0 color-mix(in srgb, var(--k) 70%, transparent);
+  color: #ffd27a;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--k) 55%, transparent);
 }
 
 .tab.active::after {
   position: absolute;
-  right: 12px;
+  right: 18px;
   bottom: 0;
-  left: 6px;
-  height: 2px;
+  left: 0;
+  height: 3px;
   background: var(--k);
-  box-shadow: 0 0 8px var(--k);
+  box-shadow: 0 0 10px var(--k), 0 0 22px color-mix(in srgb, var(--k) 60%, transparent);
   content: "";
 }
 
 .count {
-  min-width: 26px;
+  display: grid;
+  min-width: 32px;
+  height: 32px;
+  place-items: center;
   padding: 0 6px;
-  background: #ffffff14;
-  color: inherit;
+  background: #2b2926;
+  color: #f2ece0;
   font-family: var(--font-num);
-  font-size: 18px;
+  font-size: 20px;
   font-style: normal;
-  line-height: 24px;
-  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-shadow: none;
 }
 
 .tab.active .count {
-  background: color-mix(in srgb, var(--k) 30%, transparent);
+  background: color-mix(in srgb, var(--k) 32%, #1a1208);
 }

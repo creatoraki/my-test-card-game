@@ -1,235 +1,232 @@
-/* 装备卡(横向紧凑版): 稀有度色(--rr)驱动顶边亮条、描边与大图光晕; 空槽压成虚线暗卡。
-   左列大图跨三行, 右列依次是 页眉 / 羁绊 / 「更换」按钮; 不写装备名、不列属性词条。 */
+/* 装备卡(主格 270×144 / 副格 270×127): 暗金属底 + 四角 L 形角标(左上琥珀 + 小三角, 其余冷白)。
+   网格: 图标格 80 + 间距 20 + 文字列; 行 = 部位名 40 / 副标题 40 / 按钮 42。
+   已装备时稀有度色(--rr)只染副标题与图标格光晕。 */
 .card {
+  --corner-key: var(--k);
+  --corner-pale: #d9d2c45c;
   position: relative;
   display: grid;
   min-width: 0;
-  grid-template-columns: 96px minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 6px 12px;
-  min-height: 124px;
-  padding: 12px 12px 12px 14px;
-  border: 1px solid color-mix(in srgb, var(--rr) 46%, #ffffff14);
+  grid-template-columns: 80px minmax(0, 1fr);
+  grid-template-rows: 40px 40px 42px;
+  align-content: start;
+  column-gap: 20px;
+  padding: 11px 14px 9px 15px;
+  border: 1px solid #ffffff1c;
   background:
-    radial-gradient(ellipse 60% 70% at 18% 30%, color-mix(in srgb, var(--rr) 16%, transparent), transparent 70%),
-    linear-gradient(165deg, #101a1e, #070c0f 72%);
-  box-shadow: inset 0 0 24px #0009;
-  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+    linear-gradient(180deg, #ffffff0a, transparent 38%),
+    linear-gradient(170deg, #1a1918f2, #0d0c0bf5 70%);
+  box-shadow: inset 0 0 22px #0008, 0 10px 22px -16px #000;
   transition: border-color 180ms ease, box-shadow 180ms ease;
 }
 
-.card::before {
+.card::after {
   position: absolute;
-  top: 0;
-  right: 0;
-  left: 14px;
-  height: 3px;
-  background: linear-gradient(90deg, var(--rr), color-mix(in srgb, var(--rr) 30%, transparent) 70%, transparent);
-  box-shadow: 0 0 10px var(--rr);
-  content: "";
-}
-
-.card[data-empty] {
-  border-style: dashed;
-  border-color: #ffffff2a;
-  background: linear-gradient(165deg, #0c1417, #060a0c 72%);
-}
-
-.card[data-empty]::before {
-  display: none;
-}
-
-.card.active,
-.card.highlighted,
-.card:has(.main:hover),
-.card:has(.swap:hover) {
-  border-color: var(--k);
-  box-shadow: inset 0 0 24px #0009, 0 0 16px color-mix(in srgb, var(--k) 28%, transparent);
-}
-
-.card.highlighted::before {
-  display: block;
-  background: var(--k);
-  box-shadow: 0 0 12px var(--k);
-}
-
-.head {
-  grid-column: 2;
-  grid-row: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.slot {
-  color: #d9e7ea;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 4px;
-}
-
-.rarity {
-  padding: 0 8px;
-  border: 1px solid color-mix(in srgb, var(--rr) 60%, transparent);
-  color: var(--rr);
-  font-size: 18px;
-  line-height: 24px;
-}
-
-.main {
-  position: relative;
-  grid-column: 1;
-  grid-row: 1 / 4;
-  display: grid;
-  min-height: 0;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  cursor: var(--cursor-pointer);
-}
-
-/* 大图: 背后垫一圈稀有度色光晕; 悬停主区时微微放大。 */
-.icon {
-  position: relative;
-  display: flex;
-  flex: none;
-  transition: scale 180ms ease;
-}
-
-.main:hover .icon {
-  scale: 1.04;
-}
-
-.icon::before {
-  position: absolute;
-  z-index: -1;
-  inset: -14px;
-  background: radial-gradient(circle, color-mix(in srgb, var(--rr) 30%, transparent), transparent 68%);
+  inset: -1px;
+  background:
+    linear-gradient(var(--corner-key), var(--corner-key)) 0 0 / 22px 2px no-repeat,
+    linear-gradient(var(--corner-key), var(--corner-key)) 0 0 / 2px 22px no-repeat,
+    linear-gradient(135deg, var(--corner-key) 50%, transparent 50%) 0 0 / 10px 10px no-repeat,
+    linear-gradient(var(--corner-pale), var(--corner-pale)) 100% 0 / 14px 2px no-repeat,
+    linear-gradient(var(--corner-pale), var(--corner-pale)) 100% 0 / 2px 14px no-repeat,
+    linear-gradient(var(--corner-pale), var(--corner-pale)) 100% 100% / 14px 2px no-repeat,
+    linear-gradient(var(--corner-pale), var(--corner-pale)) 100% 100% / 2px 14px no-repeat,
+    linear-gradient(var(--corner-pale), var(--corner-pale)) 0 100% / 14px 2px no-repeat,
+    linear-gradient(var(--corner-pale), var(--corner-pale)) 0 100% / 2px 14px no-repeat;
   content: "";
   pointer-events: none;
 }
 
-/* 两段类名压过 ItemIconFrame 自带的 .size-xl(132px)。 */
-.icon .iconFrame {
-  --icon-frame-size: 96px;
+.card.active,
+.card.highlighted,
+.card:has(.well:hover),
+.card:has(.swap:hover) {
+  --corner-pale: var(--k);
+  border-color: color-mix(in srgb, var(--k) 60%, transparent);
+  box-shadow: inset 0 0 22px #0008, 0 0 18px color-mix(in srgb, var(--k) 26%, transparent);
 }
 
-.emptyIcon {
+/* ── 图标格: 跨前两行的 80×80 凹槽 ── */
+.well {
+  position: relative;
   display: grid;
-  width: 96px;
-  height: 96px;
-  flex: none;
+  width: 80px;
+  height: 80px;
+  grid-column: 1;
+  grid-row: 1 / 3;
   place-items: center;
-  border: 1px dashed #ffffff33;
-  color: #5d7177;
-  font-size: 28px;
+  padding: 0;
+  border: 1px solid #ffffff1f;
+  background:
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--rr, #8d877c) 16%, transparent), transparent 70%),
+    linear-gradient(180deg, #0b0a09, #151412);
+  box-shadow: inset 0 2px 8px #000c;
+  color: inherit;
+  cursor: var(--cursor-pointer);
 }
 
-/* 右列下半: 羁绊词条占中行, 「更换」按钮落在末行右侧。
-   display: contents 让两个子元素直接参与卡片网格。 */
-.foot {
-  display: contents;
+button.well:focus-visible {
+  outline: 1px solid var(--k);
+  outline-offset: 2px;
 }
 
-.foot > :first-child {
-  grid-column: 2;
-  grid-row: 2;
-  align-self: center;
+.silhouette {
+  width: 66px;
+  height: 66px;
+  opacity: 0.78;
+  transition: opacity 160ms ease, scale 160ms ease;
+  pointer-events: none;
 }
 
-.foot > .swap {
-  grid-column: 2;
-  grid-row: 3;
-  justify-self: end;
+.well:hover .silhouette {
+  opacity: 1;
+  scale: 1.05;
 }
 
-.bonds {
+.icon {
+  display: flex;
+  transition: scale 160ms ease;
+}
+
+.well:hover .icon {
+  scale: 1.05;
+}
+
+/* 两段类名压过 ItemIconFrame 自带的 .size-md(64px)。 */
+.icon .iconFrame {
+  --icon-frame-size: 70px;
+}
+
+/* ── 文字列: 首行 = 部位名 + 羁绊色签(放不下时色签收窄省略) ── */
+.titleRow {
   display: flex;
   min-width: 0;
-  flex: 1;
-  flex-wrap: wrap;
-  gap: 6px;
+  grid-column: 2;
+  grid-row: 1;
+  align-items: center;
+  align-self: end;
+  gap: 8px;
 }
 
-.bond {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 1px 8px 1px 4px;
-  border: 1px solid color-mix(in srgb, var(--bond) 50%, transparent);
-  background: color-mix(in srgb, var(--bond) 12%, #071014);
-  color: var(--bond);
-  font-size: 18px;
-  line-height: 28px;
+/* 色签默认绝对定位在物品格右上角, 这里改成跟在部位名后面的行内标签(两段类名压过 BondTag 自身)。 */
+.titleRow .bondTag {
+  position: static;
+  min-width: 0;
+  max-width: none;
+  flex: 0 1 auto;
+  padding: 1px 6px;
+  border-radius: 2px;
+  text-overflow: ellipsis;
+}
+
+.slot {
+  flex: none;
+  overflow: hidden;
+  color: #f6f1e6;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.noBond {
-  min-width: 0;
-  flex: 1;
-  color: #6f878d;
+.sub {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
+  overflow: hidden;
+  color: var(--ink-dim);
   font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* 「更换」按钮: 切角描边小按钮, 悬停 / 候选打开时填主题色。 */
+.sub[data-item] {
+  color: var(--rr);
+  font-weight: 700;
+}
+
+/* ── 按钮: 琥珀渐变描边(本体底色) + 内缩 1.5px 的深棕底板(::before), 与事件档案按钮同一手法 ── */
 .swap {
-  flex: none;
-  padding: 2px 16px;
-  border: 1px solid color-mix(in srgb, var(--k) 55%, #ffffff1f);
-  background: color-mix(in srgb, var(--k) 10%, #061014);
-  color: #d9f6fa;
+  --c: 6px;
+  position: relative;
+  isolation: isolate;
+  width: 141px;
+  height: 42px;
+  grid-column: 2;
+  grid-row: 3;
+  padding: 0;
+  border: 0;
+  background: linear-gradient(135deg, #ffd27a, #b97a18 46%, #f5a623);
+  color: #fff3dc;
+  font-family: var(--font-family);
   font-size: 18px;
   font-weight: 700;
-  line-height: 28px;
-  letter-spacing: 2px;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
   cursor: var(--cursor-pointer);
-  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+  transition: filter 160ms ease;
+}
+
+.swap::before {
+  position: absolute;
+  z-index: -1;
+  inset: 1.5px;
+  background: linear-gradient(180deg, #4d3410, #23170a);
+  clip-path: polygon(5.4px 0, 100% 0, 100% calc(100% - 5.4px), calc(100% - 5.4px) 100%, 0 100%, 0 5.4px);
+  content: "";
+  transition: background 160ms ease;
+}
+
+.swap:hover::before,
+.swap:focus-visible::before,
+.swap[data-on]::before {
+  background: linear-gradient(180deg, #7a5317, #3d280c);
 }
 
 .swap:hover,
 .swap:focus-visible,
 .swap[data-on] {
-  border-color: var(--k);
-  background: color-mix(in srgb, var(--k) 32%, #061014);
-  color: #ffffff;
+  outline: none;
+  filter: brightness(1.12);
 }
 
-/* 未解锁副格: 左侧锁图标替代大图, 右侧部位名 + 解锁等级。 */
-.locked {
+/* ── 未解锁副格: 图标格放锁, 两行文字竖向居中 ── */
+.card.locked {
+  --corner-key: #a39c8f;
+  --corner-pale: #d9d2c433;
+  grid-template-rows: auto auto;
+  align-content: center;
+  row-gap: 12px;
   outline: none;
+  cursor: default;
+  background: linear-gradient(170deg, #141312f0, #0a0908f5 70%);
+}
+
+.card.locked:hover,
+.card.locked:focus-visible {
+  --corner-pale: #d9d2c473;
+  border-color: #ffffff38;
+}
+
+.card.locked .well {
   cursor: default;
 }
 
-.locked:hover,
-.locked:focus-visible {
-  border-color: #ffffff4d;
+.card.locked .slot {
+  color: #e2dbce;
 }
 
 .lockIcon {
-  grid-column: 1;
-  grid-row: 1 / 4;
   display: grid;
-  width: 96px;
-  height: 96px;
-  place-self: center;
+  width: 40px;
+  height: 40px;
   place-items: center;
-  border: 1px dashed #ffffff24;
-  color: #5d7177;
+  color: #b9b1a3;
 }
 
 .lockIcon svg {
-  width: 44px;
-  height: 44px;
-}
-
-.lockText {
-  grid-column: 2;
-  grid-row: 2;
-  align-self: center;
-  color: #6f878d;
-  font-size: 18px;
-  letter-spacing: 1px;
+  width: 100%;
+  height: 100%;
 }

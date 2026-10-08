@@ -3,7 +3,7 @@
   flex: none;
   /* 列 = 部位, 行 = 主 / 副; 子元素按「武器、副武器、防具……」顺序, 竖向流入。 */
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: repeat(2, auto);
+  grid-template-rows: 144px 127px;
   grid-auto-flow: column;
-  gap: 12px 14px;
+  gap: 13px 14px;
 }

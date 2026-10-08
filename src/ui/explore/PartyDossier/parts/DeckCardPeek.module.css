@@ -1,4 +1,4 @@
-/* 铺满左栏分区主体, 压暗立绘后居中摆大卡; 卡面放大到 1.5 倍(330 宽), 给词条释义留出高度。 */
+/* 铺满左栏, 压暗立绘后居中摆大卡(避开页眉); 卡面放大到 1.5 倍(330 宽), 给词条释义留出高度。 */
 .peek {
   position: absolute;
   z-index: 5;
@@ -6,8 +6,8 @@
   display: grid;
   overflow: hidden;
   place-items: center;
-  padding: 16px;
-  background: radial-gradient(ellipse 80% 70% at 50% 45%, #050b0eee, #03080bf5);
+  padding: 90px 16px 20px;
+  background: radial-gradient(ellipse 80% 70% at 50% 50%, #0a0806e8, #050403f2);
   pointer-events: none;
 }
 

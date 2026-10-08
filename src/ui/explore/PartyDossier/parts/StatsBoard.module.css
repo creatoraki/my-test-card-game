@@ -1,90 +1,107 @@
-/* 三组属性并排: 前两组 6 行, 第三组 9 行; 整块超高时纵向滚动兜底。 */
+/* 属性账本: 三列等宽, 第 2 / 3 列左侧 1px 竖线; 每列 = 组标题(33) + 行区(弹性)。
+   行区按行数均分高度: 前两组 6 行约 35 高, 第三组 9 行约 27 高, 三列底边对齐。 */
 .board {
   display: grid;
   min-height: 0;
   flex: 1;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  overflow-y: auto;
-  scrollbar-width: thin;
 }
 
 .group {
   display: flex;
   min-width: 0;
+  min-height: 0;
   flex-direction: column;
-  gap: 4px;
-  padding: 10px 12px 10px;
-  border: 1px solid #ffffff14;
-  background: linear-gradient(180deg, #0b1417cc, #060b0dcc);
+  gap: 6px;
+  padding: 0 22px;
+}
+
+.group:first-child {
+  padding-left: 0;
+}
+
+.group:last-child {
+  padding-right: 0;
+}
+
+.group + .group {
+  border-left: 1px solid var(--rule);
 }
 
 .head {
+  position: relative;
   display: flex;
-  align-items: baseline;
+  height: 33px;
+  flex: none;
+  align-items: center;
   gap: 10px;
-  padding: 0 0 6px 10px;
-  border-bottom: 1px solid #ffffff14;
-  border-left: 3px solid var(--k);
+}
+
+.head::after {
+  position: absolute;
+  right: 0;
+  bottom: -3px;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--k), color-mix(in srgb, var(--k) 35%, transparent) 55%, transparent);
+  content: "";
+}
+
+.glyph {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  color: var(--k);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--k) 45%, transparent));
 }
 
 .title {
   margin: 0;
-  color: #eef6f7;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.sub {
-  color: #6f878d;
-  font-size: 18px;
+  color: #f6f1e6;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
 }
 
 .rows {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-auto-rows: minmax(0, 1fr);
 }
 
-/* 行底一条微条: 宽度 = --pct, 只作长短对比, 不代表上限。 */
 .row {
-  position: relative;
   display: grid;
+  min-height: 0;
   grid-template-columns: 24px minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 8px;
-  height: 27px;
-  padding: 0 4px;
+  gap: 10px;
+  border-bottom: 1px solid var(--rule);
 }
 
-.row::after {
-  position: absolute;
-  bottom: 1px;
-  left: 36px;
-  width: calc((100% - 40px) * var(--pct, 0));
-  height: 2px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--k) 55%, transparent), transparent);
-  content: "";
-  transition: width 240ms ease;
+.row:last-child {
+  border-bottom: 0;
 }
 
 .icon {
-  width: 22px;
-  height: 22px;
-  color: color-mix(in srgb, var(--k) 70%, #ffffff);
+  width: 21px;
+  height: 21px;
+  color: #b9b1a3;
 }
 
 .label {
   overflow: hidden;
-  color: #a9bec3;
+  color: #ddd6c9;
   font-size: 18px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .value {
-  color: #f1f8f9;
+  color: #fbf7ee;
   font-family: var(--font-num);
   font-size: 18px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 

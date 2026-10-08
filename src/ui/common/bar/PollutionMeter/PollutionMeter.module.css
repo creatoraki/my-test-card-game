@@ -50,8 +50,8 @@
   left: 0;
   width: var(--poll-pct, 0%);
   background: linear-gradient(180deg, #ffffff3d, #ffffff00 42%, #00000038),
-    linear-gradient(90deg, #2d9f68, #79e39c);
-  box-shadow: 0 0 10px -1px #56d989;
+    linear-gradient(90deg, var(--poll-a, #2d9f68), var(--poll-b, #79e39c));
+  box-shadow: 0 0 10px -1px var(--poll-glow, #56d989);
   transition: width 180ms ease-out;
 }
 

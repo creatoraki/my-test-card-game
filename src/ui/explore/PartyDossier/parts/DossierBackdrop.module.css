@@ -1,0 +1,32 @@
+/* 场景图 1700×904 正好铺满面板; 轻微压暗降饱和, 让暖光不抢界面。 */
+.scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.82) saturate(0.92);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 底部 0–45% 压暗托住名牌与切换条; 顶部压一道暗边托住页眉; 右侧从 46% 起逐步压暗。 */
+.shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(0deg, #060504f0 0%, #060504b8 20%, #06050440 40%, transparent 52%),
+    linear-gradient(180deg, #060504c0 0%, #06050440 10%, transparent 18%),
+    linear-gradient(
+      90deg,
+      #06050470 0%,
+      transparent 16%,
+      transparent 42%,
+      #06050490 52%,
+      #060504c8 70%,
+      #060504d8 100%
+    );
+}

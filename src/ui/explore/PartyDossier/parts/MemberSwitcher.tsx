@@ -1,4 +1,4 @@
-// 左栏底部: 队员切换条。一排缩略立绘 + 左右箭头, 阵亡队员压灰但仍可查看。
+// 左栏底部: 队员切换条。一排缩略立绘 + 左右箭头 + 页码圆点, 阵亡队员压灰但仍可查看。
 // ★ 只发出「选谁」, 面板的页签与浮层状态由 PartyDossier 持有, 换人时不重置。
 import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
 import { cx } from "@/ui/common/shared/cx";
@@ -64,6 +64,11 @@ export function MemberSwitcher({ members, selected, onSelect }: Props) {
       >
         <ChevronIcon />
       </button>
+      <div className={s.dots} aria-hidden="true">
+        {members.map((member) => (
+          <i key={member.charId} data-on={member.charId === selected || undefined} />
+        ))}
+      </div>
     </div>
   );
 }

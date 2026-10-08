@@ -1,0 +1,97 @@
+/* 坐标对应 PartyDossier.module.css 的切角: 左上 18 / 右下 26。 */
+.decor {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.decor i {
+  position: absolute;
+  display: block;
+}
+
+.topLeftH,
+.topLeftV,
+.bottomRightH,
+.bottomRightV {
+  filter: drop-shadow(0 0 6px var(--k));
+}
+
+.topLeftH {
+  top: 0;
+  left: 18px;
+  width: 132px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--k), color-mix(in srgb, var(--k) 20%, transparent));
+}
+
+.topLeftV {
+  top: 18px;
+  left: 0;
+  width: 2px;
+  height: 92px;
+  background: linear-gradient(180deg, var(--k), color-mix(in srgb, var(--k) 10%, transparent));
+}
+
+/* 切角斜边: 正方形里沿「/」对角线画一道亮线(两处切角同向)。 */
+.topLeftCut,
+.bottomRightCut {
+  filter: drop-shadow(0 0 5px var(--k));
+}
+
+.topLeftCut {
+  top: 0;
+  left: 0;
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(
+    to top left,
+    transparent calc(50% - 1.2px),
+    var(--k) calc(50% - 1.2px) calc(50% + 1.2px),
+    transparent calc(50% + 1.2px)
+  );
+}
+
+.bottomRightCut {
+  right: 0;
+  bottom: 0;
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(
+    to top left,
+    transparent calc(50% - 1.4px),
+    var(--k) calc(50% - 1.4px) calc(50% + 1.4px),
+    transparent calc(50% + 1.4px)
+  );
+}
+
+.bottomRightH {
+  right: 26px;
+  bottom: 0;
+  width: 168px;
+  height: 2px;
+  background: linear-gradient(270deg, var(--k), color-mix(in srgb, var(--k) 12%, transparent));
+}
+
+.bottomRightV {
+  right: 0;
+  bottom: 26px;
+  width: 2px;
+  height: 120px;
+  background: linear-gradient(0deg, var(--k), color-mix(in srgb, var(--k) 12%, transparent));
+}
+
+.leftRail {
+  top: 140px;
+  left: 10px;
+  width: 1px;
+  height: 560px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--k) 24%, transparent) 16%,
+    color-mix(in srgb, var(--k) 24%, transparent) 84%,
+    transparent
+  );
+}

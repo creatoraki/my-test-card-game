@@ -78,10 +78,3 @@ export function isPercentStat(key: keyof StatBlock): boolean {
 
 /** pct 项没写 ref 时的铺满值。 */
 export const REF_DEFAULT_PCT = 100;
-
-/** 一行属性的条长占比(0~1)。ref 缺省的非百分比项不画条。 */
-export function statFill(value: number, row: StatRow): number {
-  const ref = row.ref ?? (row.pct ? REF_DEFAULT_PCT : undefined);
-  if (!ref) return 0;
-  return Math.max(0, Math.min(1, value / ref));
-}

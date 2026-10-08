@@ -13,13 +13,13 @@ const TITLE_MIN_SIZE = 22;
 /** 字宽 = 1em + 0.04em 字距。 */
 const CHAR_EM = 1.04;
 
-/** 按字数把标题缩到一行放得下; 缩到下限仍放不下才省略。标题竖直中心保持不动。 */
+/** 按字数把标题缩到一行放得下; 缩到下限仍放不下才省略。标题竖直中心保持不动(减去 1.24 行高的半行距 0.12em)。 */
 function titleStyle(title: ReactNode): CSSProperties | undefined {
   if (typeof title !== "string") return undefined;
   const fit = Math.floor(TITLE_WIDTH / ([...title].length * CHAR_EM));
   const size = Math.max(TITLE_MIN_SIZE, Math.min(TITLE_MAX_SIZE, fit));
   if (size === TITLE_MAX_SIZE) return undefined;
-  return { fontSize: size, top: Math.round(32 + (TITLE_MAX_SIZE - size) * 0.75) };
+  return { fontSize: size, top: Math.round(32 + (TITLE_MAX_SIZE - size) * 0.75 - size * 0.12) };
 }
 
 export function HeroHead({ icon, title, meta }: { icon: ReactNode; title?: ReactNode; meta?: ReactNode }) {

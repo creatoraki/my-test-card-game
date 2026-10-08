@@ -26,7 +26,7 @@ const BOX_SHRINK = 0.7;
 /** 锻造台横向很宽，中档下压迫感太强，缩到 70%。 */
 const FORGE_SHRINK = 0.7;
 /** 锻造师所在的锻造台再小一圈，避免盖过身旁的人物。 */
-const BLACKSMITH_SHRINK = 0.8;
+const BLACKSMITH_SHRINK = 0.58;
 
 function shrinkProp(art: CorridorPropArt, factor: number): CorridorPropArt {
   return { ...art, scale: art.scale * factor };
@@ -80,7 +80,7 @@ export const COMMON_PROP_ART = {
   sink: ROSE_TEA_TABLE,
   energyStation: THUNDER_CRYSTAL,
   // 新手关卡
-  tutorialArmory: MOSS_MAILBOX,
+  tutorialArmory: shrinkProp(MOSS_MAILBOX, 0.6),
   tutorialModBench: DREAM_LOOM,
   tutorialMedical: DEW_APOTHECARY,
   tutorialRelicCache: SHRINE,

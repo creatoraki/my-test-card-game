@@ -1,14 +1,14 @@
-// 单个装备格的装备卡: 左侧大图, 右侧部位 + 稀有度页眉、羁绊词条、「更换」按钮。
-// ★ 6 格(3 部位 × 主副)同屏, 所以卡片是横向紧凑版; 未解锁副格用 LockedEquipCard。
-// ★ 卡面不写装备名、不列具体属性 —— 悬停大图看物品详情, 整体数值看下方属性面板。
-// ★ 点大图或「更换」都会打开背包候选, 候选浮层锚在整张卡上。
+// 单个装备格的装备卡(琥珀工业): 左侧图标格, 右侧 部位名 / 装备名(稀有度色) / 「装备 · 更换」按钮。
+// ★ 6 格(3 部位 × 主副)同屏; 未解锁副格用 LockedEquipCard。
+// ★ 卡面写装备名 + 部位名右侧的羁绊色签; 属性词条悬停图标看物品详情, 整体数值看下方属性账本。
+// ★ 点图标格或按钮都会打开背包候选, 候选浮层锚在整张卡上。
 import type { CSSProperties } from "react";
 import { getBondDef, getItemDef } from "@/data";
-import { GEAR_SLOT_LABEL, GEAR_SLOT_UNLOCK, type GearSlot } from "@/items/gearSlots";
-import { RARITY_LABEL, type ItemStack } from "@/items/types";
+import { GEAR_SLOT_KIND, GEAR_SLOT_LABEL, GEAR_SLOT_UNLOCK, type GearSlot } from "@/items/gearSlots";
+import type { ItemStack } from "@/items/types";
+import { PARTY_DOSSIER_SLOT_ART } from "@/ui/art/explore/partyDossierArt";
 import { LockGlyph } from "@/ui/character/glyphs/deckGlyphs";
-import { ArcanaIcon } from "@/ui/common/icon/ArcanaIcon";
-import { bondAccent } from "@/ui/common/bond/BondTag";
+import { BondTag } from "@/ui/common/bond/BondTag";
 import ItemIconFrame from "@/ui/common/item/ItemIconFrame";
 import { cx } from "@/ui/common/shared/cx";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
@@ -44,7 +44,8 @@ export function EquipCard({
   const def = stack ? getItemDef(stack.itemId) : null;
   const bonds = stack ? bondsOf(stack) : [];
   const label = GEAR_SLOT_LABEL[slot];
-  const style = { "--rr": def ? `var(--rarity-${def.rarity})` : "#5d7177" } as CSSProperties;
+  const bondText = bonds.length ? `，羁绊：${bonds.map((bond) => bond.name).join("、")}` : "";
+  const style = def ? ({ "--rr": `var(--rarity-${def.rarity})` } as CSSProperties) : undefined;
 
   const open = (trigger: HTMLElement) => {
     onHideTooltip();
@@ -56,16 +57,11 @@ export function EquipCard({
       className={cx(s.card, active && s.active, highlighted && s.highlighted)}
       style={style}
       data-empty={stack ? undefined : ""}
-      aria-label={`${label}：${def?.name ?? "空槽"}`}
+      aria-label={`${label}：${def?.name ?? "空槽"}${bondText}`}
     >
-      <header className={s.head}>
-        <span className={s.slot}>{label}</span>
-        {def && <span className={s.rarity}>{RARITY_LABEL[def.rarity]}</span>}
-      </header>
-
       <button
         type="button"
-        className={s.main}
+        className={s.well}
         aria-label={`更换${label}`}
         onClick={(event) => open(event.currentTarget)}
       >
@@ -75,44 +71,33 @@ export function EquipCard({
             onMouseEnter={(event) => !active && onShowTooltip(event.currentTarget, stack)}
             onMouseLeave={onHideTooltip}
           >
-            <ItemIconFrame itemId={stack.itemId} size="xl" className={s.iconFrame} />
+            <ItemIconFrame itemId={stack.itemId} size="md" className={s.iconFrame} />
           </span>
         ) : (
-          <span className={s.emptyIcon} aria-hidden="true">空</span>
+          <img className={s.silhouette} src={PARTY_DOSSIER_SLOT_ART[GEAR_SLOT_KIND[slot]]} alt="" draggable={false} />
         )}
       </button>
 
-      <footer className={s.foot}>
-        {bonds.length > 0 ? (
-          <span className={s.bonds}>
-            {bonds.map((bond, index) => {
-              const accent = bondAccent(bond);
-              return (
-                <span key={`${bond.id}-${index}`} className={s.bond} style={{ "--bond": accent } as CSSProperties}>
-                  <ArcanaIcon id={bond.id} size={26} bare accent={accent} />
-                  {bond.name}
-                </span>
-              );
-            })}
-          </span>
-        ) : (
-          <span className={s.noBond}>{stack ? "无羁绊词条" : `未装备${label}`}</span>
-        )}
-        <button
-          type="button"
-          className={s.swap}
-          data-on={active || undefined}
-          onClick={(event) => open(event.currentTarget)}
-        >
-          {stack ? "更换" : "装备"}
-        </button>
-      </footer>
-
+      <div className={s.titleRow}>
+        <span className={s.slot}>{label}</span>
+        {bonds.map((bond, index) => (
+          <BondTag key={`${bond.id}-${index}`} def={bond} className={s.bondTag} />
+        ))}
+      </div>
+      <span className={s.sub} data-item={def ? "" : undefined}>{def?.name ?? `未装备${label}`}</span>
+      <button
+        type="button"
+        className={s.swap}
+        data-on={active || undefined}
+        onClick={(event) => open(event.currentTarget)}
+      >
+        {stack ? "更换" : "装备"}
+      </button>
     </article>
   );
 }
 
-/** 未解锁副格: 虚线暗卡 + 锁 + 解锁等级, 悬浮说明解锁条件。 */
+/** 未解锁副格: 暗化卡 + 锁 + 解锁等级, 悬浮说明解锁条件。 */
 export function LockedEquipCard({ slot }: { slot: GearSlot }) {
   const { point, bind } = useHoverTooltip();
   const label = GEAR_SLOT_LABEL[slot];
@@ -120,17 +105,18 @@ export function LockedEquipCard({ slot }: { slot: GearSlot }) {
   return (
     <article
       className={cx(s.card, s.locked)}
-      style={{ "--rr": "#5d7177" } as CSSProperties}
       data-empty=""
       tabIndex={0}
       aria-label={`${label}：${level}级解锁`}
       {...bind}
     >
-      <span className={s.lockIcon} aria-hidden="true"><LockGlyph /></span>
-      <header className={s.head}>
+      <span className={s.well} aria-hidden="true">
+        <span className={s.lockIcon}><LockGlyph /></span>
+      </span>
+      <div className={s.titleRow}>
         <span className={s.slot}>{label}</span>
-      </header>
-      <span className={s.lockText}>{level}级解锁</span>
+      </div>
+      <span className={s.sub}>{level}级解锁</span>
       {point && (
         <HoverTooltip point={point}>
           <TooltipCard title={`${label}未解锁`} desc={`卡组等级达到 ${level} 级后开放此装备格。`} />
