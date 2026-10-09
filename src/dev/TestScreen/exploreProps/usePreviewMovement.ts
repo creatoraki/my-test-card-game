@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CORRIDOR, corridorWalkMax } from "@/explore/corridor/types";
 
-/** 预览页只处理移动，不写入正式远征或触发行走消耗。 */
+/** 预览页只处理移动，不写入正式远征或触发行走消耗。宽度随背景缩放实时变化，用 ref 读取以免重置角色位置。 */
 export function usePreviewMovement(width: number, onFrame: (x: number) => void) {
+  const widthRef = useRef(width);
+  widthRef.current = width;
   const [motion, setMotion] = useState<{ walking: boolean; facing: -1 | 1 }>({ walking: false, facing: 1 });
   useEffect(() => {
     const keys = new Set<string>();
@@ -29,7 +31,7 @@ export function usePreviewMovement(width: number, onFrame: (x: number) => void) 
       const elapsed = Math.min((now - previous) / 1000, 0.1);
       previous = now;
       const direction = Number(keys.has("ArrowRight") || keys.has("KeyD")) - Number(keys.has("ArrowLeft") || keys.has("KeyA"));
-      const next = Math.max(CORRIDOR.walkMin, Math.min(corridorWalkMax(width), x + direction * CORRIDOR.speed * elapsed));
+      const next = Math.max(CORRIDOR.walkMin, Math.min(corridorWalkMax(widthRef.current), x + direction * CORRIDOR.speed * elapsed));
       const nextWalking = next !== x;
       const nextFacing = direction ? (direction < 0 ? -1 : 1) : facing;
       if (nextWalking !== walking || nextFacing !== facing) {
@@ -41,6 +43,7 @@ export function usePreviewMovement(width: number, onFrame: (x: number) => void) 
       onFrame(x);
       frame = requestAnimationFrame(tick);
     };
+    setMotion({ walking: false, facing: 1 });
     onFrame(x);
     frame = requestAnimationFrame(tick);
     window.addEventListener("keydown", keyDown);
@@ -54,6 +57,6 @@ export function usePreviewMovement(width: number, onFrame: (x: number) => void) 
       window.removeEventListener("blur", stop);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, [width, onFrame]);
+  }, [onFrame]);
   return motion;
 }

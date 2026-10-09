@@ -1,0 +1,9 @@
+/* 底部翻页条外观；物品翻页与近景翻页共用，定位由外层底部栏负责。 */
+.root { display: flex; align-items: center; gap: 16px; padding: 10px 14px; border: 1px solid #9bb1bd55; border-radius: 12px; background: #0b1722d9; box-shadow: 0 8px 24px #0009; backdrop-filter: blur(6px); color: #e9ddc9; font-size: 18px; }
+.button { min-height: 42px; padding: 8px 18px; border: 1px solid #9bb1bd55; border-radius: 8px; background: #142630; color: #e9ddc9; font-size: 18px; font-family: inherit; line-height: 1.3; cursor: pointer; }
+.button:hover:enabled { border-color: #e8b862aa; background: #213b42; }
+.button:disabled { opacity: .4; cursor: default; }
+.button:focus-visible { outline: 2px solid #e8b862; outline-offset: 2px; }
+.count { min-width: 120px; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.enabled { padding-left: 16px; border-left: 1px solid #9bb1bd55; color: #f6e6c4; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.title { padding-right: 16px; border-right: 1px solid #9bb1bd55; color: #f6e6c4; white-space: nowrap; }

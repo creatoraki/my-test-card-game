@@ -1,15 +1,47 @@
 .root { position: fixed; inset: 0; overflow: hidden; background: #080e11; color: #e9ddc9; font-size: 18px; }
 .canvas { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center; }
-.instructions { position: absolute; left: 24px; top: 24px; z-index: 30; display: flex; flex-direction: column; gap: 10px; padding: 18px 24px; background: #0b1722e8; border: 1px solid #9bb1bd55; pointer-events: none; }
-.instructions strong { font-size: 22px; }
-.instructions span { font-size: 18px; }
-/* 名称签挂在地面线下方，绝对定位不占交互物容器高度，避免把物件顶离地面。 */
-.label { position: absolute; top: calc(100% + 26px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 8px 14px; border: 1px solid #afc7c25e; background: #102425e8; color: #ebf3df; font-size: 18px; }
+/* 名称签挂在地面线下方，绝对定位不占交互物容器高度，避免把物件顶离地面。
+   定位与反缩放写在锚点上；按钮本身不带 transform，全站按钮按下的位移不会让它跳位。 */
+.labelAnchor { position: absolute; top: calc(100% + 26px); left: 50%; z-index: 2; transform: translateX(-50%) scale(var(--preview-ui-scale, 1)); transform-origin: top center; }
+.label { display: block; white-space: nowrap; padding: 8px 14px; border: 1px solid #afc7c25e; background: #102425e8; color: #ebf3df; font-size: 18px; font-family: inherit; cursor: pointer; }
+.label:hover { border-color: #e8b862aa; background: #173233f0; }
+.labelSelected, .labelSelected:hover { border-color: #e8b862; background: #2c2213f0; color: #f6e6c4; }
 
-.panel { position: absolute; right: 24px; top: 24px; z-index: 30; display: flex; flex-direction: column; gap: 16px; padding: 20px 24px; background: #0b1722f0; border: 1px solid #9bb1bd55; }
-.knobRow { display: flex; align-items: center; gap: 20px; }
-.knobInfo { display: flex; flex-direction: column; gap: 6px; min-width: 170px; font-size: 18px; font-variant-numeric: tabular-nums; }
-.knobInfo strong { font-size: 22px; color: #f4ead6; }
-.hint { margin: 0; font-size: 18px; color: #a9bcc4; }
-.printButton { padding: 12px 18px; border: 1px solid #e8b862; border-radius: 8px; background: #2c2213; color: #f6e6c4; font-size: 18px; cursor: pointer; }
+/* 调节面板：窄而高的竖排布局，旋钮在上、数值与步进按钮在下。 */
+.panel { position: absolute; right: 24px; top: 24px; z-index: 40; display: flex; flex-direction: column; gap: 12px; width: 288px; max-width: calc(100% - 48px); max-height: calc(100% - 140px); overflow-y: auto; padding: 14px 16px; background: #0b1722f0; border: 1px solid #9bb1bd55; }
+.panelHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.panelHeader strong { font-size: 20px; color: #f4ead6; }
+.closeButton { flex: none; width: 32px; height: 32px; padding: 0; border: 1px solid #9bb1bd77; border-radius: 6px; background: #142630; color: #e9ddc9; font-size: 20px; line-height: 1; cursor: pointer; }
+.closeButton:hover { background: #1d3442; }
+.knobRow { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.knobInfo { display: flex; flex-direction: column; gap: 4px; align-self: stretch; font-size: 18px; font-variant-numeric: tabular-nums; }
+/* 步进按钮两列网格；按钮数为奇数时最后一个（复位）占满整行。 */
+.nudges { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 4px; }
+.nudges button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.nudges button { padding: 4px 8px; border: 1px solid #9bb1bd77; border-radius: 6px; background: #142630; color: #e9ddc9; font-size: 18px; font-variant-numeric: tabular-nums; cursor: pointer; }
+.nudges button:hover { background: #1d3442; }
+.printButton { padding: 8px 12px; border: 1px solid #e8b862; border-radius: 8px; background: #2c2213; color: #f6e6c4; font-size: 18px; cursor: pointer; }
 .printButton:hover { background: #3a2c17; }
+
+/* 演示近景：左右无缝素材横向平铺铺满房间；深渊从路面下缘挡住远景。 */
+.demoNear { position: absolute; left: 0; z-index: 1; background-repeat: repeat-x; background-position: left top; }
+.demoAbyss { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; background: #000; }
+
+/* 背景调整入口：悬浮在左上角，与右上角调节面板互斥。 */
+.backdropButton { position: absolute; left: 24px; top: 24px; z-index: 35; min-height: 42px; padding: 8px 18px; border: 1px solid #9bb1bd55; border-radius: 8px; background: #0b1722d9; box-shadow: 0 8px 24px #0009; color: #e9ddc9; font-size: 18px; font-family: inherit; cursor: pointer; }
+.backdropButton:hover { border-color: #e8b862aa; background: #173233f0; }
+.backdropButtonActive, .backdropButtonActive:hover { border-color: #e8b862; background: #2c2213f0; color: #f6e6c4; }
+.offsetRow { display: flex; flex-direction: column; gap: 6px; font-size: 18px; font-variant-numeric: tabular-nums; }
+
+/* 启用开关：左侧滑轨 + 状态文字，整行可点。 */
+.toggle { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid #9bb1bd55; background: #142630; color: #a9bcc4; font-size: 18px; text-align: left; }
+.toggle:hover { border-color: #e8b862aa; }
+.toggleTrack { position: relative; flex: none; width: 40px; height: 22px; border-radius: 11px; background: #2a3a42; transition: background 0.15s; }
+.toggleThumb { position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #c9d4d6; transition: transform 0.15s; }
+.toggleOn { color: #f6e6c4; border-color: #e8b862; }
+.toggleOn .toggleTrack { background: #b8862e; }
+.toggleOn .toggleThumb { transform: translateX(18px); background: #fff4dc; }
+
+/* 底部栏：悬浮在场景底部居中，近景翻页与物品翻页并排，窄屏时自动换行；只拦截翻页条自身的点击。 */
+.bottomBar { position: absolute; left: 50%; bottom: 24px; z-index: 35; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; width: max-content; max-width: calc(100% - 32px); transform: translateX(-50%); pointer-events: none; }
+.bottomBar > * { pointer-events: auto; }

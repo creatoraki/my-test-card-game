@@ -1,41 +1,42 @@
-import { SCALE_MAX, SCALE_MIN, SHOWCASE_PROPS, showcaseSize } from "./showcaseProps";
+import { clampScale, SCALE_MAX, SCALE_MIN, SCALE_NUDGE, SCALE_PRECISION, type ShowcasePropDef } from "./showcaseProps";
 import { ScaleKnob } from "./ScaleKnob";
+import { printScales } from "./printScales";
+import { isPropEnabled, type PreviewTuning } from "./previewTuning";
 import s from "./ExplorePropScene.module.css";
 
-const round = (value: number) => Math.round(value * 1000) / 1000;
+/** 倍率步进按钮：粗调 ±0.01，精调 ±0.001。 */
+const NUDGE_STEPS = [-SCALE_NUDGE, -SCALE_PRECISION, SCALE_PRECISION, SCALE_NUDGE] as const;
 
-/** 打印每件展示交互物的游戏登记缩放、旋钮倍率与叠乘后的最终缩放，方便回填 commonPropArt。 */
-function printScales(multipliers: Record<string, number>) {
-  console.table(SHOWCASE_PROPS.map((prop) => {
-    const multiplier = multipliers[prop.id] ?? 1;
-    const { width, height } = showcaseSize(prop.art, multiplier);
-    return {
-      名称: prop.name,
-      游戏登记缩放: round(prop.art.scale),
-      旋钮倍率: round(multiplier),
-      最终缩放: round(prop.art.scale * multiplier),
-      显示宽度: Math.round(width),
-      显示高度: Math.round(height),
-    };
-  }));
-}
-
-export function PropScalePanel({ multipliers, onChange }: {
-  multipliers: Record<string, number>; onChange: (id: string, value: number) => void;
+/** 只展示当前点中物件的旋钮与启用开关；打印按钮输出全部已启用的展示物。 */
+export function PropScalePanel({ prop, tuning, onChange, onToggle, onClose }: {
+  prop: ShowcasePropDef; tuning: PreviewTuning;
+  onChange: (id: string, value: number) => void; onToggle: (id: string, value: boolean) => void; onClose: () => void;
 }) {
-  return <aside className={s.panel}>
-    {SHOWCASE_PROPS.map((prop) => {
-      const value = multipliers[prop.id] ?? 1;
-      return <div key={prop.id} className={s.knobRow}>
-        <ScaleKnob value={value} min={SCALE_MIN} max={SCALE_MAX} label={`${prop.name}缩放倍率`} onChange={(next) => onChange(prop.id, next)} />
-        <div className={s.knobInfo}>
-          <strong>{prop.name}</strong>
-          <span>旋钮倍率 {value.toFixed(2)}</span>
-          <span>最终缩放 {(prop.art.scale * value).toFixed(3)}</span>
+  const value = tuning.multipliers[prop.id] ?? 1;
+  const enabled = isPropEnabled(tuning, prop.id);
+  const set = (next: number) => onChange(prop.id, next);
+  return <aside className={s.panel} aria-label={`${prop.name}缩放调节`}>
+    <header className={s.panelHeader}>
+      <strong>{prop.name}</strong>
+      <button type="button" className={s.closeButton} aria-label="关闭调节面板" onClick={onClose}>×</button>
+    </header>
+    <button type="button" role="switch" aria-checked={enabled} className={`${s.toggle} ${enabled ? s.toggleOn : ""}`} onClick={() => onToggle(prop.id, !enabled)}>
+      <span className={s.toggleTrack} aria-hidden><span className={s.toggleThumb} /></span>
+      {enabled ? "启用" : "停用"}
+    </button>
+    <div className={s.knobRow}>
+      <ScaleKnob value={value} min={SCALE_MIN} max={SCALE_MAX} precision={SCALE_PRECISION} label={`${prop.name}缩放倍率`} onChange={set} />
+      <div className={s.knobInfo}>
+        <span>倍率 {value.toFixed(3)}</span>
+        <span>最终 {(prop.art.scale * value).toFixed(3)}</span>
+        <div className={s.nudges}>
+          {NUDGE_STEPS.map((step) => <button key={step} type="button" aria-label={`倍率${step < 0 ? "减少" : "增加"} ${Math.abs(step)}`} onClick={() => set(clampScale(value + step))}>
+            {step < 0 ? "−" : "+"}{Math.abs(step)}
+          </button>)}
+          <button type="button" onClick={() => set(1)}>复位</button>
         </div>
-      </div>;
-    })}
-    <p className={s.hint}>上下拖动或滚轮调节 · 双击复位</p>
-    <button type="button" className={s.printButton} onClick={() => printScales(multipliers)}>打印缩放倍率到控制台</button>
+      </div>
+    </div>
+    <button type="button" className={s.printButton} onClick={() => printScales(tuning)}>打印</button>
   </aside>;
 }
