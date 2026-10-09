@@ -1,0 +1,45 @@
+/* 卡组面板外壳(设计 px, 1920×1080 画布绝对定位)。兜底底板只求布局可读, 正式质感来自素材 面板外壳.webp。 */
+.art,
+.fallback {
+  position: absolute;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.fallback > span {
+  position: absolute;
+}
+
+.panel {
+  background:
+    linear-gradient(90deg, #6dff7a00, #6dff7a40 30%, #6dff7a00 60%) top / 100% 2px no-repeat,
+    linear-gradient(165deg, #22261f, #121510 52%, #0b0d0a);
+  clip-path: polygon(48px 0, calc(100% - 64px) 0, 100% 64px, 100% 100%, 60px 100%, 0 calc(100% - 60px), 0 48px);
+  box-shadow: inset 0 0 0 2px #8a6a34;
+  filter: drop-shadow(0 26px 40px #000c);
+}
+
+.well {
+  border: 1px solid #2c3128;
+  background: linear-gradient(180deg, #0c0f0bcc, #080a07e6);
+  box-shadow: inset 0 0 28px #000c;
+}
+
+.column {
+  border: 2px solid #6a4f26;
+  background: linear-gradient(180deg, #141a13, #0b0f0a);
+  box-shadow: inset 0 0 0 1px #2bd96b33;
+}
+
+.bar {
+  border: 1px solid #3a3a2c;
+  background: linear-gradient(180deg, #1b1f19, #10130f);
+}
+
+.glass {
+  border: 1px solid #2bd96b40;
+  background: linear-gradient(180deg, #0d1712e6, #08100cf0);
+}

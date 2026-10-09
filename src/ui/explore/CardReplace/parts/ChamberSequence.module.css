@@ -1,0 +1,82 @@
+/* 舱内演出(设计 px): 以舱窗中心为原点叠放 原卡 / 新卡 / GLSL 发光层。
+   ★ 溶解与成形共用一条遮罩公式: t < --front 的一侧透明, 前后各 5% 软边。
+     溶解 --front: -8% → 108%(顶→底消失); 成形 108% → -8%(底→顶出现)。线性推进, 与着色器的前沿同源。
+   ⚠ --front 必须用 @property 注册成 <percentage>, 否则关键帧里只能离散跳变。 */
+@property --front {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: -8%;
+}
+
+.seq {
+  position: absolute;
+  inset: 0;
+}
+
+.card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(220px * 1.05);
+  height: calc(308px * 1.05);
+  translate: -50% -50%;
+  --front: -8%;
+  mask-image: linear-gradient(to bottom, transparent calc(var(--front) - 5%), #000 calc(var(--front) + 5%));
+}
+
+.scale {
+  width: 220px;
+  height: 308px;
+  transform: scale(1.05);
+  transform-origin: top left;
+}
+
+/* 原卡: 扫描时提亮转绿, 随后溶解 */
+.card[data-role="old"] {
+  animation: scanTint var(--scan-dur) ease-in-out var(--scan-at) both;
+}
+
+.card[data-role="old"][data-dissolve] {
+  animation:
+    scanTint var(--scan-dur) ease-in-out var(--scan-at) both,
+    dissolve var(--dis-dur) linear var(--dis-at) both;
+}
+
+/* 新卡: 成形前完全透明, 自下而上出现, 收束时一次提亮 */
+.card[data-role="new"] {
+  animation:
+    form var(--form-dur) linear var(--form-at) both,
+    settleFlash 520ms ease-out var(--settle-at) both;
+}
+
+.fx {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  width: var(--fx-w);
+  height: var(--fx-h);
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+@keyframes scanTint {
+  0% { filter: none; }
+  60% { filter: brightness(1.18) saturate(0.7) sepia(0.25) hue-rotate(60deg); }
+  100% { filter: brightness(1.1) saturate(0.6) sepia(0.3) hue-rotate(60deg); }
+}
+
+@keyframes dissolve {
+  from { --front: -8%; }
+  to { --front: 108%; }
+}
+
+@keyframes form {
+  from { --front: 108%; }
+  to { --front: -8%; }
+}
+
+@keyframes settleFlash {
+  0% { filter: brightness(1.6) saturate(0.7); }
+  100% { filter: none; }
+}

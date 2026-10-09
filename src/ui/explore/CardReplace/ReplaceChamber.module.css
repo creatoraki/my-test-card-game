@@ -1,146 +1,143 @@
-/* 置换舱(设计 px): 宽 420, 自上而下 = 标题行 32 + 舱位 420 + 事实表。
-   卡面 220×308 放大 1.25 倍 = 275×385, 居中压在舱位里; 放大走 transform, 外层 .card 按放大后尺寸占位。 */
-.chamber {
+/* 培养舱列(设计 px): 各部件按 deckGeometry 绝对定位在 1920×1080 画布上。
+   ★ 叠放顺序: 舱体后层(素材) → 底座光 → 舱窗(卡面 / 演出) → 舱体前层(素材, 上环下沿压住卡面) → 标题条 / 信息表。
+   ★ 舱内卡面 220×308 放大 1.05 倍 = 231×323, 中心对齐舱窗; 放大走 transform, 外层 .card 按放大后尺寸占位。 */
+.head {
+  position: absolute;
+  z-index: 4;
   display: flex;
-  min-height: 0;
-  flex-direction: column;
+  align-items: center;
   gap: 14px;
+  padding: 0 22px 0 24px;
 }
 
-.head {
-  display: flex;
-  height: 32px;
-  align-items: center;
-  justify-content: space-between;
+.reticle {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  color: #6dff7a;
+  filter: drop-shadow(0 0 6px #4dff7a99);
 }
 
 .label {
-  color: #eef4ef;
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 0.22em;
+  flex: 1;
+  color: #f4f7ef;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-shadow: 0 2px 0 #000, 0 0 14px #2bd96b40;
 }
 
 .status {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #7f9194;
-  font-size: 18px;
-  letter-spacing: 0.1em;
+  color: #a7b0a2;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
-.status i {
-  width: 8px;
-  height: 8px;
-  background: #3d4b4f;
-  transform: rotate(45deg);
-  transition: background 200ms ease, box-shadow 200ms ease;
+.status:not([data-status="idle"]) {
+  color: #8dff9a;
+  text-shadow: 0 0 8px #4dff7a80;
 }
 
-.status[data-ready] {
-  color: var(--k);
+.status[data-status="running"] {
+  animation: statusBlink 900ms ease-in-out infinite;
 }
 
-.status[data-ready] i {
-  background: var(--k);
-  box-shadow: 0 0 10px var(--k);
-  animation: statusBlink 1.6s ease-in-out infinite;
+.check {
+  width: 24px;
+  height: 24px;
 }
 
-/* ── 舱位 ── */
-.bay {
-  position: relative;
-  display: grid;
-  height: 420px;
-  flex: none;
-  place-items: center;
-  border: 1px solid #2a3538;
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 58%, color-mix(in srgb, var(--k) 9%, transparent), transparent 70%),
-    linear-gradient(180deg, #0b1214, #070b0d);
-  transition: border-color 240ms ease, box-shadow 240ms ease;
-}
-
-.bay[data-filled] {
-  border-color: color-mix(in srgb, var(--k) 45%, #2a3538);
-  box-shadow: inset 0 0 40px -18px var(--k);
-}
-
-.bayGrid {
+/* ── 舱体 ── */
+.art,
+.front,
+.artFallback,
+.baseGlow {
   position: absolute;
-  inset: 0;
   pointer-events: none;
+  user-select: none;
+}
+
+.art,
+.artFallback {
+  z-index: 1;
+}
+
+.front {
+  z-index: 3;
+}
+
+/* 兜底玻璃圆舱: 上下金属环 + 青黑玻璃 + 两侧细玻璃管 */
+.artFallback {
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--k) 6%, transparent) 1px, transparent 1px) 0 0 / 28px 28px,
-    linear-gradient(0deg, color-mix(in srgb, var(--k) 6%, transparent) 1px, transparent 1px) 0 0 / 28px 28px;
-  mask-image: radial-gradient(ellipse 65% 60% at 50% 50%, #000, transparent 80%);
+    linear-gradient(90deg, transparent 6%, #2bd96b30 7%, #0e1a14 8.5%, #2bd96b30 10%, transparent 11%) no-repeat,
+    linear-gradient(90deg, transparent 89%, #2bd96b30 90%, #0e1a14 91.5%, #2bd96b30 93%, transparent 94%) no-repeat,
+    linear-gradient(180deg, #5a4524 0 4%, #2b2f28 4% 9%, transparent 9% 88%, #2b2f28 88% 94%, #5a4524 94%) 50% 0 / 66% 100% no-repeat,
+    radial-gradient(ellipse 30% 46% at 50% 50%, #a8ffc81c, transparent 70%),
+    linear-gradient(90deg, transparent 17%, #08110dcc 17% 83%, transparent 83%);
 }
 
-/* 舱位四角的定位括号: 空舱时暗, 放入后点亮并向内收一点, 读作「夹住了」。 */
-.bracket {
+/* 底座薄荷绿光环: 放入卡牌后亮起并缓慢呼吸 */
+.baseGlow {
+  z-index: 1;
+  background: radial-gradient(ellipse 34% 6% at 50% 91%, #a8ffc8, #4dff7a66 45%, transparent 75%);
+  opacity: 0.25;
+  transition: opacity 400ms ease;
+}
+
+.baseGlow[data-lit] {
+  opacity: 0.9;
+  animation: baseBreathe 2.6s ease-in-out infinite;
+}
+
+/* ── 舱窗 ── */
+.bay {
   position: absolute;
-  width: 26px;
-  height: 26px;
-  border-color: #3a484c;
-  border-style: solid;
-  border-width: 0;
-  transition: border-color 240ms ease, translate 240ms cubic-bezier(0.2, 0.72, 0.28, 1);
+  z-index: 2;
 }
-
-.bracket[data-at="tl"] { top: 10px; left: 10px; border-top-width: 2px; border-left-width: 2px; }
-.bracket[data-at="tr"] { top: 10px; right: 10px; border-top-width: 2px; border-right-width: 2px; }
-.bracket[data-at="bl"] { bottom: 10px; left: 10px; border-bottom-width: 2px; border-left-width: 2px; }
-.bracket[data-at="br"] { bottom: 10px; right: 10px; border-bottom-width: 2px; border-right-width: 2px; }
-
-.bay[data-filled] .bracket { border-color: var(--k); }
-.bay[data-filled] .bracket[data-at="tl"] { translate: 6px 6px; }
-.bay[data-filled] .bracket[data-at="tr"] { translate: -6px 6px; }
-.bay[data-filled] .bracket[data-at="bl"] { translate: 6px -6px; }
-.bay[data-filled] .bracket[data-at="br"] { translate: -6px -6px; }
 
 .card {
-  position: relative;
-  z-index: 1;
-  width: 275px;
-  height: 385px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(220px * 1.05);
+  height: calc(308px * 1.05);
   overflow: hidden;
-  animation: bayCardIn 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  translate: -50% -50%;
+  animation: cardDrop 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .scale {
-  --hand-card-w: 220px;
-  --hand-card-h: 308px;
   width: 220px;
   height: 308px;
-  transform: scale(1.25);
+  transform: scale(1.05);
   transform-origin: top left;
 }
 
-/* 放入瞬间的一道亮带, 自上而下扫过卡面一次。 */
+/* 放入时一道薄荷绿扫描光自上而下扫过 */
 .sweep {
   position: absolute;
-  z-index: 3;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 70px;
+  inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--k) 45%, transparent) 60%, #ffffffaa 64%, transparent);
+  background: linear-gradient(180deg, transparent 0 40%, #a8ffc855 48%, #e8fff0aa 50%, #a8ffc855 52%, transparent 60%) 0 0 / 100% 250% no-repeat;
   mix-blend-mode: screen;
-  translate: 0 -80px;
-  animation: baySweep 620ms cubic-bezier(0.4, 0, 0.2, 1) 120ms both;
+  animation: sweep 900ms ease-out 180ms both;
 }
 
 .empty {
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  inset: 0;
   display: grid;
+  place-content: center;
   justify-items: center;
-  gap: 14px;
-  color: #6f8184;
-  font-size: 18px;
-  letter-spacing: 0.12em;
+  gap: 12px;
+  color: #a7c4ad;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  text-shadow: 0 1px 2px #000;
 }
 
 .emptyGlyph {
@@ -148,76 +145,81 @@
   width: 120px;
   height: 168px;
   place-items: center;
-  border: 1px dashed #3a484c;
-  color: #3f5256;
+  border: 2px dashed #4dff7a66;
+  color: #8dff9a;
   font-size: 64px;
-  font-weight: 800;
-  animation: emptyPulse 2.4s ease-in-out infinite;
+  font-weight: 900;
+  background: #4dff7a10;
+  animation: emptyPulse 2.2s ease-in-out infinite;
 }
 
-/* ── 事实表 ── */
+/* ── 信息表 ── */
 .facts {
+  position: absolute;
+  z-index: 4;
   display: grid;
+  align-content: center;
   margin: 0;
-  gap: 6px;
+  padding: 0 30px;
 }
 
 .fact {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 4px 2px;
-  border-bottom: 1px solid #ffffff0d;
-  font-size: 18px;
-  line-height: 1.5;
+  height: 48px;
+  font-size: 20px;
+}
+
+.fact + .fact {
+  border-top: 1px solid #a8ffc824;
 }
 
 .fact dt {
-  flex: none;
-  color: #7f9194;
-  letter-spacing: 0.08em;
+  color: #b9c3b3;
+  letter-spacing: 0.06em;
 }
 
 .fact dd {
-  min-width: 0;
   margin: 0;
   overflow: hidden;
-  color: #dfe8e3;
-  text-align: right;
+  color: #ffffff;
+  font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .fact[data-tone="warn"] dd {
-  color: #f0c46a;
+  color: #ffc83a;
 }
 
-@keyframes bayCardIn {
-  from {
-    opacity: 0;
-    translate: -36px 0;
-    filter: brightness(2.2);
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
-    filter: brightness(1);
-  }
-}
-
-@keyframes baySweep {
-  to {
-    translate: 0 420px;
-  }
+.fact[data-tone="good"] dd {
+  color: #8dff9a;
+  text-shadow: 0 0 8px #4dff7a80;
 }
 
 @keyframes statusBlink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  50% { opacity: 0.45; }
+}
+
+@keyframes baseBreathe {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes cardDrop {
+  from { opacity: 0; translate: -50% calc(-50% - 36px); filter: brightness(1.6); }
+  to { opacity: 1; translate: -50% -50%; filter: none; }
+}
+
+@keyframes sweep {
+  from { background-position: 0 100%; }
+  to { background-position: 0 0; }
 }
 
 @keyframes emptyPulse {
-  0%, 100% { border-color: #3a484c; color: #3f5256; }
-  50% { border-color: color-mix(in srgb, var(--k) 45%, #3a484c); color: color-mix(in srgb, var(--k) 50%, #3f5256); }
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
 }

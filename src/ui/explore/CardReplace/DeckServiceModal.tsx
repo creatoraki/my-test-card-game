@@ -1,11 +1,12 @@
-// 卡组面板: 换牌 / 删牌 / 复制共用一套骨架, 费用由调用方结算, 文案与事实表见 deckServiceModes。
+// 卡组面板(苔绿工业温室): 换牌 / 删牌 / 复制共用一套骨架, 费用由调用方结算, 文案与事实表见 deckServiceModes。
 // (三选一抽牌是全队混合抽, 不选人, 不走本面板, 直接弹 CardRewardPicker。)
 //
-// 两段式:
-//   ① 选卡: 左侧整副卡组(放大 1.1 倍), 右侧舱位放大展示已选卡并列明结果范围 / 模组去向;
-//   ② 结果: 调用方 onConfirm 结算后把结果写进 result, 本弹窗据此播放演出(换牌走置换演出, 其余直接展示),
-//      「完成」才由调用方收尾。
-// ⚠ portal 到设计画布([data-stage-canvas]), 与卡牌奖励三选一同层(z-index 300), 不依赖奖励面板的尺寸。
+// 两段式, 始终同一张面板:
+//   ① 选卡: 左侧卡组柜(四列竖向滚动), 右侧培养舱放大展示已选卡并列明结果范围 / 模组去向;
+//   ② 结果: 调用方 onConfirm 结算后把结果写进 result, 培养舱内原地演出(ChamberSequence),
+//      左侧卡组柜在演出收束前保持结算前的快照, 收束时才同步成结果并闪亮新卡位; 「完成」才由调用方收尾。
+// 布局为 1920×1080 画布上的固定坐标(parts/deckGeometry), 外壳 / 舱体 / 页签 / 按钮为可选素材。
+// ⚠ portal 到设计画布([data-stage-canvas]), 与卡牌奖励三选一同层(z-index 300)。
 import { createPortal } from "react-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Card } from "@/engine";
@@ -14,14 +15,16 @@ import { useTownStore } from "@/store/town/townStore";
 import type { CharacterState } from "@/store/town/townTypes";
 import { playSfx } from "@/ui/audio";
 import { useRevealPresence } from "@/ui/common/frame/ModalReveal";
-import { PickFrameDecor } from "@/ui/common/card/CardRewardPicker/PickFrameDecor";
-import { cx } from "@/ui/common/shared/cx";
-import { chamberFacts, DECK_SERVICE_TEXT, type DeckServiceMode } from "./deckServiceModes";
-import { DeckServiceOutcome } from "./DeckServiceOutcome";
-import { ReplaceChamber } from "./ReplaceChamber";
+import { chamberFacts, DECK_SERVICE_TEXT, resultFacts, type DeckServiceMode } from "./deckServiceModes";
+import { ReplaceChamber, type ChamberStatus } from "./ReplaceChamber";
 import { ReplaceDeckGrid, type ReplaceDeckEntry } from "./ReplaceDeckGrid";
-import { ReplaceShowcase } from "./ReplaceShowcase";
 import { useReplaceSequence } from "./useReplaceSequence";
+import { ChamberSequence } from "./parts/ChamberSequence";
+import { DeckButton } from "./parts/DeckButton";
+import { DeckFooterNote } from "./parts/DeckFooterNote";
+import { DeckHeader } from "./parts/DeckHeader";
+import { DeckShell } from "./parts/DeckShell";
+import { DeckTabs } from "./parts/DeckTabs";
 import s from "./DeckServiceModal.module.css";
 
 const CLOSE_MS = 240;
@@ -42,7 +45,7 @@ interface Props {
   /** 可由调用方提供独立角色数据；缺省使用城镇档案。 */
   characters?: Record<string, CharacterState>;
   lockedCharId: string | null;
-  /** 顶部小标题, 区分来源(物件服务 / 战斗奖励 / 锻造师)。 */
+  /** 顶部小标签, 区分来源(物件服务 / 战斗奖励 / 锻造师)。 */
   kicker: string;
   paymentNote?: string;
   unavailableReason?: string | null;
@@ -70,8 +73,11 @@ export function DeckServiceModal({
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
   const settledRef = useRef(false);
+  /** 结算前的卡组快照: 演出收束前左侧卡组柜按它显示。 */
+  const frozenRef = useRef<ReplaceDeckEntry[] | null>(null);
 
-  const text = DECK_SERVICE_TEXT[shown?.mode ?? mode];
+  const shownMode = shown?.mode ?? mode;
+  const text = DECK_SERVICE_TEXT[shownMode];
   const shownResult = shown?.result ?? null;
   const fallbackCharId = shown?.members.find((member) => characters[member.charId] && !characterReason?.(characters[member.charId]))?.charId
     ?? shown?.members[0]?.charId ?? null;
@@ -83,11 +89,13 @@ export function DeckServiceModal({
     () => character ? character.deck.map((card) => ({ card, lockedReason: cardReason(character, card) })) : [],
     [character, cardReason],
   );
-  const replaceKey = shown?.mode === "replace" && shownResult?.after ? `${shownResult.charId}-${shownResult.after.uid}` : null;
-  const phase = useReplaceSequence(replaceKey);
+  const runKey = shownResult ? `${shownResult.charId}-${shownResult.before?.uid ?? ""}-${shownResult.after?.uid ?? ""}` : null;
+  const phase = useReplaceSequence(runKey, shownMode);
 
   useEffect(() => {
-    if (open) settledRef.current = false;
+    if (!open) return;
+    settledRef.current = false;
+    frozenRef.current = null;
   }, [open]);
   useEffect(() => {
     setSelectedUid(null);
@@ -96,6 +104,8 @@ export function DeckServiceModal({
 
   if (typeof document === "undefined" || !presence.mounted || !shown) return null;
 
+  const settledView = phase === "settle" || phase === "done";
+  const gridEntries = shownResult && !settledView && frozenRef.current ? frozenRef.current : entries;
   const selected = entries.find((entry) => entry.card.uid === selectedUid && !entry.lockedReason) ?? null;
   const available = entries.filter((entry) => !entry.lockedReason).length;
   const ownerName = shown.members.find((member) => member.charId === charId)?.name ?? "角色";
@@ -103,7 +113,7 @@ export function DeckServiceModal({
   const pickable = !shownResult && !shown.lockedCharId && shown.members.length > 1;
   const charReason = character ? characterReason?.(character) ?? null : "当前没有可处理的角色";
   const blocked = unavailableReason || charReason;
-  const done = shown.mode !== "replace" || phase === "done";
+  const done = phase === "done";
 
   const settle = (handler: () => void) => {
     if (busy) return;
@@ -114,16 +124,21 @@ export function DeckServiceModal({
   const confirm = () => {
     if (!charId || busy || blocked || !selected) return;
     playSfx("confirm");
-    setFailed(!onConfirm(charId, selected.card.uid));
+    frozenRef.current = entries;
+    const ok = onConfirm(charId, selected.card.uid);
+    if (!ok) frozenRef.current = null;
+    setFailed(!ok);
   };
 
   const note = shownResult
-    ? done ? text.doneNote : "置换进行中……"
+    ? done ? text.summary(shownResult.before, shownResult.after, ownerName) : text.phaseNote[phase] ?? text.phaseNote.scan ?? ""
     : failed ? "服务未执行，请重新选择"
       : unavailableReason ? unavailableReason
         : charReason ? `${ownerName}：${charReason}`
           : !available ? `${ownerName}的卡组里没有可处理的卡牌`
             : selected ? text.picked(selected.card) : text.prompt;
+  const noteTone = shownResult ? (done ? "good" : undefined) : failed || blocked ? "danger" : undefined;
+  const status: ChamberStatus = shownResult ? (done ? "done" : "running") : selected ? "ready" : "idle";
 
   return createPortal(
     <div
@@ -136,77 +151,55 @@ export function DeckServiceModal({
       onMouseDown={(event) => event.stopPropagation()}
     >
       <section className={s.frame}>
-        <PickFrameDecor />
+        <DeckShell />
+        <DeckHeader kicker={kicker} title={text.title} caption={shownResult ? text.doneCaption : text.caption} />
 
-        <header className={s.head}>
-          <span className={s.kicker}>{kicker}</span>
-          <h2 className={s.title}>{text.title}</h2>
-          <p className={s.caption}>{shownResult ? text.doneCaption : text.caption}</p>
-        </header>
-
-        {shownResult ? (
-          <div className={s.showcase}>
-            {shown.mode === "replace" && shownResult.before && shownResult.after
-              ? <ReplaceShowcase before={shownResult.before} after={shownResult.after} ownerName={ownerName} phase={phase} />
-              : <DeckServiceOutcome mode={shown.mode} before={shownResult.before} after={shownResult.after} ownerName={ownerName} />}
-          </div>
+        <DeckTabs
+          members={shown.members}
+          activeId={charId}
+          pickable={pickable}
+          count={`共 ${gridEntries.length} 张 · ${text.countLabel} ${available} 张`}
+          onPick={setPickedChar}
+        />
+        {gridEntries.length ? (
+          <ReplaceDeckGrid
+            entries={gridEntries}
+            selectedUid={shownResult ? (settledView ? null : shownResult.before?.uid ?? null) : selected?.card.uid ?? null}
+            freshUid={shownResult && settledView ? shownResult.after?.uid ?? null : null}
+            interactive={!shownResult}
+            actionLabel={text.slotAction}
+            onSelect={setSelectedUid}
+          />
         ) : (
-          <div className={s.body}>
-            <div className={s.deck}>
-              <div className={s.toolbar}>
-                {pickable ? (
-                  <div className={s.tabs} role="tablist" aria-label="选择角色">
-                    {shown.members.map((member) => (
-                      <button
-                        key={member.charId}
-                        type="button"
-                        role="tab"
-                        aria-selected={member.charId === charId}
-                        className={cx(s.tab, member.charId === charId && s.tabActive)}
-                        onClick={() => setPickedChar(member.charId)}
-                      >
-                        {member.name}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <span className={s.owner}><i aria-hidden />{ownerName}的卡组</span>
-                )}
-                <span className={s.count}>共 {entries.length} 张 · {text.countLabel} {available} 张</span>
-              </div>
-              {entries.length
-                ? <ReplaceDeckGrid entries={entries} selectedUid={selected?.card.uid ?? null} labels={text.slot} onSelect={setSelectedUid} />
-                : <p className={s.notice}>当前没有可处理的角色卡组。</p>}
-            </div>
-            <ReplaceChamber
-              label={text.chamber}
-              card={selected?.card ?? null}
-              facts={chamberFacts(shown.mode, character, selected?.card ?? null)}
-              ready={Boolean(selected)}
-              emptyText={text.emptyText}
-            />
-          </div>
+          <p className={s.notice}>当前没有可处理的角色卡组。</p>
         )}
 
-        <footer className={s.foot}>
-          <span className={s.note} data-tone={!shownResult && (failed || blocked) ? "danger" : undefined}>
-            {note}{!shownResult && paymentNote ? ` · ${paymentNote}` : ""}
-          </span>
-          <div className={s.actions} data-sfx="off">
-            {shownResult ? (
-              <button type="button" className={cx(s.button, s.primary)} disabled={!done} onClick={() => settle(onFinish)}>
-                完成
-              </button>
-            ) : (
-              <>
-                <button type="button" className={s.button} onClick={() => settle(onAbandon ?? onFinish)}>{abandonLabel ?? text.abandon}</button>
-                <button type="button" className={cx(s.button, s.primary)} disabled={Boolean(blocked) || !selected} onClick={confirm}>
-                  {text.confirm}
-                </button>
-              </>
-            )}
-          </div>
-        </footer>
+        <ReplaceChamber
+          label={text.chamber}
+          card={selected?.card ?? null}
+          facts={shownResult
+            ? resultFacts(shown.mode, shownResult.before, shownResult.after, done)
+            : chamberFacts(shown.mode, character, selected?.card ?? null)}
+          status={status}
+          emptyText={text.emptyText}
+          sequence={shownResult
+            ? <ChamberSequence key={runKey} mode={shown.mode} before={shownResult.before} after={shownResult.after} phase={phase} />
+            : undefined}
+        />
+
+        <DeckFooterNote tone={noteTone}>
+          {note}{!shownResult && paymentNote ? ` · ${paymentNote}` : ""}
+        </DeckFooterNote>
+        <div data-sfx="off">
+          {shownResult ? (
+            <DeckButton variant="confirm" label="完成" disabled={!done} onClick={() => settle(onFinish)} />
+          ) : (
+            <>
+              <DeckButton variant="abandon" label={abandonLabel ?? text.abandon} onClick={() => settle(onAbandon ?? onFinish)} />
+              <DeckButton variant="confirm" label={text.confirm} disabled={Boolean(blocked) || !selected} onClick={confirm} />
+            </>
+          )}
+        </div>
       </section>
     </div>,
     document.querySelector<HTMLElement>("[data-stage-canvas]") ?? document.body,

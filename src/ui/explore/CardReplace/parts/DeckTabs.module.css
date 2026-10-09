@@ -1,0 +1,87 @@
+/* 角色页签行(设计 px): 高 57, 页签按名字长短伸缩、最短 200。
+   ★ 素材 页签_常态 / 页签_激活 为 2 倍图 480×114, 走 border-image 三段拉伸: 两端各取源图 60px(显示 30px)。
+   ⚠ 全站 button 默认带 7px 斜切 clip-path(styles/base.css), 会裁掉激活态外发光, 这里显式关掉。 */
+.row {
+  position: absolute;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.tab {
+  display: inline-flex;
+  min-width: 200px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 26px;
+  border: 0;
+  color: #dfe5d8;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  background: linear-gradient(180deg, #232721, #121511);
+  box-shadow: inset 0 0 0 1px #5c4a2a, inset 0 1px 0 #ffffff14;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  cursor: var(--cursor-pointer);
+  transition: color 160ms ease, filter 160ms ease;
+}
+
+.row[data-art] .tab {
+  border-style: solid;
+  border-width: 0 30px;
+  border-image: var(--tab-art) 0 60 fill / 0 30px stretch;
+  padding: 0 4px;
+  background: none;
+  box-shadow: none;
+  clip-path: none;
+}
+
+.tab:hover:not(:disabled):not(.active) {
+  color: #ffffff;
+  filter: brightness(1.18);
+}
+
+.tab:disabled {
+  cursor: var(--cursor-default, default);
+}
+
+.active {
+  color: #f6fff2;
+  background: linear-gradient(180deg, #2f7a3a, #1a4a24);
+  box-shadow: inset 0 0 0 1px #6dff7a, inset 0 0 18px #6dff7a40;
+  text-shadow: 0 0 10px #6dff7a99;
+}
+
+.row[data-art] .active {
+  border-image-source: var(--tab-art-active, var(--tab-art));
+}
+
+.glyph {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  color: #c9d2c4;
+  fill: color-mix(in srgb, currentColor 22%, transparent);
+  stroke-width: 2.4;
+}
+
+.active .glyph {
+  color: #8dff9a;
+  fill: color-mix(in srgb, currentColor 45%, transparent);
+  filter: drop-shadow(0 0 6px #6dff7acc);
+}
+
+.count {
+  align-self: center;
+  color: #d6ddd0;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}

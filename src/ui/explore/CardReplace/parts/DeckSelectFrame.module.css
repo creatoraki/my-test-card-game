@@ -1,0 +1,59 @@
+/* 琥珀金选中框(卡面原始坐标, 外扩 24px 留给辉光)。 */
+.frame {
+  position: absolute;
+  z-index: 8;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+  stroke-linejoin: miter;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.frame[data-selected] {
+  opacity: 1;
+}
+
+.glow {
+  stroke: #ffc83a;
+  stroke-width: 9;
+  opacity: 0;
+}
+
+.core {
+  stroke: #ffe9a8;
+  stroke-width: 3.2;
+  opacity: 0;
+}
+
+.inner {
+  stroke: #ffc83a;
+  stroke-width: 1.2;
+  opacity: 0.55;
+}
+
+.accents {
+  stroke: #fff6d6;
+  stroke-width: 5;
+  stroke-linecap: square;
+  opacity: 0;
+}
+
+.frame[data-selected] .glow {
+  opacity: 0.85;
+  animation: breathe 2.4s ease-in-out infinite;
+}
+
+.frame[data-selected] .core,
+.frame[data-selected] .accents {
+  opacity: 1;
+}
+
+.frame[data-selected] .inner {
+  opacity: 0.9;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 0.45; }
+}

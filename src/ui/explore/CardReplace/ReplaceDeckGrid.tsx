@@ -1,11 +1,12 @@
-// 卡组面板左侧的卡组网格: 整副卡组都列出来, 无法处理的卡压暗并注明原因, 让玩家知道不是漏了。
+// 卡组面板左侧的卡组柜: 整副卡组四列竖向滚动, 无法处理的卡压暗并在卡面上注明原因, 让玩家知道不是漏了。
 // 点击只「放入舱位」(可改选), 真正执行由底栏确认按钮完成。
-// 选中表现与卡牌奖励三选一一致: 四角 L 型提示框点亮 + 轻微上浮, 其余卡退后一步。
+// 选中表现: 琥珀金选中框(DeckSelectFrame) + 轻微上浮, 其余卡退后一步; 演出收束后新卡位闪一次翠绿光。
 import { memo, type CSSProperties } from "react";
 import { cardDisplayName, type Card } from "@/engine";
 import { playSfx } from "@/ui/audio";
 import { HandCard } from "@/ui/common/card/HandCard";
-import { InteractiveHint } from "@/ui/common/tooltip/InteractiveHint";
+import { DeckSelectFrame } from "./parts/DeckSelectFrame";
+import { DECK, GRID, rectStyle } from "./parts/deckGeometry";
 import s from "./ReplaceDeckGrid.module.css";
 
 export interface ReplaceDeckEntry {
@@ -14,22 +15,29 @@ export interface ReplaceDeckEntry {
   lockedReason: string | null;
 }
 
-/** 卡位底部提示: 悬停未选 / 已选。 */
-export interface DeckSlotLabels {
-  idle: string;
-  picked: string;
-}
-
 interface Props {
   entries: ReplaceDeckEntry[];
   selectedUid: string | null;
-  labels: DeckSlotLabels;
+  /** 演出收束后刚落位的新卡。 */
+  freshUid: string | null;
+  /** false = 演出中只读, 不响应点击与悬停。 */
+  interactive: boolean;
+  /** 卡位读屏提示, 如「放入置换舱」。 */
+  actionLabel: string;
   onSelect: (uid: string) => void;
 }
 
-export function ReplaceDeckGrid({ entries, selectedUid, labels, onSelect }: Props) {
+const GRID_VARS = {
+  "--rc-scale": GRID.scale,
+  "--rc-cols": GRID.columns,
+  "--rc-col-gap": `${GRID.colGap}px`,
+  "--rc-row-gap": `${GRID.rowGap}px`,
+  "--rc-pad": `${GRID.pad}px`,
+} as CSSProperties;
+
+export function ReplaceDeckGrid({ entries, selectedUid, freshUid, interactive, actionLabel, onSelect }: Props) {
   return (
-    <div className={s.scroller}>
+    <div className={s.scroller} style={{ ...rectStyle(DECK), ...GRID_VARS }} data-interactive={interactive ? "" : undefined}>
       <div className={s.grid} data-pick-grid>
         {entries.map((entry, index) => (
           <DeckSlot
@@ -38,7 +46,9 @@ export function ReplaceDeckGrid({ entries, selectedUid, labels, onSelect }: Prop
             index={index}
             selected={entry.card.uid === selectedUid}
             dimmed={selectedUid !== null && entry.card.uid !== selectedUid}
-            labels={labels}
+            fresh={entry.card.uid === freshUid}
+            interactive={interactive}
+            actionLabel={actionLabel}
             onSelect={onSelect}
           />
         ))}
@@ -47,17 +57,20 @@ export function ReplaceDeckGrid({ entries, selectedUid, labels, onSelect }: Prop
   );
 }
 
-const DeckSlot = memo(function DeckSlot({ entry, index, selected, dimmed, labels, onSelect }: {
+const DeckSlot = memo(function DeckSlot({ entry, index, selected, dimmed, fresh, interactive, actionLabel, onSelect }: {
   entry: ReplaceDeckEntry;
   index: number;
   selected: boolean;
   dimmed: boolean;
-  labels: DeckSlotLabels;
+  fresh: boolean;
+  interactive: boolean;
+  actionLabel: string;
   onSelect: (uid: string) => void;
 }) {
   const { card, lockedReason } = entry;
   const locked = Boolean(lockedReason);
   const select = () => {
+    if (!interactive) return;
     if (locked) {
       playSfx("disabled");
       return;
@@ -72,30 +85,29 @@ const DeckSlot = memo(function DeckSlot({ entry, index, selected, dimmed, labels
       data-selected={selected ? "" : undefined}
       data-dimmed={dimmed ? "" : undefined}
       data-locked={locked ? "" : undefined}
+      data-fresh={fresh ? "" : undefined}
       data-sfx="off"
-      style={{ "--slot-delay": `${Math.min(index, 11) * 40 + 80}ms` } as CSSProperties}
+      style={{ "--slot-delay": `${Math.min(index, 11) * 40 + 160}ms` } as CSSProperties}
       role="button"
-      tabIndex={locked ? -1 : 0}
+      tabIndex={locked || !interactive ? -1 : 0}
       aria-pressed={selected}
-      aria-disabled={locked}
-      aria-label={`${labels.idle}：${cardDisplayName(card)}`}
+      aria-disabled={locked || !interactive}
+      aria-label={`${actionLabel}：${cardDisplayName(card)}`}
       onClick={select}
       onKeyDown={(event) => {
         if (event.key !== "Enter" && event.key !== " ") return;
         event.preventDefault();
         select();
       }}
-      onMouseEnter={() => !locked && playSfx("cardHover")}
+      onMouseEnter={() => interactive && !locked && playSfx("cardHover")}
     >
-      <div className={s.cardBox} data-interactive-hint="">
-        <div className={s.scale}>
+      <div className={s.scale}>
+        <div className={s.face}>
           <HandCard card={card} variant="pile" playable selected={false} />
         </div>
-        {!locked && <InteractiveHint active={selected} />}
+        {!locked && <DeckSelectFrame selected={selected} />}
+        {locked && <span className={s.reason}>{lockedReason}</span>}
       </div>
-      <span className={s.state}>
-        {locked ? lockedReason : selected ? labels.picked : labels.idle}
-      </span>
     </div>
   );
 });

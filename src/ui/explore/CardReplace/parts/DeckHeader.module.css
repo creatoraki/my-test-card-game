@@ -1,0 +1,50 @@
+/* 页眉(设计 px): 小标签 20 / 主标题 62 / 说明 20, 左对齐。 */
+.head {
+  position: absolute;
+  display: grid;
+  justify-items: start;
+  pointer-events: none;
+}
+
+.kicker {
+  position: relative;
+  padding: 1px 14px 1px 12px;
+  border-left: 3px solid #6dff7a;
+  color: #8dff9a;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  background: linear-gradient(90deg, #1d4a26cc, #1d4a2600);
+  text-shadow: 0 0 8px #2bd96b80;
+}
+
+.title {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  margin: 2px 0 0 10px;
+  color: #f4f7ef;
+  font-size: 62px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-shadow: 0 3px 0 #000, 0 0 22px #2bd96b38;
+}
+
+/* 三道绿色斜杠 */
+.slashes {
+  width: 58px;
+  height: 36px;
+  background: repeating-linear-gradient(-60deg, transparent 0 7px, #4bd96a 7px 15px, transparent 15px 19px);
+  clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+  opacity: 0.9;
+  filter: drop-shadow(0 0 6px #2bd96b80);
+}
+
+.caption {
+  margin: 8px 0 0 14px;
+  color: #d6ddd0;
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px #000;
+}

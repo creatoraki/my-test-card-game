@@ -5,6 +5,7 @@ import { ENEMY_ART_SOURCES } from "@/ui/art/battle/enemyArt";
 import { EVENT_ART_SOURCES } from "@/ui/art/explore/eventArt";
 import { EVENT_DOSSIER_ART_SOURCES } from "@/ui/art/explore/eventDossierArt";
 import { CARD_PICK_ART_SOURCES } from "@/ui/art/reward/cardPickArt";
+import { DECK_SERVICE_ART_SOURCES } from "@/ui/art/explore/deckServiceArt";
 import { PARTY_DOSSIER_ART_SOURCES } from "@/ui/art/explore/partyDossierArt";
 import { ITEM_ART_SOURCES } from "@/ui/art/items/itemArt";
 import { MAP_ART_SOURCES } from "@/ui/art/explore/mapArt";
@@ -43,6 +44,7 @@ const imageSources = unique([
   ...EVENT_ART_SOURCES,
   ...EVENT_DOSSIER_ART_SOURCES,
   ...CARD_PICK_ART_SOURCES,
+  ...DECK_SERVICE_ART_SOURCES,
   ...PARTY_DOSSIER_ART_SOURCES,
   ...RARITY_CRYSTAL_SOURCES,
   ...ITEM_ART_SOURCES,

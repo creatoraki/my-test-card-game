@@ -1,0 +1,112 @@
+/* 底栏按钮(设计 px): 放弃 224×67 / 确认 272×82, 按 deckGeometry 绝对定位。
+   ⚠ 全站 button 默认带 7px 斜切 clip-path(styles/base.css), 会裁掉外发光与素材切角外的装饰, 显式关掉;
+     兜底外观的切角改由 ::before 底板自己的 clip-path 承担。 */
+.button {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  clip-path: none;
+  isolation: isolate;
+  cursor: var(--cursor-pointer);
+  transition: filter 160ms ease, transform 120ms ease;
+}
+
+.button::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+}
+
+.button[data-art]::before {
+  inset: -14px;
+  background: var(--btn-art) center / 100% 100% no-repeat;
+  clip-path: none;
+}
+
+/* 悬停扫光: 斜向高光条一次性扫过 */
+.button::after {
+  position: absolute;
+  z-index: -1;
+  inset: 6px;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, #ffffff40 50%, transparent 65%) -160% 0 / 60% 100% no-repeat;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+.button:hover:not(:disabled)::after {
+  animation: sweep 620ms ease-out;
+}
+
+.button:hover:not(:disabled) {
+  filter: brightness(1.14);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+}
+
+.label {
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+/* ── 放弃 ── */
+.button[data-variant="abandon"] {
+  color: #e6ebe1;
+  font-size: 26px;
+}
+
+.button[data-variant="abandon"]:not([data-art])::before {
+  background: linear-gradient(180deg, #24271f, #101210);
+  box-shadow: inset 0 0 0 2px #8a6a34, inset 0 0 0 4px #0008;
+}
+
+/* ── 确认 ── */
+.button[data-variant="confirm"] {
+  color: #0f2c17;
+  font-size: 28px;
+  filter: drop-shadow(0 0 14px #4dff7a66);
+}
+
+.button[data-variant="confirm"]:not([data-art])::before {
+  background: linear-gradient(180deg, #b6ff9a, #5ad65a 45%, #2e9a3a);
+  box-shadow: inset 0 0 0 2px #e4ffd6, inset 0 0 0 5px #1d6a2c80;
+}
+
+.button[data-variant="confirm"]:hover:not(:disabled) {
+  filter: brightness(1.12) drop-shadow(0 0 20px #4dff7a99);
+}
+
+.chevron {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  transition: transform 200ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+.button:hover:not(:disabled) .chevron:first-child {
+  transform: translateX(4px);
+}
+
+.button:hover:not(:disabled) .chevron:last-child {
+  transform: translateX(-4px);
+}
+
+.button:disabled {
+  color: #6f786b;
+  filter: grayscale(0.9) brightness(0.55);
+  cursor: var(--cursor-default, default);
+}
+
+@keyframes sweep {
+  from { background-position: -160% 0; }
+  to { background-position: 260% 0; }
+}

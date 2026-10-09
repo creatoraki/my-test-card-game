@@ -1,0 +1,46 @@
+/* 底栏提示条(设计 px): 图标 30, 字号 24, 单行省略。 */
+.note {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  padding: 0 24px 0 42px;
+  color: #e6ebe1;
+  font-size: 24px;
+  letter-spacing: 0.04em;
+}
+
+.icon {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  color: #c8e86a;
+  filter: drop-shadow(0 0 5px #c8e86a80);
+}
+
+.text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note[data-tone="danger"] {
+  color: #ff8a7a;
+}
+
+.note[data-tone="danger"] .icon {
+  color: #ff6a5a;
+  filter: drop-shadow(0 0 5px #ff6a5a80);
+}
+
+.note[data-tone="good"] {
+  color: #b8ffc0;
+}
+
+.note[data-tone="good"] .icon {
+  color: #6dff7a;
+  filter: drop-shadow(0 0 6px #4dff7acc);
+}
