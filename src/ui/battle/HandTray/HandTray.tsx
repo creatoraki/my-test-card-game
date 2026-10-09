@@ -1,9 +1,9 @@
 import { memo } from "react";
 import type { BattleState, Card } from "@/engine";
 import { cardActivated, cardCost, playBlockReason, starlightPayment } from "@/engine";
-import { HandCard } from "@/ui/common/card/HandCard";
 import type { HandAction } from "@/ui/battle/HandTools";
 import { useBattleStore } from "@/store/battle/battleStore";
+import { HandTrayCard } from "./parts/HandTrayCard";
 import s from "./HandTray.module.css";
 
 type HandDisplayAction = HandAction | "choose";
@@ -43,7 +43,7 @@ export const HandTray = memo(function HandTray({
   const releaseRoot = useBattleStore((state) => state.releaseRoot);
   return (
     <div className={s["hand-panel"]}>
-      <div className={s["hand-tray"]} data-hand-tray data-hand-action={handAction ?? undefined}>
+      <div className={s["hand-tray"]} data-tray-action={handAction ?? undefined}>
         <span className={s["hand-tray-rail"]} aria-hidden="true" />
         {renderHand.length === 0 && battle.hand.length === 0 && (
           <div className={s["empty-hand"]}>暂无手牌</div>
@@ -58,7 +58,7 @@ export const HandTray = memo(function HandTray({
               ? null
               : playBlockReason(battle, card.uid);
           return (
-            <HandCard
+            <HandTrayCard
               key={card.uid}
               card={card}
               dealDelay={entry.dealDelay}

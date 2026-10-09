@@ -35,12 +35,6 @@
   transform: translateY(-5px);
 }
 
-/* 悬停未选: 选中框只亮内缘细金线 */
-.scroller[data-interactive] .slot:not([data-locked]):hover [data-select-frame],
-.scroller[data-interactive] .slot:not([data-locked]):focus-visible [data-select-frame] {
-  opacity: 1;
-}
-
 .slot[data-selected] {
   transform: translateY(-6px);
 }

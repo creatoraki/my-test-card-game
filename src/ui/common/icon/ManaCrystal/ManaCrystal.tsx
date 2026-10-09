@@ -12,7 +12,7 @@ interface Props {
   still?: boolean;
   /** 色调。mana 常规法力蓝（默认）· haste 速攻卡的红绿混合。 */
   tone?: "mana" | "haste";
-  /** 华丽外观(SVG 宝石: 纵向渐变本体 + 亮边 + 外柔光, 见 OrnateGem), 放大卡面(卡牌三选一)用。默认关闭。 */
+  /** 华丽外观(SVG 宝石: 纵向渐变本体 + 亮边 + 外柔光, 见 OrnateGem), 新皮肤卡面费用与战斗左侧法力条用。默认关闭。 */
   ornate?: boolean;
 }
 

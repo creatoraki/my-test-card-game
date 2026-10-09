@@ -96,6 +96,44 @@
   width: 100%;
   height: 100%;
   overflow: visible;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease, opacity 0.3s ease;
+}
+
+/* 华丽外观的三态(战斗左侧法力条用): empty = 熄灭去色; normal = 缓慢呼吸; active = 放大提亮 + 外圈菱形脉冲。 */
+.crystal.is-ornate.is-empty .ornateGem {
+  opacity: 0.45;
+  filter: grayscale(1) brightness(0.55);
+}
+
+.crystal.is-ornate.is-normal:not(.is-still) .ornateGem {
+  animation: breathe 3s infinite ease-in-out;
+}
+
+.crystal.is-ornate.is-active .ornateGem {
+  transform: scale(1.12);
+  filter: brightness(1.3) drop-shadow(0 0 calc(6px * var(--_u)) #6fe0ff);
+}
+
+.crystal.is-ornate.is-haste.is-active .ornateGem {
+  filter: brightness(1.2) drop-shadow(0 0 calc(6px * var(--_u)) #f0b048);
+}
+
+.crystal.is-ornate.is-active::before {
+  content: "";
+  position: absolute;
+  width: 72%;
+  height: 72%;
+  border: 2px solid #dffbff;
+  border-radius: calc(3px * var(--_u));
+  rotate: 45deg;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: ornate-pulse 1.6s infinite ease-out;
+}
+
+@keyframes ornate-pulse {
+  from { transform: scale(1); opacity: 0.85; }
+  to { transform: scale(1.45); opacity: 0; }
 }
 
 @keyframes breathe {

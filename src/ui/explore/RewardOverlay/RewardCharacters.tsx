@@ -3,7 +3,7 @@ import { makeCard } from "@/data";
 import { getQuirkDef, type QuirkId } from "@/engine";
 import type { ExploreState } from "@/explore/types";
 import { useTownStore } from "@/store/town/townStore";
-import { HandCard } from "@/ui/common/card/HandCard";
+import { CardFace } from "@/ui/common/card/CardFace";
 import { PartyMemberCard } from "@/ui/common/unit/PartyMemberCard";
 import { cx } from "@/ui/common/shared/cx";
 import { EventPanelStage, EventPanelBody, EventPanelFoot, EventPanelButton, EventPanelNotice, EventPanelPick } from "@/ui/common/widget/EventPanel";
@@ -200,7 +200,7 @@ export function PurifyReward({
         {!character ? (
           <MemberList members={members} selected={selected} onSelect={onSelect} />
         ) : contaminated.length ? (
-          <div className={s["card-list"]} data-pick-grid>
+          <div className={s["card-list"]}>
             {contaminated.map((card, index) => {
               const picked = selectedCards.includes(card.uid);
               return (
@@ -217,13 +217,7 @@ export function PurifyReward({
                     );
                   }}
                 >
-                  <HandCard
-                    card={card}
-                    variant="pile"
-                    playable
-                    selected={picked}
-                    dealDelay={Math.min(index, 14) * 22}
-                  />
+                  <CardFace card={card} state={picked ? "selected" : null} selectFrame dealDelay={Math.min(index, 14) * 22} />
                 </div>
               );
             })}

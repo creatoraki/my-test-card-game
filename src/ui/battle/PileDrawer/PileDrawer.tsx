@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { cardCost, starlightPayment, type BattleState, type Card } from "@/engine";
-import { HandCard } from "@/ui/common/card/HandCard";
+import { CardFace } from "@/ui/common/card/CardFace";
 import s from "./PileDrawer.module.css";
 
 type Pile = "draw" | "discard" | "exhaust" | "suspended";
@@ -89,7 +89,7 @@ export function PileDrawer({ battle, pile, uids, title, onClose, choiceMode = fa
           <button className={s.close} type="button" aria-label="关闭牌堆" onClick={requestClose}>×</button>
         </div>
         {cards.length ? (
-          <div className={s.grid} data-pile-grid>
+          <div className={s.grid}>
             {cards.map((card, index) => (
               <div
                 className={s.cell}
@@ -99,11 +99,8 @@ export function PileDrawer({ battle, pile, uids, title, onClose, choiceMode = fa
                 onClick={() => choiceMode && onPick?.(card.uid)}
                 data-choice={choiceMode ? "true" : undefined}
               >
-                <HandCard
+                <CardFace
                   card={card}
-                  variant="pile"
-                  playable
-                  selected={false}
                   cost={cardCost(battle, card)}
                   starPay={starlightPayment(battle, card)}
                   dealDelay={Math.min(index, 14) * 22}
@@ -114,12 +111,10 @@ export function PileDrawer({ battle, pile, uids, title, onClose, choiceMode = fa
         ) : <div className={s.empty}>牌堆为空</div>}
       </section>
       {hoveredCard && hover && (
-        <div className={s.magnify} data-pile-magnify style={{ left: hover.x, top: hover.y }}>
-          <HandCard
+        <div className={s.magnify} style={{ left: hover.x, top: hover.y }}>
+          <CardFace
             card={hoveredCard}
-            variant="pile"
-            playable
-            selected={false}
+            state="hover"
             cost={cardCost(battle, hoveredCard)}
             starPay={starlightPayment(battle, hoveredCard)}
           />

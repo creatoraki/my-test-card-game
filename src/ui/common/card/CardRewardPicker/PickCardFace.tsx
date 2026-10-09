@@ -14,7 +14,7 @@ import { pickRimLook } from "./face/pickFaceTone";
 import { PickRimDecor } from "./face/PickRimDecor";
 import { PickFaceCorner } from "./face/PickFaceCorner";
 import { PickFaceBadges } from "./face/PickFaceBadges";
-import { PickFaceMarks } from "./face/PickFaceMarks";
+import { PickFaceMarks, pickMarkSockets } from "./face/PickFaceMarks";
 import { PickRooted } from "./face/PickRooted";
 import s from "./PickCardFace.module.css";
 import st from "./face/PickFaceStates.module.css";
@@ -23,6 +23,8 @@ import st from "./face/PickFaceStates.module.css";
 export type PickCardState = "hover" | "selected" | null;
 /** 离场演出: leave = 出牌出鞘; discard = 弃牌白光; purge = 所属角色阵亡碎裂。 */
 export type PickCardExit = "leave" | "discard" | "purge";
+/** 战斗标记(缠根 / 卡牌标记 / 培育 / 共鸣)的落位: outside = 卡外左上一行(手牌); inside = 并进右上徽记列(网格里卡上方没空位)。 */
+export type PickCardMarksAt = "outside" | "inside";
 
 interface Props {
   card: Card;
@@ -40,6 +42,7 @@ interface Props {
   exit?: PickCardExit | null;
   /** 离场演出播完(整张卡已不可见)。 */
   onExited?: (uid: string) => void;
+  marks?: PickCardMarksAt;
 }
 
 export function PickCardFace({
@@ -55,6 +58,7 @@ export function PickCardFace({
   rootReleaseDisabled,
   exit = null,
   onExited,
+  marks = "outside",
 }: Props) {
   const look = pickRimLook(card, { playable, unaffordable, activated });
   const effectiveCost = cost ?? card.cost;
@@ -89,8 +93,8 @@ export function PickCardFace({
       <PickCardRim state={state} look={look} />
       <PickRimDecor look={look} activated={activated} />
       <PickFaceCorner card={card} cost={effectiveCost} starPay={starPay} />
-      <PickFaceBadges card={card} />
-      <PickFaceMarks card={card} />
+      <PickFaceBadges card={card} extra={marks === "inside" ? pickMarkSockets(card, "left") : undefined} />
+      {marks === "outside" && <PickFaceMarks card={card} />}
       {selectFrame && <PickSelectFrame state={state} />}
     </div>
   );

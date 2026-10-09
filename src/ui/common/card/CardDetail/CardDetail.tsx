@@ -2,7 +2,7 @@
 // 本组件只管内容与自身排版(文档流), 版面坐标由使用方通过 className 给出。
 import { memo } from "react";
 import type { Card } from "@/engine";
-import { HandCard } from "@/ui/common/card/HandCard";
+import { CardFace } from "@/ui/common/card/CardFace";
 import { CardKeywordNotes } from "@/ui/common/card/CardKeywordNotes";
 import { useCardText } from "@/ui/common/shared/cardTextFormat";
 import { cx } from "@/ui/common/shared/cx";
@@ -25,15 +25,7 @@ export const CardDetail = memo(function CardDetail({ card, cost, starPay = 0, ac
     <div className={cx(s.detail, className)} aria-hidden>
       <div className={s.frame}>
         <div className={s.scale} data-card-detail>
-          <HandCard
-            card={card}
-            variant="pile"
-            playable
-            selected={false}
-            cost={cost ?? card.cost}
-            starPay={starPay}
-            activated={activated}
-          />
+          <CardFace card={card} cost={cost ?? card.cost} starPay={starPay} activated={activated} />
         </div>
       </div>
       <CardKeywordNotes

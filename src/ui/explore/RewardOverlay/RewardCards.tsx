@@ -1,6 +1,6 @@
 ﻿import { makeCard } from "@/data";
 import type { ExploreState } from "@/explore/types";
-import { HandCard } from "@/ui/common/card/HandCard";
+import { CardFace } from "@/ui/common/card/CardFace";
 import { EventPanelStage, EventPanelBody, EventPanelFoot, EventPanelButton, EventPanelNotice } from "@/ui/common/widget/EventPanel";
 import { MemberList } from "./RewardCharacters";
 import s from "@/ui/explore/styles/rewardKit.module.css";
@@ -60,16 +60,10 @@ export function FreeRemove({
         }
       >
         {removable.length ? (
-          <div className={s["card-list"]} data-pick-grid>
+          <div className={s["card-list"]}>
             {removable.map((card, index) => (
               <div className={s["card-choice"]} key={card.uid} onClick={() => onRemove(card.uid)}>
-                <HandCard
-                  card={card}
-                  variant="pile"
-                  playable
-                  selected={false}
-                  dealDelay={Math.min(index, 14) * 22}
-                />
+                <CardFace card={card} dealDelay={Math.min(index, 14) * 22} />
               </div>
             ))}
           </div>

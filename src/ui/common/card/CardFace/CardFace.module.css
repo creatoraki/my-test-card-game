@@ -1,0 +1,40 @@
+/* 220×308 卡位: 新皮肤 354×483 缩到 220 宽 = 220×300.2, 上下各留 ≈4px。 */
+.slot {
+  position: relative;
+  flex: none;
+  width: 220px;
+  height: 308px;
+}
+
+.scale {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  transform: scale(calc(220 / 354));
+  transform-origin: top left;
+}
+
+/* 内嵌老卡面在各容器里会命中全局的发牌飞入 / 牌堆入场动画(按 [data-hand-card] 挂), 新卡面的入场统一由本卡位负责。 */
+.slot[data-card-face] :global([data-hand-card]) {
+  animation: none;
+}
+
+.slot[data-card-face] :global([data-hand-slot]) {
+  cursor: inherit;
+}
+
+.slot[data-deal] > .scale {
+  animation: cardFaceIn 260ms cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
+  animation-delay: var(--deal-delay, 0ms);
+}
+
+@keyframes cardFaceIn {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}

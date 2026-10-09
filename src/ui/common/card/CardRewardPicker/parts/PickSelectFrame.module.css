@@ -72,19 +72,21 @@
   fill: #f3eaff;
 }
 
-/* ── 悬停(未选中): 只留一道淡紫细线 ── */
-.frame[data-state="hover"] .glow,
-.frame[data-state="hover"] .band,
-.frame[data-state="hover"] .brFill,
-.frame[data-state="hover"] .brSlab,
-.frame[data-state="hover"] .tab,
-.frame[data-state="hover"] .dash,
-.frame[data-state="hover"] .side,
-.frame[data-state="hover"] .arrow {
+/* ── 悬停 / 无状态: 只留一道淡紫细线 ──
+   ⚠ 无状态也必须是细线版: 移开鼠标时 data-state 先被摘掉、整框再用 180ms 淡出,
+   若细线规则只挂在 hover 上, 淡出这一瞬间会露出全套选中装饰(辉光/凸台/三角), 看起来像选中态闪了一下。 */
+.frame:not([data-state="selected"]) .glow,
+.frame:not([data-state="selected"]) .band,
+.frame:not([data-state="selected"]) .brFill,
+.frame:not([data-state="selected"]) .brSlab,
+.frame:not([data-state="selected"]) .tab,
+.frame:not([data-state="selected"]) .dash,
+.frame:not([data-state="selected"]) .side,
+.frame:not([data-state="selected"]) .arrow {
   opacity: 0;
 }
 
-.frame[data-state="hover"] .core {
+.frame:not([data-state="selected"]) .core {
   stroke: var(--pk-violet-hi);
   stroke-width: 1.6;
   opacity: 0.75;

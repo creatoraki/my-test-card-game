@@ -1,0 +1,68 @@
+/* 模式徽章挂在不裁切的卡槽上, 位于卡顶上方左对齐(与卡外标记行同位, 模式期间标记行隐藏)。 */
+.action {
+  position: absolute;
+  left: 2px;
+  bottom: calc(100% + 8px);
+  z-index: 3;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  color: var(--accent);
+  background: linear-gradient(145deg, #3b4549, #111719 68%, #080b0d);
+  border: 1px solid color-mix(in srgb, var(--accent) 78%, #eaf5f8);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  cursor: var(--cursor-pointer);
+  animation: trayActionIn 120ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  transition: transform 0.14s ease, filter 0.14s ease, background 0.14s ease;
+}
+
+.action:hover {
+  filter: brightness(1.2);
+  transform: translateY(-2px);
+  background: linear-gradient(145deg, #566267, #1b2427 68%, #0d1214);
+}
+
+.action:focus-visible {
+  outline: 1px solid #f4ffd4;
+  outline-offset: 2px;
+}
+
+.discard {
+  color: #ff626b;
+  border-color: #ff626b;
+}
+
+.choose {
+  width: 64px;
+  color: #ffe08a;
+  border-color: #ffe08a;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.action svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.discard svg {
+  filter: drop-shadow(0 0 7px #ff4f5a99);
+}
+
+@keyframes trayActionIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

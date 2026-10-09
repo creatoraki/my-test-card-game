@@ -21,7 +21,7 @@ export const TABS: Rect = { x: 178, y: 232, w: 1019, h: 57 };
 /** 卡组柜可视区: 卡牌在此滚动并被裁切。 */
 export const DECK: Rect = { x: 166, y: 301, w: 1053, h: 617 };
 
-/** 卡组网格: HandCard 220×308 统一缩放, 两排正好放满可视区。 */
+/** 卡组网格: 卡位(CardFace) 220×308 统一缩放, 两排正好放满可视区。 */
 export const GRID = {
   scale: 0.93,
   columns: 4,
@@ -51,11 +51,9 @@ export const FOOT_NOTE: Rect = { x: 178, y: 936, w: 1045, h: 77 };
 export const BUTTON_ABANDON: Rect = { x: 1263, y: 941, w: 224, h: 67 };
 export const BUTTON_CONFIRM: Rect = { x: 1502, y: 932, w: 272, h: 82 };
 
-/** HandCard 原始尺寸。 */
+/** 卡位(CardFace)原始尺寸。 */
 export const CARD_W = 220;
 export const CARD_H = 308;
-/** HandCard 左上 / 右下斜切量。 */
-export const CARD_CHAMFER = 14;
 
 /** 绝对定位样式。 */
 export function rectStyle(rect: Rect) {

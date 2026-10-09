@@ -33,29 +33,6 @@
     transform-origin: top left;
 }
 
-/* 卡组浏览态是平铺在面板上的卡面, 不要手牌那套"厚板 + 投影":
-   去掉投影/抬升影/厚度三层, 三层金属棱收成一圈 1px 薄边(仍跟着 14px 斜切角走)。 */
-.deck-card :global([data-hand-shadow-rest]),
-.deck-card :global([data-hand-shadow-lift]),
-.deck-card :global([data-hand-thickness]) {
-    display: none;
-}
-
-.deck-card :global([data-hand-edge]) {
-    --deck-card-border: #b9c4cc66;
-    background-image:
-        linear-gradient(var(--deck-card-border), var(--deck-card-border)),
-        linear-gradient(var(--deck-card-border), var(--deck-card-border)),
-        linear-gradient(var(--deck-card-border), var(--deck-card-border)),
-        linear-gradient(var(--deck-card-border), var(--deck-card-border)),
-        linear-gradient(135deg, transparent 50%, var(--deck-card-border) 50% calc(50% + 1px), transparent calc(50% + 1px)),
-        linear-gradient(135deg, transparent 50%, var(--deck-card-border) 50% calc(50% + 1px), transparent calc(50% + 1px));
-}
-
-.deck-card :global([data-hand-edge])::before {
-    display: none;
-}
-
 .select-hint {
     --ihint-offset: calc(6px * var(--deck-card-scale, 1));
     --ihint-size: calc(18px * var(--deck-card-scale, 1));

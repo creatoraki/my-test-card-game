@@ -88,6 +88,13 @@
 .cell {
   min-width: 0;
 }
+/* 悬停的那格由放大卡接管展示, 原位卡面退成虚影。 */
+.cell > [data-card-face] {
+  transition: opacity 160ms ease;
+}
+.cell:hover > [data-card-face] {
+  opacity: 0.35;
+}
 .cell[data-choice="true"] {
   cursor: var(--cursor-pointer);
   transition: transform 140ms ease, filter 140ms ease;

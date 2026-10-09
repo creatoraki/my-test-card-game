@@ -1,0 +1,122 @@
+/* 托盘卡槽: 永不位移的命中区。--hand-card-w / --hand-card-h / --hand-overlap / --hand-yield 由 HandTray 的 .hand-panel 下发。 */
+.slot {
+  /* 悬停上弹幅度; 选中 = 本值 + 24px。 */
+  --hand-hover-lift: 36px;
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: var(--hand-card-w);
+  height: var(--hand-card-h);
+  contain: layout style;
+  /* 发牌等待期与飞行途中照常占位, 但不接悬停 / 点击。 */
+  animation: trayDealGate 0.8s step-end backwards;
+  animation-delay: var(--deal-delay, 0ms);
+}
+
+@keyframes trayDealGate {
+  from { pointer-events: none; }
+  to { pointer-events: auto; }
+}
+
+.playable {
+  cursor: var(--cursor-pointer);
+}
+
+/* 鱼鳞叠: 后一张压前一张, 叠压量随张数分档(见 HandTray.module.css)。 */
+.slot + .slot {
+  margin-left: calc(-1 * var(--hand-overlap));
+}
+
+/* 悬停 / 选中置顶露出全卡。 */
+.slot:hover,
+.slot[data-selected] {
+  z-index: 6;
+}
+
+/* 悬停桥: 卡上弹后越出壳外的那段补命中区, 只在悬停时吃事件(静止时扫过托盘上方不会平白弹卡)。 */
+.slot::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% - 2px);
+  height: calc(var(--hand-hover-lift) + 26px);
+  pointer-events: none;
+}
+
+.slot:hover::after {
+  pointer-events: auto;
+}
+
+.slot[data-leaving] {
+  pointer-events: none;
+}
+
+/* 模式期间(换牌 / 弃牌 / 选择)卡外标记行让位给模式徽章。 */
+.slot[data-action] :global([data-pick-marks]) {
+  visibility: hidden;
+}
+
+/* ── mover: 悬停上弹 / 选中抬高 / 邻卡让位; 投影随高度由紧贴变远散 ── */
+.mover {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(3px 0 5px #000a) drop-shadow(0 6px 8px #000b);
+  transition: transform 0.22s cubic-bezier(0.16, 0.86, 0.26, 1.04);
+  will-change: transform;
+}
+
+.slot:not([data-leaving]):not([data-selected]):hover > .mover {
+  transform: translateY(calc(-1 * var(--hand-hover-lift)));
+  filter: drop-shadow(0 22px 18px #000d);
+}
+
+.slot[data-selected] > .mover {
+  transform: translateY(calc(-1 * var(--hand-hover-lift) - 24px));
+  filter: drop-shadow(0 30px 22px #000e);
+}
+
+/* 邻卡让位: 悬停卡的左右邻各自横向让开(45ms 滞后 = 先抽起、再挤开)。只动 mover, 壳不动。 */
+.slot:hover + .slot:not([data-selected]):not([data-leaving]) > .mover {
+  transform: translateX(var(--hand-yield));
+  transition-delay: 45ms;
+}
+
+.slot:not([data-selected]):not([data-leaving]):has(+ .slot:hover) > .mover {
+  transform: translateX(calc(-1 * var(--hand-yield)));
+  transition-delay: 45ms;
+}
+
+/* 模式期间整排静止, 让模式徽章始终对齐卡槽。 */
+:global([data-tray-action]) .slot:not([data-leaving]):not([data-selected]):hover > .mover,
+:global([data-tray-action]) .slot:hover + .slot:not([data-selected]):not([data-leaving]) > .mover,
+:global([data-tray-action]) .slot:not([data-selected]):not([data-leaving]):has(+ .slot:hover) > .mover {
+  transform: none;
+  filter: drop-shadow(3px 0 5px #000a) drop-shadow(0 6px 8px #000b);
+}
+
+:global([data-tray-action]) .slot {
+  cursor: var(--cursor-default);
+}
+
+/* 发牌: 从右侧带一点偏转慢速滑入, 到位转正。用独立的 translate / rotate, 不与 mover 的 transform 抢。 */
+.deal {
+  width: 100%;
+  height: 100%;
+  animation: trayDealIn 0.8s cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
+  animation-delay: var(--deal-delay, 0ms);
+}
+
+@keyframes trayDealIn {
+  from {
+    opacity: 0;
+    translate: 900px 0;
+    rotate: -3deg;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+  }
+}

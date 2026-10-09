@@ -1,12 +1,11 @@
 // 卡组面板左侧的卡组柜: 整副卡组四列竖向滚动, 无法处理的卡压暗并在卡面上注明原因, 让玩家知道不是漏了。
 // 点击只「放入舱位」(可改选), 真正执行由底栏确认按钮完成。
-// 选中表现: 琥珀金选中框(DeckSelectFrame) + 轻微上浮, 其余卡退后一步; 演出收束后新卡位闪一次翠绿光。
-// 三选一卡面皮肤(pick)下改用卡面自带的钢框 + 紫色霓虹选中框, 悬停 / 选中状态由本格记录后下发。
+// 选中表现: 卡面自带的钢框 + 紫色霓虹选中框(悬停 / 选中状态由本格记录后下发) + 轻微上浮, 其余卡退后一步;
+// 演出收束后新卡位闪一次翠绿光。
 import { memo, useState, type CSSProperties } from "react";
 import { cardDisplayName, type Card } from "@/engine";
 import { playSfx } from "@/ui/audio";
-import { DeckCardFace, useDeckCardSkin } from "./parts/DeckCardFace";
-import { DeckSelectFrame } from "./parts/DeckSelectFrame";
+import { CardFace } from "@/ui/common/card/CardFace";
 import { DECK, GRID, rectStyle } from "./parts/deckGeometry";
 import s from "./ReplaceDeckGrid.module.css";
 
@@ -70,7 +69,6 @@ const DeckSlot = memo(function DeckSlot({ entry, index, selected, dimmed, fresh,
 }) {
   const { card, lockedReason } = entry;
   const locked = Boolean(lockedReason);
-  const pickSkin = useDeckCardSkin() === "pick";
   const [hovered, setHovered] = useState(false);
   const live = interactive && !locked;
   const pickState = locked ? null : selected ? "selected" : live && hovered ? "hover" : null;
@@ -114,9 +112,8 @@ const DeckSlot = memo(function DeckSlot({ entry, index, selected, dimmed, fresh,
     >
       <div className={s.scale}>
         <div className={s.face}>
-          <DeckCardFace card={card} state={pickState} selectFrame={!locked} />
+          <CardFace card={card} state={pickState} selectFrame={!locked} />
         </div>
-        {!locked && !pickSkin && <DeckSelectFrame selected={selected} />}
         {locked && <span className={s.reason}>{lockedReason}</span>}
       </div>
     </div>

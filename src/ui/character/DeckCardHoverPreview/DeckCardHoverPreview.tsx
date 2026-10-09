@@ -2,7 +2,7 @@ import type { Card } from "@/engine";
 import { cx } from "@/ui/common/shared/cx";
 import { useCardText } from "@/ui/common/shared/cardTextFormat";
 import { CardKeywordNotes } from "@/ui/common/card/CardKeywordNotes";
-import { HandCard } from "@/ui/common/card/HandCard";
+import { CardFace } from "@/ui/common/card/CardFace";
 import s from "./DeckCardHoverPreview.module.css";
 
 interface Props {
@@ -21,7 +21,7 @@ export function DeckCardHoverPreview({ card, className }: Props) {
       aria-live="polite"
     >
       <span data-deck-card>
-        <HandCard card={card} variant="pile" playable selected={false} />
+        <CardFace card={card} />
       </span>
       <CardKeywordNotes card={card} text={text} className={s.keywords} />
     </div>

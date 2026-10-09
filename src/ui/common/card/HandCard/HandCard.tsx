@@ -66,6 +66,8 @@ interface Props {
 //   (走全站 --accent)与卡名压条左端那道归属角色竖标。
 // 本组件渲染的是**三层**: 外层 .hand-slot(不动的占位壳, 吃悬停与版式) + .hc-mover(唯一的
 // 悬停位移层) + .hand-card(卡面本体, 只做离场/发牌动画)。分层的理由见下方 return 处的注释。
+// ★ 2026-10 起全站卡面统一为新皮肤: 本组件只作为新卡面(CardRewardPicker/PickCardFace)的底层卡体被内嵌,
+//   业务侧请用 common/card/CardFace(通用 220×308 卡位)或 battle/HandTray/parts/HandTrayCard(战斗手牌), 不要再直接挂本组件。
 // 本组件同时服务手牌托盘与牌堆弹窗, 两套版式分别锁在 [data-hand-tray] / [data-pile-grid] 下。
 // 卡之间是鱼鳞叠(负 margin), 悬浮时向上弹出半张卡高 + 置顶露出完整卡面(**不放大**, 见 HandCard.motion.module.css);
 // 详情面板(CardInfoPanel)与队伍槽高亮(AllyBar)读的是本组件写进 ui/handFocusStore.ts 的悬停卡,

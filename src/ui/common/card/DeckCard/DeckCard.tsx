@@ -3,7 +3,7 @@ import type { Card } from "@/engine";
 import { getCharacter } from "@/data";
 import { cx } from "@/ui/common/shared/cx";
 import { InteractiveHint } from "@/ui/common/tooltip/InteractiveHint";
-import { HandCard } from "@/ui/common/card/HandCard";
+import { CardFace } from "@/ui/common/card/CardFace";
 import s from "./DeckCard.module.css";
 
 interface Props {
@@ -67,7 +67,7 @@ export function DeckCard({
       aria-pressed={selected}
     >
       <span data-deck-card>
-        <HandCard card={card} variant="pile" playable selected={false} activated={activated} />
+        <CardFace card={card} activated={activated} />
       </span>
       <InteractiveHint active={selected} className={cx(s["select-hint"], hintClassName)} />
     </button>

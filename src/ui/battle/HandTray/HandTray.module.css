@@ -1,4 +1,4 @@
-/* 手牌托盘的版式与基座。卡槽/卡面自身的版式与厚度规则归 HandCard.module.css。 */
+/* 手牌托盘的版式与基座。卡槽自身的交互与版式归 parts/HandTrayCard.module.css, 卡面是新皮肤 CardFace。 */
 .hand-panel {
   position: relative;
   display: flex;
@@ -51,16 +51,16 @@
   padding: 0 10px 8px;
   overflow: visible;
 }
-.hand-tray:has([data-hand-slot]:nth-last-child(7)) {
+.hand-tray:has([data-tray-slot]:nth-last-child(7)) {
   --hand-overlap: 40px;
 }
-.hand-tray:has([data-hand-slot]:nth-last-child(8)) {
+.hand-tray:has([data-tray-slot]:nth-last-child(8)) {
   --hand-overlap: 66px;
 }
-.hand-tray:has([data-hand-slot]:nth-last-child(9)) {
+.hand-tray:has([data-tray-slot]:nth-last-child(9)) {
   --hand-overlap: 86px;
 }
-.hand-tray:has([data-hand-slot]:nth-last-child(10)) {
+.hand-tray:has([data-tray-slot]:nth-last-child(10)) {
   --hand-overlap: 100px;
 }
 .hand-tray::before {

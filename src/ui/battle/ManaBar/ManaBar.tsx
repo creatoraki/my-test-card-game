@@ -29,6 +29,7 @@ export const ManaBar = memo(function ManaBar({ battle }: Props) {
         <ManaCrystal
           key={index}
           className={s.crystal}
+          ornate
           state={hoveredCost !== null && index >= activeStart && index < mana ? "active" : index >= mana ? "empty" : "normal"}
         />
       ))}

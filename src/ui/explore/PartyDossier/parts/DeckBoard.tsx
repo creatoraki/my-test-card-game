@@ -1,10 +1,10 @@
 // 「卡组」页: 个人卡组的只读平铺, 一行固定 3 张。
-// HandCard 是 220×308 的固定像素卡面, 列宽由网格 1fr 决定, 这里量出列宽、卡面只占其中 FILL,
+// CardFace 是 220×308 的固定像素卡面, 列宽由网格 1fr 决定, 这里量出列宽、卡面只占其中 FILL,
 // 再反推缩放比交给 CSS —— 卡与卡之间留出呼吸感, 不至于顶满。
 // ★ 悬停哪张卡只往上报 uid, 大卡详情由 PartyDossier 画在左栏立绘舞台上(与城镇角色详情同一套)。
 import { useLayoutEffect, useRef, type CSSProperties } from "react";
 import type { Card } from "@/engine";
-import { HandCard } from "@/ui/common/card/HandCard";
+import { CardFace } from "@/ui/common/card/CardFace";
 import s from "./DeckBoard.module.css";
 
 const CARD_W = 220;
@@ -50,7 +50,7 @@ export function DeckBoard({ deck, hoveredUid, onHoverCard }: Props) {
         >
           <span className={s.box}>
             <span className={s.card} data-deck-card>
-              <HandCard card={card} variant="pile" playable selected={false} />
+              <CardFace card={card} />
             </span>
           </span>
         </div>

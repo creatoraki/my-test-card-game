@@ -9,7 +9,7 @@ import { GlslSprite, GLSL_COMMON, type GlslProgramDef, type GlslUniforms } from 
 import { chamberTimeline, type ReplacePhase } from "../useReplaceSequence";
 import type { DeckServiceMode } from "../deckServiceModes";
 import { GLSL_CHAMBER_TRANSMUTE } from "./chamberTransmute.glsl";
-import { DeckCardFace } from "./DeckCardFace";
+import { CardFace } from "@/ui/common/card/CardFace";
 import { CARD_H, CARD_W, CHAMBER_CARD_SCALE, CHAMBER_FX } from "./deckGeometry";
 import s from "./ChamberSequence.module.css";
 
@@ -59,14 +59,14 @@ export function ChamberSequence({ mode, before, after, phase }: Props) {
       {before && (
         <div className={s.card} data-role="old" data-dissolve={line.dissolve ? "" : undefined} data-card-detail>
           <div className={s.scale}>
-            <DeckCardFace card={before} />
+            <CardFace card={before} />
           </div>
         </div>
       )}
       {after && line.form && (
         <div className={s.card} data-role="new" data-card-detail>
           <div className={s.scale}>
-            <DeckCardFace card={after} />
+            <CardFace card={after} />
           </div>
         </div>
       )}

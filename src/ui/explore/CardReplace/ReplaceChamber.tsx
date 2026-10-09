@@ -4,7 +4,7 @@
 import type { ReactNode } from "react";
 import type { Card } from "@/engine";
 import { DECK_SERVICE_ART } from "@/ui/art/explore/deckServiceArt";
-import { DeckCardFace } from "./parts/DeckCardFace";
+import { CardFace } from "@/ui/common/card/CardFace";
 import { CheckIcon, ReticleIcon } from "./parts/deckIcons";
 import { CHAMBER_ART, CHAMBER_CENTER, CHAMBER_FACTS, CHAMBER_FX, CHAMBER_HEAD, rectStyle } from "./parts/deckGeometry";
 import s from "./ReplaceChamber.module.css";
@@ -65,7 +65,7 @@ export function ReplaceChamber({ label, card, facts, status, emptyText, sequence
         {sequence ?? (card ? (
           <div className={s.card} key={card.uid} data-card-detail>
             <div className={s.scale}>
-              <DeckCardFace card={card} />
+              <CardFace card={card} />
             </div>
             <span className={s.sweep} aria-hidden />
           </div>

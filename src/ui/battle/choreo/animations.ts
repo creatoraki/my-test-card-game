@@ -101,7 +101,7 @@ export const CINEMA = {
 
 } as const;
 
-// 手牌发牌时序(ms)。单张飞行时长写在 HandCard.module.css 的 .hand-card animation(0.8s),
+// 手牌发牌时序(ms)。单张飞行时长写在 battle/HandTray/parts/HandTrayCard.module.css 的 .deal animation(0.8s),
 // 这里只管「什么时候起飞」—— 两者要一起改。
 export const HAND_DEAL = {
   stagger: 300,
@@ -109,7 +109,7 @@ export const HAND_DEAL = {
 } as const;
 
 // 弃牌演出时长(ms)。pop = 弹出到顶点, total = 弹出 + 化光消散全长,
-// 与 HandCard.module.css 的 cardDiscardBurst 关键帧一起改。
+// 与卡面 CardRewardPicker/face/PickFaceStates.module.css 的 pickFaceDiscard 关键帧一起改。
 export const DISCARD = {
   pop: 320,
   total: 1000,

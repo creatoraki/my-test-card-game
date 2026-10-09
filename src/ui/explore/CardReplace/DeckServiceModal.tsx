@@ -21,7 +21,6 @@ import { ReplaceDeckGrid, type ReplaceDeckEntry } from "./ReplaceDeckGrid";
 import { useReplaceSequence } from "./useReplaceSequence";
 import { ChamberSequence } from "./parts/ChamberSequence";
 import { DeckButton } from "./parts/DeckButton";
-import { DeckCardSkinProvider, type DeckCardSkin } from "./parts/DeckCardFace";
 import { DeckFooterNote } from "./parts/DeckFooterNote";
 import { DeckHeader } from "./parts/DeckHeader";
 import { DeckShell } from "./parts/DeckShell";
@@ -61,13 +60,11 @@ interface Props {
   /** 未出结果时放弃; 缺省同 onFinish。 */
   onAbandon?: () => void;
   abandonLabel?: string;
-  /** 卡面皮肤: hand = 原手牌卡面(缺省); pick = 三选一同款卡面(钢框 + 紫色霓虹选中框)。 */
-  cardSkin?: DeckCardSkin;
 }
 
 export function DeckServiceModal({
   mode, open, result, members, characters: characterData, lockedCharId, kicker, paymentNote, unavailableReason,
-  cardReason, characterReason, onConfirm, onFinish, onAbandon, abandonLabel, cardSkin = "hand",
+  cardReason, characterReason, onConfirm, onFinish, onAbandon, abandonLabel,
 }: Props) {
   const presence = useRevealPresence(open, open ? { mode, result, members, lockedCharId } : null, CLOSE_MS);
   const shown = presence.data;
@@ -153,7 +150,6 @@ export function DeckServiceModal({
       onClick={(event) => event.stopPropagation()}
       onMouseDown={(event) => event.stopPropagation()}
     >
-      <DeckCardSkinProvider value={cardSkin}>
         <section className={s.frame}>
           <DeckShell />
           <DeckHeader kicker={kicker} title={text.title} caption={shownResult ? text.doneCaption : text.caption} />
@@ -205,7 +201,6 @@ export function DeckServiceModal({
             )}
           </div>
         </section>
-      </DeckCardSkinProvider>
     </div>,
     document.querySelector<HTMLElement>("[data-stage-canvas]") ?? document.body,
   );
