@@ -1,5 +1,6 @@
 /* 卡面本身保持零色相，词条在此处统一着色以建立可识别的机制提示。
-   --card-kw-color 供个别界面(如卡牌三选一)覆写, 缺省走全站强调色。 */
+   --card-kw-color 供个别界面(如卡牌三选一)覆写, 缺省走全站强调色;
+   --card-num-size 供放大卡面把动态数值字号单独抬高一档, 缺省与正文同大。 */
 .kw {
   color: var(--card-kw-color, var(--accent));
   font-weight: 800;
@@ -7,5 +8,6 @@
 
 .dynamic {
   color: #ffd65a;
+  font-size: var(--card-num-size, 1em);
   font-weight: 800;
 }

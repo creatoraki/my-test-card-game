@@ -51,8 +51,9 @@
   background: transparent;
   border: 0;
   box-shadow: none;
-  /* 全站无圆角 ⇒ 徽章也走斜切角(8px, 比卡的 14 小一号), 与整体倒角语言一致 */
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  /* 全站无圆角 ⇒ 徽章也走斜切角(8px, 比卡的 14 小一号), 与整体倒角语言一致。
+     --hc-cost-clip 钩子: 华丽水晶(三选一)的外发光会被这层裁成直边, 放大卡面里传 none。 */
+  clip-path: var(--hc-cost-clip, polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px));
 }
 /* 水晶尺寸通过 CSS 变量下发；徽章 46 见方, 水晶 34 见方 ⇒ 四周各余 6px。
    ★ --hc-cost-size / --hc-crystal-size 是给放大卡面(如卡牌三选一)用的钩子, 缺省即手牌原尺寸。 */
@@ -65,14 +66,18 @@
      ★ 辉光色走全站令牌 --accent(src/styles/tokens.css 的荧光黄绿), 与整站归队。
        卡面已全面中性化 ⇒ 这一点黄绿是整张卡上唯一的高饱和色, 视线自然被拉到费用上 ——
        正是想要的: 费用是出牌决策里第一个要读的数。 */
-  filter: drop-shadow(0 2px 3px #01132ee6) drop-shadow(0 0 5px var(--accent));
+  filter: var(--hc-crystal-filter, drop-shadow(0 2px 3px #01132ee6) drop-shadow(0 0 5px var(--accent)));
 }
 :global([data-hand-card][data-card-type="fast"]) .hc-cost-crystal {
-  filter: drop-shadow(0 2px 3px #01132ee6) drop-shadow(0 0 5px #d68a3c);
+  filter: var(--hc-crystal-filter, drop-shadow(0 2px 3px #01132ee6) drop-shadow(0 0 5px #d68a3c));
 }
+/* ★ --hc-crystal-filter / --hc-cost-stroke 是放大卡面的钩子: 华丽水晶自带同色外发光, 不再叠全站辉光;
+   数字加粗黑描边(paint-order 让描边垫在字形下面, 实际露出一半宽度)。缺省即原值。 */
 .hc-cost-value {
   position: relative;
   z-index: 1;
+  -webkit-text-stroke: var(--hc-cost-stroke, 0px) #12141a;
+  paint-order: stroke fill;
 }
 .hc-star-pay {
   position: absolute;
@@ -200,11 +205,12 @@
   padding: var(--hc-text-pad, 9px 12px);
   overflow: hidden;
   /* 上沿的斜面转折(1px 亮 + 其下 1px 暗)走**背景图层**而不是 ::before —— 本元素是 -webkit-box
-     (见下方行数截断), 伪元素会被当成一个盒子参与排版、吃掉一行。第三层才是底色。 */
+     (见下方行数截断), 伪元素会被当成一个盒子参与排版、吃掉一行。第三层才是底色。
+     ★ 底色层留了钩子 --hc-text-bg(放大卡面如卡牌三选一换深海军蓝), 缺省即原值。 */
   background:
     linear-gradient(#5e6a73, #5e6a73),
     linear-gradient(#05080a, #05080a),
-    linear-gradient(180deg, #161b1e, #0a0d0f);
+    var(--hc-text-bg, linear-gradient(180deg, #161b1e, #0a0d0f));
   background-position: left top, left 1px, 0 0;
   background-size: 100% 1px, 100% 1px, auto;
   background-repeat: no-repeat, no-repeat, repeat;

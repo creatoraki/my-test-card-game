@@ -1,4 +1,4 @@
-/* 选中框: 宿主(卡面盒)需 position: relative; 本层画在卡面上方且不吃命中。 */
+/* 选中框: 宿主(卡面盒)需 position: relative; 本层画在卡面与钢框上方且不吃命中。 */
 .frame {
   position: absolute;
   z-index: 4;
@@ -14,50 +14,55 @@
   opacity: 1;
 }
 
-.halo {
-  stroke: var(--pk-violet);
+/* 远光晕: 宽描边 + 大半径模糊, 卡外一圈紫雾。 */
+.bloom {
+  stroke: #8a45ff;
   stroke-width: 22;
-  opacity: 0.14;
+  opacity: 0.85;
 }
 
-.mid {
-  stroke: var(--pk-violet);
-  stroke-width: 9;
-  opacity: 0.42;
+/* 近光晕: 贴着霓虹芯的亮紫辉光。 */
+.halo {
+  stroke: #b27dff;
+  stroke-width: 11;
 }
 
+/* 内侧细亮线: 钢框内缘的一道淡紫线(卡钢框选中时已转暗紫金属, 见 PickCardRim)。 */
+.band {
+  stroke: #c9a6ff;
+  stroke-width: 1.4;
+  opacity: 0.8;
+}
+
+/* 霓虹芯: 近白紫粗线。 */
 .core {
-  stroke: var(--pk-violet-hi);
-  stroke-width: 3.2;
+  stroke: #f8f2ff;
+  stroke-width: 4.2;
 }
 
-.inner {
-  stroke: #efe2ff;
-  stroke-width: 1.2;
-  opacity: 0.75;
-}
-
+.tab,
 .side {
-  stroke: #e3cfff;
-  stroke-width: 3;
+  stroke: #f3eaff;
+  stroke-width: 4;
 }
 
 .arrow {
-  fill: var(--pk-violet-hi);
+  fill: #f3eaff;
 }
 
-/* ── 悬停(未选中): 只留一道淡紫主线 ── */
+/* ── 悬停(未选中): 只留一道淡紫细线 ── */
 .frame[data-state="hover"] .glow,
-.frame[data-state="hover"] .inner,
+.frame[data-state="hover"] .band,
+.frame[data-state="hover"] .tab,
 .frame[data-state="hover"] .side,
 .frame[data-state="hover"] .arrow {
   opacity: 0;
 }
 
 .frame[data-state="hover"] .core {
-  stroke: var(--pk-violet);
-  stroke-width: 1.5;
-  opacity: 0.7;
+  stroke: var(--pk-violet-hi);
+  stroke-width: 1.6;
+  opacity: 0.75;
 }
 
 /* ── 选中: 辉光呼吸 + 入场时框线略微收拢 ── */
@@ -82,5 +87,5 @@
 
 @keyframes pickSelectBreath {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
+  50% { opacity: 0.6; }
 }

@@ -1,5 +1,5 @@
 /* 三选一面板外框与底层。颜色令牌(--pk-*)由 CardRewardPicker.module.css 的 .frame 下发。
-   层序(自下而上): 全息投影 → 暗底(外轮廓裁切) → 锻造师底图(内轮廓裁切) → 网格 → 刻度 → SVG 描边。 */
+   层序(自下而上): 全息投影 → 暗底(外轮廓裁切) → 内景底图(内轮廓裁切) → 网格 → 刻度 → SVG 描边。 */
 .decor {
   position: absolute;
   z-index: 0;
@@ -7,43 +7,47 @@
   pointer-events: none;
 }
 
-/* ── 全息卡牌投影: 面板右外侧漂浮, 左缘压进面板 60px, 被面板底盖住一截 ── */
+/* ── 全息卡牌投影: 面板右外侧漂浮, 左缘压进面板, 被面板底盖住一截 ── */
 .hologram {
   position: absolute;
-  top: 110px;
-  left: 1340px;
+  top: 130px;
+  left: 1350px;
   width: 300px;
   height: 400px;
   object-fit: contain;
-  opacity: 0.62;
+  opacity: 0.5;
   animation:
     pickHoloIn 600ms ease-out 360ms both,
     pickHoloFloat 6.4s ease-in-out 960ms infinite;
 }
 
-/* ── 暗底: 上方更透(露出背后已被遮罩模糊的场景), 下方更实。
+/* ── 暗底: 设计稿面板像一块深蓝玻璃 —— 上方透、下方实。
    ⚠ 不再叠 backdrop-filter: 外层遮罩已经模糊过背景, 嵌套毛玻璃只会增加合成开销。 ── */
 .base {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #0a1028b8 0%, #0a1028d6 40%, #080c1ef0 100%);
+  background: linear-gradient(180deg, #0b1130c4 0%, #0a1029d9 42%, #080c20f2 100%);
 }
 
-/* ── 锻造师底图: 靠右上铺开, 整体偏紫蓝, 越往下越暗(卡面与按钮区几乎不透图) ── */
+/* ── 内景底图: 靠右上铺开, 左侧与下方压暗(卡面与按钮区几乎不透图) ── */
 .art {
   position: absolute;
   inset: 0;
   overflow: hidden;
   background-image: var(--pick-panel-art);
   background-repeat: no-repeat;
-  background-size: 1220px auto;
-  background-position: right -40px top -60px;
-  opacity: 0.56;
-  /* 设计稿里面板内透出的场景是虚的, 只给氛围不抢卡面; 静态层, 模糊只算一次。 */
-  filter: blur(2px);
+  background-size: 1420px auto;
+  background-position: right top;
+  opacity: 0.5;
+  filter: blur(1.5px);
 }
 
-/* 色调统一: 用 color 混合把暖橙底图拉向紫蓝, 保留明暗层次。 */
+/* 专属内景已按设计稿调好色, 只需轻压; 回退的锻造师底图偏暖、主体太抢, 额外拉色并压暗。 */
+.art[data-scene] {
+  opacity: 1;
+  filter: saturate(1.15) brightness(1.08);
+}
+
 .art::before {
   position: absolute;
   inset: 0;
@@ -53,13 +57,26 @@
   opacity: 0.55;
 }
 
+/* 专属内景(2026-10-09 新版)本身已是蓝紫主调, 只薄薄统一一层冷色, 让右侧熔炉橙光不至于过跳。 */
+.art[data-scene]::before {
+  background: linear-gradient(160deg, #4a3cc8, #2c46b8);
+  opacity: 0.18;
+}
+
+/* 专属内景的压暗: 左侧只压到标题末端(约 40%), 下方从归属行开始渐深。 */
+.art[data-scene]::after {
+  background:
+    linear-gradient(90deg, #080c22e0 0%, #080c2299 20%, #080c2230 40%, transparent 58%),
+    linear-gradient(180deg, transparent 0%, #0a10284d 18%, #080c1ed0 36%, #070a1af0 58%, #060918fa 100%);
+}
+
 .art::after {
   position: absolute;
   inset: 0;
   content: "";
   background:
-    linear-gradient(90deg, #080c20e6 0%, #080c2099 28%, transparent 55%),
-    linear-gradient(180deg, #0a102833 0%, #0a1028a6 26%, #080c1ee8 48%, #070a1af7 72%, #060918fc 100%);
+    linear-gradient(90deg, #080c22f0 0%, #080c22b3 24%, #080c2233 52%, transparent 70%),
+    linear-gradient(180deg, #0a102826 0%, #0a10288c 22%, #080c1ee0 42%, #070a1af5 64%, #060918fc 100%);
 }
 
 /* ── 极淡的科技网格, 只在上半部可见 ── */
@@ -67,19 +84,19 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, #6f7dff12 1px, transparent 1px) 0 0 / 44px 44px,
-    linear-gradient(0deg, #6f7dff12 1px, transparent 1px) 0 0 / 44px 44px;
-  mask-image: linear-gradient(180deg, #000 0%, transparent 40%);
+    linear-gradient(90deg, #6f7dff10 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(0deg, #6f7dff10 1px, transparent 1px) 0 0 / 44px 44px;
+  mask-image: linear-gradient(180deg, #000 0%, transparent 36%);
 }
 
 /* ── 左缘竖向刻度 ── */
 .rail {
   position: absolute;
-  top: 200px;
-  left: 16px;
-  width: 6px;
+  top: 262px;
+  left: 22px;
+  width: 5px;
   height: 500px;
-  background: repeating-linear-gradient(180deg, #5866d466 0 2px, transparent 2px 16px);
+  background: repeating-linear-gradient(180deg, #5866d455 0 2px, transparent 2px 15px);
 }
 
 /* ── SVG 描边层 ── */
@@ -92,19 +109,20 @@
 }
 
 .inner {
-  stroke: #3e4aa6;
-  stroke-width: 1;
-  opacity: 0.8;
+  stroke: #3a4697;
+  stroke-width: 1.2;
+  opacity: 0.9;
 }
 
 .outlineGlow {
   stroke: var(--pk-line);
-  stroke-width: 8;
-  opacity: 0.2;
+  stroke-width: 7;
+  opacity: 0.18;
 }
 
+/* 外线: 设计稿是一道很亮的淡紫蓝细线。 */
 .outline {
-  stroke: var(--pk-line);
+  stroke: #9aa6ff;
   stroke-width: 2;
   stroke-dasharray: 1;
   animation: pickOutlineDraw 900ms cubic-bezier(0.3, 0.7, 0.2, 1) 120ms both;
@@ -113,47 +131,59 @@
 .accent {
   --tone: var(--pk-violet);
   --tone-hi: var(--pk-violet-hi);
+  stroke-linecap: butt;
   animation: pickAccentIn 500ms ease-out 700ms both;
 }
 
 .accent[data-tone="cyan"] {
-  --tone: var(--pk-cyan);
-  --tone-hi: #b8f0ff;
+  --tone: #3d86ff;
+  --tone-hi: #8fd0ff;
+}
+
+.accent[data-tone="white"] {
+  --tone: #9c7cff;
+  --tone-hi: #f3eeff;
 }
 
 .accentHalo {
   stroke: var(--tone);
-  stroke-width: 12;
-  opacity: 0.1;
+  opacity: 0.12;
 }
 
 .accentGlow {
   stroke: var(--tone);
-  stroke-width: 6;
-  opacity: 0.32;
+  opacity: 0.4;
 }
 
 .accentCore {
   stroke: var(--tone-hi);
-  stroke-width: 3;
 }
 
-/* 主标题左侧的竖向护板: 暗蓝实心条 + 冰青外缘, 下方一列短刻度。 */
-.bracket {
-  fill: #18225a;
-  stroke: #5f8dff;
-  stroke-width: 1.5;
+/* 左上斜向护板线: 暗蓝细线。 */
+.plateLine {
+  stroke: #5468d8;
+  stroke-width: 1.4;
+  opacity: 0.85;
 }
 
-.bracketEdge {
-  stroke: var(--pk-cyan);
-  stroke-width: 2.5;
+.plateDot {
+  fill: #8fa4ff;
 }
 
-.bracketTicks {
-  stroke: #5f8dff;
-  stroke-width: 1.5;
-  opacity: 0.5;
+/* 标题左侧实心棱柱: 暗蓝渐变体 + 亮蓝描边, 左上两边额外提亮成受光面。 */
+.prism {
+  stroke: #3f56c4;
+  stroke-width: 1;
+}
+
+.prismEdge {
+  stroke: #6f8fe8;
+  stroke-width: 1.6;
+}
+
+.dataBars {
+  fill: #6d82e0;
+  opacity: 0.45;
 }
 
 @keyframes pickOutlineDraw {
@@ -172,7 +202,7 @@
     translate: 24px 0;
   }
   to {
-    opacity: 0.62;
+    opacity: 0.5;
     translate: 0 0;
   }
 }

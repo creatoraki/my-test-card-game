@@ -24,7 +24,7 @@ export function VictoryCardOffer() {
       options={options}
       kicker="额外奖励"
       title="选择一张卡牌"
-      caption="候选卡牌将加入对应角色的卡组，也可以放弃本次奖励"
+      caption="候选卡牌将加入对应角色的卡组。"
       skipLabel="放弃卡牌"
       onConfirm={(option) => {
         if (!pickPartyDraw(option.ownerCharId ?? option.card.ownerCharId, option.card.id)) return false;

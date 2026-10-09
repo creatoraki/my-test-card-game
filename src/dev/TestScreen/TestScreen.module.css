@@ -6,29 +6,3 @@
   color: #e8edf5;
   font-size: 18px;
 }
-
-.tabs {
-  position: relative;
-  z-index: 40;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 20px 24px;
-  background: #0b1018;
-  border-bottom: 1px solid #52667b;
-}
-
-.tabs button {
-  padding: 12px 20px;
-  border: 1px solid #52667b;
-  border-radius: 8px;
-  background: #192534;
-  color: #e8edf5;
-  font: inherit;
-  cursor: pointer;
-}
-
-.tabs button[aria-pressed="true"] {
-  border-color: #7fd4c4;
-  background: #1a3c3b;
-}

@@ -1,7 +1,7 @@
 // ★ 卡牌奖励三选一 ★ —— 战斗胜利的额外卡牌奖励与探索事件的角色卡牌奖励共用的独立弹窗。
 //
 // 交互: 悬停/聚焦候选 → 该卡侧边浮出词条释义; 点击候选只「选中」(可改选), 点底栏「确认选择」才真正领取;
-//       「放弃」由调用方决定语义。释义显示的卡 = 悬停 ?? 选中: 移开鼠标后仍能看到已选那张。
+//       「放弃」由调用方决定语义。释义只跟随悬停: 设计稿的选中态画面里不出现浮层, 移开鼠标即收起。
 // 版式: 固定 1400×916 面板(设计 px), 外框/选中框/连接线/落位常量全部在 parts/pickGeometry.ts。
 //
 // ⚠ 本组件 portal 到设计画布([data-stage-canvas]), 自带压暗遮罩, 不依赖宿主面板的尺寸与层级。
@@ -73,8 +73,7 @@ export function CardRewardPicker({
 
   const selectedIndex = shown.findIndex((option) => option.key === selectedKey);
   const selected = selectedIndex >= 0 ? shown[selectedIndex] : null;
-  const hoveredIndex = shown.findIndex((option) => option.key === hoveredKey);
-  const detailIndex = hoveredIndex >= 0 ? hoveredIndex : selectedIndex;
+  const detailIndex = shown.findIndex((option) => option.key === hoveredKey);
   const detail = detailIndex >= 0 ? shown[detailIndex] : null;
   const locked = () => presence.closing || settledRef.current;
 
@@ -113,7 +112,6 @@ export function CardRewardPicker({
               index={index}
               selected={option.key === selectedKey}
               hovered={option.key === hoveredKey}
-              dimmed={selectedKey !== null && option.key !== selectedKey}
               onSelect={setSelectedKey}
               onHover={handleHover}
             />

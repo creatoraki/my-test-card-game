@@ -47,6 +47,8 @@ interface Props {
   activated?: boolean;
   onRootRelease?: (uid: string) => void;
   rootReleaseDisabled?: boolean;
+  /** 费用水晶用华丽外观(圆角宝石 + 亮边 + 高光), 只给放大卡面(卡牌三选一)用。 */
+  ornateCost?: boolean;
   // ⚠ 这里刻意**没有** onHover —— 悬停不再经过父级。见下方 onMouseEnter 处的注释。
 }
 
@@ -87,6 +89,7 @@ export const HandCard = memo(function HandCard({
   activated,
   onRootRelease,
   rootReleaseDisabled,
+  ornateCost,
 }: Props) {
   const owner = getCharacter(card.ownerCharId);
   // 被动卡: 无费用、不可打出 —— 卡面上把费用徽章换成"被动"铭牌, 且**不走不可用压暗**,
@@ -234,7 +237,12 @@ export const HandCard = memo(function HandCard({
           </span>
         ) : (
           <span className={f["hc-cost"]} data-hand-cost aria-label="消耗法力水晶">
-            <ManaCrystal className={f["hc-cost-crystal"]} still tone={card.cardType === "fast" ? "haste" : "mana"} />
+            <ManaCrystal
+              className={f["hc-cost-crystal"]}
+              still
+              ornate={ornateCost}
+              tone={card.cardType === "fast" ? "haste" : "mana"}
+            />
             <span className={f["hc-cost-value"]}>{effectiveCost}</span>
           </span>
         )}

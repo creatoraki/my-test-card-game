@@ -1,13 +1,12 @@
 /* 卡牌奖励三选一弹窗(设计 px, 1920×1080 画布)。
-   ★ 面板固定 1400×916、居中; 内部各区块按面板坐标绝对落位, 常量见 parts/pickGeometry.ts。
-   ★ 外框不再走 ::before/::after + clip-path(只能做规则切角), 改由 parts/PickFrame 的 SVG 绘制。
+   ★ 面板固定 1420×919, 落在画布 (264, 68)(按设计稿, 略偏左上); 内部各区块按面板坐标绝对落位,
+     常量见 parts/pickGeometry.ts(PANEL_X / PANEL_Y / PANEL_W / PANEL_H 与这里同步)。
+   ★ 外框由 parts/PickFrame 的 SVG 绘制。
    ★ 配色按设计稿固定为紫 + 冰青, 不跟随全站强调色; 令牌 --pk-* 在 .frame 上下发给所有部件。 */
 .layer {
   position: absolute;
   z-index: 300;
   inset: 0;
-  display: grid;
-  place-items: center;
   background: radial-gradient(ellipse at 50% 45%, #0a0e24b3 0%, #03050fe6 72%);
   backdrop-filter: blur(6px) saturate(0.85);
   animation: pickLayerIn 220ms ease-out both;
@@ -26,9 +25,12 @@
   --pk-line: #6573e6;
   --pk-dim: #aeb7d8;
   --card-kw-color: #ffd84a;
-  position: relative;
-  width: 1400px;
-  height: 916px;
+  --card-num-size: 1.15em;
+  position: absolute;
+  top: 68px;
+  left: 264px;
+  width: 1420px;
+  height: 919px;
   color: #e6ebff;
   isolation: isolate;
   animation: pickFrameIn 460ms cubic-bezier(0.16, 1, 0.3, 1) 40ms both;
@@ -38,23 +40,27 @@
   animation: pickFrameOut 200ms ease-in both;
 }
 
-/* ── 候选网格: 左上 (109, 218), 三列 350, 列距 46 ──
-   卡面放大到 350×490(仍是 1:1.4), 同时经 HandCard 的变量钩子把徽章、卡名、说明字号一并放大,
-   说明区净高 = 140 − 3 − 2×14 = 109px: 22px×3 行 / 20px×4 行 / 18px×4 行。
-   卡名纯白、说明提亮, 按设计稿; 卡外圈的银色钢框由 parts/PickCardRim 叠加, 不改 HandCard 本体。 */
+/* ── 候选网格: 左上 (121, 220), 三列 350, 列距 46 ──
+   卡面放大到 350×482(说明区 132), 经 HandCard 的变量钩子把徽章、卡名、说明字号与底色一并放大/换色(费用水晶另由 ornateCost 换成华丽宝石),
+   说明区净高 = 132 − 3 − 15 − 6 = 108px: 22px×3 行 / 20px×4 行 / 18px×4 行; 动态数值再放大 1.15 倍。
+   卡名纯白、说明提亮、说明区深海军蓝底, 按设计稿; 卡外圈的银色钢框由 parts/PickCardRim 叠加。 */
 .grid {
   --hand-card-w: 350px;
-  --hc-text-h: 140px;
+  --hc-text-h: 132px;
   --hand-card-h: calc(var(--hand-card-w) + var(--hc-text-h));
-  --hc-cost-size: 70px;
-  --hc-crystal-size: 56px;
-  --hc-cost-font: 30px;
-  --hc-title-h: 46px;
-  --hc-title-font: 28px;
-  --hc-title-pad: 22px;
+  --hc-cost-size: 74px;
+  --hc-crystal-size: 66px;
+  --hc-cost-font: 42px;
+  --hc-cost-stroke: 6px;
+  --hc-cost-clip: none;
+  --hc-crystal-filter: drop-shadow(0 3px 3px #000000a6);
+  --hc-title-h: 54px;
+  --hc-title-font: 30px;
+  --hc-title-pad: 24px;
   --hc-title-color: #ffffff;
-  --hc-text-pad: 14px 18px;
-  --hc-text-color: #e3e9f2;
+  --hc-text-pad: 15px 26px 6px;
+  --hc-text-color: #eef2fa;
+  --hc-text-bg: linear-gradient(180deg, #121a2e, #0b1020 70%, #090d1a);
   --hc-text-lg: 22px;
   --hc-text-lg-lines: 3;
   --hc-text-md: 20px;
@@ -63,8 +69,8 @@
   --hc-text-sm-lines: 4;
   position: absolute;
   z-index: 2;
-  top: 218px;
-  left: 109px;
+  top: 220px;
+  left: 121px;
   display: grid;
   grid-template-columns: repeat(3, var(--hand-card-w));
   gap: 46px;

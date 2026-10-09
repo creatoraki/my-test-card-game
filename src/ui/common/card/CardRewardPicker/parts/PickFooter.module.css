@@ -15,18 +15,18 @@
   position: absolute;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   margin: 0;
-  color: var(--pk-dim);
-  font-size: 22px;
+  color: #c3cadf;
+  font-size: 24px;
   line-height: 1;
 }
 
 .icon {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   flex: none;
-  color: #8f9bcc;
+  color: #aab4d6;
 }
 
 .note {

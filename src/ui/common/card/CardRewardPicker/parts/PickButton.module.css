@@ -1,13 +1,14 @@
-/* 底栏按钮。落位(left/top/宽高)由组件按 pickGeometry 内联下发; 斜切量 22px 与 BUTTON_CHAMFER 同步。 */
+/* 底栏按钮。落位(left/top/宽高)与轮廓 clip-path 由组件按 pickGeometry / pickButtonShapes 内联下发。
+   颜色走 --edge(外线) / --edge-in(内线) / --ridge(凸台亮条) / --plate(面内色块), 两种按钮与禁用态只换变量。 */
+/* ⚠ 全站 button 默认带 7px 斜切 clip-path 与禁用半透明(styles/base.css), 会把按钮外的光晕、托槽、凸台
+   一并裁掉, 并在切角处露出黑块 ⇒ 这里显式关掉, 外形完全交给 .face 的 clip-path 与 SVG。 */
 .button {
-  --edge: #4f6ae0;
-  --edge-hi: #9fb6ff;
   position: absolute;
   z-index: 3;
   padding: 0;
-  color: #dce6ff;
   background: none;
   border: 0;
+  clip-path: none;
   cursor: var(--cursor-pointer);
   transition: filter 160ms ease, transform 160ms ease;
 }
@@ -20,11 +21,6 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  clip-path: polygon(22px 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%, 0 22px);
-  background:
-    radial-gradient(70% 90% at 12% 0%, #4f6ae02e, transparent 70%),
-    repeating-linear-gradient(115deg, #ffffff06 0 2px, transparent 2px 8px),
-    linear-gradient(180deg, #1b2556, #0c1230);
   transition: background 160ms ease;
 }
 
@@ -55,32 +51,61 @@
   stroke-linejoin: miter;
 }
 
-.halo {
-  stroke: var(--edge);
-  stroke-width: 7;
-  opacity: 0.16;
-}
-
 .line {
   stroke: var(--edge);
-  stroke-width: 1.5;
+  stroke-width: var(--edge-w, 1.8);
 }
 
 .innerLine {
-  stroke: var(--edge);
-  stroke-width: 1;
-  opacity: 0.4;
+  stroke: var(--edge-in);
+  stroke-width: var(--edge-in-w, 1);
+  opacity: var(--edge-in-o, 0.8);
 }
 
-.corner {
-  stroke: var(--edge-hi);
-  stroke-width: 2.5;
+.halo {
+  stroke: var(--glow);
+  stroke-width: var(--halo-w, 8);
+  opacity: var(--halo-o, 0.16);
 }
 
-.foot {
-  stroke: var(--edge);
+.haloWide {
+  stroke: var(--glow);
+  stroke-width: var(--halo-wide-w, 0);
+  opacity: var(--halo-wide-o, 0);
+}
+
+/* 凸台: 4px 亮蓝厚条 + 同色模糊辉光。 */
+.ridge {
+  stroke: var(--ridge);
+  stroke-width: 4;
+}
+
+.ridgeGlow {
+  stroke: var(--ridge);
+  stroke-width: 8;
+  opacity: 0.7;
+}
+
+.plate {
+  fill: var(--plate);
+}
+
+.plate[data-index="1"] {
+  opacity: 0.55;
+}
+
+.plate[data-index="2"] {
+  fill: #2f45b0;
+}
+
+.stripe {
+  stroke: var(--stripe);
   stroke-width: 2;
-  opacity: 0.8;
+}
+
+.bay {
+  stroke: var(--bay);
+  stroke-width: 1.4;
 }
 
 .content {
@@ -88,29 +113,14 @@
   display: flex;
   height: 100%;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
+  font-weight: 900;
   line-height: 1;
-  text-shadow: 0 1px 2px #05071a;
 }
 
 /* 中文字距在最后一个字后也会留白 ⇒ 用负右边距抵消, 视觉居中。 */
 .label {
-  margin-right: -0.18em;
-}
-
-.button:not(:disabled):hover {
-  filter: brightness(1.16);
-}
-
-.button:not(:disabled):hover .face {
-  background:
-    radial-gradient(70% 90% at 12% 0%, #6f86ff3d, transparent 70%),
-    repeating-linear-gradient(115deg, #ffffff08 0 2px, transparent 2px 8px),
-    linear-gradient(180deg, #232e66, #10183c);
+  margin-right: -0.12em;
+  letter-spacing: 0.12em;
 }
 
 .button:not(:disabled):active {
@@ -118,99 +128,115 @@
   filter: brightness(0.92);
 }
 
-/* ── 主按钮「确认选择」: 紫色渐变填充 + 亮紫描边与外发光 ── */
-.primary {
-  --edge: var(--pk-violet-hi);
-  --edge-hi: #f0e4ff;
+/* ── 放弃: 深海军蓝面 + 亮淡紫蓝外线 + 暗内线, 右上凸台与面内亮块为冰蓝 ── */
+.skip {
+  --edge: #8f9cff;
+  --edge-in: #3a4699;
+  --glow: #5868e8;
+  --halo-w: 6;
+  --halo-o: 0.55;
+  --ridge: #7f97ff;
+  --plate: #6d88ff;
+  --stripe: #5b6fd899;
+  color: #dcecff;
+}
+
+.skip .face {
+  background:
+    radial-gradient(80% 110% at 10% 0%, #3b4fae40, transparent 70%),
+    linear-gradient(180deg, #1d2559, #121739 60%, #0e1230);
+}
+
+.skip .content {
+  justify-content: center;
+  padding-right: 16px;
+  font-size: 30px;
+  text-shadow: 0 0 10px #6aa8ff66, 0 2px 2px #05071a;
+}
+
+.skip:not(:disabled):hover {
+  filter: brightness(1.18);
+}
+
+/* ── 确认: 饱和紫面 + 近白紫外线 + 强外发光 + 外托槽细框; 内容左对齐(双箭头距左 43) ── */
+.confirm {
+  --edge: #f1e6ff;
+  --edge-w: 2.6;
+  --edge-in: #c9a6ff;
+  --edge-in-o: 0.5;
+  --glow: #9a55ff;
+  --halo-w: 10;
+  --halo-o: 0.95;
+  --halo-wide-w: 26;
+  --halo-wide-o: 0.45;
+  --bay: #8d6cf0b3;
+  --stripe: #ffffff2e;
   color: #ffffff;
 }
 
-.primary .face {
+/* 设计稿: 深饱和紫面, 左上略亮、中下更深, 贴边一圈内辉光。 */
+.confirm .face {
   background:
-    linear-gradient(180deg, #ffffff2e, transparent 46%),
-    radial-gradient(60% 120% at 30% 50%, #a970ff66, transparent 70%),
-    linear-gradient(90deg, #6128df 0%, #8a48ff 50%, #6a30e8 100%);
+    radial-gradient(60% 120% at 12% 10%, #8d5cff99, transparent 65%),
+    linear-gradient(180deg, #ffffff14, transparent 40%),
+    linear-gradient(180deg, #6a2cf0 0%, #561be0 55%, #4812c4 100%);
+  box-shadow: inset 0 0 14px #c9a6ff66;
 }
 
-.primary:not(:disabled):hover .face {
+.confirm:not(:disabled):hover .face {
   background:
-    linear-gradient(180deg, #ffffff3a, transparent 46%),
-    radial-gradient(60% 120% at 30% 50%, #b98cff73, transparent 70%),
-    linear-gradient(90deg, #6e34ec 0%, #9d62ff 50%, #7a40f0 100%);
+    radial-gradient(60% 120% at 12% 10%, #a57cffb3, transparent 65%),
+    linear-gradient(180deg, #ffffff1f, transparent 40%),
+    linear-gradient(180deg, #7638ff 0%, #6226ec 55%, #531ad2 100%);
 }
 
-.primary .halo {
-  stroke: var(--pk-violet);
-  stroke-width: 14;
-  opacity: 0.4;
+.confirm .content {
+  justify-content: flex-start;
+  gap: 29px;
+  padding-left: 43px;
+  font-size: 32px;
+  text-shadow: 0 0 14px #d9b8ffb3, 0 2px 2px #2a0f6e;
 }
 
-.haloWide {
-  stroke: var(--pk-violet);
-  stroke-width: 30;
-  opacity: 0.12;
-}
-
-.bay {
-  stroke: #7a52e8;
-  stroke-width: 1.2;
-  opacity: 0.7;
-}
-
-/* 主按钮内亮线: 设计稿里是一圈很亮的近白紫线, 内缩 5px。 */
-.primary .innerLine {
-  stroke: #f1e6ff;
-  stroke-width: 1.6;
-  opacity: 0.85;
-}
-
-.primary .content {
-  font-size: 28px;
-  text-shadow: 0 0 12px #c39bffaa, 0 1px 2px #2a0f6e;
-}
-
-.primary .content > svg {
+.confirm .content > svg {
   width: 38px;
-  height: 28px;
+  height: 33px;
   flex: none;
-  color: #9ff4ff;
-  filter: drop-shadow(0 0 6px #5fd8ff99);
+  filter: drop-shadow(0 0 6px #7fd8ff99);
   transition: translate 200ms ease;
 }
 
-.primary:not(:disabled):hover .content > svg {
+.confirm:not(:disabled):hover .content > svg {
   translate: 5px 0;
 }
 
+.confirm:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+
 /* 未选中候选: 去饱和、无辉光。 */
-.primary:disabled {
-  --edge: #3c3f66;
-  --edge-hi: #4c5080;
+.confirm:disabled {
+  --edge: #4c5080;
+  --edge-in: #3c3f66;
+  --halo-o: 0;
+  --halo-wide-o: 0;
+  --bay: #3c3f66;
+  --stripe: transparent;
   color: #7a7f9e;
   cursor: var(--cursor-default, default);
+  opacity: 1;
 }
 
-.primary:disabled .face {
-  background: linear-gradient(180deg, #1a1c38, #11132a);
+.confirm:disabled .face {
+  background: linear-gradient(180deg, #1c1e3c, #12142c);
 }
 
-.primary:disabled .halo,
-.primary:disabled .haloWide,
-.primary:disabled .innerLine {
-  opacity: 0;
-}
-
-.primary:disabled .bay {
-  stroke: #3c3f66;
-}
-
-.primary:disabled .content {
+.confirm:disabled .content {
   text-shadow: none;
 }
 
-.primary:disabled .content > svg {
-  color: #4c5080;
-  filter: none;
+.confirm:disabled .content > svg {
+  filter: grayscale(1) brightness(0.5);
 }
 
 @keyframes pickButtonSweep {

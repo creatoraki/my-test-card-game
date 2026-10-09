@@ -1,11 +1,13 @@
 /* 卡面钢框: 宿主(卡面盒)需 position: relative; 本层盖在 HandCard 之上、选中框(z 4)之下。
-   金属渐变的四个色标走 --rim-*, 三种状态只换这组变量。 */
+   金属渐变的四个色标走 --rim-*, 悬停只换这组变量; 选中只把右下刻纹/切角亮条转紫(--rim-accent)。 */
 .rim {
-  --rim-a: #eef2f8;
-  --rim-b: #9aa4b2;
-  --rim-c: #4b535e;
-  --rim-d: #c7ced8;
-  --rim-hi: #8d97a6;
+  --rim-a: #f2f5fa;
+  --rim-b: #b4bcc8;
+  --rim-c: #5d6672;
+  --rim-d: #c9d0da;
+  --rim-line: #7f8a9c;
+  --rim-accent: #c4ccd8;
+  --rim-accent-o: 0.55;
   position: absolute;
   z-index: 3;
   top: 0;
@@ -18,18 +20,21 @@
 
 .rim[data-state="hover"] {
   --rim-a: #ffffff;
-  --rim-b: #b9c2cf;
-  --rim-c: #646d7a;
+  --rim-b: #cdd4de;
+  --rim-c: #737c89;
   --rim-d: #dde3ea;
-  --rim-hi: #a9b3c1;
+  --rim-line: #98a3b4;
 }
 
+/* 选中: 钢框转暗紫金属(设计稿选中卡的框体偏紫暗), 右下刻纹与切角亮条转亮紫。 */
 .rim[data-state="selected"] {
-  --rim-a: #f6eeff;
-  --rim-b: #b98cff;
-  --rim-c: #6a3ad8;
-  --rim-d: #dcc6ff;
-  --rim-hi: #b48cff;
+  --rim-a: #d9c6ff;
+  --rim-b: #6b50b8;
+  --rim-c: #2a1d5a;
+  --rim-d: #8d6ee0;
+  --rim-line: #8f74d8;
+  --rim-accent: #c9a6ff;
+  --rim-accent-o: 0.95;
 }
 
 .stopA,
@@ -44,40 +49,81 @@
 .stopC { stop-color: var(--rim-c); }
 .stopD { stop-color: var(--rim-d); }
 
-.bevel {
-  stroke-width: 3;
+/* 钢框本体之上的三道线: 外缘受光细线 / 中段暗槽 / 内缘暗线, 读作倒角。 */
+.edgeHi {
+  stroke: #ffffff;
+  stroke-width: 1.2;
+  opacity: 0.55;
 }
 
 .groove {
-  stroke: #04070a;
-  stroke-width: 1.2;
-  opacity: 0.85;
+  stroke: #10151d;
+  stroke-width: 1;
+  opacity: 0.45;
+}
+
+.edgeIn {
+  stroke: #05080d;
+  stroke-width: 1.6;
 }
 
 .sheen {
   stroke: #ffffff;
-  stroke-width: 1.5;
-  opacity: 0.7;
+  stroke-width: 1.6;
+  opacity: 0.85;
 }
 
-.split,
-.textFrame,
-.textFrameHi {
-  stroke: var(--rim-hi);
+.slab {
+  stroke: var(--rim-accent);
+  stroke-width: 3;
+  opacity: var(--rim-accent-o);
+  transition: stroke 180ms ease, opacity 180ms ease;
+}
+
+/* 配图/说明分界: 1.2px 亮线 + 其下一道暗线。 */
+.split {
+  stroke: var(--rim-line);
+  stroke-width: 1.4;
   transition: stroke 180ms ease;
 }
 
-.split {
-  stroke-width: 1.2;
-  opacity: 0.8;
+.splitShade {
+  stroke: #04070c;
+  stroke-width: 1.4;
+  opacity: 0.9;
+}
+
+/* 说明区内框: 冷灰蓝亮线 + 外侧暗槽。 */
+.well {
+  fill: #06090f;
+  opacity: 0.92;
 }
 
 .textFrame {
-  stroke-width: 1;
-  opacity: 0.4;
+  stroke: #66759a;
+  stroke-width: 1.4;
 }
 
-.textFrameHi {
+.deco {
+  stroke: var(--rim-accent);
+  stroke-width: 1.6;
+  opacity: calc(var(--rim-accent-o) * 0.7);
+  transition: stroke 180ms ease, opacity 180ms ease;
+}
+
+.sideMark {
+  stroke: #7a6ce0;
   stroke-width: 2;
-  opacity: 0.75;
+  opacity: 0.7;
+}
+
+.notch {
+  stroke: #0a0e14;
+  stroke-width: 1;
+}
+
+.screw {
+  fill: #1a2029;
+  stroke: #aab4c2;
+  stroke-width: 1;
 }

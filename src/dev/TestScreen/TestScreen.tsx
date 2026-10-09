@@ -1,15 +1,13 @@
-import { useState } from "react";
-import { FlatMaterialScene } from "./flatMaterials/FlatMaterialScene";
-import { EnergyTierShowcase } from "./energy/EnergyTierShowcase";
+import { lazy, Suspense } from "react";
 import s from "./TestScreen.module.css";
 
+// 测试页仅保留卡牌三选一预览，按需加载其组件与素材。
+const CardPickPreview = lazy(() => import("./cardPick/CardPickPreview").then((m) => ({ default: m.CardPickPreview })));
+
 export function TestScreen() {
-  const [page, setPage] = useState<"energy" | "scene">("energy");
   return <div className={s.root}>
-    <nav className={s.tabs} aria-label="演示页面">
-      <button type="button" aria-pressed={page === "energy"} onClick={() => setPage("energy")}>粒子档位演示</button>
-      <button type="button" aria-pressed={page === "scene"} onClick={() => setPage("scene")}>场景与面板演示</button>
-    </nav>
-    {page === "energy" ? <EnergyTierShowcase /> : <FlatMaterialScene />}
+    <Suspense fallback={null}>
+      <CardPickPreview />
+    </Suspense>
   </div>;
 }

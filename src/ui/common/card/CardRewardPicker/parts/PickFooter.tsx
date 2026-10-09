@@ -26,11 +26,11 @@ export function PickFooter({ note, allowSkip, skipLabel, confirmLabel, canConfir
         <span className={s.note}>{note}</span>
       </p>
       {allowSkip && (
-        <PickButton rect={SKIP_BUTTON} onClick={onSkip}>
+        <PickButton rect={SKIP_BUTTON} kind="skip" onClick={onSkip}>
           {skipLabel}
         </PickButton>
       )}
-      <PickButton rect={CONFIRM_BUTTON} primary disabled={!canConfirm} icon={<DoubleChevron />} onClick={onConfirm}>
+      <PickButton rect={CONFIRM_BUTTON} kind="confirm" disabled={!canConfirm} icon={<DoubleChevron />} onClick={onConfirm}>
         {confirmLabel}
       </PickButton>
     </div>

@@ -16,13 +16,11 @@ interface Props {
   selected: boolean;
   /** 父级记录的悬停/聚焦候选: 整格(含归属行)悬停都点亮选中框的悬停态, 不只卡面。 */
   hovered: boolean;
-  /** 已有别的候选被选中: 本格轻微压暗, 悬停时恢复。 */
-  dimmed: boolean;
   onSelect: (key: string) => void;
   onHover: (key: string | null) => void;
 }
 
-export const CardPickSlot = memo(function CardPickSlot({ option, index, selected, hovered, dimmed, onSelect, onHover }: Props) {
+export const CardPickSlot = memo(function CardPickSlot({ option, index, selected, hovered, onSelect, onHover }: Props) {
   const { card } = option;
   const ownerId = option.ownerCharId ?? card.ownerCharId;
   const owner = getCharacter(ownerId);
@@ -36,7 +34,6 @@ export const CardPickSlot = memo(function CardPickSlot({ option, index, selected
     <div
       className={s.slot}
       data-selected={selected ? "" : undefined}
-      data-dimmed={dimmed ? "" : undefined}
       data-sfx="off"
       style={{ "--pick-delay": `${220 + index * 90}ms`, "--owner-color": owner.color } as CSSProperties}
       role="button"
@@ -62,7 +59,7 @@ export const CardPickSlot = memo(function CardPickSlot({ option, index, selected
         <span className={s.ownerName}>{owner.name}</span>
       </div>
       <div className={s.cardBox}>
-        <HandCard card={card} variant="pile" playable selected={false} />
+        <HandCard card={card} variant="pile" playable selected={false} ornateCost />
         <PickCardRim state={frameState} />
         <PickSelectFrame state={frameState} />
       </div>

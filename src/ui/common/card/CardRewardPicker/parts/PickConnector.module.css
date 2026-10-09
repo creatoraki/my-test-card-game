@@ -16,12 +16,12 @@
 
 .glow {
   stroke: var(--pk-violet);
-  stroke-width: 6;
-  opacity: 0.25;
+  stroke-width: 7;
+  opacity: 0.28;
 }
 
 .core {
-  stroke-width: 1.6;
+  stroke-width: 2;
 }
 
 .stopFar {
