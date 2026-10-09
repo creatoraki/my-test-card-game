@@ -77,7 +77,8 @@ export function takeLoot(s: ExploreState, index: number): boolean {
   const st = s.pendingLoot[index];
   if (!st) return false;
   const result = addToContainer(s.backpack, [st], getItemDef, RULES.burden.backpackSlots);
-  if (!result.taken.length) return false;
+  // 超堆叠上限的一堆入包时会拆成多格: 只装下一部分也算失败, 不能让剩下的半堆凭空消失。
+  if (!result.taken.length || result.overflow.length) return false;
   s.backpack = result.next;
   const returned = s.lootReturnedUids?.includes(st.uid) ?? false;
   if (returned) {
@@ -188,7 +189,7 @@ export function takePending(s: ExploreState, index: number): boolean {
   if (!st) return false;
   if (stackSlots(st, getItemDef(st.itemId)) > backpackFree(s)) return false;
   const r = addToContainer(s.backpack, [st], getItemDef, RULES.burden.backpackSlots);
-  if (!r.taken.length) return false;
+  if (!r.taken.length || r.overflow.length) return false;
   s.backpack = r.next;
   countPickup(s, r.taken.length);
   noteRelicPicked(s, st.itemId);

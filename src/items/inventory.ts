@@ -41,6 +41,19 @@ export interface AddResult {
   overflow: ItemStack[]; // 装不下的 —— 背包满时进 pendingPickup, 由玩家取舍
 }
 
+// 超过 maxStack 的一堆拆成多堆, 保证容器里「一堆 = 一格」: 网格按堆画格子, 占格按 stackSlots 计,
+// 不拆的话(如配额 2 个不可堆叠的糖块)会画成 1 格却记 2 格。
+// 首堆沿用原 uid, 其余在原 uid 后缀序号(本模块是纯函数, 不引 data 层的 newUid)。
+function splitByMaxStack(st: ItemStack, def: ItemDef): ItemStack[] {
+  const cap = Math.max(1, def.maxStack);
+  if (st.count <= cap) return [st];
+  const chunks: ItemStack[] = [];
+  for (let left = st.count, i = 0; left > 0; left -= cap, i++) {
+    chunks.push({ ...st, uid: i === 0 ? st.uid : `${st.uid}-${i}`, count: Math.min(cap, left) });
+  }
+  return chunks;
+}
+
 // 逐件尝试收进容器。capSlots 省略 = 无上限(仓库)。
 // 同 itemId、同羁绊且同一次性标记的可堆叠物品才并堆(maxStack > 1 时才有意义)。
 // 一次性牛奶若并进自购牛奶，会把不可带回的标记污染给玩家自购物资。
@@ -55,7 +68,7 @@ export function addToContainer(
   const overflow: ItemStack[] = [];
   let used = occupiedSlots(next, getDef);
 
-  for (const st of incoming) {
+  for (const st of incoming.flatMap((stack) => splitByMaxStack(stack, getDef(stack.itemId)))) {
     const def = getDef(st.itemId);
 
     // ① 先试着并进已有的堆 —— 不占新格子, 所以不受容量限制。
