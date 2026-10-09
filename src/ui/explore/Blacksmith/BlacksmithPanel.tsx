@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { cardDisplayName, type Card } from "@/engine";
 import type { ExploreState } from "@/explore/types";
 import { BLACKSMITH_SERVICES, type BlacksmithService } from "@/explore/curio/blacksmithTypes";
@@ -7,16 +7,17 @@ import { useTownStore } from "@/store/town/townStore";
 import type { CharacterState } from "@/store/town/townTypes";
 import { activeBlacksmith, blacksmithCardReason, blacksmithCharacterReason, blacksmithServiceReason } from "@/store/explore/blacksmithRules";
 import {
-  abandonBlacksmithService, openBlacksmith, payBlacksmithService, performBlacksmithService, pickBlacksmithDraw, startBlacksmithDraw,
+  abandonBlacksmithService, openBlacksmith, payBlacksmithService, performBlacksmithService, pickBlacksmithDraw,
 } from "@/store/explore/blacksmithActions";
 import { closeCorridorObject } from "@/store/explore/exploreCorridor";
-import { CardRewardPicker } from "@/ui/common/card/CardRewardPicker";
+import { CardRewardPicker, type CardPickOption } from "@/ui/common/card/CardRewardPicker";
 import { DeckServiceModal } from "../CardReplace";
 import { DossierChoice, DossierInfoBox, DossierNotice, DossierResult, EventDossierPanel, type DossierAction } from "../EventDossier";
 
 /**
- * 锻造师是独立事件：事件页选服务即扣除临期食品并锁定，随后直接弹出卡组面板选人选卡；
- * 抽牌在卡组面板选人后改弹三选一。付费后可放弃，但不退款。
+ * 锻造师是独立事件：事件页选服务即扣除临期食品并锁定。
+ * 换牌 / 删牌 / 复制随后弹出卡组面板选人选卡; 抽牌不选人, 直接弹出全队混合三选一(期间事件页让位)。
+ * 付费后可放弃，但不退款。
  */
 export function BlacksmithPanel({ session }: { session: ExploreState }) {
   const characters = useTownStore(state => state.characters);
@@ -27,18 +28,23 @@ export function BlacksmithPanel({ session }: { session: ExploreState }) {
   const members = session.party.filter(member => member.alive);
   const room = session.dungeon?.rooms[session.dungeon.currentRoomId];
   const service: BlacksmithService = forge?.selected ?? "replace";
+  const deckService = service === "draw" ? "replace" : service;
   const paid = forge?.status === "paid";
   const completed = forge?.status === "completed";
-  const deckOpen = Boolean(forge?.selected) && (paid || (completed && showResult && Boolean(forge?.result)));
-  const busy = paid || forge?.status === "drawing";
-  const drawOptions = forge?.status === "drawing" && forge.offers
-    ? forge.offers.map(card => ({ key: card.uid, card, ownerCharId: forge.charId })) : null;
-  const cardReason = useCallback((character: CharacterState, card: Card) => blacksmithCardReason(character, service, card), [service]);
-  const characterReason = useCallback((character: CharacterState) => blacksmithCharacterReason(character, service), [service]);
+  const deckOpen = service !== "draw" && Boolean(forge?.selected) && (paid || (completed && showResult && Boolean(forge?.result)));
+  const drawing = forge?.status === "drawing";
+  const busy = paid || drawing;
+  const offers = drawing ? forge?.offers : undefined;
+  const drawOptions = useMemo<CardPickOption[] | null>(
+    () => offers?.length ? offers.map(offer => ({ key: offer.card.uid, card: offer.card, ownerCharId: offer.charId })) : null,
+    [offers],
+  );
+  const cardReason = useCallback((character: CharacterState, card: Card) => blacksmithCardReason(character, deckService, card), [deckService]);
+  const characterReason = useCallback((character: CharacterState) => blacksmithCharacterReason(character, deckService), [deckService]);
 
-  const confirm = (charId: string, uid: string | null) => {
-    if (service === "draw") return startBlacksmithDraw(charId);
-    const success = uid ? performBlacksmithService(service, charId, uid) : false;
+  const confirm = (charId: string, uid: string) => {
+    if (service === "draw") return false;
+    const success = performBlacksmithService(service, charId, uid);
     if (success) setShowResult(true);
     return success;
   };
@@ -62,7 +68,7 @@ export function BlacksmithPanel({ session }: { session: ExploreState }) {
   if (forge?.result?.after) resultNotes.push(`已获得「${cardDisplayName(forge.result.after)}」。`);
 
   return <>
-    <EventDossierPanel theme="blacksmith" kicker={`锻造师 · ${room?.label ?? ""}号房间`} title="锻造师" enTitle="卡组锻造服务"
+    {!drawing && <EventDossierPanel theme="blacksmith" kicker={`锻造师 · ${room?.label ?? ""}号房间`} title="锻造师" enTitle="卡组锻造服务"
       contentKey={forge?.status ?? "preparing"} active={!deckOpen && !busy}
       onClose={busy ? undefined : closeCorridorObject}>
       {completed ? <DossierResult story={["锻造师收起工具，本次服务已结束。", "另一项服务不再可用。"]} notes={resultNotes} actions={actions} />
@@ -71,14 +77,14 @@ export function BlacksmithPanel({ session }: { session: ExploreState }) {
           "每次相遇只能选择一种服务，选择后立即收取临期食品，可以混付。",
           ...(forge?.services.map(kind => `${BLACKSMITH_SERVICES[kind].name}：${BLACKSMITH_SERVICES[kind].description}`) ?? ["锻造师正在准备服务……"]),
         ]} info={<DossierInfoBox><DossierNotice title={`可用临期食品 ${serviceFoodCount(session)} 份`} note="打开与离开不消耗净化粒子。付费后中途放弃不退款。" /></DossierInfoBox>} actions={actions} />}
-    </EventDossierPanel>
-    <DeckServiceModal mode={service} open={deckOpen} result={showResult ? forge?.result ?? null : null}
+    </EventDossierPanel>}
+    <DeckServiceModal mode={deckService} open={deckOpen} result={showResult ? forge?.result ?? null : null}
       members={members} lockedCharId={null}
-      kicker={`锻造师 · ${BLACKSMITH_SERVICES[service].name}`} paymentNote={`已支付临期食品${BLACKSMITH_SERVICES[service].food}份`}
+      kicker={`锻造师 · ${BLACKSMITH_SERVICES[deckService].name}`} paymentNote={`已支付临期食品${BLACKSMITH_SERVICES[deckService].food}份`}
       cardReason={cardReason} characterReason={characterReason} onConfirm={confirm}
       onFinish={() => setShowResult(false)} onAbandon={abandonBlacksmithService} abandonLabel="放弃服务（不退款）" />
-    <CardRewardPicker options={drawOptions} title="锻造师 · 三选一抽牌" kicker="已支付临期食品一份"
-      caption="选择一张加入角色卡组，本次相遇的另一项服务已失效。" skipLabel="放弃（不退款）"
+    <CardRewardPicker options={drawOptions} title="锻造师 · 三选一抽牌" kicker={`已支付临期食品${BLACKSMITH_SERVICES.draw.food}份`}
+      caption="候选来自全队卡池，选择一张加入对应角色的卡组；本次相遇的另一项服务已失效。" skipLabel="放弃（不退款）"
       onConfirm={option => pickBlacksmithDraw(option.card.uid)} onSkip={abandonBlacksmithService} />
   </>;
 }

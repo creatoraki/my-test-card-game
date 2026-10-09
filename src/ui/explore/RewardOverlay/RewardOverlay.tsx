@@ -4,10 +4,10 @@
 //   全部来自 ui/common/widget/EventPanel 的原语 —— 与落点事件面板同一套设计语言,
 //   这样「选完选项 → 弹出奖励」时页眉基线与按钮行不会跳。
 //   本文件只负责: 奖励种类 → 内容与文案。
-// ★ 角色卡牌奖励(forgeDraw)生成候选后, 三选一交给通用的 CardRewardPicker 独立弹窗,
-//   此时本面板整体隐藏, 避免弹窗背后再露出一块空面板。
+// ★ 角色卡牌奖励(forgeDraw) = 全队混合三选一, 不选人: 轮到它时自动生成候选, 直接交给通用的
+//   CardRewardPicker 独立弹窗, 本面板整体隐藏; 只有「没有可加入的卡」时才亮出本面板给个兜底。
 // ★ 普通卡替换(replaceCard)同理, 整段交给 ui/explore/CardReplace 的独立置换弹窗(选卡 + 置换演出)。
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { makeCard } from "@/data";
 import type { ExploreState, PendingAction } from "@/explore/types";
 import { useTownStore } from "@/store/town/townStore";
@@ -55,17 +55,13 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   const resolvePendingPurification = useRunStore((state) => state.resolvePendingPurification);
   const characters = useTownStore((state) => state.characters);
   const party = useTownStore((state) => state.party);
-  const startTaintedDraw = useRunStore((state) => state.startTaintedDraw);
-  const pickDraw = useTownStore((state) => state.pickDraw);
-  const cancelDraw = useTownStore((state) => state.cancelDraw);
+  const startPartyForgeDraw = useRunStore((state) => state.startPartyForgeDraw);
+  const pickPartyForgeDraw = useRunStore((state) => state.pickPartyForgeDraw);
   const removeCardFree = useTownStore((state) => state.removeCardFree);
   const reforgeEquipped = useTownStore((state) => state.reforgeEquipped);
   const [selectedChar, setSelectedChar] = useState<string | null>(null);
-  // 三选一已在弹窗里结算: 队列清空后的退场期间不再把本面板亮出来(否则会闪一下选角色页)。
+  // 三选一已在弹窗里结算: 队列清空后的退场期间不再把本面板亮出来(否则会闪一下兜底页)。
   const [drawSettled, setDrawSettled] = useState(false);
-  // 锁定交互者的锻造自动开始; 以队列长度作键(会话克隆不改变它), ref 防 StrictMode 双触发重复污染。
-  const autoDrawRef = useRef<number | null>(null);
-  const [autoDrawKey, setAutoDrawKey] = useState<number | null>(null);
 
   const currentAction = session?.pendingActions[0];
   const presence = useRevealPresence<RewardView | null>(
@@ -84,27 +80,21 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
     if (currentAction) setDrawSettled(false);
   }, [currentAction]);
   const effectiveCharId = lockedCharId ?? selectedChar;
-  const pendingDraw = action?.kind === "forgeDraw" && effectiveCharId ? characters[effectiveCharId]?.pendingDraw ?? null : null;
 
-  const liveLockedId = currentAction?.kind === "forgeDraw" ? lockedTarget(session, currentAction) : null;
-  const liveDrawKey = session?.pendingActions.length ?? 0;
-  const liveHasDraw = Boolean(liveLockedId && characters[liveLockedId]?.pendingDraw);
+  // 混合抽候选取「当前队首」而不是展示快照: 领取出队后弹窗立刻收起, 不随本面板的退场残留。
+  const needsDraw = gate && currentAction?.kind === "forgeDraw" && !currentAction.offers;
   useEffect(() => {
-    if (!liveLockedId) {
-      autoDrawRef.current = null;
-      setAutoDrawKey(null);
-      return;
-    }
-    if (!gate || liveHasDraw || autoDrawRef.current === liveDrawKey) return;
-    autoDrawRef.current = liveDrawKey;
-    setAutoDrawKey(liveDrawKey);
-    startTaintedDraw(liveLockedId);
-  }, [gate, liveLockedId, liveHasDraw, liveDrawKey, startTaintedDraw]);
-  // 自动锻造尚未开始的这一帧不显示面板, 避免闪出选人页。
-  const awaitingAutoDraw = Boolean(liveLockedId && !liveHasDraw && autoDrawKey !== liveDrawKey);
+    // startPartyForgeDraw 自带「已生成则跳过」, StrictMode 双触发也只抽一次、只污染一次。
+    if (needsDraw) startPartyForgeDraw();
+  }, [needsDraw, startPartyForgeDraw]);
+  const liveOffers = gate && currentAction?.kind === "forgeDraw" ? currentAction.offers ?? null : null;
   const drawOptions = useMemo<CardPickOption[] | null>(
-    () => pendingDraw?.length ? pendingDraw.map((cardId, index) => ({ key: `${index}-${cardId}`, card: makeCard(cardId) })) : null,
-    [pendingDraw],
+    () => liveOffers?.length ? liveOffers.map((offer, index) => ({
+      key: `${index}-${offer.charId}-${offer.cardDefId}`,
+      card: makeCard(offer.cardDefId),
+      ownerCharId: offer.charId,
+    })) : null,
+    [liveOffers],
   );
   if (!presence.mounted || !displayedSession || !action) return null;
 
@@ -112,11 +102,8 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   const chosenCharId = effectiveCharId && characters[effectiveCharId] ? effectiveCharId : null;
   const lockedName = lockedCharId ? displayedSession.party.find((member) => member.charId === lockedCharId)?.name : null;
   const chosenCharacter = chosenCharId ? characters[chosenCharId] : null;
-  const detailStage = action.kind === "forgeDraw"
-    ? Boolean(chosenCharacter?.pendingDraw)
-    : (action.kind === "forgeRemove" || action.kind === "cureQuirk" || action.kind === "purifyCards")
-      ? Boolean(chosenCharacter)
-      : false;
+  const detailStage = (action.kind === "forgeRemove" || action.kind === "cureQuirk" || action.kind === "purifyCards")
+    && Boolean(chosenCharacter);
   const finish = () => resolvePendingAction();
   const settleDraw = () => {
     setDrawSettled(true);
@@ -127,23 +114,20 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
       options={drawOptions}
       kicker="成长协议 / 奖励"
       title="角色卡牌奖励"
-      caption="三张候选卡牌已经生成，选择一张加入卡组。"
+      caption="候选卡牌来自全队卡池，将加入对应角色的卡组。"
       skipLabel="放弃选择"
       onConfirm={(option) => {
-        if (!chosenCharId) return false;
-        pickDraw(chosenCharId, option.card.id);
-        settleDraw();
+        if (!option.ownerCharId || !pickPartyForgeDraw(option.ownerCharId, option.card.id)) return false;
+        setDrawSettled(true);
       }}
-      onSkip={() => {
-        if (chosenCharId) cancelDraw(chosenCharId);
-        settleDraw();
-      }}
+      onSkip={settleDraw}
     />
   );
   // 退场期间(队列已清空)也保持关闭, 让置换弹窗自己播完退场动画。
   const replaceAction = action.kind === "replaceCard" && !presence.closing ? action : null;
   // 弹窗与面板并列常驻同一位置, 弹窗关闭时才能播完退场动画(不因分支切换被直接卸载)。
-  const hidePanel = Boolean(drawOptions) || drawSettled || awaitingAutoDraw || action.kind === "replaceCard";
+  // 混合抽: 候选未生成(undefined)或已生成(非空)都交给弹窗, 只有空数组才亮出兜底页。
+  const hidePanel = (action.kind === "forgeDraw" && action.offers?.length !== 0) || drawSettled || action.kind === "replaceCard";
 
   return (
     <>
@@ -183,21 +167,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
               )}
 
               {action.kind === "forgeDraw" && (
-                <FreeDraw
-                  locked={Boolean(lockedCharId)}
-                  members={selectableCharacters}
-                  selected={chosenCharId}
-                  character={chosenCharacter}
-                  onSelect={setSelectedChar}
-                  onStart={() => {
-                    if (chosenCharId) startTaintedDraw(chosenCharId);
-                  }}
-                  onSkip={finish}
-                  onAbandon={() => {
-                    if (chosenCharId) cancelDraw(chosenCharId);
-                    finish();
-                  }}
-                />
+                <FreeDraw onFinish={finish} />
               )}
 
               {action.kind === "forgeRemove" && (

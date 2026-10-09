@@ -4,7 +4,10 @@
 //       「放弃」由调用方决定语义。释义只跟随悬停: 设计稿的选中态画面里不出现浮层, 移开鼠标即收起。
 // 版式: 固定 1400×916 面板(设计 px), 外框/选中框/连接线/落位常量全部在 parts/pickGeometry.ts。
 //
-// ⚠ 本组件 portal 到设计画布([data-stage-canvas]), 自带压暗遮罩, 不依赖宿主面板的尺寸与层级。
+// 候选: 全队混合抽, 每张带归属角色(ownerCharId), 不再先选人。
+// 开合: 与锻造师等事件档案面板同款「中缝亮线 → 上下展开」, 不压暗遮罩(见 module.css 顶部)。
+//
+// ⚠ 本组件 portal 到设计画布([data-stage-canvas]), 不依赖宿主面板的尺寸与层级。
 //   z-index 300: 高于胜利面板(40)与探索奖励层(35), 低于全局确认框(500)。
 // ⚠ options 由调用方 useMemo 稳定下来 —— 每次渲染都 makeCard 会让卡面 uid 抖动、memo 全部失效。
 import { createPortal } from "react-dom";
@@ -18,10 +21,12 @@ import { PickFooter } from "./parts/PickFooter";
 import { PickFrame } from "./parts/PickFrame";
 import { PickHeader } from "./parts/PickHeader";
 import { PickKeywordAside } from "./parts/PickKeywordAside";
+import { GRID_LEFT, GRID_TOP } from "./parts/pickGeometry";
 import type { CardPickOption } from "./types";
 import s from "./CardRewardPicker.module.css";
 
-const CLOSE_MS = 220;
+/** 收起时长 = 事件档案面板的 PANEL_CLOSE_MS(与 module.css 的 pickRevealOut 一致)。 */
+const CLOSE_MS = 380;
 
 interface Props {
   /** null / 空数组 = 关闭(带退场动画)。 */
@@ -104,7 +109,7 @@ export function CardRewardPicker({
         <PickFrame />
         <PickHeader kicker={kicker} title={title} caption={caption} />
 
-        <div className={s.grid} data-pick-grid>
+        <div className={s.grid} data-pick-grid style={{ left: GRID_LEFT, top: GRID_TOP }}>
           {shown.map((option, index) => (
             <CardPickSlot
               key={option.key}
@@ -135,6 +140,7 @@ export function CardRewardPicker({
         {detail && (
           <PickKeywordAside key={detail.key} card={detail.card} index={detailIndex} count={shown.length} />
         )}
+        <span className={s.bar} aria-hidden />
       </section>
     </div>,
     document.querySelector<HTMLElement>("[data-stage-canvas]") ?? document.body,

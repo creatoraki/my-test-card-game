@@ -1,13 +1,14 @@
 /* 卡面钢框: 宿主(卡面盒)需 position: relative; 本层盖在 HandCard 之上、选中框(z 4)之下。
-   金属渐变的四个色标走 --rim-*, 悬停只换这组变量; 选中只把右下刻纹/切角亮条转紫(--rim-accent)。 */
+   金属渐变的四个色标走 --rim-*, 悬停 / 选中只换这组变量。颜色按设计稿左卡取色(冷灰蓝钢)。 */
 .rim {
-  --rim-a: #f2f5fa;
-  --rim-b: #b4bcc8;
-  --rim-c: #5d6672;
-  --rim-d: #c9d0da;
-  --rim-line: #7f8a9c;
-  --rim-accent: #c4ccd8;
-  --rim-accent-o: 0.55;
+  --rim-a: #c3ccd3;
+  --rim-b: #7d8791;
+  --rim-c: #4d5660;
+  --rim-d: #8a949e;
+  --rim-hi: #c6d0d8;
+  --rim-hi-low: #4d545c;
+  --rim-bevel: #a3aeb9;
+  --rim-line: #cfd3d8;
   position: absolute;
   z-index: 3;
   top: 0;
@@ -19,22 +20,25 @@
 }
 
 .rim[data-state="hover"] {
-  --rim-a: #ffffff;
-  --rim-b: #cdd4de;
-  --rim-c: #737c89;
-  --rim-d: #dde3ea;
-  --rim-line: #98a3b4;
+  --rim-a: #e2e8ee;
+  --rim-b: #9aa4ae;
+  --rim-c: #646e79;
+  --rim-d: #a7b0ba;
+  --rim-hi: #eef2f6;
+  --rim-hi-low: #6a727c;
+  --rim-bevel: #c3ccd5;
 }
 
-/* 选中: 钢框转暗紫金属(设计稿选中卡的框体偏紫暗), 右下刻纹与切角亮条转亮紫。 */
+/* 选中: 钢框转暗紫金属, 倒角线全部压暗(外缘霓虹芯与内缘亮紫线由 PickSelectFrame 画)。 */
 .rim[data-state="selected"] {
-  --rim-a: #d9c6ff;
-  --rim-b: #6b50b8;
-  --rim-c: #2a1d5a;
-  --rim-d: #8d6ee0;
-  --rim-line: #8f74d8;
-  --rim-accent: #c9a6ff;
-  --rim-accent-o: 0.95;
+  --rim-a: #3a2a78;
+  --rim-b: #2a1d5e;
+  --rim-c: #1f1648;
+  --rim-d: #2e2068;
+  --rim-hi: #4a3896;
+  --rim-hi-low: #3a2c7a;
+  --rim-bevel: #2c2064;
+  --rim-line: #c4b4f0;
 }
 
 .stopA,
@@ -49,17 +53,29 @@
 .stopC { stop-color: var(--rim-c); }
 .stopD { stop-color: var(--rim-d); }
 
-/* 钢框本体之上的三道线: 外缘受光细线 / 中段暗槽 / 内缘暗线, 读作倒角。 */
+/* 钢框之上的线: 外缘受光 2px / 中段暗槽 / 内缘受光 / 内缘暗线, 读作双层倒角。 */
 .edgeHi {
-  stroke: #ffffff;
-  stroke-width: 1.2;
-  opacity: 0.55;
+  stroke-width: 2;
 }
 
+.hiTop,
+.hiLow {
+  transition: stop-color 180ms ease;
+}
+
+.hiTop { stop-color: var(--rim-hi); }
+.hiLow { stop-color: var(--rim-hi-low); }
+
 .groove {
-  stroke: #10151d;
-  stroke-width: 1;
-  opacity: 0.45;
+  stroke: #3a424c;
+  stroke-width: 1.4;
+  opacity: 0.8;
+}
+
+.bevel {
+  stroke: var(--rim-bevel);
+  stroke-width: 1.4;
+  transition: stroke 180ms ease;
 }
 
 .edgeIn {
@@ -67,20 +83,28 @@
   stroke-width: 1.6;
 }
 
-.sheen {
-  stroke: #ffffff;
-  stroke-width: 1.6;
-  opacity: 0.85;
+/* 底边: 一道受光线 + 最外侧下沉的暗色底座。 */
+.baseHi {
+  stroke: var(--rim-hi);
+  stroke-width: 1.4;
+  transition: stroke 180ms ease;
 }
 
-.slab {
-  stroke: var(--rim-accent);
-  stroke-width: 3;
-  opacity: var(--rim-accent-o);
-  transition: stroke 180ms ease, opacity 180ms ease;
+.baseGap {
+  stroke: #05080d;
+  stroke-width: 1.2;
 }
 
-/* 配图/说明分界: 1.2px 亮线 + 其下一道暗线。 */
+.foot {
+  stroke: #50555e;
+  stroke-width: 3.6;
+}
+
+.rim[data-state="selected"] .foot {
+  stroke: #2c1f5c;
+}
+
+/* 配图/说明分界: 1px 亮线 + 其下一道暗线。 */
 .split {
   stroke: var(--rim-line);
   stroke-width: 1.4;
@@ -93,37 +117,52 @@
   opacity: 0.9;
 }
 
-/* 说明区内框: 冷灰蓝亮线 + 外侧暗槽。 */
-.well {
-  fill: #06090f;
-  opacity: 0.92;
+/* 左上 / 右上暗角板 + 斜边亮线。 */
+.plate {
+  fill: #0d1316;
+  opacity: 0.94;
 }
 
-.textFrame {
-  stroke: #66759a;
-  stroke-width: 1.4;
+.plateEdge {
+  stroke: #7a848e;
+  stroke-width: 1.3;
 }
 
-.deco {
-  stroke: var(--rim-accent);
-  stroke-width: 1.6;
-  opacity: calc(var(--rim-accent-o) * 0.7);
-  transition: stroke 180ms ease, opacity 180ms ease;
+.rivet {
+  fill: #9aa4ae;
 }
 
-.sideMark {
-  stroke: #7a6ce0;
-  stroke-width: 2;
+/* 右下钢板斜刻纹。 */
+.hatch {
+  stroke: var(--rim-bevel);
+  stroke-width: 1.2;
   opacity: 0.7;
 }
 
+/* 说明区右侧暗内线。 */
+.textEdge {
+  stroke: #3a4352;
+  stroke-width: 1.3;
+}
+
 .notch {
-  stroke: #0a0e14;
-  stroke-width: 1;
+  stroke: none;
+}
+
+.notchEdge {
+  stroke: #d5dbe0;
+  stroke-width: 1.3;
 }
 
 .screw {
   fill: #1a2029;
-  stroke: #aab4c2;
+  stroke: #8f99a5;
   stroke-width: 1;
+}
+
+/* 右上切角外侧反光条: 取归属色(剑士冰蓝 / 预言家紫 / 植物学家绿)。 */
+.glint {
+  stroke: color-mix(in srgb, var(--owner-color, #78c8ff) 70%, #2a4fd0);
+  stroke-width: 2.6;
+  opacity: 0.9;
 }

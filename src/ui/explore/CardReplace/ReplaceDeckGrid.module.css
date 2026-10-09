@@ -62,13 +62,6 @@
 }
 
 /* 只读(抽牌查看卡组): 不响应点击与上浮, 也不留状态行。 */
-.slot[data-readonly],
-.slot[data-readonly]:hover {
-  grid-template-rows: auto;
-  cursor: var(--cursor-default, default);
-  transform: none;
-}
-
 .cardBox {
   position: relative;
   width: calc(220px * var(--rc-scale));

@@ -1,8 +1,13 @@
 .root {
   width: 100vw;
-  min-height: 100vh;
-  overflow: auto;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   background: #0b1018;
   color: #e8edf5;
   font-size: 18px;
+}
+
+.loading {
+  padding: 24px;
 }

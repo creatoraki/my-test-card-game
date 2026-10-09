@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { cx } from "@/ui/common/shared/cx";
+import { OrnateGem } from "./OrnateGem";
 import s from "./ManaCrystal.module.css";
 
 interface Props {
@@ -11,7 +12,7 @@ interface Props {
   still?: boolean;
   /** 色调。mana 常规法力蓝（默认）· haste 速攻卡的红绿混合。 */
   tone?: "mana" | "haste";
-  /** 华丽外观(圆角宝石 + 亮边 + 顶部高光 + 内倒角), 放大卡面(卡牌三选一)用。默认关闭。 */
+  /** 华丽外观(SVG 宝石: 纵向渐变本体 + 亮边 + 外柔光, 见 OrnateGem), 放大卡面(卡牌三选一)用。默认关闭。 */
   ornate?: boolean;
 }
 
@@ -28,7 +29,7 @@ export const ManaCrystal = memo(function ManaCrystal({ className, state = "norma
       )}
       aria-hidden="true"
     >
-      <span className={s.shape} />
+      {ornate ? <OrnateGem tone={tone} /> : <span className={s.shape} />}
     </span>
   );
 });

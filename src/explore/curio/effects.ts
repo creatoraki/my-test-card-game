@@ -93,8 +93,8 @@ export function applyCurioEffect(
     case "FORGE_DRAW_TAINTED":
       s.pendingActions.push({ kind: "forgeDraw", contaminate: Math.max(0, effect.contaminate) });
       return effect.contaminate > 0
-        ? `获得一次免费卡组锻造，完成后污染 ${effect.contaminate} 张卡牌`
-        : "获得一次免费卡组锻造";
+        ? `获得一次卡牌三选一奖励，候选生成时全队污染 ${effect.contaminate} 张卡牌`
+        : "获得一次卡牌三选一奖励";
     case "REPLACE_CARD_COMMON":
       s.pendingActions.push({ kind: "replaceCard" });
       return "获得一次将卡牌替换为普通卡的机会";

@@ -8,7 +8,7 @@ import {
   removeCostToday,
 } from "@/engine";
 import { bondPool, getCharacter } from "@/data";
-import { addCardToDeck, availablePools, rollRarity } from "../town/deckCards";
+import { addCardToDeck, availablePools, rollPartyDrawOffers, rollRarity } from "../town/deckCards";
 import type { CharacterState, TownGet, TownSet, TownStore } from "../town/townTypes";
 
 export type DeckForgeSlice = Pick<
@@ -16,7 +16,6 @@ export type DeckForgeSlice = Pick<
   | "upgradeDeck"
   | "forgeDraw"
   | "cancelDraw"
-  | "grantFreeDraw"
   | "pickDraw"
   | "rollPartyDrawOffers"
   | "pickPartyDraw"
@@ -37,13 +36,6 @@ function rollDrawOptions(cs: CharacterState): string[] | null {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   return shuffled.slice(0, Math.min(RULES.deck.drawChoices, shuffled.length));
-}
-
-function rollPartyDrawOption(cs: CharacterState): string | null {
-  const pools = availablePools(cs);
-  const rarity = rollRarity(cs.deckLevel, pools, Math.random);
-  const pool = pools[rarity];
-  return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
 }
 
 function cardBelongsToCharacter(cs: CharacterState, cardDefId: string): boolean {
@@ -109,14 +101,6 @@ export function createDeckForgeSlice(set: TownSet, get: TownGet): DeckForgeSlice
       putCharacter(charId, { ...cs, pendingDraw: null });
     },
 
-    grantFreeDraw: (charId) => {
-      const cs = get().characters[charId];
-      if (!cs || cs.pendingDraw) return;
-      const options = rollDrawOptions(cs);
-      if (!options) return;
-      putCharacter(charId, { ...cs, pendingDraw: options });
-    },
-
     pickDraw: (charId, cardDefId) => {
       const cs = get().characters[charId];
       if (!cs?.pendingDraw?.includes(cardDefId)) return;
@@ -129,11 +113,11 @@ export function createDeckForgeSlice(set: TownSet, get: TownGet): DeckForgeSlice
       putCharacter(charId, { ...next, pendingDraw: null });
     },
 
-    rollPartyDrawOffers: (charIds) => charIds.flatMap((charId) => {
-      const cs = get().characters[charId];
-      const cardDefId = cs ? rollPartyDrawOption(cs) : null;
-      return cardDefId ? [{ charId, cardDefId }] : [];
-    }),
+    rollPartyDrawOffers: (charIds, count) => rollPartyDrawOffers(
+      charIds.flatMap((charId) => get().characters[charId] ?? []),
+      Math.random,
+      count,
+    ),
 
     pickPartyDraw: (charId, cardDefId) => {
       const cs = get().characters[charId];

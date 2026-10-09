@@ -2,19 +2,19 @@
    ★ 面板固定 1420×919, 落在画布 (264, 68)(按设计稿, 略偏左上); 内部各区块按面板坐标绝对落位,
      常量见 parts/pickGeometry.ts(PANEL_X / PANEL_Y / PANEL_W / PANEL_H 与这里同步)。
    ★ 外框由 parts/PickFrame 的 SVG 绘制。
-   ★ 配色按设计稿固定为紫 + 冰青, 不跟随全站强调色; 令牌 --pk-* 在 .frame 上下发给所有部件。 */
+   ★ 配色按设计稿固定为紫 + 冰青, 不跟随全站强调色; 令牌 --pk-* 在 .frame 上下发给所有部件。
+   ★ 不压暗遮罩: .layer 只是全屏透明的点击拦截层, 背后的场景原样露出。
+   ★ 开合动画与锻造师等事件档案面板(explorePanel 的 panel-reveal)同一套节奏:
+     中缝亮线横向拉开(180ms) → 面板从中缝上下展开(520ms); 收起倒放(380ms)。
+     时长与缓动须和 ui/explore/styles/panelReveal.ts 的 PANEL_* 保持一致; 收起时长另见 CardRewardPicker.tsx 的 CLOSE_MS。 */
 .layer {
   position: absolute;
   z-index: 300;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 45%, #0a0e24b3 0%, #03050fe6 72%);
-  backdrop-filter: blur(6px) saturate(0.85);
-  animation: pickLayerIn 220ms ease-out both;
 }
 
 .layer[data-closing] {
   pointer-events: none;
-  animation: pickLayerOut 220ms ease-in both;
 }
 
 .frame {
@@ -33,27 +33,56 @@
   height: 919px;
   color: #e6ebff;
   isolation: isolate;
-  animation: pickFrameIn 460ms cubic-bezier(0.16, 1, 0.3, 1) 40ms both;
+  /* backwards: 播完即撤掉裁切, 外框辉光与侧边词条浮层不会被裁掉。 */
+  animation: pickRevealIn 700ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 .layer[data-closing] .frame {
-  animation: pickFrameOut 200ms ease-in both;
+  animation: pickRevealOut 380ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ── 候选网格: 左上 (121, 220), 三列 350, 列距 46 ──
-   卡面放大到 350×482(说明区 132), 经 HandCard 的变量钩子把徽章、卡名、说明字号与底色一并放大/换色(费用水晶另由 ornateCost 换成华丽宝石),
-   说明区净高 = 132 − 3 − 15 − 6 = 108px: 22px×3 行 / 20px×4 行 / 18px×4 行; 动态数值再放大 1.15 倍。
+/* 展开 / 收起时的中缝亮线(同事件档案面板的 panel-bar)。 */
+.bar {
+  position: absolute;
+  z-index: 30;
+  top: calc(50% - 1.5px);
+  left: 0;
+  width: 100%;
+  height: 3px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--pk-violet-hi), var(--pk-cyan), var(--pk-violet-hi), transparent);
+  box-shadow: 0 0 18px var(--pk-violet);
+  transform: scaleX(0);
+  animation: pickBarIn 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.layer[data-closing] .bar {
+  animation: pickBarOut 380ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── 候选网格: 左上由 pickGeometry 下发 (119, 200), 三列 354, 列距 44 ──
+   卡面放大到 354×483(说明区 143, 配图 354×340 由 HandCard 按说明区高度自动让出), 经 HandCard 的变量钩子把徽章、卡名、说明字号与底色一并放大/换色(费用水晶另由 ornateCost 换成华丽宝石),
+   说明区净高 = 143 − 3 − 15 − 6 = 119px: 22px×3 行 / 20px×4 行 / 18px×4 行; 动态数值再放大 1.15 倍。
    卡名纯白、说明提亮、说明区深海军蓝底, 按设计稿; 卡外圈的银色钢框由 parts/PickCardRim 叠加。 */
 .grid {
-  --hand-card-w: 350px;
-  --hc-text-h: 132px;
-  --hand-card-h: calc(var(--hand-card-w) + var(--hc-text-h));
+  --hand-card-w: 354px;
+  --hc-text-h: 143px;
+  --hand-card-h: 483px;
+  --hc-art-size: cover;
+  /* 费用宝石(设计稿实测): 顶点对顶点 60px, 中心距卡左上 (50.5, 46); 数字白字形高 29px、宽于 BebasNeue(横向拉 1.16)、
+     外露 2px 深色描边(法力=深海军蓝 / 速攻=深棕), 字下 2px 投影压暗宝石。宝石本身不再投暗影。 */
   --hc-cost-size: 74px;
   --hc-crystal-size: 66px;
+  --hc-cost-left: 13px;
+  --hc-cost-top: 10.5px;
   --hc-cost-font: 42px;
-  --hc-cost-stroke: 6px;
+  --hc-cost-stroke: 4px;
+  --hc-cost-stroke-color: #04214a;
+  --hc-cost-shadow: 0 2px 2px #0000008c, 0 0 5px #00102a59;
+  --hc-cost-nudge: -1.5px -0.5px;
+  --hc-cost-stretch: 1.16 1;
   --hc-cost-clip: none;
-  --hc-crystal-filter: drop-shadow(0 3px 3px #000000a6);
+  --hc-crystal-filter: none;
   --hc-title-h: 54px;
   --hc-title-font: 30px;
   --hc-title-pad: 24px;
@@ -69,11 +98,14 @@
   --hc-text-sm-lines: 4;
   position: absolute;
   z-index: 2;
-  top: 220px;
-  left: 121px;
   display: grid;
   grid-template-columns: repeat(3, var(--hand-card-w));
-  gap: 46px;
+  gap: 44px;
+}
+
+/* 速攻卡的宝石是橙→青柠, 数字描边换深棕。 */
+.grid :global([data-hand-card][data-card-type="fast"]) {
+  --hc-cost-stroke-color: #2b1306;
 }
 
 .noteName {
@@ -82,34 +114,27 @@
   text-shadow: 0 0 10px #8f4dff88;
 }
 
-@keyframes pickLayerIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* 21% ≈ 亮线段(180 / 700)。完整态外扩 40px, 给越出面板的外框描边与辉光留余量。 */
+@keyframes pickRevealIn {
+  0% { clip-path: inset(calc(50% - 2px) 46%); }
+  21% { clip-path: inset(calc(50% - 2px) -40px); }
+  100% { clip-path: inset(-40px); }
 }
 
-@keyframes pickLayerOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+@keyframes pickRevealOut {
+  0% { clip-path: inset(-40px); }
+  79% { clip-path: inset(calc(50% - 2px) -40px); }
+  100% { clip-path: inset(calc(50% - 2px) 46%); }
 }
 
-@keyframes pickFrameIn {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+@keyframes pickBarIn {
+  0% { opacity: 1; transform: scaleX(0); }
+  21% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1); }
 }
 
-@keyframes pickFrameOut {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(10px) scale(0.98);
-  }
+@keyframes pickBarOut {
+  0% { opacity: 0; transform: scaleX(1); }
+  79% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 1; transform: scaleX(0); }
 }

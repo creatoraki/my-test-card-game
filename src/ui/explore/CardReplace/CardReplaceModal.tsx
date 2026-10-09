@@ -16,6 +16,8 @@ interface Props {
   /** null = 关闭(带退场动画)。 */
   action: ReplaceCardAction | null;
   members: ExploreState["party"];
+  /** 独立角色数据，用于界面演示等受控场景。 */
+  characters?: Record<string, CharacterState>;
   lockedCharId: string | null;
   kicker?: string;
   paymentNote?: string;
@@ -25,7 +27,7 @@ interface Props {
   onFinish: () => void;
 }
 
-export function CardReplaceModal({ action, members, lockedCharId, kicker = "置换协议 / 服务", paymentNote, unavailableReason, onReplace, onFinish }: Props) {
+export function CardReplaceModal({ action, members, characters, lockedCharId, kicker = "置换协议 / 服务", paymentNote, unavailableReason, onReplace, onFinish }: Props) {
   const cardReason = useCallback((character: CharacterState, card: Card) =>
     commonReplaceCandidates(character, card.uid).length ? null : "没有可换出的普通卡", []);
   return (
@@ -34,6 +36,7 @@ export function CardReplaceModal({ action, members, lockedCharId, kicker = "置�
       open={Boolean(action)}
       result={action?.result ?? null}
       members={members}
+      characters={characters}
       lockedCharId={lockedCharId}
       kicker={kicker}
       paymentNote={paymentNote}

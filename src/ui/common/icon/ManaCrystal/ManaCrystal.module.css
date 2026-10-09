@@ -88,56 +88,14 @@
   animation: none;
 }
 
-/* ── 华丽外观(is-ornate): 卡牌三选一的放大卡面用, 按设计稿复刻 ──
-   ⚠ .shape 本身旋转了 45°: 元素内 135deg 的渐变在屏幕上是自上而下; 元素左上角 = 屏幕顶角, 右上角 = 屏幕右角。
-   结构: 本体纵向渐变 → 外圈亮边(spread 阴影, 跟随圆角) → 一圈暗描边 → 同色外发光;
-         内侧一圈受光倒角线(::after) + 上半部玻璃高光(::before)。 */
-.crystal.is-ornate {
-  --_body: linear-gradient(135deg, #39c4ff 0%, #129cf6 30%, #0a76e2 62%, #0858c4 100%);
-  --_rim: #7ff0ff;
-  --_rim-dark: #02234f;
-  --_glow: rgba(20, 190, 255, 0.85);
-  --_streak: rgba(210, 248, 255, 0.45);
-}
-
-.crystal.is-ornate.is-haste {
-  --_body: linear-gradient(135deg, #e3401a 0%, #f07c1c 32%, #e2b426 58%, #8fd63a 100%);
-  --_rim: #ffd65a;
-  --_rim-dark: #4a1f05;
-  --_glow: rgba(255, 160, 40, 0.7);
-  --_streak: rgba(255, 240, 200, 0.35);
-}
-
-.crystal.is-ornate .shape {
-  border-radius: calc(7px * var(--_u));
-  background:
-    radial-gradient(circle at 86% 14%, var(--_streak), transparent 34%),
-    var(--_body);
-}
-
-.crystal.is-ornate.is-normal .shape {
-  box-shadow:
-    0 0 0 calc(1.6px * var(--_u)) var(--_rim),
-    0 0 0 calc(3.6px * var(--_u)) var(--_rim-dark),
-    0 0 calc(10px * var(--_u)) calc(3px * var(--_u)) var(--_glow),
-    0 0 calc(22px * var(--_u)) calc(2px * var(--_u)) var(--_glow),
-    inset 0 0 calc(6px * var(--_u)) rgba(255, 255, 255, 0.22);
-}
-
-.crystal.is-ornate .shape::after {
-  inset: calc(3px * var(--_u));
-  border: calc(1.5px * var(--_u)) solid rgba(255, 255, 255, 0.4);
-  border-right-color: rgba(255, 255, 255, 0.12);
-  border-bottom-color: rgba(255, 255, 255, 0.12);
-  border-radius: calc(5px * var(--_u));
-}
-
-.crystal.is-ornate:not(.is-active) .shape::before {
-  content: "";
+/* ── 华丽外观(is-ornate): 卡牌三选一的放大卡面用, 整颗宝石由 OrnateGem 的 SVG 绘制 ──
+   外柔光会越出 66 见方画布几像素, 必须 overflow: visible。 */
+.ornateGem {
   position: absolute;
-  inset: calc(1px * var(--_u));
-  border-radius: calc(6px * var(--_u));
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.14) 36%, transparent 50%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
 @keyframes breathe {

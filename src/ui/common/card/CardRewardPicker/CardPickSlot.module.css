@@ -1,4 +1,4 @@
-/* 三选一候选格: 归属行(32) + 16 + 卡面(350×482)。尺寸常量与 parts/pickGeometry.ts 同步。
+/* 三选一候选格: 归属行(32) + 16 + 卡面(354×483)。尺寸常量与 parts/pickGeometry.ts 同步。
    卡面放大的字号/徽章钩子由父级网格(CardRewardPicker.module.css .grid)下发。
    设计稿里三张候选始终同亮: 选中别的卡时其余候选不压暗, 选中卡也不上浮(只靠霓虹框区分)。 */
 .slot {
@@ -62,12 +62,12 @@
   transition: transform 200ms cubic-bezier(0.2, 0.72, 0.28, 1);
 }
 
-/* 卡面轮廓改成与 parts/PickCardRim 钢框同形(左上 16 / 右上 8 / 右下 22 / 左下 8), 与 CARD_CORNERS 同步;
+/* 卡面轮廓改成与 parts/PickCardRim 钢框同形(左上 12 / 右上 12 / 右下 16 / 左下 8), 与 CARD_CORNERS 同步;
    卡底的投影与厚度板仍是手牌的 14px 双斜切形状, 会从新轮廓边角露出 ⇒ 三选一里一并隐藏(设计稿卡面平贴面板)。 */
 .cardBox :global([data-hand-card]) {
   clip-path: polygon(
-    16px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 22px),
-    calc(100% - 22px) 100%, 8px 100%, 0 calc(100% - 8px), 0 16px
+    12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 16px),
+    calc(100% - 16px) 100%, 8px 100%, 0 calc(100% - 8px), 0 12px
   );
 }
 

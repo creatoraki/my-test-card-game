@@ -74,3 +74,39 @@ export function commonReplaceCandidates(cs: CharacterState, uid: string): string
   return availablePools({ ...cs, deck: cs.deck.filter((other) => other.uid !== uid) }).common
     .filter((id) => id !== card.id);
 }
+
+/** 全队混合抽的一张候选: 卡牌归属的角色 + 卡牌定义 id。 */
+export interface PartyDrawOffer {
+  charId: string;
+  cardDefId: string;
+}
+
+/**
+ * 全队混合三选一: 把传入角色的卡池混在一起抽 count 张(默认 drawChoices = 3), 不需要先选人。
+ * 角色顺序先打乱, 再按顺序轮流各抽一张 —— 3 人存活时恰好每人一张, 不足 3 人时从头轮流补足。
+ * 每张都按该角色自己的卡组等级摇稀有度并遵守限携; 同名卡不重复出现, 某角色卡池抽干时跳到下一名。
+ */
+export function rollPartyDrawOffers(
+  characters: CharacterState[],
+  rand: () => number,
+  count: number = RULES.deck.drawChoices,
+): PartyDrawOffer[] {
+  const order = [...characters];
+  for (let i = order.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rand() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  const offers: PartyDrawOffer[] = [];
+  const taken = new Set<string>();
+  for (let attempt = 0; order.length && offers.length < count && attempt < count * order.length * 2; attempt += 1) {
+    const cs = order[attempt % order.length];
+    const pools = availablePools(cs);
+    for (const rarity of Object.keys(pools) as Rarity[]) pools[rarity] = pools[rarity].filter((id) => !taken.has(id));
+    const pool = pools[rollRarity(cs.deckLevel, pools, rand)];
+    if (!pool.length) continue;
+    const cardDefId = pool[Math.floor(rand() * pool.length)];
+    taken.add(cardDefId);
+    offers.push({ charId: cs.charId, cardDefId });
+  }
+  return offers;
+}

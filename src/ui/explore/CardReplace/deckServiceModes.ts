@@ -1,11 +1,11 @@
-// 卡组面板的四种服务: 文案与舱位事实表。弹窗骨架(DeckServiceModal)不按服务分支写文案, 统一从这里取。
-import { cardDisplayName, RULES, type Card } from "@/engine";
+// 卡组面板的三种服务: 文案与舱位事实表。弹窗骨架(DeckServiceModal)不按服务分支写文案, 统一从这里取。
+import { cardDisplayName, type Card } from "@/engine";
 import { commonReplaceCandidates } from "@/store/town/deckCards";
 import type { CharacterState } from "@/store/town/townTypes";
 import type { ChamberFact } from "./ReplaceChamber";
 import type { DeckSlotLabels } from "./ReplaceDeckGrid";
 
-export type DeckServiceMode = "replace" | "remove" | "copy" | "draw";
+export type DeckServiceMode = "replace" | "remove" | "copy";
 
 export interface DeckServiceText {
   title: string;
@@ -70,24 +70,10 @@ export const DECK_SERVICE_TEXT: Record<DeckServiceMode, DeckServiceText> = {
     confirm: "确认复制",
     abandon: "放弃复制",
   },
-  draw: {
-    title: "三选一抽牌",
-    chamber: "抽牌舱",
-    caption: "选择一名角色，确认后从其专属候选中三选一，领取一张加入卡组。",
-    doneCaption: "",
-    slot: { idle: "", picked: "" },
-    emptyText: `确认后生成${RULES.deck.drawChoices}张候选`,
-    prompt: "切换页签选择要抽牌的角色",
-    picked: () => "",
-    doneNote: "",
-    countLabel: "",
-    confirm: "生成候选",
-    abandon: "放弃抽牌",
-  },
 };
 
 /** 舱位事实表: 把这次服务的结果范围、模组去向逐条列出。 */
-export function chamberFacts(mode: DeckServiceMode, character: CharacterState | undefined, card: Card | null, ownerName: string): ChamberFact[] {
+export function chamberFacts(mode: DeckServiceMode, character: CharacterState | undefined, card: Card | null): ChamberFact[] {
   const deckSize = character?.deck.length ?? 0;
   const cardName = card ? `「${cardDisplayName(card)}」` : "未选择";
   if (mode === "replace") {
@@ -105,16 +91,9 @@ export function chamberFacts(mode: DeckServiceMode, character: CharacterState | 
       { label: "原卡模组", value: card ? (card.cardModule ? "将随原卡一并移除" : "无模组") : "—", tone: card?.cardModule ? "warn" : undefined },
     ];
   }
-  if (mode === "copy") {
-    return [
-      { label: "复制卡牌", value: cardName },
-      { label: "获得", value: card ? "干净的同名卡" : "—" },
-      { label: "模组与污染", value: "不继承" },
-    ];
-  }
   return [
-    { label: "抽牌角色", value: ownerName },
-    { label: "候选", value: `${RULES.deck.drawChoices} 张专属卡三选一` },
-    { label: "当前卡组", value: `${deckSize} 张` },
+    { label: "复制卡牌", value: cardName },
+    { label: "获得", value: card ? "干净的同名卡" : "—" },
+    { label: "模组与污染", value: "不继承" },
   ];
 }

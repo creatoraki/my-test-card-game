@@ -124,7 +124,8 @@ export interface EventChoice {
 
 type PendingActionBody =
   | { kind: "expOne"; amount: number }
-  | { kind: "forgeDraw"; contaminate?: number }
+  /** 全队混合三选一; offers 由奖励浮层打开时生成(未生成 = undefined, 空数组 = 无可加入的卡)。 */
+  | { kind: "forgeDraw"; contaminate?: number; offers?: CardOfferCandidate[] }
   | { kind: "replaceCard"; result?: CardReplaceResult }
   | { kind: "equipmentTune"; mode: "bond" | "perfectness"; foodCost: number; result?: { before: ItemStack; after: ItemStack } }
   | { kind: "forgeRemove" }

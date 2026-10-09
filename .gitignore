@@ -11,3 +11,4 @@ tmp/
 output/
 处理后的WebP素材/
 交互物体暂定区/
+.playwright-mcp/

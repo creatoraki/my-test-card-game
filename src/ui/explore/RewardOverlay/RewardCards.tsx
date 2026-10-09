@@ -4,60 +4,15 @@ import { HandCard } from "@/ui/common/card/HandCard";
 import { EventPanelStage, EventPanelBody, EventPanelFoot, EventPanelButton, EventPanelNotice } from "@/ui/common/widget/EventPanel";
 import { MemberList } from "./RewardCharacters";
 import s from "@/ui/explore/styles/rewardKit.module.css";
-export function FreeDraw({
-  locked = false,
-  members,
-  selected,
-  character,
-  onSelect,
-  onStart,
-  onSkip,
-  onAbandon,
-}: {
-  /** 目标已锁定为交互者: 由 RewardOverlay 自动开始锻造, 不再显示选人页。 */
-  locked?: boolean;
-  members: ExploreState["party"];
-  selected: string | null;
-  character: { pendingDraw: string[] | null } | null;
-  onSelect: (id: string) => void;
-  onStart: () => void;
-  onSkip: () => void;
-  /** 候选为空时结束奖励: 清掉候选, 不加入任何卡牌。 */
-  onAbandon: () => void;
-}) {
-  if (!character?.pendingDraw && !locked) {
-    return (
-      <EventPanelStage>
-        <EventPanelBody caption="选择一名角色，生成三张角色专属候选卡牌。" scroll={false}>
-          {members.length ? (
-            <MemberList members={members} selected={selected} onSelect={onSelect} />
-          ) : (
-            <EventPanelNotice>当前没有可用的存活角色。</EventPanelNotice>
-          )}
-        </EventPanelBody>
-        <EventPanelFoot note={members.length ? (selected ? "本次抽卡不额外消耗经验" : "请选择角色") : "奖励无法执行"}>
-          {members.length ? (
-            <>
-              <EventPanelButton tone="primary" disabled={!selected} onClick={onStart}>
-                开始锻造
-              </EventPanelButton>
-              <EventPanelButton onClick={onSkip}>放弃锻造</EventPanelButton>
-            </>
-          ) : (
-            <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>
-          )}
-        </EventPanelFoot>
-      </EventPanelStage>
-    );
-  }
-  // 候选非空时三选一由 RewardOverlay 交给 CardRewardPicker 弹窗, 这里只剩「没有可生成候选」的兜底。
+/** 角色卡牌奖励的兜底页: 全队混合抽没有生成任何候选(卡池抽干 / 限携已满)时才出现; 有候选时三选一由 CardRewardPicker 弹窗负责。 */
+export function FreeDraw({ onFinish }: { onFinish: () => void }) {
   return (
     <EventPanelStage>
-      <EventPanelBody caption="当前角色没有可生成的卡牌候选。">
-        <EventPanelNotice>当前角色没有可生成的卡牌候选。</EventPanelNotice>
+      <EventPanelBody caption="全队当前没有可加入卡组的卡牌候选。">
+        <EventPanelNotice>全队当前没有可加入卡组的卡牌候选。</EventPanelNotice>
       </EventPanelBody>
-      <EventPanelFoot note="本次免费锻造无法执行">
-        <EventPanelButton onClick={onAbandon}>结束奖励</EventPanelButton>
+      <EventPanelFoot note="本次卡牌奖励无法执行">
+        <EventPanelButton onClick={onFinish}>结束奖励</EventPanelButton>
       </EventPanelFoot>
     </EventPanelStage>
   );

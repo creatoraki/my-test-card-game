@@ -11,52 +11,84 @@ export const PANEL_W = 1420;
 export const PANEL_H = 919;
 
 /**
- * 面板外轮廓(顺时针):
- * 左上页签(大切角) → 页签末端两级下沉 → 中段 → 右段回升一级 → 右上大切角 → 右侧主体
- * → 按钮区向外扩 → 右下两级内收 → 底边 → 底边在放弃按钮左侧上台阶 → 左下大切角。
+ * 面板底的填充轮廓(最外圈, 顺时针): 左上暗页签 → 页签末端两级下沉 → 中段 → 右段回升 → 右上大切角
+ * → 右侧主体 → 两级外扩到按钮区 → 右下两级内收 → 底边台阶 → 左下大切角 → 左缘两级内收 → 回到页签。
+ * 2026-10-09 第五轮按设计稿逐线量取(峰值检测 + 8 倍放大): 左缘主亮线在 x=13, 页签暗线外凸到 x=-1。
  */
-export const PANEL_OUTLINE: readonly Point[] = [
-  [0, 38], [38, 0], [424, 0], [456, 32], [498, 32], [513, 47],
-  [1008, 47], [1031, 24], [1306, 24], [1371, 89],
-  [1371, 600], [1420, 649], [1420, 820], [1397, 843], [1397, 880], [1358, 919],
-  [728, 919], [714, 905], [60, 905], [0, 845],
+export const PANEL_FILL: readonly Point[] = [
+  [-1, 42], [40, 1], [420, 1], [449, 32], [499, 32], [524, 47],
+  [1004, 47], [1026, 24], [1307, 24], [1364, 80], [1364, 477], [1373, 477],
+  [1401, 504], [1401, 631], [1420, 649], [1420, 820], [1399, 842], [1399, 877], [1357, 919],
+  [737, 919], [723, 905], [61, 905], [1, 845], [1, 778], [8, 771], [8, 696], [13, 691],
+  [13, 115], [-1, 101],
 ];
 
-/** 内层暗线与面板底图的内缩量。 */
-export const PANEL_INSET = 9;
+/**
+ * 外框描边(折线, 按设计稿分亮度):
+ * main = 近白淡紫主线(上亮下淡紫, 渐变在 PickFrame 里); dim = 左上页签与内线的暗灰紫细线;
+ * soft = 介于两者之间的内侧辅线。
+ */
+export const PANEL_STROKES: readonly { tone: "main" | "dim" | "soft"; points: readonly Point[] }[] = [
+  // 主线: 中段顶边 → 右段回升 → 右上大切角 → 右缘, 在按钮区上方折进内侧继续下行
+  { tone: "main", points: [[459, 47], [1004, 47], [1026, 24], [1307, 24], [1364, 80], [1364, 477], [1372, 485]] },
+  // 主线: 按钮区外扩 → 右下两级内收 → 底边台阶 → 左下大切角 → 左缘两级内收 → 左上切角(冰蓝厚条压在上面)
+  {
+    tone: "main",
+    points: [
+      [1373, 477], [1401, 504], [1401, 631], [1420, 649], [1420, 820], [1399, 842], [1399, 877], [1357, 919],
+      [737, 919], [723, 905], [61, 905], [1, 845], [1, 778], [8, 771], [8, 696], [13, 691], [13, 50], [47, 16],
+    ],
+  },
+  // 左上外凸暗页签: 左缘主线外侧一级 → 大切角 → 顶边 → 页签末端两级下沉, 汇入中段主线
+  { tone: "dim", points: [[13, 115], [-1, 101], [-1, 42], [40, 1], [420, 1], [449, 32], [499, 32], [524, 47]] },
+  // 页签内线: 左上切角末端 → 顶边 → 斜下汇入中段主线
+  { tone: "dim", points: [[47, 15], [431, 15], [459, 47]] },
+  // 右上内线: 与右段顶边、右上切角平行
+  { tone: "dim", points: [[1033, 38], [1296, 38], [1362, 104]] },
+  // 右缘内线: 按钮区外扩后仍沿原右缘下行, 再斜向外汇入(斜段是冰蓝厚条)
+  { tone: "soft", points: [[1372, 485], [1372, 602]] },
+  // 左下内线: 沿左缘内侧斜下 → 底边内侧一段亮短线
+  { tone: "soft", points: [[14, 826], [82, 894], [183, 894]] },
+  // 左下外凸内线: 左缘外凸段的内侧竖线
+  { tone: "dim", points: [[8, 778], [8, 840]] },
+];
 
 /**
- * 外框上的发光厚条(折线, 画在内外两道线之间或贴外线)。
- * cyan = 冰蓝, violet = 主紫, white = 白紫亮条(右侧按钮区外缘)。
+ * 外框上的发光厚条(压在描边上)。cyan = 钴蓝, ice = 浅冰蓝, white = 近白亮条。
  */
-export const PANEL_ACCENTS: readonly { tone: "cyan" | "violet" | "white"; width: number; points: readonly Point[] }[] = [
-  // 左上大切角内侧的冰蓝厚条
-  { tone: "cyan", width: 6, points: [[8, 39], [36, 11]] },
-  // 左下大切角内侧的冰蓝厚条
-  { tone: "cyan", width: 6, points: [[13, 845], [51, 883]] },
-  // 右下内收切角上的冰蓝厚条
-  { tone: "cyan", width: 5, points: [[1393, 884], [1364, 913]] },
-  // 右上切角一段紫色亮边
-  { tone: "violet", width: 3, points: [[1236, 24], [1306, 24], [1371, 89], [1371, 170]] },
-  // 右侧按钮区外缘的白紫竖条(贴外线外侧 3px)
-  { tone: "white", width: 4, points: [[1423, 702], [1423, 818]] },
-  // 底边左段一道短亮线(压在内线上)
-  { tone: "white", width: 2, points: [[78, 896], [180, 896]] },
+export const PANEL_ACCENTS: readonly { tone: "cyan" | "ice" | "white"; width: number; points: readonly Point[] }[] = [
+  // 左上切角: 主线左缘 → 页签内线
+  { tone: "cyan", width: 4, points: [[16, 48], [47, 17]] },
+  // 左下: 左缘外凸内侧竖线末端斜下
+  { tone: "cyan", width: 4, points: [[9, 840], [50, 881]] },
+  // 右下内收切角
+  { tone: "cyan", width: 4, points: [[1399, 877], [1357, 919]] },
+  // 右缘内线斜向外汇入按钮区外缘
+  { tone: "ice", width: 3, points: [[1372, 602], [1420, 650]] },
+  // 按钮区上方外扩斜边: 近白亮线
+  { tone: "white", width: 2.5, points: [[1373, 477], [1401, 504]] },
+  // 按钮区外缘近白竖条(贴外线外侧)
+  { tone: "white", width: 3, points: [[1422, 702], [1422, 817]] },
+  // 底边左段亮短线
+  { tone: "white", width: 2, points: [[82, 894], [183, 894]] },
 ];
 
 // ── 候选卡 ──
-export const CARD_W = 350;
-export const CARD_TEXT_H = 132;
-export const CARD_H = CARD_W + CARD_TEXT_H;
-export const CARD_GAP = 46;
+// 卡外缘: 左卡 x 383–737、y 316–799(354×483), 列距 44; 配图/说明分界线在 y=656(说明区 143)。
+export const CARD_W = 354;
+export const CARD_TEXT_H = 143;
+export const CARD_H = 483;
+export const CARD_GAP = 44;
 /** 归属行高 + 与卡面的间距。 */
 export const OWNER_ROW_H = 32;
 export const OWNER_GAP = 16;
 /** 候选网格左上角(含归属行)。 */
-export const GRID_LEFT = 121;
-export const GRID_TOP = 220;
+export const GRID_LEFT = 119;
+export const GRID_TOP = 200;
 export const CARD_TOP = GRID_TOP + OWNER_ROW_H + OWNER_GAP;
 export const CARD_BOTTOM = CARD_TOP + CARD_H;
+/** 配图与说明区分界线(卡内 y)。 */
+export const CARD_SPLIT = CARD_H - CARD_TEXT_H;
 
 export const columnCenter = (index: number) => GRID_LEFT + index * (CARD_W + CARD_GAP) + CARD_W / 2;
 
@@ -64,16 +96,13 @@ export const columnCenter = (index: number) => GRID_LEFT + index * (CARD_W + CAR
  * 卡框四角斜切(左上 / 右上 / 右下 / 左下)。三选一里 HandCard 的 clip-path 也改成同一形状,
  * 卡面边角不会从钢框外露出来。
  */
-export const CARD_CORNERS = { tl: 16, tr: 8, br: 22, bl: 8 } as const;
-/** 银色钢框厚度。 */
-export const CARD_RIM = 7;
-
-/** 选中霓虹框相对卡面的外扩量: 设计稿里霓虹框直接压在卡的钢框外缘上。 */
-export const SELECT_OUTSET = 5;
+export const CARD_CORNERS = { tl: 12, tr: 12, br: 16, bl: 8 } as const;
+/** 选中霓虹带压在钢框外缘上(不外扩); 顶边比卡缘高出 2.5px(设计稿量取)。 */
+export const SELECT_TOP_LIFT = 2.5;
 
 // ── 选中连接线: 选中卡底部小三角 → 下折 → 左行到底栏提示区左端 ──
-export const CONNECTOR_START_Y = CARD_BOTTOM + SELECT_OUTSET + 16;
-export const CONNECTOR_BEND_Y = 809;
+export const CONNECTOR_START_Y = CARD_BOTTOM + 21;
+export const CONNECTOR_BEND_Y = 789;
 export const CONNECTOR_END_X = 70;
 
 export const connectorPoints = (index: number): readonly Point[] => {
@@ -138,4 +167,3 @@ export function insetPolygon(points: readonly Point[], d: number): Point[] {
   });
 }
 
-export const PANEL_INNER = insetPolygon(PANEL_OUTLINE, PANEL_INSET);

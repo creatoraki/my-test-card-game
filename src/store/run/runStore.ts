@@ -60,7 +60,8 @@ interface RunStore extends RunState {
   resolvePendingQuirk: (charId?: string, quirkId?: QuirkId) => void;
   resolvePendingPollution: (charId?: string) => void;
   resolvePendingPurification: (charId: string | undefined, uids: string[]) => void;
-  startTaintedDraw: (charId: string) => void;
+  startPartyForgeDraw: () => void;
+  pickPartyForgeDraw: (charId: string, cardDefId: string) => boolean;
   retreat: () => void; // 主动撤离 → 落袋回城
   finishExpedition: () => void; // 会话自行走到终局(撤离/通关/团灭) → 结算页
   backToTown: () => void;
@@ -152,7 +153,8 @@ export const useRunStore = create<RunStore>((set, get) => ({
   equipFromBackpack: expeditionActions.equipFromBackpack,
   unequipToBackpack: expeditionActions.unequipToBackpack,
   resolvePendingHeal: expeditionActions.resolvePendingHeal,
-  startTaintedDraw: expeditionActions.startTaintedDraw,
+  startPartyForgeDraw: expeditionActions.startPartyForgeDraw,
+  pickPartyForgeDraw: expeditionActions.pickPartyForgeDraw,
   resolvePendingQuirk: expeditionActions.resolvePendingQuirk,
   resolvePendingPollution: expeditionActions.resolvePendingPollution,
   resolvePendingPurification: expeditionActions.resolvePendingPurification,

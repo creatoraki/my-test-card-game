@@ -170,7 +170,7 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
       return `获得一次指定角色经验 +${e.amount}`;
     case "FORGE_DRAW":
       s.pendingActions.push({ kind: "forgeDraw" });
-      return "获得一次免费角色卡组锻造";
+      return "获得一次卡牌三选一奖励";
     case "FORGE_REMOVE":
       s.pendingActions.push({ kind: "forgeRemove" });
       return "获得一次免费角色删卡机会";

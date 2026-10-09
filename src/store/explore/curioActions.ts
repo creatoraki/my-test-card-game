@@ -43,7 +43,8 @@ export function openMerchantShelf(): ExploreState | null {
     ? []
     : useTownStore.getState().rollPartyDrawOffers(
         current.party.filter((member) => member.alive).map((member) => member.charId),
-      ).slice(0, 2);
+        2,
+      );
   return mutateCurio((draft) => openMerchantShelfPure(draft, cards));
 }
 

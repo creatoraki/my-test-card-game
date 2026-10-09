@@ -1,7 +1,8 @@
 // 探索交互的单人奖励 → 直接作用于交互者(执行者), 不再让玩家二次选人。
 // 纯目标奖励(经验 / 治疗 / 体力极限 / 单人污染降低)当场结算出队;
-// 仍需后续选择的(锻造 / 删卡 / 换卡 / 怪癖 / 净化)留在队列并锁定 actorId, 由奖励浮层跳过选人步。
+// 仍需后续选择的(删卡 / 换卡 / 怪癖 / 净化)留在队列并锁定 actorId, 由奖励浮层跳过选人步。
 // 交互者已倒下时, 单人奖励直接作废。
+// ★ 角色卡牌奖励(forgeDraw)不在此列: 它是全队混合三选一, 不锁定也不选人。
 import { applyMemberHealing } from "../session/core/pending";
 import type { ExploreState, PendingAction } from "../types";
 
@@ -9,7 +10,6 @@ const PENDING_NAMES: Partial<Record<PendingAction["kind"], string>> = {
   expOne: "定向经验",
   healOne: "指定治疗",
   healLimitOne: "体力极限修复",
-  forgeDraw: "免费锻造",
   forgeRemove: "免费删卡",
   replaceCard: "普通卡替换",
   cureQuirk: "怪癖治疗",
@@ -22,7 +22,6 @@ function isSingleTarget(action: PendingAction): boolean {
     case "expOne":
     case "healOne":
     case "healLimitOne":
-    case "forgeDraw":
     case "forgeRemove":
     case "replaceCard":
       return true;

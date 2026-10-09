@@ -1,24 +1,10 @@
 /* 三选一面板外框与底层。颜色令牌(--pk-*)由 CardRewardPicker.module.css 的 .frame 下发。
-   层序(自下而上): 全息投影 → 暗底(外轮廓裁切) → 内景底图(内轮廓裁切) → 网格 → 刻度 → SVG 描边。 */
+   层序(自下而上): 暗底(外轮廓裁切) → 内景底图(内轮廓裁切) → 网格 → 刻度 → SVG 描边。 */
 .decor {
   position: absolute;
   z-index: 0;
   inset: 0;
   pointer-events: none;
-}
-
-/* ── 全息卡牌投影: 面板右外侧漂浮, 左缘压进面板, 被面板底盖住一截 ── */
-.hologram {
-  position: absolute;
-  top: 130px;
-  left: 1350px;
-  width: 300px;
-  height: 400px;
-  object-fit: contain;
-  opacity: 0.5;
-  animation:
-    pickHoloIn 600ms ease-out 360ms both,
-    pickHoloFloat 6.4s ease-in-out 960ms infinite;
 }
 
 /* ── 暗底: 设计稿面板像一块深蓝玻璃 —— 上方透、下方实。
@@ -108,24 +94,31 @@
   stroke-linejoin: miter;
 }
 
-.inner {
-  stroke: #3a4697;
-  stroke-width: 1.2;
-  opacity: 0.9;
-}
-
-.outlineGlow {
-  stroke: var(--pk-line);
-  stroke-width: 7;
-  opacity: 0.18;
-}
-
-/* 外线: 设计稿是一道很亮的淡紫蓝细线。 */
-.outline {
-  stroke: #9aa6ff;
-  stroke-width: 2;
+/* 描边: main = 近白淡紫主线 1.6px + 一层淡蓝紫近光; dim = 页签与内线的暗灰紫细线; soft = 内侧辅线。 */
+.strokeCore {
   stroke-dasharray: 1;
   animation: pickOutlineDraw 900ms cubic-bezier(0.3, 0.7, 0.2, 1) 120ms both;
+}
+
+.stroke[data-tone="main"] .strokeCore {
+  stroke: url(#pick-line);
+  stroke-width: 1.6;
+}
+
+.strokeGlow {
+  stroke: #6f86ff;
+  stroke-width: 5;
+  opacity: 0.16;
+}
+
+.stroke[data-tone="dim"] .strokeCore {
+  stroke: #5a6192;
+  stroke-width: 1.6;
+}
+
+.stroke[data-tone="soft"] .strokeCore {
+  stroke: #8890c8;
+  stroke-width: 1.4;
 }
 
 .accent {
@@ -136,13 +129,18 @@
 }
 
 .accent[data-tone="cyan"] {
+  --tone: #3d6cff;
+  --tone-hi: #6592f5;
+}
+
+.accent[data-tone="ice"] {
   --tone: #3d86ff;
-  --tone-hi: #8fd0ff;
+  --tone-hi: #8fc4ff;
 }
 
 .accent[data-tone="white"] {
-  --tone: #9c7cff;
-  --tone-hi: #f3eeff;
+  --tone: #8f9cff;
+  --tone-hi: #eef2ff;
 }
 
 .accentHalo {
@@ -157,6 +155,15 @@
 
 .accentCore {
   stroke: var(--tone-hi);
+}
+
+/* 近白亮条在设计稿里是干净的细亮线, 只留一层很窄的近光。 */
+.accent[data-tone="white"] .accentHalo {
+  opacity: 0;
+}
+
+.accent[data-tone="white"] .accentGlow {
+  opacity: 0.22;
 }
 
 /* 左上斜向护板线: 暗蓝细线。 */
@@ -194,20 +201,4 @@
 @keyframes pickAccentIn {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-@keyframes pickHoloIn {
-  from {
-    opacity: 0;
-    translate: 24px 0;
-  }
-  to {
-    opacity: 0.5;
-    translate: 0 0;
-  }
-}
-
-@keyframes pickHoloFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
 }

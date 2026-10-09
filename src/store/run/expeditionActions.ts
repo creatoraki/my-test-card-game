@@ -59,12 +59,30 @@ export function resolvePendingHeal(charId: string, limit: boolean): void {
   useExploreStore.getState().resolvePendingHealing(charId, limit);
 }
 
-export function startTaintedDraw(charId: string): void {
-  const action = useExploreStore.getState().session?.pendingActions[0];
-  if (!action || action.kind !== "forgeDraw") return;
+// 角色卡牌奖励(forgeDraw) = 全队混合三选一, 不选人: 存活角色的卡池混抽 3 张, 每张带归属角色。
+// 候选写回队首待办(offers), 之后重进浮层也不会重抽; offers 为空数组 = 已抽过但没有可加入的卡。
+// 附带污染时在生成候选那一刻结算, 落在全队存活角色的卡组里(与是否领取无关)。
+export function startPartyForgeDraw(): void {
+  const session = useExploreStore.getState().session;
+  const action = session?.pendingActions[0];
+  if (!session || action?.kind !== "forgeDraw" || action.offers) return;
+  const ids = alivePartyIds();
   const town = useTownStore.getState();
-  town.grantFreeDraw(charId);
-  if (action.contaminate) town.contaminateCards([charId], action.contaminate);
+  const draft = structuredClone(session);
+  const head = draft.pendingActions[0];
+  if (head.kind !== "forgeDraw") return;
+  head.offers = ids.length ? town.rollPartyDrawOffers(ids) : [];
+  useExploreStore.setState({ session: draft });
+  if (action.contaminate && ids.length) town.contaminateCards(ids, action.contaminate);
+}
+
+/** 领取一张混合抽候选并出队; 返回 false = 加入失败(如限携已满), 待办保持不动。 */
+export function pickPartyForgeDraw(charId: string, cardDefId: string): boolean {
+  const action = useExploreStore.getState().session?.pendingActions[0];
+  if (action?.kind !== "forgeDraw" || !action.offers?.some((offer) => offer.charId === charId && offer.cardDefId === cardDefId)) return false;
+  if (!useTownStore.getState().pickPartyDraw(charId, cardDefId)) return false;
+  useExploreStore.getState().resolvePendingAction();
+  return true;
 }
 
 export function resolvePendingQuirk(charId?: string, quirkId?: QuirkId): void {

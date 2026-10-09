@@ -158,9 +158,9 @@ export interface TownStore extends CurioTownSlice {
   upgradeDeck: (charId: string) => void; // 升一级卡组等级
   forgeDraw: (charId: string) => void; // 花 drawCost 经验 → 摇稀有度 → 出 drawChoices 张候选
   cancelDraw: (charId: string) => void; // 放弃待选卡, 不退还已支付的经验
-  grantFreeDraw: (charId: string) => void; // 不消耗经验 → 出 drawChoices 张候选
   pickDraw: (charId: string, cardDefId: string) => void; // 3 选 1 落袋, 清 pendingDraw
-  rollPartyDrawOffers: (charIds: string[]) => { charId: string; cardDefId: string }[];
+  /** 全队混合抽: 传入角色的卡池混抽 count 张(默认 3), 每张带归属角色; 见 deckCards.rollPartyDrawOffers。 */
+  rollPartyDrawOffers: (charIds: string[], count?: number) => { charId: string; cardDefId: string }[];
   pickPartyDraw: (charId: string, cardDefId: string) => boolean;
   removeCard: (charId: string, uid: string) => void; // 花 removeCost 经验删一张卡
   removeCardFree: (charId: string, uid: string) => void; // 不消耗经验删一张卡

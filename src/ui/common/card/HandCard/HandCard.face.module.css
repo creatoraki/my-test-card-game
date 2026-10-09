@@ -12,7 +12,8 @@
   bottom: var(--hc-text-h, 88px);
   background-image: var(--hand-art);
   background-repeat: no-repeat;
-  background-size: contain;
+  /* 钩子 --hc-art-size: 三选一的配图窗是 354×340 的横窗, 改 cover 铺满; 其余场景缺省 contain。 */
+  background-size: var(--hc-art-size, contain);
   background-position: center;
 }
 /* 配图与金属卡底之间垫一层极淡的暗角, 让图"沉"进卡里而不是浮在表面 */
@@ -35,8 +36,9 @@
 .hc-cost {
   position: absolute;
   z-index: 6;
-  left: 12px;
-  top: 12px;
+  /* --hc-cost-left / --hc-cost-top: 放大卡面(三选一)按设计稿微调落位的钩子, 缺省即原值。 */
+  left: var(--hc-cost-left, 12px);
+  top: var(--hc-cost-top, 12px);
   width: var(--hc-cost-size, 46px);
   height: var(--hc-cost-size, 46px);
   display: inline-flex;
@@ -47,7 +49,7 @@
   font-size: var(--hc-cost-font, 20px);
   /* ⚠ 旧版这两道投影是偏蓝的(#02152f / #0a3a6e), 跟着已删除的青蓝 --card-hue 来的。
      卡面中性化后换成纯暗色, 否则数字周围会浮起一圈蓝雾。 */
-  text-shadow: 0 1px 2px #05080a, 0 0 6px #05080acc;
+  text-shadow: var(--hc-cost-shadow, 0 1px 2px #05080a, 0 0 6px #05080acc);
   background: transparent;
   border: 0;
   box-shadow: none;
@@ -71,13 +73,16 @@
 :global([data-hand-card][data-card-type="fast"]) .hc-cost-crystal {
   filter: var(--hc-crystal-filter, drop-shadow(0 2px 3px #01132ee6) drop-shadow(0 0 5px #d68a3c));
 }
-/* ★ --hc-crystal-filter / --hc-cost-stroke 是放大卡面的钩子: 华丽水晶自带同色外发光, 不再叠全站辉光;
-   数字加粗黑描边(paint-order 让描边垫在字形下面, 实际露出一半宽度)。缺省即原值。 */
+/* ★ --hc-crystal-filter / --hc-cost-stroke(-color) / --hc-cost-shadow / --hc-cost-nudge 是放大卡面的钩子:
+   华丽水晶自带同色外发光, 不再叠全站辉光; 数字描边按宝石色调着色(paint-order 让描边垫在字形下面, 实际露出一半宽度);
+   nudge 让数字相对宝石做亚像素级微调; stretch 横向拉宽数字(BebasNeue 是窄体, 设计稿数字更宽)。缺省即原值。 */
 .hc-cost-value {
   position: relative;
   z-index: 1;
-  -webkit-text-stroke: var(--hc-cost-stroke, 0px) #12141a;
+  -webkit-text-stroke: var(--hc-cost-stroke, 0px) var(--hc-cost-stroke-color, #12141a);
   paint-order: stroke fill;
+  translate: var(--hc-cost-nudge, 0 0);
+  scale: var(--hc-cost-stretch, 1);
 }
 .hc-star-pay {
   position: absolute;
