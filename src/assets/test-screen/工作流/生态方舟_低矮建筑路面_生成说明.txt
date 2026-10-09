@@ -1,0 +1,28 @@
+生成方式：内置 imagegen。参考生态方舟地图画风生成两张建筑与路面装饰，再使用原生图像工具进行原尺寸裁切、Y轴平移和左右拼接。没有缩小、拉伸或缩放建筑与装饰。
+
+最终单图尺寸：1536×1024，拼接图尺寸：3072×1024。
+平台：复用原始路面，y=954～973，厚度20px；底部y=974～1023透明，共50px。
+左图：生成图保留y=0～892的建筑与装饰，向下平移61px。
+右图：生成图保留y=0～914的建筑与装饰，向下平移39px。
+路面左右两端各32px渐变过渡至相同的端点颜色，消除重复路面接缝。装饰与建筑保持原始像素比例。
+透明背景，未生成文字。
+
+最终生成提示词（左图）：
+Use case: precise-object-edit.
+Asset type: transparent PNG foreground ground sprite for a 2D side-scrolling game, canvas exactly 1536 x 1024.
+Input image 1 is the EDIT TARGET: transparent canvas with a very thin existing ground platform at y=954..973. Input image 2 is STYLE REFERENCE ONLY: the ecological sci-fi city painting. Do not reproduce the reference city background.
+Primary request: Add a sparse, tasteful row of LOW buildings and small roadside decorations resting ON TOP of the provided thin ground. Preserve original ground pixels and placement, road 20px thick, bottom 50px fully transparent. All additions confined to x=100..1435, y=744..953, touching ground baseline y=954; highest building only 180..210px tall, small props 25..70px. Upper 70% canvas completely transparent. Both outermost 100px of canvas contain only the unchanged road with no decorations, ensuring horizontal A+B seam compatibility.
+Visual style: detailed polished hand-painted sci-fi concept art matching reference, dark blue-grey metal, understated cyan inset light strips, clear daylight highlights, a few lush green plants. Strict orthographic SIDE ELEVATION for platformer, perfectly level ground, no perspective receding ground surface.
+No sky, no backdrop, no distant city, no trees taller than buildings, no tall towers, no people, no cars, no text of any language, no logos, no border, no black/white background, no checkerboard drawn. Genuine alpha transparency around each object, no ambient haze or giant glow. Low unobtrusive skyline, abundant breathing room between object clusters. Design all structures fully inside canvas, never cut an object at edges.
+Keep the original road exactly where it is and exactly as thin as it is.
+This is LEFT tile A: a low compact ecological maintenance pavilion with flat planted roof about 180px tall left of center, a modest seedling greenhouse pod about 140px tall right of center. Small shallow metallic planter, low bench, tiny cyan bollards and low utility crates, with generous empty walkable gaps. Match the existing road scale.
+
+最终生成提示词（右图）：
+Use case: precise-object-edit.
+Asset type: transparent PNG foreground ground sprite for a 2D side-scrolling game, canvas exactly 1536 x 1024.
+Input image 1 is the EDIT TARGET: transparent canvas with a very thin existing ground platform at y=954..973. Input image 2 is STYLE REFERENCE ONLY: the ecological sci-fi city painting. Do not reproduce the reference city background.
+Primary request: Add a sparse, tasteful row of LOW buildings and small roadside decorations resting ON TOP of the provided thin ground. Preserve original ground pixels and placement, road 20px thick, bottom 50px fully transparent. All additions confined to x=100..1435, y=744..953, touching ground baseline y=954; highest building only 180..210px tall, small props 25..70px. Upper 70% canvas completely transparent. Both outermost 100px of canvas contain only the unchanged road with no decorations, ensuring horizontal A+B seam compatibility.
+Visual style: detailed polished hand-painted sci-fi concept art matching reference, dark blue-grey metal, understated cyan inset light strips, clear daylight highlights, a few lush green plants. Strict orthographic SIDE ELEVATION for platformer, perfectly level ground, no perspective receding ground surface.
+No sky, no backdrop, no distant city, no trees taller than buildings, no tall towers, no people, no cars, no text of any language, no logos, no border, no black/white background, no checkerboard drawn. Genuine alpha transparency around each object, no ambient haze or giant glow. Low unobtrusive skyline, abundant breathing room between object clusters. Design all structures fully inside canvas, never cut an object at edges.
+Keep the original road exactly where it is and exactly as thin as it is.
+This is RIGHT tile B: a low compact water recycling service hut with shallow curved roof about 170px tall right of center, a low nursery glass shelter about 130px tall left of center. Small planted troughs, low ventilation cabinet, short cyan bollards and a low bench, with generous empty walkable gaps. Related architecture to tile A but different silhouettes. Match the existing road scale.
