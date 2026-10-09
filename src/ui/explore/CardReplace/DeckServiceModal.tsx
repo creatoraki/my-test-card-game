@@ -21,6 +21,7 @@ import { ReplaceDeckGrid, type ReplaceDeckEntry } from "./ReplaceDeckGrid";
 import { useReplaceSequence } from "./useReplaceSequence";
 import { ChamberSequence } from "./parts/ChamberSequence";
 import { DeckButton } from "./parts/DeckButton";
+import { DeckCardSkinProvider, type DeckCardSkin } from "./parts/DeckCardFace";
 import { DeckFooterNote } from "./parts/DeckFooterNote";
 import { DeckHeader } from "./parts/DeckHeader";
 import { DeckShell } from "./parts/DeckShell";
@@ -60,11 +61,13 @@ interface Props {
   /** 未出结果时放弃; 缺省同 onFinish。 */
   onAbandon?: () => void;
   abandonLabel?: string;
+  /** 卡面皮肤: hand = 原手牌卡面(缺省); pick = 三选一同款卡面(钢框 + 紫色霓虹选中框)。 */
+  cardSkin?: DeckCardSkin;
 }
 
 export function DeckServiceModal({
   mode, open, result, members, characters: characterData, lockedCharId, kicker, paymentNote, unavailableReason,
-  cardReason, characterReason, onConfirm, onFinish, onAbandon, abandonLabel,
+  cardReason, characterReason, onConfirm, onFinish, onAbandon, abandonLabel, cardSkin = "hand",
 }: Props) {
   const presence = useRevealPresence(open, open ? { mode, result, members, lockedCharId } : null, CLOSE_MS);
   const shown = presence.data;
@@ -150,57 +153,59 @@ export function DeckServiceModal({
       onClick={(event) => event.stopPropagation()}
       onMouseDown={(event) => event.stopPropagation()}
     >
-      <section className={s.frame}>
-        <DeckShell />
-        <DeckHeader kicker={kicker} title={text.title} caption={shownResult ? text.doneCaption : text.caption} />
+      <DeckCardSkinProvider value={cardSkin}>
+        <section className={s.frame}>
+          <DeckShell />
+          <DeckHeader kicker={kicker} title={text.title} caption={shownResult ? text.doneCaption : text.caption} />
 
-        <DeckTabs
-          members={shown.members}
-          activeId={charId}
-          pickable={pickable}
-          count={`共 ${gridEntries.length} 张 · ${text.countLabel} ${available} 张`}
-          onPick={setPickedChar}
-        />
-        {gridEntries.length ? (
-          <ReplaceDeckGrid
-            entries={gridEntries}
-            selectedUid={shownResult ? (settledView ? null : shownResult.before?.uid ?? null) : selected?.card.uid ?? null}
-            freshUid={shownResult && settledView ? shownResult.after?.uid ?? null : null}
-            interactive={!shownResult}
-            actionLabel={text.slotAction}
-            onSelect={setSelectedUid}
+          <DeckTabs
+            members={shown.members}
+            activeId={charId}
+            pickable={pickable}
+            count={`共 ${gridEntries.length} 张 · ${text.countLabel} ${available} 张`}
+            onPick={setPickedChar}
           />
-        ) : (
-          <p className={s.notice}>当前没有可处理的角色卡组。</p>
-        )}
-
-        <ReplaceChamber
-          label={text.chamber}
-          card={selected?.card ?? null}
-          facts={shownResult
-            ? resultFacts(shown.mode, shownResult.before, shownResult.after, done)
-            : chamberFacts(shown.mode, character, selected?.card ?? null)}
-          status={status}
-          emptyText={text.emptyText}
-          sequence={shownResult
-            ? <ChamberSequence key={runKey} mode={shown.mode} before={shownResult.before} after={shownResult.after} phase={phase} />
-            : undefined}
-        />
-
-        <DeckFooterNote tone={noteTone}>
-          {note}{!shownResult && paymentNote ? ` · ${paymentNote}` : ""}
-        </DeckFooterNote>
-        <div data-sfx="off">
-          {shownResult ? (
-            <DeckButton variant="confirm" label="完成" disabled={!done} onClick={() => settle(onFinish)} />
+          {gridEntries.length ? (
+            <ReplaceDeckGrid
+              entries={gridEntries}
+              selectedUid={shownResult ? (settledView ? null : shownResult.before?.uid ?? null) : selected?.card.uid ?? null}
+              freshUid={shownResult && settledView ? shownResult.after?.uid ?? null : null}
+              interactive={!shownResult}
+              actionLabel={text.slotAction}
+              onSelect={setSelectedUid}
+            />
           ) : (
-            <>
-              <DeckButton variant="abandon" label={abandonLabel ?? text.abandon} onClick={() => settle(onAbandon ?? onFinish)} />
-              <DeckButton variant="confirm" label={text.confirm} disabled={Boolean(blocked) || !selected} onClick={confirm} />
-            </>
+            <p className={s.notice}>当前没有可处理的角色卡组。</p>
           )}
-        </div>
-      </section>
+
+          <ReplaceChamber
+            label={text.chamber}
+            card={selected?.card ?? null}
+            facts={shownResult
+              ? resultFacts(shown.mode, shownResult.before, shownResult.after, done)
+              : chamberFacts(shown.mode, character, selected?.card ?? null)}
+            status={status}
+            emptyText={text.emptyText}
+            sequence={shownResult
+              ? <ChamberSequence key={runKey} mode={shown.mode} before={shownResult.before} after={shownResult.after} phase={phase} />
+              : undefined}
+          />
+
+          <DeckFooterNote tone={noteTone}>
+            {note}{!shownResult && paymentNote ? ` · ${paymentNote}` : ""}
+          </DeckFooterNote>
+          <div data-sfx="off">
+            {shownResult ? (
+              <DeckButton variant="confirm" label="完成" disabled={!done} onClick={() => settle(onFinish)} />
+            ) : (
+              <>
+                <DeckButton variant="abandon" label={abandonLabel ?? text.abandon} onClick={() => settle(onAbandon ?? onFinish)} />
+                <DeckButton variant="confirm" label={text.confirm} disabled={Boolean(blocked) || !selected} onClick={confirm} />
+              </>
+            )}
+          </div>
+        </section>
+      </DeckCardSkinProvider>
     </div>,
     document.querySelector<HTMLElement>("[data-stage-canvas]") ?? document.body,
   );

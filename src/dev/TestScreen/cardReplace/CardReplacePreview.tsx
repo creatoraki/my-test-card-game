@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import type { Card } from "@/engine";
 import { commonReplaceCandidates } from "@/store/town/deckCards";
 import type { CharacterState } from "@/store/town/townTypes";
-import { DeckServiceModal, type DeckServiceMode, type DeckServiceResult } from "@/ui/explore/CardReplace";
+import { DeckServiceModal, type DeckCardSkin, type DeckServiceMode, type DeckServiceResult } from "@/ui/explore/CardReplace";
 import { PreviewStage } from "../preview/PreviewStage";
 import { createCardReplaceDemo, runDemoService } from "./cardReplaceDemoData";
 
@@ -20,6 +20,11 @@ function cardReasonFor(mode: DeckServiceMode) {
   };
 }
 
+const SKINS: { skin: DeckCardSkin; label: string }[] = [
+  { skin: "pick", label: "三选一卡面" },
+  { skin: "hand", label: "原版卡面" },
+];
+
 const REASONS: Record<DeckServiceMode, ReturnType<typeof cardReasonFor>> = {
   replace: cardReasonFor("replace"),
   remove: cardReasonFor("remove"),
@@ -32,6 +37,7 @@ export function CardReplacePreview() {
   const [open, setOpen] = useState(true);
   const [result, setResult] = useState<DeckServiceResult | null>(null);
   const [round, setRound] = useState(0);
+  const [skin, setSkin] = useState<DeckCardSkin>("pick");
   const info = MODES.find((entry) => entry.mode === mode) ?? MODES[0];
 
   const restart = (next: DeckServiceMode) => {
@@ -63,6 +69,11 @@ export function CardReplacePreview() {
           </button>
         ))}
         <button type="button" onClick={() => { setDemo(createCardReplaceDemo()); restart(mode); }}>重置卡组</button>
+        {SKINS.map((entry) => (
+          <button key={entry.skin} type="button" aria-pressed={entry.skin === skin} onClick={() => setSkin(entry.skin)}>
+            {entry.label}
+          </button>
+        ))}
       </>
     }>
       <DeckServiceModal
@@ -77,6 +88,7 @@ export function CardReplacePreview() {
         cardReason={REASONS[mode]}
         onConfirm={confirm}
         onFinish={() => setOpen(false)}
+        cardSkin={skin}
       />
     </PreviewStage>
   );

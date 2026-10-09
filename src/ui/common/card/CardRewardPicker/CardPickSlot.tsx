@@ -4,9 +4,7 @@ import { memo, type CSSProperties } from "react";
 import { getCharacter } from "@/data";
 import { playSfx } from "@/ui/audio";
 import { CrewClassGlyph } from "@/ui/character/glyphs/CrewClassGlyph";
-import { HandCard } from "@/ui/common/card/HandCard";
-import { PickCardRim } from "./parts/PickCardRim";
-import { PickSelectFrame } from "./parts/PickSelectFrame";
+import { PickCardFace } from "./PickCardFace";
 import type { CardPickOption } from "./types";
 import s from "./CardPickSlot.module.css";
 
@@ -59,9 +57,7 @@ export const CardPickSlot = memo(function CardPickSlot({ option, index, selected
         <span className={s.ownerName}>{owner.name}</span>
       </div>
       <div className={s.cardBox}>
-        <HandCard card={card} variant="pile" playable selected={false} ornateCost />
-        <PickCardRim state={frameState} />
-        <PickSelectFrame state={frameState} />
+        <PickCardFace card={card} state={frameState} />
       </div>
     </div>
   );

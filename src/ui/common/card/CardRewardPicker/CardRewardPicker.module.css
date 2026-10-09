@@ -61,51 +61,15 @@
 }
 
 /* ── 候选网格: 左上由 pickGeometry 下发 (119, 200), 三列 354, 列距 44 ──
-   卡面放大到 354×483(说明区 143, 配图 354×340 由 HandCard 按说明区高度自动让出), 经 HandCard 的变量钩子把徽章、卡名、说明字号与底色一并放大/换色(费用水晶另由 ornateCost 换成华丽宝石),
-   说明区净高 = 143 − 3 − 15 − 6 = 119px: 22px×3 行 / 20px×4 行 / 18px×4 行; 动态数值再放大 1.15 倍。
-   卡名纯白、说明提亮、说明区深海军蓝底, 按设计稿; 卡外圈的银色钢框由 parts/PickCardRim 叠加。 */
+   卡面尺寸与放大钩子见 PickCardFace.module.css; 这里只留排版要用的卡宽 / 卡高(候选格宽、卡面宿主尺寸)。 */
 .grid {
   --hand-card-w: 354px;
-  --hc-text-h: 143px;
   --hand-card-h: 483px;
-  --hc-art-size: cover;
-  /* 费用宝石(设计稿实测): 顶点对顶点 60px, 中心距卡左上 (50.5, 46); 数字白字形高 29px、宽于 BebasNeue(横向拉 1.16)、
-     外露 2px 深色描边(法力=深海军蓝 / 速攻=深棕), 字下 2px 投影压暗宝石。宝石本身不再投暗影。 */
-  --hc-cost-size: 74px;
-  --hc-crystal-size: 66px;
-  --hc-cost-left: 13px;
-  --hc-cost-top: 10.5px;
-  --hc-cost-font: 42px;
-  --hc-cost-stroke: 4px;
-  --hc-cost-stroke-color: #04214a;
-  --hc-cost-shadow: 0 2px 2px #0000008c, 0 0 5px #00102a59;
-  --hc-cost-nudge: -1.5px -0.5px;
-  --hc-cost-stretch: 1.16 1;
-  --hc-cost-clip: none;
-  --hc-crystal-filter: none;
-  --hc-title-h: 54px;
-  --hc-title-font: 30px;
-  --hc-title-pad: 24px;
-  --hc-title-color: #ffffff;
-  --hc-text-pad: 15px 26px 6px;
-  --hc-text-color: #eef2fa;
-  --hc-text-bg: linear-gradient(180deg, #121a2e, #0b1020 70%, #090d1a);
-  --hc-text-lg: 22px;
-  --hc-text-lg-lines: 3;
-  --hc-text-md: 20px;
-  --hc-text-md-lines: 4;
-  --hc-text-sm: 18px;
-  --hc-text-sm-lines: 4;
   position: absolute;
   z-index: 2;
   display: grid;
   grid-template-columns: repeat(3, var(--hand-card-w));
   gap: 44px;
-}
-
-/* 速攻卡的宝石是橙→青柠, 数字描边换深棕。 */
-.grid :global([data-hand-card][data-card-type="fast"]) {
-  --hc-cost-stroke-color: #2b1306;
 }
 
 .noteName {

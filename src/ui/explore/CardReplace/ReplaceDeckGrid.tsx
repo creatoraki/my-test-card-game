@@ -1,10 +1,11 @@
 // 卡组面板左侧的卡组柜: 整副卡组四列竖向滚动, 无法处理的卡压暗并在卡面上注明原因, 让玩家知道不是漏了。
 // 点击只「放入舱位」(可改选), 真正执行由底栏确认按钮完成。
 // 选中表现: 琥珀金选中框(DeckSelectFrame) + 轻微上浮, 其余卡退后一步; 演出收束后新卡位闪一次翠绿光。
-import { memo, type CSSProperties } from "react";
+// 三选一卡面皮肤(pick)下改用卡面自带的钢框 + 紫色霓虹选中框, 悬停 / 选中状态由本格记录后下发。
+import { memo, useState, type CSSProperties } from "react";
 import { cardDisplayName, type Card } from "@/engine";
 import { playSfx } from "@/ui/audio";
-import { HandCard } from "@/ui/common/card/HandCard";
+import { DeckCardFace, useDeckCardSkin } from "./parts/DeckCardFace";
 import { DeckSelectFrame } from "./parts/DeckSelectFrame";
 import { DECK, GRID, rectStyle } from "./parts/deckGeometry";
 import s from "./ReplaceDeckGrid.module.css";
@@ -69,6 +70,10 @@ const DeckSlot = memo(function DeckSlot({ entry, index, selected, dimmed, fresh,
 }) {
   const { card, lockedReason } = entry;
   const locked = Boolean(lockedReason);
+  const pickSkin = useDeckCardSkin() === "pick";
+  const [hovered, setHovered] = useState(false);
+  const live = interactive && !locked;
+  const pickState = locked ? null : selected ? "selected" : live && hovered ? "hover" : null;
   const select = () => {
     if (!interactive) return;
     if (locked) {
@@ -99,13 +104,19 @@ const DeckSlot = memo(function DeckSlot({ entry, index, selected, dimmed, fresh,
         event.preventDefault();
         select();
       }}
-      onMouseEnter={() => interactive && !locked && playSfx("cardHover")}
+      onMouseEnter={() => {
+        setHovered(true);
+        if (live) playSfx("cardHover");
+      }}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
     >
       <div className={s.scale}>
         <div className={s.face}>
-          <HandCard card={card} variant="pile" playable selected={false} />
+          <DeckCardFace card={card} state={pickState} selectFrame={!locked} />
         </div>
-        {!locked && <DeckSelectFrame selected={selected} />}
+        {!locked && !pickSkin && <DeckSelectFrame selected={selected} />}
         {locked && <span className={s.reason}>{lockedReason}</span>}
       </div>
     </div>

@@ -5,11 +5,11 @@
 // 挂载即开播(CSS 动画与着色器 uPhase 同帧起算); 播完(done)卸掉着色器画布, 只留结果卡面。
 import { useMemo, useState, type CSSProperties } from "react";
 import type { Card } from "@/engine";
-import { HandCard } from "@/ui/common/card/HandCard";
 import { GlslSprite, GLSL_COMMON, type GlslProgramDef, type GlslUniforms } from "@/ui/common/fx/GlslSprite";
 import { chamberTimeline, type ReplacePhase } from "../useReplaceSequence";
 import type { DeckServiceMode } from "../deckServiceModes";
 import { GLSL_CHAMBER_TRANSMUTE } from "./chamberTransmute.glsl";
+import { DeckCardFace } from "./DeckCardFace";
 import { CARD_H, CARD_W, CHAMBER_CARD_SCALE, CHAMBER_FX } from "./deckGeometry";
 import s from "./ChamberSequence.module.css";
 
@@ -59,14 +59,14 @@ export function ChamberSequence({ mode, before, after, phase }: Props) {
       {before && (
         <div className={s.card} data-role="old" data-dissolve={line.dissolve ? "" : undefined} data-card-detail>
           <div className={s.scale}>
-            <HandCard card={before} variant="pile" playable selected={false} />
+            <DeckCardFace card={before} />
           </div>
         </div>
       )}
       {after && line.form && (
         <div className={s.card} data-role="new" data-card-detail>
           <div className={s.scale}>
-            <HandCard card={after} variant="pile" playable selected={false} />
+            <DeckCardFace card={after} />
           </div>
         </div>
       )}
