@@ -1,0 +1,119 @@
+/* 新皮肤状态线稿层: 宿主(.face)需 position: relative; 钢框 z 3 之上(DOM 在后)、霓虹选中框 z 4 之下。 */
+.decor {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  fill: none;
+  pointer-events: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* 打不出时与钢框一起断电。 */
+.decor[data-dim] {
+  filter: brightness(0.5) saturate(0.35);
+}
+
+/* ── 激活: 常亮外缘 + 呼吸辉光 + 两道错相跑动流光 ── */
+.chargeHalo {
+  stroke: #35d4ff;
+  stroke-width: 10;
+  opacity: 0.55;
+  animation: pickChargeBreath 2.4s ease-in-out infinite;
+}
+
+.chargeEdge {
+  stroke: #9defff;
+  stroke-width: 1.6;
+  opacity: 0.9;
+}
+
+.runner,
+.runnerGlow {
+  stroke-dasharray: 0.12 0.38;
+  animation: pickChargeRun 2.6s linear infinite;
+}
+
+.runner {
+  stroke: #f2feff;
+  stroke-width: 3;
+}
+
+.runnerGlow {
+  stroke: #7fe6ff;
+  stroke-width: 9;
+}
+
+@keyframes pickChargeRun {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -1; }
+}
+
+@keyframes pickChargeBreath {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.8; }
+}
+
+/* ── 污染: 横穿钢框的裂缝 + 锈点, 与老卡面裂缝同一 7.5s 呼吸 ── */
+.rust {
+  animation: pickRustBreath 7.5s ease-in-out infinite;
+}
+
+.crackDepth polyline {
+  stroke: #070304;
+  stroke-width: 3.6;
+  opacity: 0.7;
+}
+
+.crack polyline {
+  stroke: #ff5a3c;
+  stroke-width: 2.2;
+  filter: drop-shadow(0 0 2px #e04a36);
+}
+
+.pit {
+  fill: #ff7a5c;
+  opacity: 0.85;
+}
+
+@keyframes pickRustBreath {
+  0%, 100% { opacity: 0.78; }
+  50% { opacity: 1; }
+}
+
+/* ── 缠根: 深色描边 + 苔绿藤芯 + 一道高光, 叶片同色系 ── */
+.vineOutline {
+  stroke: #142010;
+  stroke-width: 7;
+}
+
+.vineCore {
+  stroke: #6f9a45;
+  stroke-width: 4;
+}
+
+.vineHi {
+  stroke: #b4dc7c;
+  stroke-width: 1.2;
+  opacity: 0.8;
+}
+
+.leaf {
+  fill: #84b452;
+  stroke: #142010;
+  stroke-width: 1.4;
+}
+
+/* ── 升级: 卡名压条右端的金色双箭头 ── */
+.chevronOutline {
+  stroke: #1a1206;
+  stroke-width: 6.5;
+}
+
+.chevron {
+  stroke: #ffd56a;
+  stroke-width: 3.2;
+  filter: drop-shadow(0 0 3px #ffb02099);
+}

@@ -1,0 +1,136 @@
+/* 镶嵌插槽: 外层银色斜面框 + 内层深海军蓝底(与说明区同色), 两层同形斜切。 */
+.socket {
+  --socket-rim: linear-gradient(150deg, #e4e9ef, #8b96a3 45%, #4c5662 70%, #a7b1bc);
+  --socket-glow: #6fb4ff40;
+  position: relative;
+  display: block;
+  flex: none;
+  width: 52px;
+  height: 52px;
+  pointer-events: auto;
+  cursor: help;
+}
+
+.socketFace {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--socket-rim);
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  filter: drop-shadow(0 3px 4px #000a);
+}
+
+.socketFace::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  background:
+    radial-gradient(70% 70% at 50% 40%, var(--socket-glow), transparent 75%),
+    linear-gradient(180deg, #16203a, #0b1020 70%, #090d1a);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+
+.socketFace > * {
+  position: relative;
+}
+
+.socket[data-kind="virus"] {
+  --socket-rim: linear-gradient(150deg, #ff9a80, #b8503c 45%, #4a1712 70%, #d8482f);
+  --socket-glow: #e04a3666;
+}
+
+.socket[data-kind="module"] {
+  --socket-glow: #7fe6ff40;
+}
+
+.socket[data-kind="ripe"] {
+  --socket-rim: linear-gradient(150deg, #f2ffc4, #a6c95a 45%, #4d6a22 70%, #c7e85f);
+  --socket-glow: #c7e85f59;
+}
+
+.socket[data-kind="wither"] {
+  --socket-rim: linear-gradient(150deg, #f4d8b0, #b9895d 45%, #5c3d22 70%, #d7a56e);
+  --socket-glow: #b9895d59;
+}
+
+.socket[data-kind="wither"] .emblem {
+  filter: sepia(0.75) saturate(0.8);
+}
+
+/* 缠根: 苔绿外框(与缠根钢框同色系)。 */
+.socket[data-kind="rooted"] {
+  --socket-rim: linear-gradient(150deg, #dcefb8, #85a265 45%, #33482a 70%, #9cc26a);
+  --socket-glow: #9cc26a59;
+}
+
+/* 共鸣: 电青外框。 */
+.socket[data-kind="resonance"] {
+  --socket-rim: linear-gradient(150deg, #dff8ff, #6fc8de 45%, #1d5566 70%, #75d7ee);
+  --socket-glow: #5ddaf059;
+}
+
+.icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  color: #d9f3ff;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.icon > :global(img),
+.icon > :global(svg) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px #000000a6);
+}
+
+.emblem {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+/* 右下角压一个大号数字(培育剩余回合 / 共鸣次数)。 */
+.socketFace > .count {
+  position: absolute;
+  right: 3px;
+  bottom: 1px;
+  color: #effff9;
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-shadow: -1px 0 1px #000, 1px 0 1px #000, 0 -1px 1px #000, 0 1px 2px #000;
+}
+
+/* 悬停释义: left = 浮在插槽左侧(右上徽记列); top = 浮在插槽上方左对齐(卡外左上标记行)。 */
+.tip {
+  position: absolute;
+  z-index: 2;
+  width: max-content;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 120ms ease, visibility 120ms ease;
+}
+
+.tip[data-at="left"] {
+  top: 0;
+  right: calc(100% + 10px);
+}
+
+.tip[data-at="top"] {
+  bottom: calc(100% + 10px);
+  left: 0;
+}
+
+.socket:hover .tip {
+  opacity: 1;
+  visibility: visible;
+}

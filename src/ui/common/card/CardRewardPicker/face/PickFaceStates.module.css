@@ -1,0 +1,169 @@
+/* 新皮肤卡面(PickCardFace)对内嵌 HandCard 的状态改写, 与 ../PickCardFace.module.css 的 .face 挂在同一个根节点上。
+   原则: HandCard 本体不分叉, 老卡面按 220×308 小卡画的状态件在这里隐藏或改形, 新版由 face/ 下的浮层与钢框重画。
+   全走 data-* 属性选择器(哈希类名跨 CSS Module 够不着)。 */
+
+/* ── 卡面钉死在原位: 手牌托盘的悬停上弹与悬停桥不属于放大卡(钢框不跟着动, 一动就错位) ── */
+.states :global([data-hand-slot]) {
+  width: var(--hand-card-w);
+  height: var(--hand-card-h);
+}
+
+.states :global([data-hand-slot])::after {
+  content: none;
+}
+
+.states :global([data-hand-card]) {
+  width: 100%;
+  height: 100%;
+}
+
+.states :global([data-hand-slot]:hover:not([data-leaving]):not([data-selected])) > :global([data-hand-mover]) {
+  transform: none;
+}
+
+/* ── 老卡面的小件: 新皮肤由 PickFaceCorner / PickFaceBadges / PickRooted / PickRimDecor 重画 ──
+   ⚠ 病毒符号只隐藏卡面里的那一枚 —— 徽记列里复用的同一组件不在 [data-hand-card] 内。 */
+.states :global([data-hand-passive]),
+.states :global([data-hand-star-pay]),
+.states :global([data-hand-resonance]),
+.states :global([data-hand-module-mark]),
+.states :global([data-hand-mark-inline]),
+.states :global([data-hand-rooted]),
+.states :global([data-hand-activate-ring]),
+.states :global([data-hand-card]) :global([data-hand-virus]) {
+  display: none;
+}
+
+/* 升级: 老卡面左上的凿痕会被费用宝石压住, 改由卡名压条右端的金色双箭头表达; 卡名给箭头让位。 */
+.states :global([data-hand-card][data-upgraded]) :global([data-hand-frame])::after {
+  content: none;
+}
+
+.states :global([data-hand-card][data-upgraded]) :global([data-hand-title]) {
+  padding-right: 62px;
+}
+
+/* ── 打不出: 老卡面是 opacity .55 + 塌棱; 放大卡改成「断电」—— 整卡压暗去色但不透明(透明会透出钢框背后的底图) ── */
+.states :global([data-hand-card][data-unplayable]) {
+  opacity: 1;
+  filter: brightness(0.55) saturate(0.3);
+}
+
+/* ── 激活: 卡外辉光改成新卡形(左上 12 / 右上 12 / 右下 16 / 左下 8); 整卡呼吸挪到根节点, 卡面与钢框一起呼吸 ── */
+.states :global([data-hand-activate-halo])::before,
+.states :global([data-hand-activate-halo])::after {
+  clip-path: polygon(
+    12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 16px),
+    calc(100% - 16px) 100%, 8px 100%, 0 calc(100% - 8px), 0 12px
+  );
+}
+
+.states :global([data-hand-mover][data-activated]) {
+  animation: none;
+}
+
+.states[data-activated] {
+  animation: pickFaceBreath 2.4s ease-in-out infinite;
+}
+
+@keyframes pickFaceBreath {
+  0%, 100% { scale: 1; }
+  50% { scale: 1.02; }
+}
+
+/* ── 选中: 老卡面的表面反光扫过, 在新皮肤里随霓虹选中框一起扫一次 ── */
+.states[data-state="selected"] :global([data-hand-card])::after {
+  content: "";
+  animation: pickFaceSheen 0.56s ease-out;
+}
+
+@keyframes pickFaceSheen {
+  from {
+    opacity: 0;
+    transform: translateX(-115%);
+  }
+  28% {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(115%);
+  }
+}
+
+/* ── 离场: 老卡面只让卡面本体飞走, 新皮肤的钢框 / 选中框 / 浮层是兄弟节点, 所以整张(根节点)一起走 ── */
+.states[data-exit] {
+  pointer-events: none;
+}
+
+/* 出牌: 向上出鞘 + 微偏转 + 渐隐。 */
+.states[data-exit="leave"] {
+  animation: none;
+  transform: translateY(calc(var(--hand-card-h) / -2 - 90px)) rotateZ(-3deg);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.85, 0.4), opacity 0.28s ease-in;
+}
+
+/* 弃牌: 弹起 → 过曝成白光 → 化开。 */
+.states[data-exit="discard"] {
+  animation: pickFaceDiscard 1000ms cubic-bezier(0.16, 0.86, 0.26, 1) forwards;
+}
+
+@keyframes pickFaceDiscard {
+  0% {
+    opacity: 1;
+    filter: brightness(1) saturate(1);
+    transform: translateY(0) rotateZ(0);
+  }
+  32% {
+    opacity: 1;
+    filter: brightness(1.25) saturate(0.9);
+    transform: translateY(-90px) rotateZ(-2deg) scale(1.08);
+  }
+  50% {
+    opacity: 0.98;
+    filter: brightness(3.2) saturate(0) contrast(0.8);
+    transform: translateY(-90px) rotateZ(0) scale(1.08);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(3.2) saturate(0) contrast(0.8) blur(14px);
+    transform: translateY(-90px) rotateZ(2deg) scale(1.22);
+  }
+}
+
+/* 阵亡: 红光一闪 → 碎成几块抖散(碎片轮廓沿用老卡面 cardShatter)。 */
+.states[data-exit="purge"] {
+  animation: pickFaceShatter 420ms cubic-bezier(0.2, 0.75, 0.35, 1) forwards;
+}
+
+@keyframes pickFaceShatter {
+  0% {
+    opacity: 1;
+    filter: brightness(1) saturate(1) drop-shadow(0 0 0 #ff294c00);
+    transform: translateY(0) rotateZ(0);
+    clip-path: polygon(-12% -12%, 112% -12%, 112% 112%, -12% 112%);
+  }
+  18% {
+    filter: brightness(2.8) saturate(1.8) drop-shadow(0 0 16px #ff294c);
+    transform: translateY(-3px) rotateZ(-2deg) translateX(-2px);
+  }
+  42% {
+    opacity: 0.92;
+    filter: brightness(1.25) saturate(1.4) drop-shadow(0 0 10px #ff294c99);
+    transform: translateY(4px) rotateZ(3deg) translateX(3px);
+    clip-path: polygon(-12% -12%, 44% -12%, 48% 18%, 112% -12%, 112% 52%, 78% 48%, 112% 112%, 54% 112%, 48% 78%, -12% 112%);
+  }
+  72% {
+    opacity: 0.48;
+    filter: brightness(1.1) grayscale(0.5) blur(1px);
+    transform: translateY(18px) rotateZ(-7deg) translateX(-8px) scale(0.96);
+    clip-path: polygon(-12% 18%, 25% -12%, 38% 30%, 62% 8%, 112% 20%, 88% 54%, 112% 82%, 65% 112%, 42% 68%, 12% 112%);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(1) grayscale(1) blur(5px);
+    transform: translateY(44px) rotateZ(-13deg) translateX(-18px) scale(0.86);
+    clip-path: polygon(-12% 62%, 16% 32%, 30% 54%, 48% 16%, 64% 42%, 83% -12%, 112% 28%, 88% 72%, 66% 112%, 34% 76%, 12% 112%);
+  }
+}

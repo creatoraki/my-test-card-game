@@ -1,0 +1,10 @@
+/* 卡外标记行: 贴在卡顶上方 10px、与卡左缘对齐, 横排向右(同老手牌 .hc-marks 的落位)。插槽外观见 PickSocket.module.css。 */
+.row {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  bottom: calc(100% + 10px);
+  display: flex;
+  gap: 6px;
+  pointer-events: none;
+}

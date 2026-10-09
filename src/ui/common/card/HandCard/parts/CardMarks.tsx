@@ -12,7 +12,7 @@ interface Props {
   leaving?: boolean;
 }
 
-function cultivateTip(card: Card): string {
+export function cultivateTip(card: Card): string {
   const left = card.cultivateLeft ?? card.cultivate?.turns ?? 0;
   if (card.grafted)
     return cultivateReady(card)
@@ -32,7 +32,7 @@ export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
           if (!mark) return null;
           const art = cardMarkArtOf(markId);
           return (
-            <span key={markId} className={s["hc-mark-inline"]} aria-label={mark.name}>
+            <span key={markId} className={s["hc-mark-inline"]} data-hand-mark-inline aria-label={mark.name}>
               {art ? <img src={art} alt="" aria-hidden="true" /> : mark.emoji}
             </span>
           );

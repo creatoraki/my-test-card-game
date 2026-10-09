@@ -29,6 +29,135 @@
   --rim-bevel: #c3ccd5;
 }
 
+/* ── 卡牌状态(老卡面各特殊态的新皮肤版, 见 ../face/pickFaceTone.ts) ──
+   层叠顺序 = 优先级: 悬停(上方) < 稀有度 < 状态色调 < 选中(下方)。
+   ⇒ 罕见/稀有卡悬停不换色, 改由 filter 提亮一档; 状态色调盖过稀有度; 选中的暗紫金属盖过一切。 */
+
+/* 罕见: 回火蓝钢(明显偏蓝, 与普通卡的冷灰钢拉开) + 6px 斜蚀刻纹 + 天蓝内缘倒角 + 蓝钢卡口宝石。 */
+.rim[data-rarity="uncommon"] {
+  --rim-a: #cfe3ff;
+  --rim-b: #5f8fd0;
+  --rim-c: #24457a;
+  --rim-d: #7eaeea;
+  --rim-hi: #e2efff;
+  --rim-hi-low: #2c4c80;
+  --rim-bevel: #8cc6ff;
+  --rim-line: #bcdcff;
+  --rim-gem: #6fb4ff;
+  --rim-gem-glow: #3d8cff;
+}
+
+/* 稀有: 抛光香槟银 + 4px 密蚀刻纹 + 金色内缘倒角 + 金卡口宝石 + 两个斜口角板。 */
+.rim[data-rarity="rare"] {
+  --rim-a: #f6f1e2;
+  --rim-b: #bdb6a2;
+  --rim-c: #6c665a;
+  --rim-d: #cfc6ad;
+  --rim-hi: #fbf6e6;
+  --rim-hi-low: #6b6455;
+  --rim-bevel: #e8cf8a;
+  --rim-line: #f1e3b8;
+  --rim-gem: #ffd36a;
+  --rim-gem-glow: #ffb020;
+}
+
+.rim[data-rarity][data-state="hover"]:not([data-dim]) {
+  filter: brightness(1.16);
+}
+
+/* 缠根: 苔绿木化的钢框(藤蔓由 ../face/PickRimDecor 缠绕在框上)。 */
+.rim[data-tone="rooted"] {
+  --rim-a: #b4c98f;
+  --rim-b: #627d48;
+  --rim-c: #33482a;
+  --rim-d: #85a265;
+  --rim-hi: #cfe3a8;
+  --rim-hi-low: #3c5130;
+  --rim-bevel: #9cc26a;
+  --rim-line: #bfe08c;
+}
+
+/* 污染: 锈红腐蚀钢, 自左上暗锈到右下亮红(同老卡面污染沿环的走向)。 */
+.rim[data-tone="contaminated"] {
+  --rim-a: #5a2a26;
+  --rim-b: #8c3a2c;
+  --rim-c: #4a1712;
+  --rim-d: #d8482f;
+  --rim-hi: #c25a44;
+  --rim-hi-low: #6d2a22;
+  --rim-bevel: #ff5a3c;
+  --rim-line: #ff7a5c;
+}
+
+/* 激活: 通电的电青钢框(跑动流光由 ../face/PickRimDecor 画)。 */
+.rim[data-tone="activated"] {
+  --rim-a: #eafcff;
+  --rim-b: #8fe6ff;
+  --rim-c: #1f7f9e;
+  --rim-d: #6fe0ff;
+  --rim-hi: #f2feff;
+  --rim-hi-low: #2fa8cc;
+  --rim-bevel: #5fe4ff;
+  --rim-line: #bff4ff;
+}
+
+/* 被动: 低饱和石板蓝 + 常亮浅蓝内缘(不压暗、不断电 —— 它不是"打不了", 是"不用打")。 */
+.rim[data-tone="passive"] {
+  --rim-a: #a7b6c4;
+  --rim-b: #5f6f7d;
+  --rim-c: #3a4652;
+  --rim-d: #7a8b9a;
+  --rim-hi: #b9c7d4;
+  --rim-bevel: #a9c6dc;
+  --rim-line: #b9d2e4;
+}
+
+/* 打不出: 整圈断电压暗, 与卡面本体的压暗(../face/PickFaceStates.module.css)同步。 */
+.rim[data-dim] {
+  filter: brightness(0.5) saturate(0.35);
+}
+
+/* 升级: 配图/说明分界线转金, 与卡名压条右端的金色双箭头(PickRimDecor)成对。 */
+.rim[data-upgraded] .split {
+  stroke: #f2d37c;
+  stroke-width: 2;
+}
+
+.rim[data-tone="contaminated"] .glint {
+  stroke: #ff5a3c;
+}
+
+.rim[data-tone="activated"] .glint {
+  stroke: #bff4ff;
+}
+
+.etch {
+  stroke: none;
+  opacity: 0.55;
+}
+
+.etchLine {
+  fill: #0a0f14;
+}
+
+.rim[data-rarity="rare"] .etch {
+  opacity: 0.45;
+}
+
+.gem {
+  fill: var(--rim-gem, #9aa4ae);
+  stroke: #fff6;
+  stroke-width: 1;
+  filter: drop-shadow(0 0 3px var(--rim-gem-glow, transparent));
+}
+
+.gusset {
+  fill: var(--rim-bevel);
+  opacity: 0.85;
+  stroke: #0a0f14;
+  stroke-width: 1;
+}
+
 /* 选中: 钢框转暗紫金属, 倒角线全部压暗(外缘霓虹芯与内缘亮紫线由 PickSelectFrame 画)。 */
 .rim[data-state="selected"] {
   --rim-a: #3a2a78;

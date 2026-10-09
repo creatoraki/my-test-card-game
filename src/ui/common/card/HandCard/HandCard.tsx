@@ -221,7 +221,7 @@ export const HandCard = memo(function HandCard({
         {hasArt && <span className={f["hc-art"]} aria-hidden />}
 
         {/* 机框层: 升级卡凿痕的挂载层。纯装饰, 不吃点击 */}
-        <span className={s["hc-frame"]} aria-hidden />
+        <span className={s["hc-frame"]} data-hand-frame aria-hidden />
 
         {/* 描边环: 跟着 14px 斜切角走的金属斜面(上/左受光 + 下/右背光, 见 HandCard.module.css .hc-edge) */}
         <span className={s["hc-edge"]} data-hand-edge aria-hidden />
@@ -232,7 +232,7 @@ export const HandCard = memo(function HandCard({
         {/* 费用徽章: 嵌在配图左上斜口内侧的立体金属圆盘, 数字压在水晶中央桌面上。
             被动卡无费用 ⇒ 同一位置换成刻字铭牌, 卡面上不出现任何水晶。 */}
         {passive ? (
-          <span className={f["hc-passive"]} aria-label="被动卡，无法打出">
+          <span className={f["hc-passive"]} data-hand-passive aria-label="被动卡，无法打出">
             被动
           </span>
         ) : (
@@ -247,7 +247,7 @@ export const HandCard = memo(function HandCard({
           </span>
         )}
         {!passive && starPay > 0 && (
-          <span className={f["hc-star-pay"]}>
+          <span className={f["hc-star-pay"]} data-hand-star-pay>
             ✨{starPay}
             <span className={f["hc-star-pay-tip"]} role="tooltip">
               <TooltipCard
@@ -261,10 +261,10 @@ export const HandCard = memo(function HandCard({
         <CardModuleMark card={card} />
 
         {/* 卡名压条: 贴在配图下沿的渐变浮层(透明 → 实底), 不占实位 */}
-        <span className={f["hc-title"]}>{cardDisplayName(card)}</span>
+        <span className={f["hc-title"]} data-hand-title>{cardDisplayName(card)}</span>
 
         {card.resonanceStacks != null && card.resonanceStacks > 0 && (
-          <span className={f["hc-resonance"]} aria-label={`共鸣强化 ${card.resonanceStacks} 次`}>
+          <span className={f["hc-resonance"]} data-hand-resonance aria-label={`共鸣强化 ${card.resonanceStacks} 次`}>
             共鸣 +{card.resonanceStacks}
           </span>
         )}

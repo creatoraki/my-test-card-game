@@ -21,7 +21,7 @@ const SPOKES = RADIATION_ANGLES.map((angle) => {
 
 export function PollutionVirusMark() {
   return (
-    <span className={s.virus} aria-hidden="true">
+    <span className={s.virus} data-hand-virus aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         {SPOKES.map((spoke) => (
           <g key={spoke.angle}>

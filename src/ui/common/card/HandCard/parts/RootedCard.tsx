@@ -7,7 +7,7 @@ export function RootedCard({ uid, onRelease, disabled }: {
   onRelease?: (uid: string) => void;
   disabled?: boolean;
 }) {
-  return <div className={s.roots} data-rail-item tabIndex={0} onClick={(event) => event.stopPropagation()}>
+  return <div className={s.roots} data-hand-rooted data-rail-item tabIndex={0} onClick={(event) => event.stopPropagation()}>
     <span className={s.vines} aria-hidden="true" />
     <span className={s.label}>缠根</span>
     {onRelease && <button type="button" className={s.release} disabled={disabled}

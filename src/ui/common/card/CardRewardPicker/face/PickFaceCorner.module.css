@@ -1,0 +1,101 @@
+/* 被动铭牌: 盖在费用宝石原位(宝石中心约 (50, 46)), 银色斜面外框 + 深海军蓝底 + 白字。 */
+.passive {
+  position: absolute;
+  z-index: 5;
+  left: 14px;
+  top: 20px;
+  display: grid;
+  height: 50px;
+  padding: 2px;
+  background: linear-gradient(150deg, #eef2f6, #95a2b0 45%, #4c5662 70%, #b5c0cb);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  filter: drop-shadow(0 3px 4px #000c);
+}
+
+.passiveText {
+  display: grid;
+  place-items: center;
+  padding: 0 16px 0 20px;
+  color: #f2f6fa;
+  background:
+    linear-gradient(90deg, #a9c6dc 0 3px, transparent 3px),
+    linear-gradient(180deg, #1c2a44, #0f1528 70%, #0b1020);
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  line-height: 1;
+  text-shadow: 0 1px 2px #000, 0 0 8px #a9c6dc66;
+}
+
+/* 星辉代付: 宝石右侧的金色铭牌。斜切与描边画在 ::before / ::after 上, 铭牌本身不裁剪(否则会裁掉下方释义)。 */
+.starPay {
+  position: absolute;
+  z-index: 5;
+  left: 94px;
+  top: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 12px 0 9px;
+  color: #ffe9a8;
+  cursor: help;
+  filter: drop-shadow(0 3px 4px #000a);
+}
+
+.starPay::before,
+.starPay::after {
+  content: "";
+  position: absolute;
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+}
+
+.starPay::before {
+  inset: 0;
+  background: linear-gradient(150deg, #fff0b8, #e9c85f 45%, #8a6a1e 75%, #f1d47a);
+}
+
+.starPay::after {
+  inset: 1.5px;
+  background:
+    radial-gradient(80% 90% at 30% 50%, #e9c85f33, transparent 75%),
+    linear-gradient(180deg, #2b2414, #17130a);
+}
+
+.starPay > * {
+  position: relative;
+  z-index: 1;
+}
+
+.star {
+  width: 22px;
+  height: 22px;
+  fill: #ffd36a;
+  filter: drop-shadow(0 0 4px #ffb020);
+}
+
+.starValue {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px #000;
+}
+
+.tip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 10px);
+  z-index: 2;
+  width: max-content;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 120ms ease, visibility 120ms ease;
+}
+
+.starPay:hover .tip {
+  opacity: 1;
+  visibility: visible;
+}

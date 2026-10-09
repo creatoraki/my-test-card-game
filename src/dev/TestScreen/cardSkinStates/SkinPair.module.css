@@ -1,0 +1,76 @@
+/* 对照区: 两列等宽, 卡位顶部留出老卡面的标记行(卡外上方)与选中上弹的空间。 */
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  height: 100%;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.heading {
+  margin: 0;
+  color: #dfe6f2;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+/* 卡位: 354 宽; 高按老卡面放大后的 495.6 取整, 上方 110px 给标记行与选中上弹。 */
+.stage {
+  position: relative;
+  width: 354px;
+  height: 496px;
+  margin-top: 110px;
+}
+
+/* 老卡面: 原尺寸 220×308 渲染后整体放大到 354 宽, 手牌托盘的飞入门控与发牌动画关掉。 */
+.oldScale {
+  --hand-card-w: 220px;
+  --hc-text-h: 88px;
+  --hand-card-h: 308px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 308px;
+  transform: scale(calc(354 / 220));
+  transform-origin: top left;
+}
+
+.oldScale :global([data-hand-slot]) {
+  width: 220px;
+  height: 308px;
+}
+
+.oldScale :global([data-hand-card]) {
+  width: 100%;
+  height: 100%;
+}
+
+.oldScale :global([data-hand-card]:not([data-discarding]):not([data-purged])),
+.oldScale :global([data-card-marks]) {
+  animation: none;
+}
+
+.newBox {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.note {
+  max-width: 600px;
+  margin: 28px 0 0;
+  padding: 14px 18px;
+  color: #c9d3e2;
+  background: #0b1020cc;
+  border-left: 3px solid #7f8ea3;
+  font-size: 18px;
+  line-height: 1.6;
+}

@@ -5,6 +5,8 @@
 // HandCard 自带的 3px 边棱在 354 宽下读不出「金属框」, 这里盖在卡面上方补一圈, 不改 HandCard 本体;
 // 卡面 clip-path 由 CardPickSlot.module.css 改成与本框同形(四角不同斜切), 卡角不会从框外露出。
 // state: hover = 钢框提亮; selected = 钢框转暗紫金属(外缘再由霓虹框压住)。
+// 卡牌状态(face/pickFaceTone.ts 派生): rarity = 钢框工艺(罕见蚀刻纹 + 蓝钢卡口宝石 / 稀有抛光香槟银 + 金卡口宝石 + 斜口角板);
+// tone = 状态配色(缠根苔绿 / 污染锈红 / 激活电青 / 被动石板蓝); dim = 打不出时整圈断电压暗; upgraded = 分界线转金。
 import { useId } from "react";
 import {
   CARD_CORNERS,
@@ -16,6 +18,7 @@ import {
   toSvgPoints,
   type Point,
 } from "./pickGeometry";
+import type { PickRimLook } from "../face/pickFaceTone";
 import s from "./PickCardRim.module.css";
 
 const W = CARD_W;
@@ -65,15 +68,32 @@ const TEXT_EDGE = toSvgPoints([[W - 11.5, SPLIT + 20], [W - 11.5, H - 38], [W - 
 // 右下钢板上一道斜向刻纹。
 const BR_HATCH = `M${W - 26} ${H - 9} L${W - 7} ${H - 28}`;
 
-export function PickCardRim({ state }: { state: "hover" | "selected" | null }) {
+// 卡口宝石(罕见 / 稀有): 取代卡口螺丝的菱形宝石, 稀有更大。
+const gemAt = (r: number) => toSvgPoints([[W - 13, SPLIT - r], [W - 13 + r * 0.8, SPLIT], [W - 13, SPLIT + r], [W - 13 - r * 0.8, SPLIT]]);
+const GEM_UNCOMMON = gemAt(4.6);
+const GEM_RARE = gemAt(6);
+// 稀有卡斜口内侧的加固角板(左上 / 右下), 压在钢框内缘上。
+const GUSSET_TL = toSvgPoints([[8, 8], [26, 8], [8, 26]]);
+const GUSSET_BR = toSvgPoints([[W - 8, H - 33], [W - 8, H - 10], [W - 31, H - 10]]);
+
+const NO_LOOK: PickRimLook = { rarity: null, tone: null, dim: false, upgraded: false };
+
+export function PickCardRim({ state, look = NO_LOOK }: { state: "hover" | "selected" | null; look?: PickRimLook }) {
   const id = useId();
   const metal = `url(#${id}-metal)`;
   const clip = `url(#${id}-clip)`;
+  const etch = `url(#${id}-etch)`;
+  // 蚀刻纹密度: 稀有比罕见更密(与老卡面 .r-uncommon 7px / .r-rare 5px 同一思路)。
+  const etchStep = look.rarity === "rare" ? 4 : 6;
 
   return (
     <svg
       className={s.rim}
       data-state={state ?? undefined}
+      data-rarity={look.rarity ?? undefined}
+      data-tone={look.tone ?? undefined}
+      data-dim={look.dim ? "" : undefined}
+      data-upgraded={look.upgraded ? "" : undefined}
       viewBox={`0 0 ${W} ${H}`}
       width={W}
       height={H}
@@ -96,6 +116,11 @@ export function PickCardRim({ state }: { state: "hover" | "selected" | null }) {
         <clipPath id={`${id}-clip`}>
           <polygon points={toSvgPoints(OUTER)} />
         </clipPath>
+        {look.rarity && (
+          <pattern id={`${id}-etch`} patternUnits="userSpaceOnUse" width={etchStep} height={etchStep} patternTransform="rotate(45)">
+            <rect className={s.etchLine} width="1" height={etchStep} />
+          </pattern>
+        )}
       </defs>
 
       <polyline className={s.textEdge} points={TEXT_EDGE} />
@@ -111,6 +136,7 @@ export function PickCardRim({ state }: { state: "hover" | "selected" | null }) {
 
       <g clipPath={clip}>
         <path className={s.ring} d={RING} fill={metal} fillRule="evenodd" />
+        {look.rarity && <path className={s.etch} d={RING} fill={etch} fillRule="evenodd" />}
         <path className={s.foot} d={FOOT} />
         <polygon className={s.groove} points={GROOVE} />
         <polyline className={s.edgeHi} points={EDGE_HI} stroke={`url(#${id}-hi)`} />
@@ -123,7 +149,17 @@ export function PickCardRim({ state }: { state: "hover" | "selected" | null }) {
 
       <polygon className={s.notch} points={toSvgPoints(NOTCH)} fill={metal} />
       <polyline className={s.notchEdge} points={toSvgPoints([NOTCH[1], NOTCH[0], NOTCH[2]])} />
-      <circle className={s.screw} cx={W - 13} cy={SPLIT} r={2.2} />
+      {look.rarity === "rare" && (
+        <>
+          <polygon className={s.gusset} points={GUSSET_TL} />
+          <polygon className={s.gusset} points={GUSSET_BR} />
+        </>
+      )}
+      {look.rarity ? (
+        <polygon className={s.gem} points={look.rarity === "rare" ? GEM_RARE : GEM_UNCOMMON} />
+      ) : (
+        <circle className={s.screw} cx={W - 13} cy={SPLIT} r={2.2} />
+      )}
       <polyline className={s.glint} points={GLINT} />
     </svg>
   );

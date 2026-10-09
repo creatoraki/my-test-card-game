@@ -8,7 +8,7 @@ export function CardModuleMark({ card }: { card: Card }) {
   if (!card.cardModule) return null;
   const def = getItemDef(card.cardModule.itemId);
   return (
-    <span className={s.mark} aria-label={`已装配${def.name}`}>
+    <span className={s.mark} data-hand-module-mark aria-label={`已装配${def.name}`}>
       {itemIcon(def)}
     </span>
   );

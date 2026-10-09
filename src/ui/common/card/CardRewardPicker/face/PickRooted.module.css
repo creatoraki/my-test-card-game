@@ -1,0 +1,41 @@
+/* 缠根覆层: 盖住整张卡面(钢框之下), 苔绿暗雾自四周向中心收拢; 解缠按钮居中。 */
+.rooted {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.mist {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(75% 60% at 50% 45%, #0a261626, #0a2616b3 80%),
+    linear-gradient(180deg, #0f2a1a59, #07160ecc);
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 8px 100%, 0 calc(100% - 8px), 0 12px);
+  pointer-events: none;
+}
+
+.release {
+  position: relative;
+  padding: 10px 18px;
+  color: #edffdb;
+  background: linear-gradient(180deg, #2f5a3c, #1f3f2a);
+  border: 1px solid #b4dc7c;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: var(--cursor-pointer);
+  transition: filter 0.14s ease;
+}
+
+.release:enabled:hover {
+  filter: brightness(1.25);
+}
+
+.release:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
