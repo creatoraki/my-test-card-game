@@ -1,4 +1,5 @@
-import { COMMON_PROP_ASSETS, type CommonPropAssetId } from "@/ui/art/corridor/commonPropAssets";
+import type { CorridorPropArt } from "@/ui/art/corridor/corridorArt";
+import { BATCH_TWO_GROUPS } from "./batchTwoProps";
 import type { ShowcasePageDef } from "./showcaseTypes";
 
 const PROP_POSITIONS = [450, 850, 1250, 1650];
@@ -6,13 +7,13 @@ const PROP_POSITIONS = [450, 850, 1250, 1650];
 /** id 沿用最初分页时的编号，预览页已存的倍率、偏移、启用状态才能对上；改动分页时不要改 id。 */
 interface VisualPropDef {
   id: string;
-  asset: CommonPropAssetId;
+  art: CorridorPropArt;
   name: string;
 }
 
 /**
  * 还没调好游戏内倍率的通用素材；调好并录入 ui/art/corridor/commonPropTuning.ts 后从这里移除。
- * 目前全部调完，新素材需要调尺寸时再往这里加（id 不要和已用过的重复；已用过 redesign- 前缀的 8 个）。
+ * 目前全部调完，新素材需要调尺寸时往这里加，art 取 COMMON_PROP_ASSETS[素材 id]（id 不要和已用过的重复；已用过 redesign- 前缀的 8 个）。
  */
 const PENDING_PROPS: readonly VisualPropDef[] = [];
 
@@ -23,11 +24,18 @@ function paginate(id: string, series: string, name: string, props: readonly Visu
     id: `${id}-${index + 1}`, series,
     name: count > 1 ? `${name} ${index + 1}` : name,
     props: props.slice(index * 4, index * 4 + 4).map((prop, slot) => ({
-      id: prop.id, name: prop.name, x: PROP_POSITIONS[slot], art: COMMON_PROP_ASSETS[prop.asset],
+      id: prop.id, name: prop.name, x: PROP_POSITIONS[slot], art: prop.art,
     })),
   }));
 }
 
+const GROUP_NAMES = ["第一组", "第二组", "第三组", "第四组"];
+
+/** 重设计第二批待确认素材，按出图四宫格分组，每组一页。 */
+const BATCH_TWO_PAGES = BATCH_TWO_GROUPS.flatMap((group, index) =>
+  paginate(`visual-batch2-${index + 1}`, "重设计第二批", GROUP_NAMES[index], group));
+
 export const CURIO_VISUAL_PAGES: readonly ShowcasePageDef[] = [
-  ...paginate("visual-pending", "通用素材", "待调素材", PENDING_PROPS),
+  ...BATCH_TWO_PAGES,
+  ...(PENDING_PROPS.length ? paginate("visual-pending", "通用素材", "待调素材", PENDING_PROPS) : []),
 ];

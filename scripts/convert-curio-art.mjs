@@ -3,12 +3,12 @@ import { mkdir, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-// 用法：node scripts/convert-curio-art.mjs [PNG源目录]
-// 把奇物最终切图（透明 PNG）裁去透明边后转成 WebP，输出到通用交互物目录，脚本不删除源图。
+// 用法：node scripts/convert-curio-art.mjs [PNG源目录] [WebP输出目录]
+// 把奇物最终切图（透明 PNG）裁去透明边后转成 WebP，默认输出到通用交互物目录，脚本不删除源图。
 // 末尾打印每张图的尺寸与主体上下边界，供 ui/art/corridor/commonPropArt.ts 登记。
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = path.resolve(process.argv[2] ?? path.join(root, "生图模型输出目录/奇物/切图结果"));
-const destination = path.join(root, "src/assets/explore-corridor/通用交互物");
+const destination = path.resolve(process.argv[3] ?? path.join(root, "src/assets/explore-corridor/通用交互物"));
 /** 透明度低于此值的像素视为留白，裁边时去掉。 */
 const TRIM_ALPHA = 8;
 /** 主体边界取透明度不低于此值的像素，避免半透明光晕把落地线往下拉。 */
