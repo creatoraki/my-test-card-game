@@ -34,7 +34,7 @@ export function ExplorePropScene() {
     ?? pages.find((page) => pageId.startsWith(`${page.sourceId}-part-`)) ?? pages[0];
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = activePage.props.find((prop) => prop.id === selectedId);
-  const { tuning, setMultiplier, setEnabled, setBackdrop, setNearLayer } = usePreviewTuning();
+  const { tuning, setMultiplier, setOffset, setEnabled, setBackdrop, setNearLayer } = usePreviewTuning();
   const { backdrop } = tuning;
   const [backdropOpen, setBackdropOpen] = useState(false);
   const nearLayer = findNearLayer(tuning.nearLayerId);
@@ -88,6 +88,7 @@ export function ExplorePropScene() {
               key={prop.id}
               prop={prop}
               multiplier={tuning.multipliers[prop.id] ?? 1}
+              offset={tuning.offsets[prop.id] ?? 0}
               floor={FLOOR}
               selected={prop.id === selectedId}
               onSelect={() => {
@@ -107,7 +108,7 @@ export function ExplorePropScene() {
       setSelectedId(null);
       setBackdropOpen((open) => !open);
     }}>背景</button>
-    {selected && <PropScalePanel prop={selected} tuning={tuning} onChange={setMultiplier} onToggle={setEnabled} onClose={() => setSelectedId(null)} />}
+    {selected && <PropScalePanel prop={selected} tuning={tuning} onChange={setMultiplier} onOffset={setOffset} onToggle={setEnabled} onClose={() => setSelectedId(null)} />}
     {backdropOpen && <BackdropPanel tuning={tuning} onChange={setBackdrop} onClose={() => setBackdropOpen(false)} />}
     <div className={s.bottomBar}>
       <NearLayerPager activeId={tuning.nearLayerId} onSelect={setNearLayer} />

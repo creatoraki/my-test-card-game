@@ -19,7 +19,7 @@ const isChannel = (def: ItemDef, channel: "picnic" | "blessingBox"): boolean =>
 export const RANDOM_RELIC_POOL = RELIC_ITEM_DEFS.filter(isNormalBlessing);
 
 /**
- * 临时遗物池(临时祝福匣专用): 普通档的随机池遗物 + 祝福匣限定遗物。发放时实例带 disposable 标记。
+ * 临时遗物池(起程祈愿龛专用): 普通档的随机池遗物 + 祝福匣限定遗物。发放时实例带 disposable 标记。
  * ⚠ 野餐限定遗物不在其中 —— 两种一次性来源互不相通。
  */
 export const TEMPORARY_RELIC_POOL = RELIC_ITEM_DEFS.filter(

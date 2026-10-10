@@ -3,9 +3,14 @@ import { clampScale } from "./showcaseProps";
 import { DEFAULT_BACKDROP, type DemoBackdrop } from "./DemoNearLayer";
 import { DEFAULT_NEAR_LAYER_ID, DEMO_NEAR_LAYERS } from "./demoNearLayers";
 
-/** 预览页全部调节项：交互物缩放倍率、是否启用、背景近景缩放与偏移、当前近景图层。 */
+/** 上下偏移的步进（设计 px）：负值往上挪，正值往下挪。交互物与背景共用。 */
+export const OFFSET_STEPS = [-10, -1, 1, 10] as const;
+
+/** 预览页全部调节项：交互物缩放倍率与上下偏移、是否启用、背景近景缩放与偏移、当前近景图层。 */
 export interface PreviewTuning {
   multipliers: Record<string, number>;
+  /** 交互物上下偏移（设计 px），未记录视为 0。 */
+  offsets: Record<string, number>;
   /** 只决定是否参与打印；未记录的物件默认未启用。 */
   enabled: Record<string, boolean>;
   backdrop: DemoBackdrop;
@@ -14,7 +19,7 @@ export interface PreviewTuning {
 
 const STORAGE_KEY = "测试页.交互物预览.调节项";
 
-const EMPTY: PreviewTuning = { multipliers: {}, enabled: {}, backdrop: DEFAULT_BACKDROP, nearLayerId: DEFAULT_NEAR_LAYER_ID };
+const EMPTY: PreviewTuning = { multipliers: {}, offsets: {}, enabled: {}, backdrop: DEFAULT_BACKDROP, nearLayerId: DEFAULT_NEAR_LAYER_ID };
 
 export const isPropEnabled = (tuning: PreviewTuning, id: string) => tuning.enabled[id] ?? false;
 
@@ -30,6 +35,10 @@ function load(): PreviewTuning {
     if (isRecord(raw.multipliers)) for (const [id, value] of Object.entries(raw.multipliers)) {
       if (typeof value === "number" && Number.isFinite(value)) multipliers[id] = clampScale(value);
     }
+    const offsets: Record<string, number> = {};
+    if (isRecord(raw.offsets)) for (const [id, value] of Object.entries(raw.offsets)) {
+      if (typeof value === "number" && Number.isFinite(value)) offsets[id] = Math.round(value);
+    }
     const enabled: Record<string, boolean> = {};
     if (isRecord(raw.enabled)) for (const [id, value] of Object.entries(raw.enabled)) {
       if (typeof value === "boolean") enabled[id] = value;
@@ -42,7 +51,7 @@ function load(): PreviewTuning {
     }
     const nearLayerId = DEMO_NEAR_LAYERS.some((layer) => layer.id === raw.nearLayerId)
       ? raw.nearLayerId as string : DEFAULT_NEAR_LAYER_ID;
-    return { multipliers, enabled, backdrop, nearLayerId };
+    return { multipliers, offsets, enabled, backdrop, nearLayerId };
   } catch {
     return EMPTY;
   }
@@ -57,6 +66,9 @@ export function usePreviewTuning() {
   const setMultiplier = useCallback((id: string, value: number) => {
     setTuning((current) => ({ ...current, multipliers: { ...current.multipliers, [id]: value } }));
   }, []);
+  const setOffset = useCallback((id: string, value: number) => {
+    setTuning((current) => ({ ...current, offsets: { ...current.offsets, [id]: Math.round(value) } }));
+  }, []);
   const setEnabled = useCallback((id: string, value: boolean) => {
     setTuning((current) => ({ ...current, enabled: { ...current.enabled, [id]: value } }));
   }, []);
@@ -66,5 +78,5 @@ export function usePreviewTuning() {
   const setNearLayer = useCallback((nearLayerId: string) => {
     setTuning((current) => ({ ...current, nearLayerId }));
   }, []);
-  return { tuning, setMultiplier, setEnabled, setBackdrop, setNearLayer };
+  return { tuning, setMultiplier, setOffset, setEnabled, setBackdrop, setNearLayer };
 }

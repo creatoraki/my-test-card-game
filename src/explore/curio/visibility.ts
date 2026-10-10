@@ -1,8 +1,7 @@
 import { CORRIDOR_CURIOS, critterFoods } from "@/data/curios";
-import type { CurioDef, CurioDecision, CurioLevel, OfferingPart } from "@/data/curios/types";
+import type { CurioDef, CurioDecision, OfferingPart } from "@/data/curios/types";
 import { countByItemId } from "@/items/inventory";
 import { matchOffering, partCanMatch } from "./offering";
-import { curioAtLevel } from "./leveling";
 import type { ExploreState } from "../types";
 
 function activeObject(s: ExploreState) {
@@ -52,13 +51,8 @@ function recipeCanMatch(recipe: OfferingPart[], stacks: ExploreState["backpack"]
   return total > 0 && walk(0, [], 0);
 }
 
-/** 当前打开的物件在其等级下的定义。 */
+/** 当前打开的物件定义。 */
 export function activeCurioDef(s: ExploreState): CurioDef | null {
   const object = activeObject(s);
-  const def = object ? CORRIDOR_CURIOS[object.kind] : undefined;
-  return object && def ? curioAtLevel(def, object.level) : null;
-}
-
-export function activeCurioLevel(s: ExploreState): CurioLevel {
-  return activeObject(s)?.level ?? 1;
+  return (object && CORRIDOR_CURIOS[object.kind]) ?? null;
 }

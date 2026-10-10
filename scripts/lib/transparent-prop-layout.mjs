@@ -12,13 +12,13 @@ function clearTransparentNoise(data) {
   }
 }
 
-function componentsOf(data, width, height) {
+export function componentsOf(data, width, height, minimumAlpha = 1) {
   const count = width * height;
   const labels = new Int32Array(count);
   const queue = new Int32Array(count);
   const components = [];
   for (let start = 0; start < count; start += 1) {
-    if (labels[start] || !data[start * 4 + 3]) continue;
+    if (labels[start] || data[start * 4 + 3] < minimumAlpha) continue;
     const id = components.length + 1;
     let head = 0;
     let tail = 1;
@@ -38,7 +38,7 @@ function componentsOf(data, width, height) {
           const nx = x + dx, ny = y + dy;
           if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
           const next = ny * width + nx;
-          if (labels[next] || !data[next * 4 + 3]) continue;
+          if (labels[next] || data[next * 4 + 3] < minimumAlpha) continue;
           labels[next] = id;
           queue[tail++] = next;
         }

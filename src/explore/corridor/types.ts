@@ -2,30 +2,18 @@
 // 场景状态随远征会话保留, 战后返回原处; 房间之间的连通关系见 ../dungeon/types.ts。
 import type { NearMapVariant, PortalDir, PortalLane } from "../dungeon/types";
 import { NEAR_MAP_GEOMETRY } from "../dungeon/nearMapGeometry";
-import type { CurioLevel } from "@/data/curios/types";
 import type { BattleTier } from "../types";
 
 export type CurioKind =
-  | "arkSeedVault"
-  | "arkDewCollector"
-  | "arkComposter"
   | "arkGeneConsole"
   | "arkSporeVent"
-  | "equipmentCache"
   | "blacksmith"
   | "bondWorkbench"
   | "perfectnessWorkbench"
   | "temporaryRelicCache"
   | "relicCache"
   | "safe"
-  | "crystalVein"
-  | "vending"
-  | "remains"
-  | "compactor"
   | "medical"
-  | "sink"
-  | "repairPod"
-  | "energyStation"
   | "modBench"
   | "shrine"
   | "dispatch"
@@ -37,9 +25,6 @@ export type CurioKind =
   | "tutorialCashBox"
   | "supplyCrate"
   | "toolLocker"
-  | "courierDrone"
-  | "cashBox"
-  | "moduleCase"
   | "collapsedCeiling"
   | "leakingPipe"
   | "rogueDrone";
@@ -49,7 +34,6 @@ export interface CorridorObject {
   kind: CurioKind;
   x: number;
   used: boolean;
-  level: CurioLevel;
   nodeIndex: number;
 }
 

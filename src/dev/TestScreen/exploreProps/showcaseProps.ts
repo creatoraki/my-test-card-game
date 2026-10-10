@@ -1,11 +1,11 @@
 import { CORRIDOR_PROP_BASE_SCALE, type CorridorPropArt } from "@/ui/art/corridor/corridorArt";
-import { GENERATED_SHOWCASE_PAGES } from "./generatedPropCatalog";
+import { CURIO_VISUAL_PAGES } from "./curioVisualPages";
 import type { ShowcasePageDef } from "./showcaseTypes";
 
 export type { ShowcasePageDef, ShowcasePropDef } from "./showcaseTypes";
 
-/** 每套四宫格一页。 */
-export const SHOWCASE_PAGES: readonly ShowcasePageDef[] = GENERATED_SHOWCASE_PAGES;
+/** 只展示还没调好游戏内倍率的通用素材。 */
+export const SHOWCASE_PAGES: readonly ShowcasePageDef[] = CURIO_VISUAL_PAGES;
 
 export const SHOWCASE_PROPS = SHOWCASE_PAGES.flatMap((page) => page.props);
 

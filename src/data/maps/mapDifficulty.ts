@@ -4,7 +4,6 @@
 import { MAPS, mapEquipRarities, type MapDef } from "./index";
 import type { ItemRarity } from "@/items/types";
 import type { MapClearRewardDef } from "./mapClearReward";
-import type { CurioLevel } from "../curios/types";
 
 export type MapDifficulty = "normal" | "hard" | "abyss";
 
@@ -16,8 +15,6 @@ export interface MapDifficultyDef {
   id: MapDifficulty;
   name: string;
   reward: MapClearRewardDef;
-  /** 该难度下随机房间图的物件等级区间。 */
-  curioLevelRange: readonly [CurioLevel, CurioLevel];
   /** 交互物奖励池在该难度下剔除的物品；普通难度(含新手关)金币只由首领与宝箱怪投放。 */
   curioPoolExcludes: readonly string[];
 }
@@ -26,7 +23,6 @@ export const MAP_DIFFICULTIES: Record<MapDifficulty, MapDifficultyDef> = {
   normal: {
     id: "normal",
     name: "普通",
-    curioLevelRange: [1, 3],
     curioPoolExcludes: ["gold-coin"],
     reward: {
       materialCount: 3,
@@ -38,7 +34,6 @@ export const MAP_DIFFICULTIES: Record<MapDifficulty, MapDifficultyDef> = {
   hard: {
     id: "hard",
     name: "困难",
-    curioLevelRange: [2, 4],
     curioPoolExcludes: [],
     reward: {
       materialCount: 5,
@@ -51,7 +46,6 @@ export const MAP_DIFFICULTIES: Record<MapDifficulty, MapDifficultyDef> = {
   abyss: {
     id: "abyss",
     name: "深渊",
-    curioLevelRange: [3, 5],
     curioPoolExcludes: [],
     reward: {
       materialCount: 5,
@@ -106,7 +100,6 @@ export function difficultyMapConfig(mapId: string, difficulty: MapDifficulty): M
   return {
     ...map,
     maxEquipRarity: definition.reward.equipRarity,
-    curioLevelRange: definition.curioLevelRange,
   };
 }
 

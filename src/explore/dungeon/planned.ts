@@ -25,7 +25,6 @@ function layoutPlannedRoom(room: RoomNode, plan: DungeonRoomPlan): void {
     kind,
     x: middleSlots[middleSlotIndex(index, plan.curios.length)],
     used: false,
-    level: 1,
   }));
   if (room.kind === "boss") room.bossGateX = middleSlots[middleSlots.length - 1];
 }

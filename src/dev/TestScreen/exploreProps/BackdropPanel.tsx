@@ -2,12 +2,9 @@ import { clampScale, SCALE_MAX, SCALE_MIN, SCALE_NUDGE, SCALE_PRECISION } from "
 import { ScaleKnob } from "./ScaleKnob";
 import { printScales } from "./printScales";
 import { DEFAULT_BACKDROP, demoBackdropGeometry, type DemoBackdrop } from "./DemoNearLayer";
-import type { PreviewTuning } from "./previewTuning";
+import { OFFSET_STEPS, type PreviewTuning } from "./previewTuning";
 import { findNearLayer } from "./demoNearLayers";
 import s from "./ExplorePropScene.module.css";
-
-/** 上下偏移的步进：负值往上挪，正值往下挪。 */
-const OFFSET_STEPS = [-10, -1, 1, 10] as const;
 
 /** 背景近景调节：缩放旋钮沿用交互物同款，上下偏移用步进按钮；打印按钮同时输出已启用交互物与背景。 */
 export function BackdropPanel({ tuning, onChange, onClose }: {

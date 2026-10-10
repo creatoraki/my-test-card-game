@@ -12,7 +12,7 @@
 | --- | --- |
 | [maps.ts](../../src/data/maps/index.ts) | `MapDef` 与 `MAPS`：房间数、事件池、五个战斗档位的遭遇战、起始粒子；解锁条件、装备稀有度范围。 |
 | [maps/ecoArk.ts](../../src/data/maps/ecoArk.ts) | 生态方舟地图（12 间房，通关废弃楼层后开放）。 |
-| [mapDifficulty.ts](../../src/data/maps/mapDifficulty.ts) | 难度规则的唯一真相点：装备上限、物件等级、敌人生命与攻击倍率。 |
+| [mapDifficulty.ts](../../src/data/maps/mapDifficulty.ts) | 难度规则的唯一真相点：装备上限、交互物奖励池剔除项、敌人生命与攻击倍率。 |
 | [mapCombatBalance.ts](../../src/data/maps/mapCombatBalance.ts) | 各难度的战斗倍率修正。 |
 | [mapAidSupply.ts](../../src/data/maps/mapAidSupply.ts) | 出击时总部按地图和难度配发的一次性物资。 |
 | [mapClearReward.ts](../../src/data/maps/mapClearReward.ts) / [mapDailyReward.ts](../../src/data/maps/mapDailyReward.ts) | 首次通关的固定奖励；每日通关的随机奖励。 |
@@ -23,10 +23,10 @@
 | 文件 | 作用 |
 | --- | --- |
 | [curios/index.ts](../../src/data/curios/index.ts) | 物件总表 `CORRIDOR_CURIOS`、随机投放权重、治疗类和陷阱类清单，以及黑影、守卫、警报等遭遇事件。 |
-| [curios/types.ts](../../src/data/curios/types.ts) | 物件、决策、缓解条件、失败规则、等级覆写等类型。 |
+| [curios/types.ts](../../src/data/curios/types.ts) | 物件、决策、缓解条件、失败规则、候选抽取等类型。 |
 | [curios/helpers.ts](../../src/data/curios/rules/helpers.ts) | 编写物件用的简写：`fail`、`byJob`、`withItem`、`feedDecision`。 |
-| `lootCurios` / `supplyCurios` / `scavengeCurios` / `growthCurios` / `serviceCurios` / `craftCurios` / `trapCurios` / `tutorialCurios` / `ecoArk` | 各类物件：道具奖励、补给、拾荒、成长、服务、制造、陷阱、新手专用、生态方舟专属。 |
-| [curios/levelRules.ts](../../src/data/curios/rules/levelRules.ts) / [rewardPools.ts](../../src/data/curios/rules/rewardPools.ts) | 物件等级规则（失败率上限、奖励放大）；按品质档分组的奖励池。 |
+| `lootCurios` / `supplyCurios` / `growthCurios` / `serviceCurios` / `craftCurios` / `trapCurios` / `tutorialCurios` / `ecoArk` | 各类物件：搜刮、恢复、装备调校、NPC 服务、熔合与神龛、陷阱、新手专用、生态方舟专属。 |
+| [curios/curioRules.ts](../../src/data/curios/rules/curioRules.ts) / [rewardPools.ts](../../src/data/curios/rules/rewardPools.ts) | 失败率上限与警报守卫档位；按权重抽取的奖励池。 |
 | [curios/growthBalance.ts](../../src/data/curios/rules/growthBalance.ts) | 成长服务的选项，以及哪些难度允许删卡（新手和普通难度禁用）。 |
 | [curios/merchantPricing.ts](../../src/data/curios/rules/merchantPricing.ts) / [critters.ts](../../src/data/curios/defs/critters.ts) | 货商收取的食品和价格档位；机械小动物的喂食偏好。 |
 

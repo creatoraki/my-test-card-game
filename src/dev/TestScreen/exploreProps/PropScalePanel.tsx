@@ -1,18 +1,20 @@
 import { clampScale, SCALE_MAX, SCALE_MIN, SCALE_NUDGE, SCALE_PRECISION, type ShowcasePropDef } from "./showcaseProps";
 import { ScaleKnob } from "./ScaleKnob";
 import { printScales } from "./printScales";
-import { isPropEnabled, type PreviewTuning } from "./previewTuning";
+import { isPropEnabled, OFFSET_STEPS, type PreviewTuning } from "./previewTuning";
 import s from "./ExplorePropScene.module.css";
 
 /** 倍率步进按钮：粗调 ±0.01，精调 ±0.001。 */
 const NUDGE_STEPS = [-SCALE_NUDGE, -SCALE_PRECISION, SCALE_PRECISION, SCALE_NUDGE] as const;
 
-/** 只展示当前点中物件的旋钮与启用开关；打印按钮输出全部已启用的展示物。 */
-export function PropScalePanel({ prop, tuning, onChange, onToggle, onClose }: {
+/** 只展示当前点中物件的旋钮、上下偏移与启用开关；打印按钮输出全部已启用的展示物。 */
+export function PropScalePanel({ prop, tuning, onChange, onOffset, onToggle, onClose }: {
   prop: ShowcasePropDef; tuning: PreviewTuning;
-  onChange: (id: string, value: number) => void; onToggle: (id: string, value: boolean) => void; onClose: () => void;
+  onChange: (id: string, value: number) => void; onOffset: (id: string, value: number) => void;
+  onToggle: (id: string, value: boolean) => void; onClose: () => void;
 }) {
   const value = tuning.multipliers[prop.id] ?? 1;
+  const offset = tuning.offsets[prop.id] ?? 0;
   const enabled = isPropEnabled(tuning, prop.id);
   const set = (next: number) => onChange(prop.id, next);
   return <aside className={s.panel} aria-label={`${prop.name}缩放调节`}>
@@ -35,6 +37,15 @@ export function PropScalePanel({ prop, tuning, onChange, onToggle, onClose }: {
           </button>)}
           <button type="button" onClick={() => set(1)}>复位</button>
         </div>
+      </div>
+    </div>
+    <div className={s.offsetRow}>
+      <span>偏移 {offset > 0 ? "+" : ""}{offset}</span>
+      <div className={s.nudges}>
+        {OFFSET_STEPS.map((step) => <button key={step} type="button" aria-label={step < 0 ? `上移 ${-step}` : `下移 ${step}`} onClick={() => onOffset(prop.id, offset + step)}>
+          {step < 0 ? `↑${-step}` : `↓${step}`}
+        </button>)}
+        <button type="button" onClick={() => onOffset(prop.id, 0)}>复位</button>
       </div>
     </div>
     <button type="button" className={s.printButton} onClick={() => printScales(tuning)}>打印</button>

@@ -10,7 +10,6 @@ export const ECO_ARK_MAP: MapDef = {
   maxEquipRarity: "common",
   roomCount: 12,
   nearMapVariants: ["ecoArk1", "ecoArk2", "ecoArk3", "ecoArk4"],
-  curioLevelRange: [1, 3],
   battleEncounters: {
     t1: ["a-t1-cargo", "a-t1-seeds", "a-t1-water", "a-t1-spore-post", "a-t1-moss-lamp"],
     t2: [
@@ -23,9 +22,8 @@ export const ECO_ARK_MAP: MapDef = {
   },
   treasureEncounters: ["a-mimic-gear", "a-mimic-card"],
   curioPool: {
-    // 未覆写的通用物件保持原权重；新物件只在方舟投放。
-    weights: { arkSeedVault: 16, arkComposter: 12, arkGeneConsole: 6 },
-    healKinds: ["arkDewCollector", "arkDewCollector", "medical", "energyStation"],
+    // 未覆写的通用物件保持原权重；档案台只在方舟投放。
+    weights: { arkGeneConsole: 6 },
     trapKinds: ["arkSporeVent", "arkSporeVent", "leakingPipe"],
   },
   requiresClear: "neon-city",

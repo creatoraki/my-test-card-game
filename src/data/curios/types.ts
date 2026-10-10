@@ -2,9 +2,6 @@ import type { ExploreEffect, ExploreState } from "@/explore/types";
 import type { ItemStack } from "@/items/types";
 import type { MechanicalCritterId } from "./defs/critters";
 
-/** 物件等级：同一模板按等级放大奖励与惩罚，玩家不可见。 */
-export type CurioLevel = 1 | 2 | 3 | 4 | 5;
-
 export type ActorTarget = "actor" | "random" | "party" | { job: string };
 
 export interface ItemMatch {
@@ -32,7 +29,9 @@ export type CurioEffect =
   | { type: "TUNE_EQUIPMENT"; mode: "bond" | "perfectness"; foodCost: number }
   | { type: "GRANT_DISPOSABLE_RELIC" }
   | { type: "CONSUME_ITEM"; itemId: string; count: number }
-  /** 失败引来守卫战，档位按物件等级取。 */
+  /** 从候选效果里不重复地随机抽 pick 条执行，交互时才掷。 */
+  | { type: "ROLL_EFFECTS"; pick: number; options: CurioEffect[] }
+  /** 失败引来守卫战，档位见 rules/curioRules.ts。 */
   | { type: "ALARM_BATTLE" };
 
 /** 隐性门槛：执行者职业，或背包里的指定物品(生效时自动消耗 1 个)。 */
@@ -74,13 +73,6 @@ export interface CurioDecision {
   failure?: CurioFailure;
 }
 
-/** 关键等级的手写覆写：3 级对 3-4 级生效，5 级对 5 级生效。 */
-export interface CurioLevelOverride {
-  description?: string;
-  extraDecisions?: CurioDecision[];
-  replaceEffects?: Record<string, CurioEffect[]>;
-}
-
 /** 物件在投放与历史记录中的分类：物品奖励、治疗、陷阱、服务。 */
 export type CurioRole = "loot" | "heal" | "trap" | "service";
 
@@ -95,7 +87,6 @@ export interface CurioDef {
   size: number;
   description: string;
   decisions: CurioDecision[];
-  levels?: Partial<Record<3 | 5, CurioLevelOverride>>;
   persistent?: boolean;
 }
 
@@ -114,8 +105,6 @@ export type RewardPoolId =
 export interface RewardPoolEntry {
   itemId: string;
   weight: number;
-  /** 品质档：0 普通、1 较好、2 最好；物件等级越高越偏向高档。 */
-  grade: 0 | 1 | 2;
 }
 
 export type MerchantPayment = { itemId: string; count: number };
@@ -144,7 +133,6 @@ export interface MerchantShelf {
 export interface CurioEffectContext {
   actorId: string;
   offered: ItemStack[];
-  level: CurioLevel;
 }
 
 export type CurioState = Pick<ExploreState, "backpack" | "party">;

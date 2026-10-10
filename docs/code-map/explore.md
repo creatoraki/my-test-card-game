@@ -29,7 +29,7 @@
 | [dungeon/types.ts](../../src/explore/dungeon/types.ts) | 房间、传送门方向、房间种类（`start` / `normal` / `battle` / `trap` / `boss`）。每个房间最多连通上下左右 4 个方向。 |
 | [dungeon/generate.ts](../../src/explore/dungeon/generate.ts) + [growRooms.ts](../../src/explore/dungeon/growRooms.ts) | 随机地图：先长出生成树，再追加少量环路；BOSS 房放在最深处。 |
 | [dungeon/planned.ts](../../src/explore/dungeon/planned.ts) | 固定蓝图地图（新手关）。 |
-| [dungeon/curioPlan.ts](../../src/explore/dungeon/curioPlan.ts) / [curioLevel.ts](../../src/explore/dungeon/curioLevel.ts) | 每个房间放哪些物件，以及物件等级（越深的房间越接近地图等级上限）。 |
+| [dungeon/curioPlan.ts](../../src/explore/dungeon/curioPlan.ts) | 每个房间放哪些物件。 |
 | [dungeon/session.ts](../../src/explore/dungeon/dungeonSession.ts) | 换房间：站上传送门点亮小地图、确认传送并扣粒子、落地新房间；战斗房立即触发黑影，陷阱房立即打开陷阱物件；另有应急信标传送。 |
 | [dungeon/nearMapGeometry.ts](../../src/explore/dungeon/nearMapGeometry.ts) | 近景素材的显示倍率（原图 2 倍）与几何尺寸，房间宽度由它决定。 |
 
@@ -48,8 +48,8 @@
 | --- | --- |
 | [curio/resolve.ts](../../src/explore/curio/resolve.ts) | 物件决策的主入口：选择应对方式和执行者。 |
 | [curio/visibility.ts](../../src/explore/curio/visibility.ts) | 哪些决策可见、哪些物品可以投入。 |
-| [curio/failure.ts](../../src/explore/curio/failure.ts) | 失败判定：概率对玩家隐藏，由基础失败率 + 等级加值 + 职业或物品修正得出。 |
-| [curio/leveling.ts](../../src/explore/curio/leveling.ts) | 同一个物件模板按等级放大奖励和惩罚。 |
+| [curio/failure.ts](../../src/explore/curio/failure.ts) | 失败判定：概率对玩家隐藏，由基础失败率 + 职业或物品修正 + 遗物修正得出。 |
+| [curio/roll.ts](../../src/explore/curio/roll.ts) | 候选抽取（如 4 选 2）：交互时掷出，结算前展开成普通效果。 |
 | [curio/effects.ts](../../src/explore/curio/effects.ts) | 物件效果的落地。 |
 | [curio/offering.ts](../../src/explore/curio/offering.ts) / [foodPayment.ts](../../src/explore/curio/foodPayment.ts) | 黑盒投放物品的匹配规则；服务类物件的食品支付。 |
 | [curio/merchant.ts](../../src/explore/curio/merchant.ts) | 流浪货商：生成货架（固定 6 格，只收两种临期食品）、判断能否购买、付款。 |

@@ -8,7 +8,7 @@ export interface ShowcasePreviewPage extends ShowcasePageDef {
 export function paginateShowcasePages(pages: readonly ShowcasePageDef[], itemsPerPage: number): ShowcasePreviewPage[] {
   const count = Math.max(1, Math.min(4, Math.floor(itemsPerPage)));
   return pages.flatMap((page) => {
-    const pageCount = Math.ceil(page.props.length / count);
+    const pageCount = Math.max(1, Math.ceil(page.props.length / count));
     return Array.from({ length: pageCount }, (_, index) => {
       const props = page.props.slice(index * count, (index + 1) * count);
       return {

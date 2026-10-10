@@ -5,21 +5,19 @@ import { ARK_CURIOS } from "./defs/ecoArk";
 import { GROWTH_CURIOS } from "./defs/growthCurios";
 import { LOOT_CURIOS } from "./defs/lootCurios";
 import { TRAP_CURIOS } from "./defs/trapCurios";
-import { SCAVENGE_CURIOS } from "./defs/scavengeCurios";
 import { SERVICE_CURIOS } from "./defs/serviceCurios";
 import { SUPPLY_CURIOS } from "./defs/supplyCurios";
 import { TUTORIAL_CURIOS } from "./defs/tutorialCurios";
 import type { CurioDef } from "./types";
 
 export * from "./defs/critters";
-export * from "./rules/levelRules";
+export * from "./rules/curioRules";
 export * from "./rules/merchantPricing";
 export * from "./rules/rewardPools";
 export * from "./types";
 
 export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {
   ...ARK_CURIOS,
-  ...SCAVENGE_CURIOS,
   ...SUPPLY_CURIOS,
   ...CRAFT_CURIOS,
   ...GROWTH_CURIOS,
@@ -30,36 +28,28 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {
 };
 
 /**
- * 普通物件随机投放权重：换金物最常见，其次材料、食品与道具，装备与服务偶尔出现。
- * 治疗与陷阱物件不在这里：治疗由 dungeon/curioPlan.ts 按每房概率投放，陷阱只放进陷阱房。
+ * 普通物件随机投放权重：三种搜刮最常见，改造服务与遗物偶尔出现。
+ * 恢复与陷阱物件不在这里：恢复由 dungeon/curioPlan.ts 按每房概率投放，陷阱只放进陷阱房。
  *
  * NPC 先占房间名额，剩余名额按本表抽取；锻造师每张地图固定一位。
- * · 苔铃寄存邮筒(装备) ≈ 0.8 件，与战斗掉落(约 2.1 件)合计约 3 件；
- * · 尘封的遗物匣与杂兵掉落共同提供永久遗物。
+ * · 地图里的装备只来自密码寄存柜的 4 选 2（每次抽中率 50%）；
+ * · 尘封的环锁密匣与杂兵掉落共同提供永久遗物。
  */
 export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> = {
-  // 换金物 / 材料 / 食品 / 道具
-  cashBox: 20,
-  supplyCrate: 11,
-  toolLocker: 9,
-  safe: 8,
-  courierDrone: 8,
-  vending: 6,
-  compactor: 6,
-  crystalVein: 5,
-  moduleCase: 8,
-  remains: 4,
-  modBench: 4,
-  // 装备、遗物与成长服务
-  equipmentCache: 6,
+  // 搜刮
+  supplyCrate: 30,
+  toolLocker: 22,
+  safe: 10,
+  relicCache: 2,
+  // 装备、遗物改造服务
+  modBench: 3,
   bondWorkbench: 2,
   perfectnessWorkbench: 1,
-  relicCache: 2,
-  shrine: 1,
+  shrine: 2,
 };
 
-/** 治疗与粒子补给交互：每间非起点房按 healChance 概率投放 1 个。 */
-export const HEAL_CURIO_KINDS: readonly CurioKind[] = ["medical", "sink", "repairPod", "energyStation"];
+/** 恢复物件：每间非起点房按 healChance 概率投放 1 个。 */
+export const HEAL_CURIO_KINDS: readonly CurioKind[] = ["medical"];
 
 /** 陷阱物件：只投放在陷阱房，进房立即触发。 */
 export const TRAP_CURIO_KINDS: readonly CurioKind[] = ["collapsedCeiling", "leakingPipe", "rogueDrone"];

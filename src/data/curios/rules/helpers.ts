@@ -5,6 +5,7 @@ import type {
   CurioFailure,
   CurioMitigation,
   ItemMatch,
+  RewardPoolId,
 } from "../types";
 
 type MitigationOptions = Omit<CurioMitigation, "when">;
@@ -41,4 +42,14 @@ export function feedDecision(
   failure?: CurioFailure,
 ): CurioDecision {
   return { id, label, story, feed: { critter, count }, effects, failure };
+}
+
+/** 从候选效果里不重复地随机抽 pick 条，交互时才掷。 */
+export function roll(pick: number, options: CurioEffect[]): CurioEffect {
+  return { type: "ROLL_EFFECTS", pick, options };
+}
+
+/** 从奖励池抽 1 件。 */
+export function poolItem(pool: RewardPoolId): CurioEffect {
+  return { type: "GAIN_POOL_ITEM", pool, count: 1 };
 }

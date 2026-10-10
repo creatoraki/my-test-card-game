@@ -236,7 +236,6 @@ export type {
   CurioDecision,
   CurioEffect,
   CurioFailure,
-  CurioLevel,
   CurioMitigation,
   MerchantShelf,
 } from "./curios";

@@ -15,7 +15,7 @@ import { settleActorRewards } from "./actorRewards";
 import { activeCurioDef, feedFoodFor, visibleDecisions } from "./visibility";
 import { payServiceFood } from "./foodPayment";
 import { resolveFailure } from "./failure";
-import { scaleEffects } from "./leveling";
+import { expandRolls } from "./roll";
 
 function activeObject(s: ExploreState): CorridorObject | undefined {
   const id = s.corridor?.activeObjectId;
@@ -58,9 +58,8 @@ function executeDecision(
   const object = activeObject(s);
   const def = activeCurioDef(s);
   if (!object || !def) return false;
-  const level = object.level;
-  const ctx: CurioEffectContext = { actorId: executorId, offered, level };
-  const outcome = resolveFailure(s, decision.failure, level, executorId, failureDisabled(s));
+  const ctx: CurioEffectContext = { actorId: executorId, offered };
+  const outcome = resolveFailure(s, decision.failure, executorId, failureDisabled(s));
   const notes = [...preNotes, ...outcome.notes];
 
   let story = decision.story;
@@ -76,7 +75,7 @@ function executeDecision(
   }
   s.pendingStory = [story];
   s.pendingNotes = [];
-  applyAll(s, scaleEffects(s, effects, level), ctx, notes);
+  applyAll(s, expandRolls(s, effects), ctx, notes);
   s.pendingNotes = notes;
   finishInteraction(s, object, def, visibleIndex, decision.label);
   return true;

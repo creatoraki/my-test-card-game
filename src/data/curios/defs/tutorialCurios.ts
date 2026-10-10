@@ -9,7 +9,7 @@ export const TUTORIAL_CURIOS = {
     enName: "TRAINING EQUIPMENT MAILBOX",
     verb: "领取",
     size: 210,
-    description: "训练装备邮筒已经为小队寄存好一件校准完成的装备。是否现在领取补给？",
+    description: "长满苔藓的训练装备邮筒已经为小队寄存好一件校准完成的装备。是否现在领取补给？",
     decisions: [{
       id: "claimEquip",
       label: "领取训练装备",
@@ -18,15 +18,15 @@ export const TUTORIAL_CURIOS = {
     }],
   },
   tutorialModBench: {
-    name: "训练锻造台",
+    name: "训练实验台",
     role: "loot",
     verb: "领取",
     size: 210,
-    description: "训练锻造台已备好一枚攻击力模组与三份临期食品，可用于体验锻造师服务。",
+    description: "训练实验台已备好一枚攻击力模组与三份临期食品，可用于体验锻造师服务。",
     decisions: [{
       id: "claimModule",
       label: "领取模组与三份食品",
-      story: "锻造台完成检验，攻击力模组被送入待拾取框，三份临期食品放入背包。",
+      story: "实验台完成检验，攻击力模组被送入待拾取框，三份临期食品放入背包。",
       effects: [{ type: "GAIN_ITEM", itemId: "attack-module-t1" },
         { type: "FORCE_ITEM", itemId: "bread", count: 3 }],
     }],
@@ -40,7 +40,7 @@ export const TUTORIAL_CURIOS = {
     decisions: [{
       id: "treatParty",
       label: "调配全队药剂",
-      story: "调药台蒸腾起萤露药雾，治疗稳定地流过每名成员。",
+      story: "调药台蒸腾起淡青色的药雾，治疗稳定地流过每名成员。",
       effects: [
         { type: "HEAL_PARTY", percent: 0.4 },
         { type: "ADJUST_POLLUTION", target: "party", amount: -10 },
@@ -52,7 +52,7 @@ export const TUTORIAL_CURIOS = {
     role: "loot",
     verb: "开启",
     size: 190,
-    description: "储备龛里供奉着三种不同的祝福遗物，开启后可以当场挑走一件。",
+    description: "古旧的石砌储备龛里供奉着三种不同的祝福遗物，开启后可以当场挑走一件。",
     decisions: [{
       id: "openCache",
       label: "开启储备龛",
@@ -65,11 +65,11 @@ export const TUTORIAL_CURIOS = {
   },
   // 演示换金物拾取；金币只由首领与宝箱怪投放，这里固定给铜币。
   tutorialCashBox: {
-    name: "遗落的旅行布袋",
+    name: "遗落的旅行背包",
     role: "loot",
     verb: "清点",
     size: 120,
-    description: "旅行布袋被丢在角落，系绳已经松开，侧袋里还剩几枚旧铜币。",
+    description: "旅行背包被丢在角落，搭扣已经松开，侧袋里还剩几枚旧铜币。",
     decisions: [{
       id: "grabCoins",
       label: "收走铜币",

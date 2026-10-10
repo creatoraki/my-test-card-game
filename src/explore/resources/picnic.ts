@@ -71,7 +71,7 @@ function grantRecipeReward(s: ExploreState, reward: PicnicReward): string {
     return `全队体力极限 +${amount}`;
   }
   const def = getItemDef(reward.relicId);
-  // 护栏: 食谱只能发野餐限定遗物, 与临时祝福匣的来源互不相通。
+  // 护栏: 食谱只能发野餐限定遗物, 与起程祈愿龛的来源互不相通。
   if (!def.relic || relicChannelOf(def.relic) !== "picnic") return "这份食谱没有带来特别的收获";
   s.pendingPickup = [...s.pendingPickup, makeItemStack(reward.relicId, 1, { disposable: true })];
   return `获得一次性遗物「${def.name}」，已放入待拾取框`;

@@ -8,7 +8,6 @@
 // 战斗背景见 ui/battleBg.ts, 场景氛围见 ui/ambience.ts, 三处都按下面的 id 作键。
 
 import type { DungeonRoomPlan, NearMapVariant } from "@/explore/dungeon/types";
-import type { CurioLevel } from "../curios/types";
 import type { BattleTier } from "@/explore/types";
 import { RARITY_ORDER, type ItemRarity } from "@/items/types";
 import { TUTORIAL_DUNGEON_PLAN } from "./tutorialDungeon";
@@ -33,8 +32,6 @@ export interface MapDef {
   nearMapVariants?: readonly NearMapVariant[];
   /** 有蓝图时按蓝图生成直线房间图；roomCount 应与蓝图长度一致。 */
   dungeonPlan?: readonly DungeonRoomPlan[];
-  /** 随机房间图的物件等级区间 [最低, 最高]；越深的房间越接近最高级。 */
-  curioLevelRange: readonly [CurioLevel, CurioLevel];
   /** 地区专属物件；权重与通用池合并，治疗及风险池按地区替换。 */
   curioPool?: {
     weights?: Readonly<Partial<Record<CurioKind, number>>>;
@@ -72,7 +69,6 @@ export const MAPS: MapDef[] = [
     maxEquipRarity: "common",
     roomCount: 6,
     dungeonPlan: TUTORIAL_DUNGEON_PLAN,
-    curioLevelRange: [1, 1],
     disableCurioFailure: true,
     hideAfterClear: true,
     battleEncounters: {
@@ -93,7 +89,6 @@ export const MAPS: MapDef[] = [
     maxEquipRarity: "common",
     roomCount: 12,
     nearMapVariants: ["neonCity1", "neonCity2", "neonCity3"],
-    curioLevelRange: [1, 3],
     battleEncounters: {
       t1: ["n-t1-scout", "n-t1-sweep", "n-t1-drift", "n-t1-signal", "n-t1-radio-drift", "n-t1-twin-weld"],
       t2: [

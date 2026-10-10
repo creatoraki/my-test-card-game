@@ -6,7 +6,6 @@
 // ② 以下房间内容全部用会话 RNG, 每局都不同;
 // ③ BFS 算 depth, 非起点非 BOSS 房按比例投放战斗房与陷阱房;
 // ④ 物件清单由 curioPlan.ts 决定: 每房 1-2 个, 陷阱房固定一个陷阱, 治疗按每房概率投放, 其余按权重偏向物品奖励;
-//    物件等级由 curioLevel.ts 按地图等级区间与房间深度决定;
 // ⑤ 传送门落在固定门位: 左门通左邻、右门通右邻、中门通纵向邻房; BOSS 红门与可交互物避开门附近槽位。
 // ============================================================================
 
@@ -25,8 +24,6 @@ import { generatePlannedDungeon } from "./planned";
 import { assignNearMapVariants } from "./nearMapAssignment";
 import { growRooms } from "./growRooms";
 import { planRoomCurios } from "./curioPlan";
-import { rollCurioLevel } from "./curioLevel";
-import type { CurioLevel } from "@/data/curios/types";
 
 /** 起始房间出发的最短步数。 */
 function markDepth(rooms: Record<string, RoomNode>, startId: string): void {
@@ -51,7 +48,6 @@ function layoutRoom(
   s: ExploreState,
   room: RoomNode,
   picks: CurioKind[],
-  levelOf: () => CurioLevel,
   bossGate = false,
 ): void {
   // 门位与小地图方向一一对应, 玩家不必记「哪扇门通哪边」。
@@ -90,7 +86,6 @@ function layoutRoom(
     kind,
     x: middle[cursor++],
     used: false,
-    level: levelOf(),
   }));
 }
 
@@ -128,12 +123,7 @@ export function generateDungeon(s: ExploreState, layoutSeed: number): DungeonSta
   );
   // 起始房祝福匣、货商名额、陷阱与治疗概率统一由 curioPlan.ts 规划。
   const curioPlan = planRoomCurios(s, rooms, order, merchantRooms);
-  const maxDepth = Math.max(1, ...order.map((id) => rooms[id].depth));
-  for (const id of order) {
-    const room = rooms[id];
-    const levelOf = () => rollCurioLevel(s, map.curioLevelRange, room.depth, maxDepth);
-    layoutRoom(s, room, curioPlan[id], levelOf, room.kind === "boss");
-  }
+  for (const id of order) layoutRoom(s, rooms[id], curioPlan[id], rooms[id].kind === "boss");
   const xs = order.map((id) => rooms[id].gx);
   const ys = order.map((id) => rooms[id].gy);
   return {

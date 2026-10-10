@@ -1,157 +1,127 @@
-import { byJob, fail, feedDecision, withItem } from "../rules/helpers";
+import { byJob, fail, feedDecision, poolItem, roll, withItem } from "../rules/helpers";
 import type { CurioKind } from "@/explore/corridor/types";
-import type { CurioDef } from "../types";
+import type { CurioDef, CurioEffect } from "../types";
 
-/** 道具奖励类物件：以直接获取物品为主，执行者职业与背包物品会暗中改变成败。美术见 ui/art/corridor/commonPropArt.ts。 */
+// 搜刮类：每种物件 4 个候选品类，交互时不重复抽 2 类、每类 1 件；喂养小生物改为抽 3 类且必定成功。
+// 美术分配见 ui/art/corridor/commonPropArt.ts。
+
+const SUPPLY_OPTIONS: CurioEffect[] = [poolItem("food"), poolItem("consumable"), poolItem("scrap"), poolItem("generalMaterial")];
+const WRECK_OPTIONS: CurioEffect[] = [poolItem("generalMaterial"), poolItem("crystal"), poolItem("module"), poolItem("scrap")];
+const LOCKER_OPTIONS: CurioEffect[] = [poolItem("premiumScrap"), poolItem("module"), { type: "GRANT_EQUIP" }, poolItem("crystal")];
+
 export const LOOT_CURIOS = {
   supplyCrate: {
-    name: "藤叶探险箱",
+    name: "遗落的战术背包",
     role: "loot",
-    verb: "打开",
+    verb: "翻找",
     size: 200,
-    description: "缠满翡翠藤叶的探险箱半掩着箱盖，箱里还留着几份包装完好的食品。",
+    description: "一只鼓鼓囊囊的战术背包靠在几只货箱旁，旅人留下的补给胡乱塞在里面：可能是食品、应急道具、零钱或零件。",
     decisions: [
       {
-        id: "takeFood",
-        label: "取出食品",
-        story: "你们把箱底翻了个遍，挑出两份还没过期的食品。",
-        effects: [{ type: "GAIN_POOL_ITEM", pool: "food", count: 2 }],
+        id: "open",
+        label: "翻找补给",
+        story: "你们把背包和货箱翻了个遍，挑出两样还能用的东西。",
+        effects: [roll(2, SUPPLY_OPTIONS)],
         failure: fail(
           0.2,
-          "箱底的食品早已胀袋变质，执行者被扑面的酸气呛得直咳。",
+          "包底的补给早已胀袋变质，执行者被扑面的酸气呛得直咳。",
           [{ type: "ADJUST_POLLUTION", target: "actor", amount: 6 }],
-          withItem("cola", {
-            chanceDelta: -0.2,
-            bonusEffects: [{ type: "GAIN_POOL_ITEM", pool: "consumable", count: 1 }],
-            note: "可乐瓶盖撬开了夹层的藤扣，里面还藏着一件应急道具",
-          }),
+          withItem("cola", { chanceDelta: -0.2, note: "可乐瓶盖撬开了夹层的卡扣，没惊动变质的那一层" }),
           byJob("actuary", { chanceDelta: -0.15, note: "精算师核对生产日期，避开了变质的那一批" }),
         ),
       },
       feedDecision(
         "feedCleaner",
-        "喂给藤叶下的清扫虫",
-        "清扫虫吞下食物后钻进藤叶缝隙，把卡在夹层里的补给全都推了出来。",
+        "喂给背包里的清扫虫",
+        "清扫虫吞下食物后钻进背包夹层，把卡在里面的补给全都推了出来。",
         "cleaner",
         1,
-        [
-          { type: "GAIN_POOL_ITEM", pool: "food", count: 3 },
-          { type: "GAIN_POOL_ITEM", pool: "consumable", count: 1 },
-        ],
+        [roll(3, SUPPLY_OPTIONS)],
       ),
     ],
   },
   toolLocker: {
-    name: "熄火的锻造台",
+    name: "废弃的研究员工作站",
     role: "loot",
-    verb: "撬开",
+    verb: "搜查",
     size: 205,
-    description: "锻造台的炉火早已熄灭，工具壁的锁扣变形卡死，缝隙里露出几件还能用的零件。",
-    decisions: [{
-      id: "prySpare",
-      label: "撬出零件",
-      story: "工具壁吱呀一声弹开，两份零件被完整取出。",
-      effects: [{ type: "GAIN_POOL_ITEM", pool: "generalMaterial", count: 2 }],
-      failure: fail(
-        0.4,
-        "变形的工具壁猛地回弹，挂钩狠狠刮过执行者的手臂。",
-        [{ type: "DAMAGE_MEMBER_PERCENT", target: "actor", percent: 0.08 }],
-        byJob("swordsman", {
-          chanceDelta: -0.4,
-          bonusEffects: [{ type: "GAIN_POOL_ITEM", pool: "module", count: 1 }],
-          note: "剑士用刀背顶开了风箱后的暗格，里面放着一枚模组",
-        }),
-      ),
-    }],
-    levels: {
-      5: {
-        replaceEffects: {
-          prySpare: [
-            { type: "GAIN_POOL_ITEM", pool: "generalMaterial", count: 2 },
-            { type: "GAIN_POOL_ITEM", pool: "module", count: 1 },
-          ],
-        },
+    description: "研究员撤离时没来得及收拾工作站，星仪还在空转，桌下的仪器箱堆得摇摇欲坠。翻一翻也许能找到零件、结晶、模组或散落的钱币。",
+    decisions: [
+      {
+        id: "dismantle",
+        label: "撬开仪器箱",
+        story: "仪器箱的锁扣吱呀一声弹开，两样东西被完整取了出来。",
+        effects: [roll(2, WRECK_OPTIONS)],
+        failure: fail(
+          0.35,
+          "堆在顶上的仪器箱猛地滑落，锋利的箱角狠狠刮过执行者的手臂。",
+          [{ type: "DAMAGE_MEMBER_PERCENT", target: "actor", percent: 0.08 }],
+          byJob("swordsman", { chanceDelta: -0.35, note: "剑士用刀背顶住了滑落的箱子" }),
+        ),
       },
-    },
+      feedDecision(
+        "feedMole",
+        "喂给箱堆里的掘地鼹",
+        "掘地鼹吃饱后钻进箱堆深处，把压在底下的东西一件件拱了出来。",
+        "mole",
+        1,
+        [roll(3, WRECK_OPTIONS)],
+      ),
+    ],
   },
-  courierDrone: {
-    name: "鼓胀的旅行布袋",
+  safe: {
+    name: "密码寄存柜",
     role: "loot",
-    verb: "拆开",
+    verb: "破解",
     size: 210,
-    description: "草药旅行布袋塞得鼓鼓囊囊，里面捆着几件一直没送到的包裹。",
+    description: "一排寄存格的指示灯还亮着，每一格都要输对密码才能打开。柜里寄存着贵重物资，但输错太多次可能会触发防盗机关。",
+    decisions: [
+      {
+        id: "forceOpen",
+        label: "尝试破解密码",
+        story: "密码盘发出一串短促的提示音，寄存柜在防盗机关启动前弹开了两格。",
+        effects: [roll(2, LOCKER_OPTIONS)],
+        failure: fail(
+          0.4,
+          "指示灯骤然全部转红，刺耳的警报响彻整个房间，巡逻的守卫正朝这里赶来。",
+          [{ type: "ALARM_BATTLE" }],
+          byJob("swordsman", { chanceDelta: -0.3, note: "剑士用刀尖卡住了锁舌，没让它回弹" }),
+          byJob("actuary", {
+            convert: {
+              story: "警报响起的前一刻，精算师算出了密码盘的出厂规律，顺手打开了存放零钱的找零格。",
+              effects: [poolItem("premiumScrap"), poolItem("premiumScrap")],
+            },
+          }),
+        ),
+      },
+      feedDecision(
+        "feedBeetle",
+        "喂给锁孔里的甲虫",
+        "甲虫吃饱后钻进密码盘，一格一格咬开了卡死的齿轮，寄存柜无声地打开了。",
+        "beetle",
+        2,
+        [roll(3, LOCKER_OPTIONS)],
+      ),
+    ],
+  },
+  relicCache: {
+    name: "尘封的环锁密匣", role: "loot", verb: "开启", size: 190,
+    description: "密匣落满灰尘，匣盖上的环锁封印仍在微微发光。开启后可直接获得一件随机遗物。",
     decisions: [{
-      id: "openParcel",
-      label: "拆开包裹",
-      story: "包裹里装着一份应急物资和一份简单的口粮。",
-      effects: [
-        { type: "GAIN_POOL_ITEM", pool: "consumable", count: 1 },
-        { type: "GAIN_POOL_ITEM", pool: "basicFood", count: 1 },
-      ],
+      id: "open", label: "开启密匣", story: "环锁一圈圈松开，一件遗物从匣底浮起，被送入待拾取框。",
+      effects: [{ type: "GRANT_RANDOM_RELIC" }],
       failure: fail(
-        0.25,
-        "系在袋口的铜铃被碰响，清脆的铃声在走廊里回荡开来。",
-        [{ type: "ALARM_BATTLE" }],
-        byJob("prophet", {
-          convert: {
-            story: "预言家提前听出了铃声的节拍，趁它响起前摘下了铃舌，铃里还夹着一张货单。",
-            effects: [{ type: "GAIN_POOL_ITEM", pool: "scrap", count: 1 }],
-          },
-        }),
+        0.2,
+        "环锁松开时的反冲灌进执行者体内，遗物的光芒也随之熄灭。",
+        [{ type: "ADJUST_POLLUTION", target: "actor", amount: 15 }],
+        withItem({ familyId: "holy-water" }, { chanceDelta: -0.2, note: "圣水浸透封印，让环锁安静地松开" }),
       ),
     }],
   },
-  cashBox: {
-    name: "遗落的旅行布袋",
-    role: "loot",
-    verb: "清点",
-    size: 120,
-    description: "草药旅行布袋被丢在角落，系绳已经松开，侧袋里还压着旅人没花完的零钱。",
-    decisions: [{
-      id: "grabCoins",
-      label: "收走零钱",
-      story: "你们解开侧袋，收走了里面的零钱。",
-      effects: [{ type: "GAIN_POOL_ITEM", pool: "scrap", count: 2 }],
-      failure: fail(
-        0.15,
-        "布袋底部渗着一层黏稠的污染汁液，执行者的手套被腐蚀出几个小洞。",
-        [{ type: "ADJUST_POLLUTION", target: "actor", amount: 8 }],
-        byJob("actuary", {
-          chanceDelta: -0.15,
-          bonusEffects: [{ type: "GAIN_POOL_ITEM", pool: "premiumScrap", count: 1 }],
-          note: "精算师翻看了旅人的账本，找出了藏在夹层里的高面值硬币",
-        }),
-      ),
-    }],
-  },
-  moduleCase: {
-    name: "封存的潮汐宝匣",
-    role: "loot",
-    verb: "解封",
-    size: 205,
-    description: "潮汐宝匣的封存灯还在闪烁，匣里锁着模组。强行解封可能会泄出一些污染。",
-    decisions: [{
-      id: "unseal",
-      label: "解开封存",
-      story: "封存层缓缓打开，匣里的模组被取了出来。",
-      effects: [{ type: "GAIN_POOL_ITEM", pool: "module", count: 1 }],
-      failure: fail(
-        0.45,
-        "封存层破开时冒出一股灰雾，执行者被呛得头晕目眩。",
-        [{ type: "ADJUST_POLLUTION", target: "actor", amount: 12 }],
-        withItem("neon-tube", {
-          chanceDelta: -0.45,
-          bonusEffects: [{ type: "GAIN_POOL_ITEM", pool: "module", count: 1 }],
-          note: "霓虹灯管接通了封存回路，宝匣安全地打开了两层托盘",
-        }),
-        byJob("alchemist", { chanceDelta: -0.25, note: "炼金术士先中和了封存层里的残留气体" }),
-      ),
-    }, {
-      // 稳妥的另一条路: 不拆封存层, 整箱带走 —— 多占一格背包, 回头在背包或仓库里再拆。
-      id: "carryCase",
-      label: "整箱带走",
-      story: "你们没有惊动封存层，把匣里的模组箱整个塞进了背包。",
-      effects: [{ type: "GAIN_ITEM", itemId: "module-crate-t1", count: 1 }],
-    }],
+  temporaryRelicCache: {
+    name: "起程祈愿龛", role: "loot", verb: "祈愿", size: 190,
+    description: "出发点路边的石龛里还亮着烛火，向它祈一个愿，祝福会凝成一件一次性遗物。遗物仅在本次探索生效，不能寄回，离开远征后消失。",
+    decisions: [{ id: "blessing", label: "祈愿并领取一次性遗物", story: "龛中的烛火轻轻一跳，短暂的祝福化作一件可携带的遗物。",
+      effects: [{ type: "GRANT_DISPOSABLE_RELIC" }] }],
   },
 } satisfies Partial<Record<CurioKind, CurioDef>>;

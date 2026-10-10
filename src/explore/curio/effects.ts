@@ -6,12 +6,13 @@ import { addPendingLoot, applyEffect } from "../session";
 import type { ExploreState } from "../types";
 import { rewardPool } from "@/data/curios/rules/rewardPools";
 import { getMapDifficulty } from "@/data/maps/mapDifficulty";
-import type { ActorTarget, CurioEffect, CurioEffectContext, CurioLevel } from "@/data/curios/types";
-import { CURIO_LEVEL_RULES } from "@/data/curios/rules/levelRules";
+import type { ActorTarget, CurioEffect, CurioEffectContext } from "@/data/curios/types";
+import { CURIO_ALARM_TIER } from "@/data/curios/rules/curioRules";
 import { queueAlarm } from "../corridor/alarm";
 import { fuseEquipment, upgradeRelic } from "./fusion";
 import { revealDungeon } from "./reveal";
 import { grantTemporaryRelic } from "./temporaryRelic";
+import { rollEffects } from "./roll";
 
 function targetIds(s: ExploreState, target: ActorTarget, ctx: CurioEffectContext): string[] {
   const alive = s.party.filter((member) => member.alive);
@@ -34,17 +35,15 @@ function damageMember(s: ExploreState, charId: string, percent: number): string 
   return `${member.name} 损失 ${Math.round(percent * 100)}% 生命`;
 }
 
-/** 按物件等级把奖励池权重向高品质档倾斜：品质档 n 的权重 × gradeBoost^n；先剔除当前难度禁投的物品。 */
+/** 按权重抽奖励池；先剔除当前难度禁投的物品。 */
 function rollPoolItem(
   s: ExploreState,
   pool: Extract<CurioEffect, { type: "GAIN_POOL_ITEM" }>,
-  level: CurioLevel,
 ): string | null {
   const excludes = getMapDifficulty(s.difficulty).curioPoolExcludes;
   const entries = rewardPool(pool.pool).filter((entry) => !excludes.includes(entry.itemId));
   if (!entries.length) return null;
-  const boost = CURIO_LEVEL_RULES[level].gradeBoost;
-  const entry = rngPickWeighted(s, [...entries], (candidate) => candidate.weight * boost ** candidate.grade);
+  const entry = rngPickWeighted(s, [...entries], (candidate) => candidate.weight);
   return entry.itemId;
 }
 
@@ -61,7 +60,7 @@ export function applyCurioEffect(
     case "GAIN_POOL_ITEM": {
       const made: ReturnType<typeof makeRolledItemStack>[] = [];
       for (let i = 0; i < Math.max(0, effect.count); i += 1) {
-        const itemId = rollPoolItem(s, effect, ctx.level);
+        const itemId = rollPoolItem(s, effect);
         if (itemId) made.push(makeRolledItemStack(s, itemId, 1));
       }
       if (!made.length) return "奖励池为空";
@@ -111,8 +110,10 @@ export function applyCurioEffect(
       return `消耗 ${getItemDef(effect.itemId).name} ×${amount}`;
     }
     case "ALARM_BATTLE":
-      queueAlarm(s, CURIO_LEVEL_RULES[ctx.level].alarmTier);
+      queueAlarm(s, CURIO_ALARM_TIER);
       return "警报引来了守卫，结算后将立即遭遇战斗";
+    case "ROLL_EFFECTS":
+      return rollEffects(s, effect).map((picked) => applyCurioEffect(s, picked, ctx)).join("；");
     default:
       return applyExploreEffect(s, effect);
   }

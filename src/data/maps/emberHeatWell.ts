@@ -9,7 +9,6 @@ export const EMBER_HEAT_WELL_MAP: MapDef = {
   emoji: "🌋",
   maxEquipRarity: "common",
   roomCount: 12,
-  curioLevelRange: [1, 3],
   battleEncounters: {
     t1: [],
     t2: [],

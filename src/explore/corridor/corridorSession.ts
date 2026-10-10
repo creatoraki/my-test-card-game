@@ -11,7 +11,7 @@ import { corridorSlotsFor, corridorWalkMax, corridorWidthFor, CORRIDOR, type Cor
 export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalDir | null): void {
   const width = corridorWidthFor(room.nearMapVariant);
   const objects = room.curios.map((curio, index) => ({
-    id: curio.id, kind: curio.kind, x: curio.x, used: curio.used, level: curio.level, nodeIndex: index,
+    id: curio.id, kind: curio.kind, x: curio.x, used: curio.used, nodeIndex: index,
   }));
   const portals: CorridorPortal[] = PORTAL_DIRS
     .filter((dir) => room.exits[dir])

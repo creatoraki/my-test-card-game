@@ -7,7 +7,7 @@ import { canSelectFor, visibleDecisions } from "../curio/visibility";
 import { buyFromMerchant, createMerchantShelf } from "../curio/merchant";
 import { chooseCurioDecision, selectForCurio } from "../curio/resolve";
 import { resolveFailure } from "../curio/failure";
-import { curioAtLevel, scaleEffect } from "../curio/leveling";
+import { expandRolls } from "../curio/roll";
 import { enterRoom } from "../dungeon/dungeonSession";
 import { openCorridorObject } from "../corridor/corridorSession";
 import { isRoomExplored } from "../dungeon/dungeonSession";
@@ -44,13 +44,13 @@ describe("物件选物匹配", () => {
   });
 
   it("喂养选项只在背包有足量对应食物时出现，熔合需凑齐三件装备才可点", () => {
-    const s = sessionWith("modBench", [makeItemStack("bread", 2)]);
-    const ids = visibleDecisions(s, CORRIDOR_CURIOS.modBench).map((decision) => decision.id);
+    const s = sessionWith("safe", [makeItemStack("bread", 2)]);
+    const ids = visibleDecisions(s, CORRIDOR_CURIOS.safe).map((decision) => decision.id);
     expect(ids).toContain("feedBeetle");
     const fuse = CORRIDOR_CURIOS.modBench.decisions.find((decision) => decision.id === "fuseEquipment")!;
     expect(canSelectFor(s, fuse)).toBe(false);
     s.backpack = [];
-    expect(visibleDecisions(s, CORRIDOR_CURIOS.modBench).some((decision) => decision.id === "feedBeetle")).toBe(false);
+    expect(visibleDecisions(s, CORRIDOR_CURIOS.safe).some((decision) => decision.id === "feedBeetle")).toBe(false);
   });
 
   it("所选物品不符合配方时不结算、不扣物品也不扣粒子", () => {
@@ -83,16 +83,16 @@ describe("隐藏失败与门槛", () => {
 
   it("执行者职业门槛可以把失败率压到 0", () => {
     const s = sessionWith("safe");
-    expect(resolveFailure(s, decision.failure, 1, "swordsman").failed).toBe(true);
-    expect(resolveFailure(s, decision.failure, 1, "prophet").failed).toBe(false);
+    expect(resolveFailure(s, decision.failure, "swordsman").failed).toBe(true);
+    expect(resolveFailure(s, decision.failure, "prophet").failed).toBe(false);
   });
 
   it("只负责转化的物品门槛在失败发生时才消耗 1 个", () => {
     const s = sessionWith("safe", [makeItemStack("cola", 2)]);
-    const outcome = resolveFailure(s, decision.failure, 1, "swordsman");
+    const outcome = resolveFailure(s, decision.failure, "swordsman");
     expect(outcome.converted?.story).toBe("转化");
     expect(s.backpack[0].count).toBe(1);
-    resolveFailure(s, decision.failure, 1, "prophet");
+    resolveFailure(s, decision.failure, "prophet");
     expect(s.backpack[0].count).toBe(1);
   });
 
@@ -115,20 +115,18 @@ describe("隐藏失败与门槛", () => {
   });
 });
 
-describe("物件等级", () => {
-  it("高等级放大奖励数量与惩罚", () => {
-    const s = sessionWith("safe");
-    const gain = scaleEffect(s, { type: "GAIN_POOL_ITEM", pool: "scrap", count: 2 }, 5);
-    expect(gain.type === "GAIN_POOL_ITEM" && gain.count).toBeGreaterThanOrEqual(4);
-    const hurt = scaleEffect(s, { type: "DAMAGE_MEMBER_PERCENT", target: "actor", percent: 0.1 }, 5);
-    expect(hurt.type === "DAMAGE_MEMBER_PERCENT" && hurt.percent).toBeCloseTo(0.2);
-  });
-
-  it("5 级手写覆写只在 5 级生效", () => {
-    const low = curioAtLevel(CORRIDOR_CURIOS.safe, 4).decisions[0];
-    const high = curioAtLevel(CORRIDOR_CURIOS.safe, 5).decisions[0];
-    expect(low.effects.some((effect) => effect.type === "GRANT_EQUIP")).toBe(false);
-    expect(high.effects.some((effect) => effect.type === "GRANT_EQUIP")).toBe(true);
+describe("候选抽取", () => {
+  it("4 选 2 不重复且只抽候选里的效果", () => {
+    const s = sessionWith("supplyCrate");
+    const decision = CORRIDOR_CURIOS.supplyCrate.decisions[0];
+    const roll = decision.effects[0];
+    if (roll.type !== "ROLL_EFFECTS") throw new Error("补给箱应使用候选抽取");
+    for (let i = 0; i < 20; i += 1) {
+      const picked = expandRolls(s, decision.effects);
+      expect(picked).toHaveLength(2);
+      expect(new Set(picked).size).toBe(2);
+      expect(picked.every((effect) => roll.options.includes(effect))).toBe(true);
+    }
   });
 });
 

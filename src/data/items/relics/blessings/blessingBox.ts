@@ -1,6 +1,6 @@
 import { defineRelics } from "../defineRelic";
 
-// 祝福匣限定(普通档): 只进临时遗物池, 只能从临时祝福匣抽出; 野餐食谱不会指名它们。
+// 祝福匣限定(普通档): 只进临时遗物池, 只能从起程祈愿龛抽出; 野餐食谱不会指名它们。
 // 只用一趟, 数值比普通渠道更激进, 部分带代价。
 export const BLESSING_BOX_RELIC_DEFS = defineRelics("blessing", "common", [
   {

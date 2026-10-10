@@ -24,7 +24,7 @@ export type RelicScope = "battle" | "explore";
  * · bossDrop     首领掉落限定: 不进随机池, 只由首领掉落表按 id 指名
  * · specialEvent 特殊事件限定: 不进随机池, 只由特定事件/可交互物按 id 指名
  * · picnic       野餐限定: 不进任何随机池, 只由野餐食谱按 id 指名, 以一次性物资发放
- * · blessingBox  祝福匣限定: 只进临时遗物池, 只能从临时祝福匣抽出, 以一次性物资发放
+ * · blessingBox  祝福匣限定: 只进临时遗物池, 只能从起程祈愿龛抽出, 以一次性物资发放
  * 后两者统称一次性渠道: 永远进不了仓库, 且互不相通 —— 野餐遗物抽不出匣子, 匣子遗物也不会被食谱指名。
  */
 export type RelicChannel = "normal" | "bossDrop" | "specialEvent" | "picnic" | "blessingBox";
