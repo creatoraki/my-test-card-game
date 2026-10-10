@@ -18,15 +18,15 @@ export const TUTORIAL_CURIOS = {
     }],
   },
   tutorialModBench: {
-    name: "训练实验台",
+    name: "训练铁砧",
     role: "loot",
     verb: "领取",
     size: 210,
-    description: "训练实验台已备好一枚攻击力模组与三份临期食品，可用于体验锻造师服务。",
+    description: "训练用的鉴定铁砧上已备好一枚攻击力模组与三份临期食品，可用于体验锻造师服务。",
     decisions: [{
       id: "claimModule",
       label: "领取模组与三份食品",
-      story: "实验台完成检验，攻击力模组被送入待拾取框，三份临期食品放入背包。",
+      story: "鉴定镜扫过砧面，攻击力模组被送入待拾取框，三份临期食品放入背包。",
       effects: [{ type: "GAIN_ITEM", itemId: "attack-module-t1" },
         { type: "FORCE_ITEM", itemId: "bread", count: 3 }],
     }],

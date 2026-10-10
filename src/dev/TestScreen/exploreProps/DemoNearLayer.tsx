@@ -1,20 +1,21 @@
 import { memo } from "react";
 import { CORRIDOR } from "@/explore/corridor/types";
 import { nearMapArtScale } from "@/explore/dungeon/nearMapGeometry";
-import type { DemoNearArt } from "./demoNearLayers";
+import { CORRIDOR_LAYOUT } from "@/ui/explore/CorridorScene/corridorLayout";
+import { DEMO_NEAR_SOURCE, type DemoNearArt } from "./demoNearLayers";
 import s from "./ExplorePropScene.module.css";
 
 /** 基准图宽：基础倍率按 3072 宽的图换算，宽度不同的图层共用同一倍率，路面高度保持一致。 */
-const REFERENCE_WIDTH = 3072;
+const REFERENCE_WIDTH = DEMO_NEAR_SOURCE.referenceWidth;
 /** 演示近景原图高度（左右无缝，可横向平铺）；所有可切换图层都按此高度出图。 */
-const SOURCE_HEIGHT = 1024;
-/** 基础倍率让 3072 宽图层的单块显示宽度与 neonCity1 近景一致，便于和正式场景对比。 */
-export const DEMO_NEAR_BASE_SCALE = nearMapArtScale("neonCity1") * 2172 / REFERENCE_WIDTH;
+const SOURCE_HEIGHT = DEMO_NEAR_SOURCE.height;
+/** 与正式霓虹街区近景共用基础倍率，保持原有预览比例。 */
+export const DEMO_NEAR_BASE_SCALE = nearMapArtScale("neonCity1");
 /** 房间横向平铺的块数，用来检查左右接缝。 */
 const TILE_COUNT = 2;
 /** 原图中路面顶面（角色落脚线）与路面下缘的纵坐标。 */
-const SOURCE_FLOOR_Y = 954;
-const SOURCE_BOTTOM_Y = 974;
+const SOURCE_FLOOR_Y = DEMO_NEAR_SOURCE.floorY;
+const SOURCE_BOTTOM_Y = DEMO_NEAR_SOURCE.bottomY;
 
 /** 背景调节项：scale 为叠加在基础倍率上的旋钮倍率；offsetY 只挪背景，不动角色与交互物。 */
 export interface DemoBackdrop {
@@ -22,7 +23,7 @@ export interface DemoBackdrop {
   offsetY: number;
 }
 
-export const DEFAULT_BACKDROP: DemoBackdrop = { scale: 1, offsetY: 0 };
+export const DEFAULT_BACKDROP: DemoBackdrop = { scale: 1, offsetY: CORRIDOR_LAYOUT.entityGroundOffset };
 
 /** 背景最终几何：缩放后仍让路面顶面对齐地面线，再叠加上下偏移；单块宽度随当前图层原图宽度变化。 */
 export function demoBackdropGeometry({ scale, offsetY }: DemoBackdrop, sourceWidth: number) {

@@ -20,7 +20,7 @@ interface PortalGeometry {
   oval: readonly [number, number, number, number];
 }
 
-/** 废弃楼层：青色能量，对齐近景的霓虹灯条。 */
+/** 霓虹街区：青色能量，对齐近景的霓虹灯条。 */
 const RUINS: PortalPalette = { deep: "#04232b", main: "#2fe0d2", core: "#dcfffa", rim: "#7ff8ff" };
 /** 生态方舟：偏绿的蓝绿能量。 */
 const ARK: PortalPalette = { deep: "#06304a", main: "#36d3b4", core: "#eafff6", rim: "#9dffd8" };

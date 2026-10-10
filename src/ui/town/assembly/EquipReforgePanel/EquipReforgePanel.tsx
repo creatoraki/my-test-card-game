@@ -74,7 +74,7 @@ export function EquipReforgePanel() {
         check={view.check}
         pending={pending}
         notice={pending
-          ? "请选择要保留的羁绊，放弃新羁绊不会返还材料。"
+          ? "请选择要保留的羁绊。"
           : view.notice}
         canRoll={view.canRoll}
         family={family}

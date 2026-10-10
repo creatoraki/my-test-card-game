@@ -19,6 +19,7 @@ export type NearMapVariant =
   | "neonCity1"
   | "neonCity2"
   | "neonCity3"
+  | "neonCity4"
   | "ecoArk1"
   | "ecoArk2"
   | "ecoArk3"

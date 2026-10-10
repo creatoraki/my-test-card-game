@@ -8,7 +8,7 @@ export const SERVICE_CURIOS = {
     role: "service",
     verb: "交谈",
     size: 390,
-    description: "锻造师守着一座鉴定铁砧，提供两种随机卡牌服务。每次相遇只能选择一种，费用以临期食品支付。",
+    description: "锻造师守着一朵黑铁铸成的三瓣熔莲，花心的熔液里能重铸卡牌，提供两种随机卡牌服务。每次相遇只能选择一种，费用以临期食品支付。",
     persistent: true,
     decisions: [],
   },

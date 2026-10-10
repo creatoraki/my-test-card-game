@@ -10,7 +10,7 @@ import { preloadImage } from "@/ui/art/loader/assetLoader";
 
 const MAP_ART: Record<string, string> = {
   "tutorial": ruinedFloorArt,
-  // 废弃楼层 = 废弃大楼内部, 与这张等距废弃楼层图最贴。
+  // 霓虹街区沿用已有地图预览图；探索近景单独登记。
   "neon-city": ruinedFloorArt,
   "eco-ark": ecoArkArt,
   "ember-heat-well": emberHeatWellArt,

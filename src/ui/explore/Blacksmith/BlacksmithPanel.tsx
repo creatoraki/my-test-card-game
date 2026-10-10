@@ -63,7 +63,7 @@ export function BlacksmithPanel({ session }: { session: ExploreState }) {
     }), leave,
   ] : completed ? [leave] : [];
   const resultNotes = forge?.selected ? [`已消耗临期食品${BLACKSMITH_SERVICES[forge.selected].food}份。`] : [];
-  if (completed && !forge?.result) resultNotes.push("服务已中途放弃，临期食品不予退还。");
+  if (completed && !forge?.result) resultNotes.push("服务已中途放弃。");
   if (forge?.result?.before) resultNotes.push(`原卡牌：${cardDisplayName(forge.result.before)}${forge.selected === "copy" ? "，保留原样。" : "，已连同模组移除。"}`);
   if (forge?.result?.after) resultNotes.push(`已获得「${cardDisplayName(forge.result.after)}」。`);
 
@@ -76,15 +76,15 @@ export function BlacksmithPanel({ session }: { session: ExploreState }) {
           "炉火映亮了锻造师的面罩，他向小队展示了本次可用的两种服务。",
           "每次相遇只能选择一种服务，选择后立即收取临期食品，可以混付。",
           ...(forge?.services.map(kind => `${BLACKSMITH_SERVICES[kind].name}：${BLACKSMITH_SERVICES[kind].description}`) ?? ["锻造师正在准备服务……"]),
-        ]} info={<DossierInfoBox><DossierNotice title={`可用临期食品 ${serviceFoodCount(session)} 份`} note="打开与离开不消耗净化粒子。付费后中途放弃不退款。" /></DossierInfoBox>} actions={actions} />}
+        ]} info={<DossierInfoBox><DossierNotice title={`可用临期食品 ${serviceFoodCount(session)} 份`} note="打开与离开不消耗净化粒子。" /></DossierInfoBox>} actions={actions} />}
     </EventDossierPanel>}
     <DeckServiceModal mode={deckService} open={deckOpen} result={showResult ? forge?.result ?? null : null}
       members={members} lockedCharId={null}
       kicker={`锻造师 · ${BLACKSMITH_SERVICES[deckService].name}`} paymentNote={`已支付临期食品${BLACKSMITH_SERVICES[deckService].food}份`}
       cardReason={cardReason} characterReason={characterReason} onConfirm={confirm}
-      onFinish={() => setShowResult(false)} onAbandon={abandonBlacksmithService} abandonLabel="放弃服务（不退款）" />
+      onFinish={() => setShowResult(false)} onAbandon={abandonBlacksmithService} abandonLabel="放弃服务" />
     <CardRewardPicker options={drawOptions} title="锻造师 · 三选一抽牌" kicker={`已支付临期食品${BLACKSMITH_SERVICES.draw.food}份`}
-      caption="候选来自全队卡池，选择一张加入对应角色的卡组；本次相遇的另一项服务已失效。" skipLabel="放弃（不退款）"
+      caption="候选来自全队卡池，选择一张加入对应角色的卡组；本次相遇的另一项服务已失效。" skipLabel="放弃"
       onConfirm={option => pickBlacksmithDraw(option.card.uid)} onSkip={abandonBlacksmithService} />
   </>;
 }

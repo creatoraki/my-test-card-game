@@ -1,7 +1,5 @@
 import corridorFarArt from "@/assets/explore-corridor/废弃楼层/无限远景.webp";
-import neonCityNear1Art from "@/assets/explore-corridor/废弃楼层/近景/近景1.webp";
-import neonCityNear2Art from "@/assets/explore-corridor/废弃楼层/近景/近景2.webp";
-import neonCityNear3Art from "@/assets/explore-corridor/废弃楼层/近景/近景3.webp";
+import { NEON_CITY_NEAR_ART } from "./neonCityNearArt";
 import type { NearMapVariant } from "@/explore/dungeon/types";
 import type { CurioKind } from "@/explore/corridor/types";
 import { ECO_ARK_SCENERY, ECO_ARK_SCENERY_SOURCES } from "../ecoArk/ecoArkScenery";
@@ -19,13 +17,11 @@ export interface CorridorPropArt {
   groundTrim: number;
 }
 
-/** 废弃楼层专属背景登记；交互物素材见下方 CORRIDOR_PROP_ART。 */
+/** 霓虹街区背景登记；交互物素材见下方 CORRIDOR_PROP_ART。 */
 export const CORRIDOR_FAR_ART = corridorFarArt;
 export const CORRIDOR_NEAR_ART: Record<NearMapVariant, string> = {
   ...ECO_ARK_NEAR_ART,
-  neonCity1: neonCityNear1Art,
-  neonCity2: neonCityNear2Art,
-  neonCity3: neonCityNear3Art,
+  ...NEON_CITY_NEAR_ART,
 };
 
 export function getCorridorFarArt(mapId: string | undefined): string {

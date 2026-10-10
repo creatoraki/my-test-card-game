@@ -1,7 +1,7 @@
-import art43 from "@/assets/test-screen/近景演示/生态方舟_近景_4-3.webp";
-import art61 from "@/assets/test-screen/近景演示/生态方舟_近景_6-1.webp";
-import art62 from "@/assets/test-screen/近景演示/生态方舟_近景_6-2.webp";
-import art63 from "@/assets/test-screen/近景演示/生态方舟_近景_6-3.webp";
+import { NEON_CITY_NEAR_ART } from "@/ui/art/corridor/neonCityNearArt";
+import { NEON_CITY_NEAR_SOURCE_GEOMETRY } from "@/explore/dungeon/neonCityNearGeometry";
+
+export { NEON_CITY_NEAR_SOURCE as DEMO_NEAR_SOURCE } from "@/explore/dungeon/neonCityNearGeometry";
 
 /** 可切换的演示近景图层；高度同为 1024、路面上沿 954、下缘 974，宽度各异，各按自身宽度横向平铺。 */
 export interface DemoNearArt {
@@ -13,10 +13,10 @@ export interface DemoNearArt {
 }
 
 export const DEMO_NEAR_LAYERS: readonly DemoNearArt[] = [
-  { id: "4-3", name: "生态方舟 4-3", src: art43, width: 3072 },
-  { id: "6-1", name: "生态方舟 6-1", src: art61, width: 3032 },
-  { id: "6-2", name: "生态方舟 6-2", src: art62, width: 3072 },
-  { id: "6-3", name: "生态方舟 6-3", src: art63, width: 3072 },
+  { id: "neon-street-1", name: "霓虹街区模板1", src: NEON_CITY_NEAR_ART.neonCity1, width: NEON_CITY_NEAR_SOURCE_GEOMETRY.neonCity1.width },
+  { id: "neon-street-2", name: "霓虹街区模板2", src: NEON_CITY_NEAR_ART.neonCity2, width: NEON_CITY_NEAR_SOURCE_GEOMETRY.neonCity2.width },
+  { id: "neon-street-3", name: "霓虹街区模板3", src: NEON_CITY_NEAR_ART.neonCity3, width: NEON_CITY_NEAR_SOURCE_GEOMETRY.neonCity3.width },
+  { id: "neon-street-4", name: "霓虹街区模板4", src: NEON_CITY_NEAR_ART.neonCity4, width: NEON_CITY_NEAR_SOURCE_GEOMETRY.neonCity4.width },
 ];
 
 export const DEFAULT_NEAR_LAYER_ID = DEMO_NEAR_LAYERS[0].id;

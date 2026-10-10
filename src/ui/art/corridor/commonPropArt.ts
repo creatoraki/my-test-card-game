@@ -9,24 +9,24 @@ import { COMMON_PROP_TUNING } from "./commonPropTuning";
  */
 const PROP_ASSIGNMENT: Record<CurioKind, CommonPropAssetId> = {
   // 搜刮
-  supplyCrate: "travelerPack",
-  toolLocker: "researchDesk",
-  safe: "codeLocker",
+  supplyCrate: "rustSnailShell",
+  toolLocker: "stoppedCuckooClock",
+  safe: "sleepCatVault",
   relicCache: "ringLockCase",
   temporaryRelicCache: "stoneShrine",
   // 恢复
-  medical: "potionBench",
+  medical: "reverseSakuraSpring",
   // 服务
-  modBench: "synthesisBench",
-  shrine: "holoShrine",
+  modBench: "appraisalAnvil",
+  shrine: "miasmaTapir",
   bondWorkbench: "dreamLoom",
   perfectnessWorkbench: "memoryAltar",
-  blacksmith: "appraisalAnvil",
+  blacksmith: "triPetalLotus",
   merchant: "robotMerchant",
   dispatch: "wingCourier",
-  coinExchange: "relayTerminal",
+  coinExchange: "bottledTown",
   expConverter: "whaleGramophone",
-  salvager: "starObservatory",
+  salvager: "starSandHourglass",
   neonArcade: "neonStall",
   // 导航
   signpost: "oakSignpost",
@@ -40,7 +40,7 @@ const PROP_ASSIGNMENT: Record<CurioKind, CommonPropAssetId> = {
   arkSporeVent: "vineGrate",
   // 新手关
   tutorialArmory: "mossMailbox",
-  tutorialModBench: "synthesisBench",
+  tutorialModBench: "appraisalAnvil",
   tutorialMedical: "potionBench",
   tutorialRelicCache: "stoneShrine",
   tutorialCashBox: "travelerPack",

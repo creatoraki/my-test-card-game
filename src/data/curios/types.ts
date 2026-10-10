@@ -52,8 +52,8 @@ export type CurioEffect =
   | { type: "TUNE_EQUIPMENT"; mode: "bond" | "perfectness"; foodCost: number }
   | { type: "GRANT_DISPOSABLE_RELIC" }
   | { type: "CONSUME_ITEM"; itemId: string; count: number }
-  /** 从候选效果里不重复地随机抽 pick 条执行，交互时才掷。 */
-  | { type: "ROLL_EFFECTS"; pick: number; options: CurioEffect[] }
+  /** 从候选效果里不重复地随机抽 pick 条执行，交互时才掷；给了 pickMax 时条数在 [pick, pickMax] 内均匀随机。 */
+  | { type: "ROLL_EFFECTS"; pick: number; pickMax?: number; options: CurioEffect[] }
   /** 失败引来守卫战，档位见 rules/curioRules.ts。 */
   | { type: "ALARM_BATTLE" }
   /** 路牌：揭示与当前房间相连的所有房间及其类型。 */

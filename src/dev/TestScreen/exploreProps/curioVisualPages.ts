@@ -12,7 +12,7 @@ interface VisualPropDef {
 
 /**
  * 还没调好游戏内倍率的通用素材；调好并录入 ui/art/corridor/commonPropTuning.ts 后从这里移除。
- * 目前全部调完，新素材需要调尺寸时再往这里加（id 不要和已用过的重复）。
+ * 目前全部调完，新素材需要调尺寸时再往这里加（id 不要和已用过的重复；已用过 redesign- 前缀的 8 个）。
  */
 const PENDING_PROPS: readonly VisualPropDef[] = [];
 

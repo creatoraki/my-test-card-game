@@ -4,7 +4,7 @@ import type { MapDef } from "./index";
 export const ECO_ARK_MAP: MapDef = {
   id: "eco-ark",
   name: "生态方舟",
-  desc: "穹顶下的生态维护系统把闯入者标记成了入侵物种。穿过失控的培育舱与孢子林，关闭仍在执行保育指令的母树中枢。普通难度介于普通与困难废弃楼层之间。",
+  desc: "穹顶下的生态维护系统把闯入者标记成了入侵物种。穿过失控的培育舱与孢子林，关闭仍在执行保育指令的母树中枢。普通难度介于普通与困难霓虹街区之间。",
   difficulty: 3.5,
   emoji: "🌳",
   maxEquipRarity: "common",

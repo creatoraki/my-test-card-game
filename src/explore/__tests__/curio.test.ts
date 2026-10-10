@@ -116,15 +116,15 @@ describe("隐藏失败与门槛", () => {
 });
 
 describe("候选抽取", () => {
-  it("4 选 2 不重复且只抽候选里的效果", () => {
+  it("搜刮 2 选 1～2 不重复且只抽候选里的效果", () => {
     const s = sessionWith("supplyCrate");
     const decision = CORRIDOR_CURIOS.supplyCrate.decisions[0];
     const roll = decision.effects[0];
     if (roll.type !== "ROLL_EFFECTS") throw new Error("补给箱应使用候选抽取");
     for (let i = 0; i < 20; i += 1) {
       const picked = expandRolls(s, decision.effects);
-      expect(picked).toHaveLength(2);
-      expect(new Set(picked).size).toBe(2);
+      expect(picked.length === 1 || picked.length === 2).toBe(true);
+      expect(new Set(picked).size).toBe(picked.length);
       expect(picked.every((effect) => roll.options.includes(effect))).toBe(true);
     }
   });

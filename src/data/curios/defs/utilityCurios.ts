@@ -5,11 +5,11 @@ import type { CurioDef } from "../types";
 /** 钱币、经验、拆解、押注、导航这类工具型服务。 */
 export const UTILITY_CURIOS = {
   coinExchange: {
-    name: "自助驿站终端", role: "service", verb: "兑换", size: 220, persistent: true,
-    description: "终端屏幕上滚动着旧时代的币值换算表。支付 3 份临期食品即可开启兑换，本次开启内可以反复把铜币合成银币、银币合成金币。只能向上合成，不能拆分。",
+    name: "封存的瓶中小城", role: "service", verb: "兑换", size: 220, persistent: true,
+    description: "横躺的大玻璃瓶里封着一座亮着灯的微缩城镇，城里的钱庄还在营业。支付 3 份临期食品当作入城的过路费，本次开启内可以反复请钱庄把铜币合成银币、银币合成金币。只能向上合成，不能拆分。",
     decisions: [{
       id: "open", label: "支付食品并开启兑换", foodCost: 3, gates: ["coinExchangeable"],
-      story: "终端吞下了食品，投币口亮起绿灯，等待小队放入钱币。",
+      story: "小镇的钱庄收下了食品，窗口一盏盏亮起灯，等着小队把钱币从瓶口递进去。",
       effects: [{ type: "OPEN_COIN_EXCHANGE" }],
     }],
   },
@@ -24,12 +24,12 @@ export const UTILITY_CURIOS = {
     }],
   },
   salvager: {
-    name: "星象观测台", role: "service", verb: "拆解", size: 215,
-    description: "观测台的星盘早已停转，底座被改装成了一台拆解机。放入装备或模组，就能拆回通用材料；稀有度越高、完美度越好，拆出的东西越多。",
+    name: "倒转的星砂沙漏", role: "service", verb: "拆解", size: 215,
+    description: "上瓶里插着的旧剑正一点点碎成星砂，落到下瓶时已经分成了晶粒与零件。把装备或模组放进上瓶，翻转沙漏就能拆回通用材料与水晶；稀有度越高、完美度越好，拆出的东西越多。",
     decisions: [{
-      id: "salvage", label: "选择装备或模组拆解",
+      id: "salvage", label: "选择装备或模组放进上瓶",
       offer: { match: { categories: ["equipment", "module"] }, min: 1 },
-      story: "星盘重新转动起来，投入的物件被一层层剥开，只留下还能用的零件。",
+      story: "沙漏翻转，投入的物件在上瓶里碎成星砂，落到下瓶时只剩下还能用的晶粒和零件。",
       effects: [{ type: "SALVAGE" }],
     }],
   },

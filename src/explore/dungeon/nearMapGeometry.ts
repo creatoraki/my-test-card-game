@@ -1,29 +1,36 @@
 import type { NearMapVariant } from "./types";
+import { ECO_ARK_NEAR_SOURCE, ECO_ARK_NEAR_SOURCE_GEOMETRY } from "./ecoArkNearGeometry";
+import { NEON_CITY_NEAR_SOURCE, NEON_CITY_NEAR_SOURCE_GEOMETRY } from "./neonCityNearGeometry";
 
 /** 近景素材的基准显示倍率；各地图再乘自己的 zoom。 */
 const NEAR_MAP_BASE_SCALE = 1.7;
 
+/** 沿用预览页校准比例，按各地图基准原图宽度换算显示倍率。 */
+const ECO_ARK_NEAR_ZOOM = 1.15 * 2172 / ECO_ARK_NEAR_SOURCE.referenceWidth;
+const NEON_CITY_NEAR_ZOOM = 1.15 * 2172 / NEON_CITY_NEAR_SOURCE.referenceWidth;
+
 /** 近景图层相对原校准尺寸的放大倍率；地面线由 nearTop 按素材高度重新对齐，基线位置不变。 */
 const NEAR_MAP_ZOOM = {
-  neonCity1: 1.15,
-  neonCity2: 1.15,
-  neonCity3: 1.15,
-  ecoArk1: 1.3,
-  ecoArk2: 1.3,
-  ecoArk3: 1.3,
-  ecoArk4: 1.3,
+  neonCity1: NEON_CITY_NEAR_ZOOM,
+  neonCity2: NEON_CITY_NEAR_ZOOM,
+  neonCity3: NEON_CITY_NEAR_ZOOM,
+  neonCity4: NEON_CITY_NEAR_ZOOM,
+  ecoArk1: ECO_ARK_NEAR_ZOOM,
+  ecoArk2: ECO_ARK_NEAR_ZOOM,
+  ecoArk3: ECO_ARK_NEAR_ZOOM,
+  ecoArk4: ECO_ARK_NEAR_ZOOM,
 } satisfies Record<NearMapVariant, number>;
 
 /** 近景素材原始尺寸。 */
 const NEAR_MAP_SOURCE_GEOMETRY = {
-  neonCity1: { width: 2172, height: 724 },
-  neonCity2: { width: 2172, height: 724 },
-  neonCity3: { width: 2172, height: 724 },
-  ecoArk1: { width: 2172, height: 724 },
-  ecoArk2: { width: 2172, height: 724 },
-  ecoArk3: { width: 2172, height: 724 },
-  ecoArk4: { width: 2172, height: 724 },
+  ...NEON_CITY_NEAR_SOURCE_GEOMETRY,
+  ...ECO_ARK_NEAR_SOURCE_GEOMETRY,
 } satisfies Record<NearMapVariant, { width: number; height: number }>;
+
+/** 近景原图中的路面上下边界，用于统一计算落地线与深渊遮罩。 */
+export function nearMapGroundSource(variant: NearMapVariant) {
+  return variant in ECO_ARK_NEAR_SOURCE_GEOMETRY ? ECO_ARK_NEAR_SOURCE : NEON_CITY_NEAR_SOURCE;
+}
 
 /** 近景素材的实际显示倍率。 */
 export function nearMapArtScale(variant: NearMapVariant): number {

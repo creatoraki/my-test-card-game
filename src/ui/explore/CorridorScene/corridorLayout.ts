@@ -1,5 +1,7 @@
 import { CORRIDOR } from "@/explore/corridor/types";
-import { NEAR_MAP_GEOMETRY, nearMapArtScale } from "@/explore/dungeon/nearMapGeometry";
+import { NEAR_MAP_GEOMETRY, nearMapArtScale, nearMapGroundSource } from "@/explore/dungeon/nearMapGeometry";
+import { ECO_ARK_NEAR_OFFSET_Y } from "@/explore/dungeon/ecoArkNearGeometry";
+import { NEON_CITY_NEAR_OFFSET_Y } from "@/explore/dungeon/neonCityNearGeometry";
 import type { NearMapVariant } from "@/explore/dungeon/types";
 
 /** 除远景外的世界层统一缩放；以地面线为锚点。 */
@@ -8,31 +10,29 @@ export const CORRIDOR_SCENE_SCALE = 1;
 /** 世界层缩放后，1920 的可视区域等效多少世界 px。 */
 export const CORRIDOR_VIEWPORT_WORLD_WIDTH = CORRIDOR.viewportWidth / CORRIDOR_SCENE_SCALE;
 
-const NEAR_FLOOR_Y_AT_1080: Record<NearMapVariant, number> = {
-  neonCity1: 632 / 724 * 1080, // 近景1平台顶面
-  neonCity2: 611 / 724 * 1080, // 近景2平台顶面
-  neonCity3: 608 / 724 * 1080, // 近景3平台顶面
-  ecoArk1: 600 / 724 * 1080, // 种子培育区平台顶面
-  ecoArk2: 605 / 724 * 1080, // 凝露净化区平台顶面
-  ecoArk3: 599 / 724 * 1080, // 生质循环区平台顶面
-  ecoArk4: 600 / 724 * 1080, // 母树维护区平台顶面
-};
 const NEAR_MAP_OFFSET_Y: Record<NearMapVariant, number> = {
-  neonCity1: 0,
-  neonCity2: 0,
-  neonCity3: 0,
-  ecoArk1: 0,
-  ecoArk2: 0,
-  ecoArk3: 0,
-  ecoArk4: 0,
+  neonCity1: NEON_CITY_NEAR_OFFSET_Y,
+  neonCity2: NEON_CITY_NEAR_OFFSET_Y,
+  neonCity3: NEON_CITY_NEAR_OFFSET_Y,
+  neonCity4: NEON_CITY_NEAR_OFFSET_Y,
+  ecoArk1: ECO_ARK_NEAR_OFFSET_Y,
+  ecoArk2: ECO_ARK_NEAR_OFFSET_Y,
+  ecoArk3: ECO_ARK_NEAR_OFFSET_Y,
+  ecoArk4: ECO_ARK_NEAR_OFFSET_Y,
 };
 
 function nearMapFloorY(variant: NearMapVariant): number {
-  return Math.round(NEAR_FLOOR_Y_AT_1080[variant] * NEAR_MAP_GEOMETRY[variant].height / 1080);
+  return Math.round(nearMapGroundSource(variant).floorY * nearMapArtScale(variant));
+}
+
+/** 按原图平台下缘定位遮罩，让近景与角色的落地线保持一致。 */
+function nearMapAbyssTop(variant: NearMapVariant): number {
+  return CORRIDOR.floorY - nearMapFloorY(variant) + NEAR_MAP_OFFSET_Y[variant]
+    + Math.round(nearMapGroundSource(variant).bottomY * nearMapArtScale(variant));
 }
 
 /**
- * 废弃楼层分层布局常量。
+ * 探索场景分层布局常量。
  * 近景与可交互物、角色同属世界层，统一由 CorridorScene 的 stage 以地面线为锚缩放；
  * 远景按 farParallax 慢速跟随制造纵深。所有布局数值仍使用未缩放世界 px。
  * 房间宽度与近景素材按 nearMapArtScale 倍显示宽度相同。
@@ -45,15 +45,14 @@ export const CORRIDOR_LAYOUT = {
   farTileHeight: 1080,
   /** 近景按 nearMapArtScale 倍显示高度。 */
   nearMapHeight: (variant: NearMapVariant) => NEAR_MAP_GEOMETRY[variant].height,
-  /** 把旧的 1080px 高校准值换算到近景素材显示高度。 */
+  /** 按原图路面顶面坐标换算近景素材的落地线。 */
   nearMapFloorY,
   /** 仅调整近景图层位置，不影响角色与交互物。 */
   nearTop: (variant: NearMapVariant) => CORRIDOR.floorY - nearMapFloorY(variant) + NEAR_MAP_OFFSET_Y[variant],
   /** 角色与交互物共用的地面下沉量；较原值再向下 6px，缩小脚底间隙。 */
   entityGroundOffset: 12,
   /** 近景平台带的下缘，黑色遮罩从这里开始挡住远景。 */
-  abyssTop: (variant: NearMapVariant) =>
-    CORRIDOR.floorY + Math.round(55 * nearMapArtScale(variant) / 2 * CORRIDOR_SCENE_SCALE),
+  abyssTop: nearMapAbyssTop,
 } as const;
 
 /** 镜头让玩家居中, 并夹在房间两端, 永远不越出房间边界。 */

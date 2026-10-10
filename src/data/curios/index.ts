@@ -35,7 +35,7 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {
  * 恢复与陷阱物件不在这里：恢复由 dungeon/curioPlan.ts 按每房概率投放，陷阱只放进陷阱房。
  *
  * NPC 先占房间名额，剩余名额按本表抽取；锻造师每张地图固定一位。
- * · 地图里的装备只来自密码寄存柜的 4 选 2（每次抽中率 50%）；
+ * · 地图里的装备只来自眠猫金库的 2 选 1～2（每次抽中率 75%）；
  * · 尘封的环锁密匣与杂兵掉落共同提供永久遗物。
  */
 export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> = {

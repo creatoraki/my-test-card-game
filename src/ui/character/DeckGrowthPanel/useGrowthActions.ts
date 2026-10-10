@@ -60,7 +60,7 @@ export function useGrowthActions(charId: string) {
     playSfx("back");
     setPage("hub");
     setSelectedUid(null);
-    feedback("已放弃本次候选，经验不退还");
+    feedback("已放弃本次候选");
   }
 
   function openRemove() {

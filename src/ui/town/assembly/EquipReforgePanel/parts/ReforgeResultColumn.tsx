@@ -42,7 +42,7 @@ export function ReforgeResultColumn({
           def={def}
           nextDef={null}
           affinityId={affinityId}
-          notice={pending ? "请选择要保留的羁绊，放弃新羁绊不会返还材料。" : notice}
+          notice={pending ? "请选择要保留的羁绊。" : notice}
         />
       ) : (
         <p className={s.empty}>{notice}</p>

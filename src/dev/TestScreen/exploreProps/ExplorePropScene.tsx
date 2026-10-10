@@ -78,7 +78,7 @@ export function ExplorePropScene() {
         "--corridor-scale": CORRIDOR_SCENE_SCALE,
         "--corridor-floor-y": `${CORRIDOR.floorY}px`,
       } as CSSProperties}>
-        <CorridorFar ref={farStrip} mapId="eco-ark" />
+        <CorridorFar ref={farStrip} mapId="neon-city" />
         <DemoAbyss backdrop={backdrop} />
         <div className={scene.haze} aria-hidden />
         <div className={scene.stage}>

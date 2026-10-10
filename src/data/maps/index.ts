@@ -82,13 +82,13 @@ export const MAPS: MapDef[] = [
   },
   {
     id: "neon-city",
-    name: "废弃楼层",
+    name: "霓虹街区",
     desc: "废弃的旧城灯牌仍亮着。清运机械还在照着旧指令拾荒, 把活人也算作了废品。",
     difficulty: 3,
     emoji: "🌆",
     maxEquipRarity: "common",
     roomCount: 12,
-    nearMapVariants: ["neonCity1", "neonCity2", "neonCity3"],
+    nearMapVariants: ["neonCity1", "neonCity2", "neonCity3", "neonCity4"],
     battleEncounters: {
       t1: ["n-t1-scout", "n-t1-sweep", "n-t1-drift", "n-t1-signal", "n-t1-radio-drift", "n-t1-twin-weld"],
       t2: [
