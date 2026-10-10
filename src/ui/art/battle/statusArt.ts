@@ -7,7 +7,7 @@ import { ADDITIONAL_STATUS_ART } from "./additionalStatusArt";
 import { BOTANIST_STATUS_ART } from "./botanistStatusArt";
 import { ECO_ARK_STATUS_ART } from "./ecoArkStatusArt";
 import poisonArt from "@/assets/buffs/状态/持续伤害/中毒.webp";
-import mycoToxinArt from "@/assets/buffs/状态/属性削弱/菌毒.png";
+import mycoToxinArt from "@/assets/buffs/状态/属性削弱/菌毒.webp";
 import shieldArt from "@/assets/buffs/战斗/护盾/护盾.webp";
 import burnArt from "@/assets/buffs/状态/持续伤害/灼烧.webp";
 import regenArt from "@/assets/buffs/状态/生命恢复/再生.webp";
