@@ -43,6 +43,13 @@ export interface CardOfferCandidate {
   cardDefId: string;
 }
 
+/** 游艺摊押注：goal = 下一场战斗至少完成的挑战数，押中后每枚钱币升 goal 级。 */
+export interface ArcadeBet {
+  goal: 1 | 2;
+  /** 押上的钱币(已离开背包)，按枚记 itemId。 */
+  stakes: string[];
+}
+
 // ---------------------------------------------------------------------------
 // 场景事件
 // ---------------------------------------------------------------------------
@@ -291,6 +298,10 @@ export interface ExploreState {
   pendingStory: string[];
   // 投递口已开启(本次交互的 resolving/atNode 阶段内可寄件)。打开下一件物件即复位。
   chuteOpen: boolean;
+  /** 钱币兑换台已付费开启：本次结算内可反复兑换，确认离开即复位。 */
+  coinExchangeOpen: boolean;
+  /** 霓虹游艺摊的押注：下一场战斗胜利后结算，同一时间只有一笔。 */
+  arcadeBet: ArcadeBet | null;
 
   freeNodes: number; // 「隐匿通道」: 接下来几次交互免除基础粒子消耗
   pendingNotes: string[]; // 本次交互的结算摘要, 供 resolving 浮层展示

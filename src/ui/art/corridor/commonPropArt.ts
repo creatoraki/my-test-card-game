@@ -24,6 +24,13 @@ const PROP_ASSIGNMENT: Record<CurioKind, CommonPropAssetId> = {
   blacksmith: "appraisalAnvil",
   merchant: "robotMerchant",
   dispatch: "wingCourier",
+  coinExchange: "relayTerminal",
+  expConverter: "whaleGramophone",
+  salvager: "starObservatory",
+  neonArcade: "neonStall",
+  // 导航
+  signpost: "oakSignpost",
+  waystone: "moonBasin",
   // 陷阱
   collapsedCeiling: "thunderLamp",
   leakingPipe: "sealPillar",

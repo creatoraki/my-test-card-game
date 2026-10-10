@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { getItemDef } from "@/data";
-import type { CurioDecision } from "@/data/curios/types";
-import { activeCurioDef, canSelectFor, feedFoodFor, selectableStacks, visibleDecisions } from "@/explore/curio/visibility";
-import { matchOffering, validOfferingPicks } from "@/explore/curio/offering";
-import { decisionFoodNeed, serviceFoodCount } from "@/explore/curio/foodPayment";
+import { activeCurioDef, selectableStacks, visibleDecisions } from "@/explore/curio/visibility";
+import { picksFit } from "@/explore/curio/resolve";
+import { offerStacks, validFreeOffer } from "@/explore/curio/freeOffer";
 import { hasCorridorRewards } from "@/explore/corridor/corridorSession";
 import type { ExploreState } from "@/explore/types";
 import { useRunStore } from "@/store/run/runStore";
 import { useExploreStore } from "@/store/explore/exploreStore";
 import { closeCorridorObject } from "@/store/explore/exploreCorridor";
+import { travelWaystone } from "@/store/explore/curioActions";
 import {
   DossierChoice,
   DossierExecutor,
@@ -18,19 +17,14 @@ import {
   DossierResult,
   EventDossierPanel,
   type DossierAction,
-  type DossierIconName,
 } from "@/ui/explore/EventDossier";
 import { useBagFull } from "@/ui/explore/LootPickup";
 import { curioTheme } from "./curioTheme";
+import { decisionAction, needsPicking, offerPreview, pickingLines } from "./curioDecisionAction";
+import { CoinExchangeDesk } from "./CoinExchangeDesk";
 import { useCurioLoot, type CurioLoot } from "../useCurioLoot";
 
 const DEFAULT_EN_TITLE = "探索交互";
-const DECISION_ICONS: DossierIconName[] = ["claim", "upgrade", "detail"];
-
-function decisionIcon(decision: CurioDecision, index: number): DossierIconName {
-  if (decision.feed || decision.select) return "offer";
-  return DECISION_ICONS[index % DECISION_ICONS.length];
-}
 
 /** 按句末标点断行，还原设计图"一句一行"的描述排版。 */
 function sentences(text: string): string[] {
@@ -77,43 +71,16 @@ function resolveExecutor(session: ExploreState, picked: string | null): string |
   return alive.find((member) => member.charId === picked)?.charId ?? alive[0]?.charId ?? null;
 }
 
-function decisionAction(
-  session: ExploreState,
-  decision: CurioDecision,
-  index: number,
-  executorId: string | null,
-  onSelect: (decisionId: string) => void,
-): DossierAction {
-  const feedFood = feedFoodFor(session, decision);
-  // 服务类选项(换卡 / 装备调校)确认目标时才扣食品, 但入口就要拦住: 否则进了面板才发现付不起。
-  const foodNeed = decisionFoodNeed(decision);
-  const foodHave = serviceFoodCount(session);
-  const foodCost = foodNeed > 0 ? `需要临期食品 ×${foodNeed}，当前持有 ${foodHave} 份` : undefined;
-  return {
-    id: decision.id,
-    label: decision.label,
-    icon: decisionIcon(decision, index),
-    cost: feedFood && decision.feed ? `消耗 ${getItemDef(feedFood).name} ×${decision.feed.count}` : foodCost,
-    costTone: foodNeed > foodHave ? "red" : undefined,
-    sfx: "confirm",
-    disabled: !executorId
-      || foodHave < foodNeed
-      || Boolean(decision.select && !canSelectFor(session, decision)),
-    onClick: () => {
-      if (!executorId) return;
-      if (decision.select) onSelect(decision.id);
-      else useRunStore.getState().chooseCurio(decision.id, executorId);
-    },
-  };
-}
-
 export function CurioPanel({
   session,
   onOpenBag,
+  onTravel,
   covered,
 }: {
   session: ExploreState;
   onOpenBag: () => void;
+  /** 传送盆传送：交给场景的黑场过渡执行。 */
+  onTravel: (travel: () => boolean) => void;
   covered: boolean;
 }) {
   const [selectingId, setSelectingId] = useState<string | null>(null);
@@ -133,7 +100,7 @@ export function CurioPanel({
   if (!def || !object || object.kind === "merchant") return null;
 
   const decisions = visibleDecisions(session, def);
-  const selecting = decisions.find((decision) => decision.id === selectingId && decision.select) ?? null;
+  const selecting = decisions.find((decision) => decision.id === selectingId && needsPicking(decision)) ?? null;
   const executorId = resolveExecutor(session, pickedExecutor);
   const roomLabel = session.dungeon?.rooms[session.dungeon.currentRoomId]?.label ?? "?";
   // 陷阱物件: 进房立即触发, 不能暂不处理, 也不收交互粒子。
@@ -141,7 +108,9 @@ export function CurioPanel({
   const contentKey = `curio-${object.id}-${result ? "result" : selecting ? "select" : "choice"}`;
 
   const choiceActions: DossierAction[] = [
-    ...decisions.map((decision, index) => decisionAction(session, decision, index, executorId, setSelectingId)),
+    ...decisions.map((decision, index) => decisionAction(
+      session, decision, index, executorId, setSelectingId, () => onTravel(travelWaystone),
+    )),
     ...(forced ? [] : [{
       id: "leave",
       label: "暂不处理，继续前进",
@@ -151,9 +120,10 @@ export function CurioPanel({
     } satisfies DossierAction]),
   ];
 
-  const canSubmitSelect = (picks: { uid: string; count: number }[]) => {
-    const offered = validOfferingPicks(session, picks);
-    return Boolean(selecting?.select && offered && matchOffering(selecting.select, offered));
+  const canSubmitSelect = (picks: { uid: string; count: number }[]) => Boolean(selecting && picksFit(session, selecting, picks));
+  const previewSelect = (picks: { uid: string; count: number }[]) => {
+    const offered = selecting?.offer ? validFreeOffer(session, selecting.offer, picks) : null;
+    return selecting && offered ? offerPreview(selecting, offered) : null;
   };
 
   return <>
@@ -170,22 +140,25 @@ export function CurioPanel({
         <DossierResult
           story={session.pendingStory.flatMap(sentences)}
           notes={session.pendingNotes}
-          loot={session.pendingLoot.length
-            ? <DossierLoot
-              items={session.pendingLoot}
-              message={loot.message}
-              onPick={loot.pick}
-              onOpenBag={loot.message || bagFull ? onOpenBag : undefined}
-            />
-            : undefined}
+          loot={session.coinExchangeOpen
+            ? <CoinExchangeDesk session={session} />
+            : session.pendingLoot.length
+              ? <DossierLoot
+                items={session.pendingLoot}
+                message={loot.message}
+                onPick={loot.pick}
+                onOpenBag={loot.message || bagFull ? onOpenBag : undefined}
+              />
+              : undefined}
           actions={resultActions(session, loot, onOpenBag)}
         />
       ) : selecting && executorId ? (
         <DossierOffer
-          backpack={selectableStacks(session, selecting)}
+          backpack={selecting.offer ? offerStacks(session, selecting.offer) : selectableStacks(session, selecting)}
           objectId={`${object.id}-${selecting.id}`}
-          lines={[selecting.label, "种类和数量完全符合条件时才能确认。"]}
+          lines={pickingLines(selecting)}
           canSubmit={canSubmitSelect}
+          preview={previewSelect}
           onBack={() => setSelectingId(null)}
           onSubmit={(picks) => useRunStore.getState().selectCurio(selecting.id, executorId, picks)}
         />

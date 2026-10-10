@@ -80,6 +80,8 @@ export function loseEverything(s: ExploreState): void {
   s.pendingExp = {};
   s.pendingActions = [];
   s.chuteOpen = false;
+  s.coinExchangeOpen = false;
+  s.arcadeBet = null;
 }
 
 export type BattleSurvivor = {

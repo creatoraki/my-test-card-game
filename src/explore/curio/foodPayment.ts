@@ -1,5 +1,5 @@
 import { NEAR_EXPIRY_FOOD_IDS } from "@/data/items/catalog/consumables";
-import { consumeItems, countByItemId } from "@/items/inventory";
+import { consumeItems, countByItemId, findByUid } from "@/items/inventory";
 import type { CurioDecision } from "@/data/curios/types";
 import type { ExploreState } from "../types";
 
@@ -28,4 +28,19 @@ export function decisionFoodNeed(decision: Pick<CurioDecision, "foodCost" | "eff
   return decision.effects.reduce((need, effect) => effect.type === "TUNE_EQUIPMENT"
     ? Math.max(need, effect.foodCost)
     : need, decision.foodCost ?? 0);
+}
+
+/** 选物服务把食品也放进去之后，背包里剩下的临期食品够不够付选项的明码价。 */
+export function foodLeftAfterPicks(
+  s: Pick<ExploreState, "backpack">,
+  decision: Pick<CurioDecision, "foodCost">,
+  picks: { uid: string; count: number }[],
+): boolean {
+  const need = decision.foodCost ?? 0;
+  if (need <= 0) return true;
+  const pickedFood = picks.reduce((sum, pick) => {
+    const stack = findByUid(s.backpack, pick.uid);
+    return sum + (stack && NEAR_EXPIRY_FOOD_IDS.some((id) => id === stack.itemId) ? pick.count : 0);
+  }, 0);
+  return serviceFoodCount(s) - pickedFood >= need;
 }

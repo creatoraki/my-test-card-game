@@ -79,7 +79,8 @@ export function resolveBattle(get: () => RunState, set: RunSet): void {
   // 档位同样要在 settleBattle 之前取快照 —— finishBattle 会把 pendingBattleTier 清空。
   const battleTier = session.pendingBattleTier;
   const explore = useExploreStore.getState();
-  explore.settleBattle(won, survivorsFrom(battle, session), enemyDefIds, challengeBonus, bountyBonus, battle.round);
+  const challengesKept = battle.challenges.filter((run) => !run.broken).length;
+  explore.settleBattle(won, survivorsFrom(battle, session), enemyDefIds, challengeBonus, bountyBonus, battle.round, challengesKept);
   // 战后遗物(净水片等)登记的污染请求; 战斗内的污染已由 syncConditionsFrom 先回写。
   applyPendingPollution();
   settleFallenGear();

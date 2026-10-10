@@ -6,7 +6,8 @@
 // · 其余房间 1-2 个物件, 货商与锻造师各占 1 个名额;
 // · 陷阱房: 固定 1 个陷阱物件排在最前, 其余名额照常抽取;
 // · 治疗: 非陷阱房每房 healChance 独立掷骰;
-// · 剩余名额按 RANDOM_CURIO_WEIGHTS 房内不放回加权抽取(期望推算见该表注释)。
+// · 剩余名额按 RANDOM_CURIO_WEIGHTS 房内不放回加权抽取(期望推算见该表注释);
+// · 月光传送盆按概率成对追加在两间相隔较远的房间(见 waystonePlan.ts), 不占上面的名额。
 // ============================================================================
 
 import { rngFloat, rngInt, rngPick, rngPickWeighted } from "@/engine/core/rng";
@@ -16,6 +17,7 @@ import type { ExploreState } from "../types";
 import type { CurioKind } from "../corridor/types";
 import type { RoomNode } from "./types";
 import { seedMessengers } from "../curio/messenger";
+import { placeWaystones } from "./waystonePlan";
 import { difficultyMapConfig } from "@/data/maps/mapDifficulty";
 import type { MapDef } from "@/data/maps";
 
@@ -71,6 +73,7 @@ export function planRoomCurios(
     const room = rooms[id];
     plan[id] = room.kind === "start" ? [...START_ROOM_CURIOS] : planRoom(s, room, merchantRooms.has(id), id === blacksmithRoom, map);
   }
+  placeWaystones(s, rooms, order, plan);
   seedMessengers(s, plan);
   return plan;
 }

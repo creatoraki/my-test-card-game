@@ -23,6 +23,7 @@ import dreamLoom from "@/assets/explore-corridor/通用交互物/紫晶织梦机
 import wingCourier from "@/assets/explore-corridor/通用交互物/羽翼信使.webp";
 import mossMailbox from "@/assets/explore-corridor/通用交互物/苔铃邮筒.webp";
 import robotMerchant from "@/assets/explore-corridor/通用交互物/货商.webp";
+import oakSignpost from "@/assets/explore-corridor/通用交互物/橡叶岔路牌.webp";
 import type { CorridorPropArt } from "./corridorArt";
 import { sizeCorridorProp } from "./corridorPropSizing";
 
@@ -57,6 +58,7 @@ export const COMMON_PROP_ASSETS = {
   wingCourier: sizeCorridorProp(wingCourier, { width: 400, height: 400, top: 4, bottom: 368 }, "medium"),
   mossMailbox: sizeCorridorProp(mossMailbox, { width: 562, height: 640, top: 13, bottom: 633 }, "medium"),
   robotMerchant: sizeCorridorProp(robotMerchant, { width: 362, height: 272, top: 4, bottom: 263 }, "medium"),
+  oakSignpost: sizeCorridorProp(oakSignpost, { width: 557, height: 640, top: 7, bottom: 628 }, "medium"),
 } satisfies Record<string, CorridorPropArt>;
 
 export type CommonPropAssetId = keyof typeof COMMON_PROP_ASSETS;

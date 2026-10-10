@@ -12,6 +12,8 @@ export interface MinimapTileProps {
   size: number;
   label?: ReactNode;
   dim?: boolean;
+  /** 房间里的月光传送盆标记。 */
+  waystone?: "lit" | "dark";
   target?: boolean;
   picking?: boolean;
   left?: number;
@@ -21,7 +23,7 @@ export interface MinimapTileProps {
 }
 
 export function MinimapTile({
-  tone, icon, size, label, dim, target, picking, left, top, ariaLabel, onClick,
+  tone, icon, size, label, dim, waystone, target, picking, left, top, ariaLabel, onClick,
 }: MinimapTileProps) {
   const style = {
     "--tile": `${size}px`,
@@ -45,6 +47,7 @@ export function MinimapTile({
     </span>
     <i className={s.corners} aria-hidden />
     {tone === "current" && <i className={s.halo} aria-hidden />}
+    {waystone && <i className={s.waystone} data-lit={waystone === "lit" || undefined} aria-hidden />}
   </>;
   return onClick
     ? <button {...props} type="button" onClick={onClick}>{body}</button>

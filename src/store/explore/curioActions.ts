@@ -8,6 +8,9 @@ import {
   payMerchant,
 } from "@/explore/curio/merchant";
 import type { OfferingPick } from "@/explore/curio/offering";
+import { exchangeCoins } from "@/explore/curio/coins";
+import { travelByWaystone } from "@/explore/curio/waystone";
+import type { CoinExchangeId } from "@/data/curios/rules/serviceBalance";
 import type { ExploreState } from "@/explore/types";
 import { applyPendingPollution, settleFallenGear } from "./exploreAftermath";
 import { useExploreStore } from "./exploreStore";
@@ -30,6 +33,16 @@ export function chooseCurio(decisionId: string, executorId: string): ExploreStat
 
 export function selectCurio(decisionId: string, executorId: string, picks: OfferingPick[]): ExploreState | null {
   return mutateCurio((draft) => selectForCurio(draft, decisionId, executorId, picks));
+}
+
+/** 钱币兑换台：开启后的结算页内反复兑换。 */
+export function exchangeCoin(id: CoinExchangeId): boolean {
+  return Boolean(mutateCurio((draft) => exchangeCoins(draft, id)));
+}
+
+/** 月光传送盆：传送到另一座(界面在黑场过渡中调用)。 */
+export function travelWaystone(): boolean {
+  return Boolean(mutateCurio(travelByWaystone));
 }
 
 export function openMerchantShelf(): ExploreState | null {

@@ -10,9 +10,12 @@ import type { ActorTarget, CurioEffect, CurioEffectContext } from "@/data/curios
 import { CURIO_ALARM_TIER } from "@/data/curios/rules/curioRules";
 import { queueAlarm } from "../corridor/alarm";
 import { fuseEquipment, upgradeRelic } from "./fusion";
-import { revealDungeon } from "./reveal";
+import { revealAdjacent, revealDungeon } from "./reveal";
 import { grantTemporaryRelic } from "./temporaryRelic";
 import { rollEffects } from "./roll";
+import { convertToExp, salvage } from "./conversion";
+import { lightWaystone } from "./waystone";
+import { placeBet } from "./arcade";
 
 function targetIds(s: ExploreState, target: ActorTarget, ctx: CurioEffectContext): string[] {
   const alive = s.party.filter((member) => member.alive);
@@ -114,6 +117,22 @@ export function applyCurioEffect(
       return "警报引来了守卫，结算后将立即遭遇战斗";
     case "ROLL_EFFECTS":
       return rollEffects(s, effect).map((picked) => applyCurioEffect(s, picked, ctx)).join("；");
+    case "REVEAL_ADJACENT":
+      return revealAdjacent(s);
+    case "OPEN_COIN_EXCHANGE":
+      s.coinExchangeOpen = true;
+      return "兑换已开启，离开前可以反复兑换";
+    case "CONVERT_TO_EXP":
+      return convertToExp(s, ctx.offered);
+    case "SALVAGE":
+      return salvage(s, ctx.offered);
+    case "LIGHT_WAYSTONE":
+      return lightWaystone(s);
+    case "WAYSTONE_TRAVEL":
+      // 传送由界面在黑场过渡里直接调用 travelByWaystone, 不经过普通结算。
+      return "";
+    case "PLACE_BET":
+      return placeBet(s, effect.goal, ctx.offered);
     default:
       return applyExploreEffect(s, effect);
   }

@@ -157,6 +157,7 @@ export function confirmNode(s: ExploreState): boolean {
   if (s.pendingPickup.length || s.pendingLoot.length || s.pendingActions.length) return false;
   s.pendingStory = [];
   s.chuteOpen = false; // 投递口只在开启它的那次交互有效
+  s.coinExchangeOpen = false;
   s.phase = "atNode";
   // 物件交互失败拉响的警报: 回到场景立即生成守卫战。
   releasePendingAlarm(s);

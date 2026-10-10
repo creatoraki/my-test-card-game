@@ -8,15 +8,18 @@ import { TRAP_CURIOS } from "./defs/trapCurios";
 import { SERVICE_CURIOS } from "./defs/serviceCurios";
 import { SUPPLY_CURIOS } from "./defs/supplyCurios";
 import { TUTORIAL_CURIOS } from "./defs/tutorialCurios";
+import { UTILITY_CURIOS } from "./defs/utilityCurios";
 import type { CurioDef } from "./types";
 
 export * from "./defs/critters";
 export * from "./rules/curioRules";
 export * from "./rules/merchantPricing";
 export * from "./rules/rewardPools";
+export * from "./rules/serviceBalance";
 export * from "./types";
 
 export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {
+  ...UTILITY_CURIOS,
   ...ARK_CURIOS,
   ...SUPPLY_CURIOS,
   ...CRAFT_CURIOS,
@@ -46,6 +49,12 @@ export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> 
   bondWorkbench: 2,
   perfectnessWorkbench: 1,
   shrine: 2,
+  // 工具型服务与导航(传送雕像成对投放，不在本表，见 dungeon/waystonePlan.ts)
+  signpost: 5,
+  coinExchange: 2,
+  expConverter: 2,
+  salvager: 2,
+  neonArcade: 2,
 };
 
 /** 恢复物件：每间非起点房按 healChance 概率投放 1 个。 */

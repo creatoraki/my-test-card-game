@@ -23,6 +23,7 @@ export function interactionCost(s: ExploreState): number {
   if (kind === "blacksmith" || kind === "dispatch") return 0;
   const def = CORRIDOR_CURIOS[kind];
   if (!def || def.forced) return 0;
+  if (def.energyCost !== undefined) return def.energyCost;
   if (def.role === "loot" || def.role === "heal" || def.role === "service") return prices[def.role];
   return prices.event;
 }

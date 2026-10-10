@@ -38,6 +38,7 @@ export function MinimapBoard({
         size={metrics.tile}
         label={cell.room.visited || dungeon.layoutKnown ? cell.room.label : undefined}
         dim={cell.dim || (picking && !pickable)}
+        waystone={cell.waystone}
         target={cell.room.id === targetId}
         picking={pickable}
         left={cell.left}

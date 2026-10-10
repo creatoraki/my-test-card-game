@@ -56,7 +56,7 @@ export function ExploreScreen() {
     <div className={s.readout}><EnergyReadout energy={session.energy} /></div>
     <ExploreInventory session={session} inventory={inventory} />
     <ExploreDock session={session} inventory={inventory} locked={locked} pending={pending} />
-    {curioHandlesLoot && !inventory.target && <CurioPanel session={session} covered={curioCovered} onOpenBag={openBag} />}
+    {curioHandlesLoot && !inventory.target && <CurioPanel session={session} covered={curioCovered} onOpenBag={openBag} onTravel={travelTransition.start} />}
     {session.corridor.bossGateOpen && !inventory.target && <BossGatePanel session={session} />}
     {merchantOpen && !inventory.target && <WanderingMerchantPanel session={session} />}
     {blacksmithOpen && !inventory.target && <BlacksmithPanel key={activeObject?.id} session={session} />}

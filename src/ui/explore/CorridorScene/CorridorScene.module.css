@@ -22,6 +22,18 @@
   will-change: opacity;
   animation: propGlow 1.6s ease-in-out infinite;
 }
+/* 点亮的月光传送盆：常驻冷色月光，与靠近时的金色呼吸光叠加。 */
+.moonGlow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 22px #9fd8ffd9) drop-shadow(0 -30px 40px #c8ecff80);
+  pointer-events: none;
+  will-change: opacity;
+  animation: moonGlow 2.4s ease-in-out infinite;
+}
 .sprite.interacting { animation: propInteraction 520ms ease-out both; }
 .selected::before { opacity: 1; }
 .used .objectButton { filter: grayscale(.8) brightness(.6); }
@@ -39,6 +51,10 @@
 @keyframes propInteraction {
   0%, 100% { filter: brightness(1); }
   40% { filter: brightness(1.45); }
+}
+@keyframes moonGlow {
+  0%, 100% { opacity: .6; }
+  50% { opacity: 1; }
 }
 @keyframes propGlow {
   0%, 100% { opacity: .55; }

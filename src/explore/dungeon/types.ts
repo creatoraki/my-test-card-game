@@ -68,6 +68,8 @@ export interface RoomCurio {
   used: boolean;
   shelf?: MerchantShelf;
   blacksmith?: BlacksmithState;
+  /** 传送雕像已点亮；两座都点亮后才能互相传送。 */
+  lit?: boolean;
 }
 
 export interface RoomNode {
@@ -95,6 +97,8 @@ export interface RoomNode {
   threatDefeated: boolean;
   /** 曾被传送门点亮过 —— 小地图从「问号占位」变成「亮格待探索」。 */
   revealed: boolean;
+  /** 被路牌揭示过房间类型 —— 未访问时小地图也显示战斗 / 陷阱 / 首领 / 物资标记。 */
+  kindKnown?: boolean;
 }
 
 export interface DungeonState {

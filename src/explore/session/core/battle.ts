@@ -17,6 +17,7 @@ import { BATTLE_TIER_NAME, rewardMultiplier } from "./energy";
 import { logLine } from "./log";
 import { applySurvivors, loseEverything, type BattleSurvivor } from "./party";
 import { summarizePendingItems } from "../loot/rewards";
+import { settleArcadeBet } from "../../curio/arcade";
 
 function pickWeighted<T extends { weight: number }>(s: ExploreState, options: readonly T[]): T {
   const total = options.reduce((sum, option) => sum + Math.max(0, option.weight), 0);
@@ -139,6 +140,8 @@ export function finishBattle(
   challengeBonus = 0,
   bountyBonus = 0,
   battleRounds = 0,
+  /** 本场未被打破的挑战词条数, 游艺摊押注据此结算。 */
+  challengesKept = 0,
 ): { loot: number; items: ItemStack[]; overflow: ItemStack[] } {
   const empty = { loot: 0, items: [], overflow: [] };
   if (s.phase !== "inBattle") return empty;
@@ -178,6 +181,7 @@ export function finishBattle(
   addPendingLoot(s, rolled);
   s.pendingBoons = rollBoons(s, enemyDefIds.map((id) => getEnemyDef(id).boonTable), k);
   fireExploreRelic(s, { type: "battleVictory", battleRounds });
+  const betNote = settleArcadeBet(s, challengesKept);
 
   // ⚠ 必须在上面的 dropCoefficient / rollDropTable 之后才清挑战加成。
   clearPendingBattle(s);
@@ -187,6 +191,7 @@ export function finishBattle(
   if (loot > 0) notes.push(`居民积分 +${loot}`);
   if (rolled.length) notes.push(summarizePendingItems(rolled));
   if (s.pendingBoons.length) notes.push(`额外奖励 ×${s.pendingBoons.length}`);
+  if (betNote) notes.push(betNote);
   s.pendingNotes = [["战斗胜利", ...notes].join(" · ")];
 
   const last = s.history[s.history.length - 1];

@@ -12,8 +12,9 @@ import type { CorridorObject, CurioKind } from "../corridor/types";
 import { matchOffering, takeOfferedStacks, validOfferingPicks, type OfferingPick } from "./offering";
 import { applyCurioEffect } from "./effects";
 import { settleActorRewards } from "./actorRewards";
-import { activeCurioDef, feedFoodFor, visibleDecisions } from "./visibility";
-import { payServiceFood } from "./foodPayment";
+import { activeCurioDef, decisionLockReason, feedFoodFor, visibleDecisions } from "./visibility";
+import { foodLeftAfterPicks, payServiceFood } from "./foodPayment";
+import { validFreeOffer } from "./freeOffer";
 import { resolveFailure } from "./failure";
 import { expandRolls } from "./roll";
 
@@ -89,7 +90,8 @@ function finishInteraction(
   choiceIndex: number,
   choiceLabel: string,
 ): void {
-  object.used = true;
+  // 常驻物件(兑换台、传送盆)用过仍留在原地, 可以再次交互。
+  object.used = !def.persistent;
   syncRoomFromScene(s);
   const room = currentRoom(s);
   if (room && areRoomCuriosCleared(room)) fireExploreRelic(s, { type: "roomCleared", roomId: room.id });
@@ -125,7 +127,10 @@ function findVisibleDecision(s: ExploreState, decisionId: string): { decision: C
   if (!object || !def || object.used || s.phase !== "landed") return null;
   const decisions = visibleDecisions(s, def);
   const index = decisions.findIndex((decision) => decision.id === decisionId);
-  return index >= 0 ? { decision: decisions[index], index } : null;
+  if (index < 0 || decisionLockReason(s, decisions[index])) return null;
+  // 传送不走普通结算(见 waystone.travelByWaystone)。
+  if (decisions[index].effects.some((effect) => effect.type === "WAYSTONE_TRAVEL")) return null;
+  return { decision: decisions[index], index };
 }
 
 /** 喂养选项：自动扣除背包里的对应食物。 */
@@ -139,7 +144,7 @@ function payFeed(s: ExploreState, decision: CurioDecision): string | null | fals
 
 export function chooseCurioDecision(s: ExploreState, decisionId: string, executorId: string): boolean {
   const found = findVisibleDecision(s, decisionId);
-  if (!found || found.decision.select) return false;
+  if (!found || found.decision.select || found.decision.offer) return false;
   const actorId = aliveExecutor(s, executorId);
   if (!actorId) return false;
   if ((found.decision.foodCost ?? 0) > 0 && !payServiceFood(s, found.decision.foodCost ?? 0)) return false;
@@ -149,7 +154,21 @@ export function chooseCurioDecision(s: ExploreState, decisionId: string, executo
   return executeDecision(s, found.decision, actorId, [], found.index, fed ? [fed] : []);
 }
 
-/** 功能性选物决策：所选物品必须完全符合配方，不符合时不结算也不扣任何东西。 */
+/**
+ * 所选物品是否满足选项要求：配方(select)完全匹配，或自由投入(offer)每件合格且件数在范围内；
+ * 放进去的食品不能挤占选项的明码食品价。界面的确认按钮与实际结算共用这一处判断。
+ */
+export function picksFit(s: ExploreState, decision: CurioDecision, picks: OfferingPick[]): boolean {
+  if (!foodLeftAfterPicks(s, decision, picks)) return false;
+  if (decision.offer) return Boolean(validFreeOffer(s, decision.offer, picks));
+  const offered = validOfferingPicks(s, picks);
+  return Boolean(decision.select && offered && matchOffering(decision.select, offered));
+}
+
+/**
+ * 功能性选物决策：所选物品必须符合要求，不符合时不结算也不扣任何东西。
+ * 先取走物品再收食品——投入的物品里可能就有食品，收不齐时由调用方丢弃整份草稿。
+ */
 export function selectForCurio(
   s: ExploreState,
   decisionId: string,
@@ -157,13 +176,12 @@ export function selectForCurio(
   picks: OfferingPick[],
 ): boolean {
   const found = findVisibleDecision(s, decisionId);
-  const recipes = found?.decision.select;
-  if (!found || !recipes) return false;
+  if (!found || (!found.decision.select && !found.decision.offer)) return false;
   const actorId = aliveExecutor(s, executorId);
-  const offered = validOfferingPicks(s, picks);
-  if (!actorId || !offered || !matchOffering(recipes, offered)) return false;
+  if (!actorId || !picksFit(s, found.decision, picks)) return false;
   const taken = takeOfferedStacks(s, picks);
   if (!taken.length) return false;
+  if ((found.decision.foodCost ?? 0) > 0 && !payServiceFood(s, found.decision.foodCost ?? 0)) return false;
   spendCurioInteraction(s);
   return executeDecision(s, found.decision, actorId, taken, found.index);
 }

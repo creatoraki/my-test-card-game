@@ -24,10 +24,11 @@ export function roomOf(s: ExploreState, id: string): RoomNode | null {
   return s.dungeon?.rooms[id] ?? null;
 }
 
-/** 房间内所有可交互物是否都已处理, 不检查战斗房的黑影。 */
+/** 房间内所有可交互物是否都已处理, 不检查战斗房的黑影。常驻与可选物件(路牌、传送盆)不计入。 */
 export function areRoomCuriosCleared(room: RoomNode): boolean {
   return room.curios.every((curio) => {
-    if (CORRIDOR_CURIOS[curio.kind]?.persistent) return true;
+    const def = CORRIDOR_CURIOS[curio.kind];
+    if (def?.persistent || def?.optional) return true;
     return curio.used;
   });
 }

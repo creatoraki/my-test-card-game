@@ -93,12 +93,13 @@ export const CorridorScene = memo(function CorridorScene({ corridor, blocked, en
           const selected = movement.target?.id === object.id && !blocked;
           const near = movement.nearby.some((item) => item.id === object.id);
           const interacting = movement.interactingId === object.id;
+          const lit = Boolean(rooms?.[corridor.roomId]?.curios[object.nodeIndex]?.lit);
           return <div key={object.id} className={`${s.object} ${object.used ? s.used : ""} ${selected ? s.selected : ""}`} style={{
             left: object.x,
             top: entityFloorY + CORRIDOR_PROP_Y_OFFSETS[object.kind],
           }}>
             <button className={s.objectButton} type="button" disabled={blocked || object.used || !near} onClick={() => movement.interact(object.id)} aria-label={`${def.name}${object.used ? "，已搜寻" : !near ? "，靠近后交互" : `，${def.verb}`}`}>
-              <CorridorSprite kind={object.kind} interacting={interacting} outlined={near && !blocked} />
+              <CorridorSprite kind={object.kind} interacting={interacting} outlined={near && !blocked} lit={lit} />
             </button>
             {selected && <span className={s.targetMarker} aria-hidden>◆</span>}
           </div>;

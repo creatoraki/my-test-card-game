@@ -60,6 +60,8 @@ export function createSession(
     pendingActions: [],
     pendingStory: [],
     chuteOpen: false,
+    coinExchangeOpen: false,
+    arcadeBet: null,
     freeNodes: 0,
     pendingNotes: [],
     pendingPollution: [],

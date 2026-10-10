@@ -20,6 +20,7 @@ export function DossierOffer({
   onBack,
   lines = OFFER_LINES,
   canSubmit,
+  preview,
 }: {
   backpack: ItemStack[];
   objectId: string;
@@ -29,6 +30,8 @@ export function DossierOffer({
   lines?: string[];
   /** 额外校验所选物品(如必须完全符合配方)；缺省只要求至少选一件。 */
   canSubmit?: (picks: { uid: string; count: number }[]) => boolean;
+  /** 可确认时在提示行预告结果(如折算的经验)；返回 null 时用默认提示。 */
+  preview?: (picks: { uid: string; count: number }[]) => string | null;
 }) {
   const [picks, setPicks] = useState<Record<string, number>>({});
   const [hovered, setHovered] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
@@ -93,7 +96,7 @@ export function DossierOffer({
 
       <p className={s.hint}>{!selected.length
         ? "请选择至少一件物品"
-        : ready ? "数量已锁定，放入后物品将离开背包" : "所选物品不符合条件"}</p>
+        : ready ? preview?.(pickList) ?? "数量已锁定，放入后物品将离开背包" : "所选物品不符合条件"}</p>
       <DossierActionGrid actions={[
         {
           id: "submit",

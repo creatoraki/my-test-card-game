@@ -33,6 +33,12 @@ const CURIO_THEME: Record<CurioKind, DossierThemeId> = {
   bondWorkbench: "terminal",
   perfectnessWorkbench: "terminal",
   tutorialModBench: "terminal",
+  coinExchange: "terminal",
+  expConverter: "shrine",
+  salvager: "mineral",
+  neonArcade: "blacksmith",
+  signpost: "supply",
+  waystone: "shrine",
 };
 
 export function curioTheme(kind: CurioKind): DossierThemeId {

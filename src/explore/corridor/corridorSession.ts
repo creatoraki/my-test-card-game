@@ -49,6 +49,7 @@ export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalD
   s.pendingBattleTier = null;
   s.battleSource = null;
   s.chuteOpen = false;
+  s.coinExchangeOpen = false;
   s.phase = "atNode";
 }
 
@@ -121,6 +122,7 @@ export function openCorridorObject(s: ExploreState, id: string): boolean {
   s.pendingNotes = [];
   s.pendingStory = [];
   s.chuteOpen = false;
+  s.coinExchangeOpen = false;
   s.phase = "landed";
   return true;
 }
@@ -136,6 +138,7 @@ export function openForcedCurio(s: ExploreState): boolean {
   s.pendingNotes = [];
   s.pendingStory = [];
   s.chuteOpen = false;
+  s.coinExchangeOpen = false;
   s.phase = "landed";
   return true;
 }

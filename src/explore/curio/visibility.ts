@@ -1,7 +1,10 @@
 import { CORRIDOR_CURIOS, critterFoods } from "@/data/curios";
-import type { CurioDef, CurioDecision, OfferingPart } from "@/data/curios/types";
+import type { CurioDef, CurioDecision, DecisionGate, OfferingPart } from "@/data/curios/types";
 import { countByItemId } from "@/items/inventory";
 import { matchOffering, partCanMatch } from "./offering";
+import { anyCoinExchange, goldLocked } from "./coins";
+import { canOffer } from "./freeOffer";
+import { activeWaystoneLit, waystoneTravelReason } from "./waystone";
 import type { ExploreState } from "../types";
 
 function activeObject(s: ExploreState) {
@@ -16,11 +19,37 @@ export function feedFoodFor(s: Pick<ExploreState, "backpack">, decision: CurioDe
   return critterFoods(feed.critter).find((itemId) => countByItemId(s.backpack, itemId) >= feed.count) ?? null;
 }
 
+/** 决定选项是否出现的门槛；其余门槛只把选项置灰(见 decisionLockReason)。 */
+function gateShows(s: ExploreState, gate: DecisionGate): boolean {
+  switch (gate) {
+    case "waystoneDark":
+      return !activeWaystoneLit(s);
+    case "waystoneLit":
+      return activeWaystoneLit(s);
+    case "goldUnlocked":
+      return !goldLocked(s);
+    default:
+      return true;
+  }
+}
+
 export function visibleDecisions(s: ExploreState, def: CurioDef): CurioDecision[] {
   return def.decisions.filter((decision) => {
+    if (decision.gates && !decision.gates.every((gate) => gateShows(s, gate))) return false;
     if (decision.feed) return Boolean(feedFoodFor(s, decision));
     return true;
   });
+}
+
+/** 选项可见但暂时不能选的原因(押注未结算、钱币不够、背包里没有可放入的物品等)；可选时返回 null。 */
+export function decisionLockReason(s: ExploreState, decision: CurioDecision): string | null {
+  for (const gate of decision.gates ?? []) {
+    if (gate === "noActiveBet" && s.arcadeBet) return "已有一笔押注尚未结算";
+    if (gate === "coinExchangeable" && !anyCoinExchange(s)) return "背包里的钱币不够兑换";
+  }
+  if (decision.effects.some((effect) => effect.type === "WAYSTONE_TRAVEL")) return waystoneTravelReason(s);
+  if (decision.offer && !canOffer(s, decision.offer)) return "背包里没有可放入的物品";
+  return null;
 }
 
 /** 功能性选物决策(熔合装备、升级遗物)：背包里凑得齐配方才可点。 */

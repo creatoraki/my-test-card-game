@@ -27,7 +27,13 @@ export type CurioKind =
   | "toolLocker"
   | "collapsedCeiling"
   | "leakingPipe"
-  | "rogueDrone";
+  | "rogueDrone"
+  | "coinExchange"
+  | "expConverter"
+  | "salvager"
+  | "neonArcade"
+  | "signpost"
+  | "waystone";
 
 export interface CorridorObject {
   id: string;

@@ -15,6 +15,7 @@ function partMatches(part: OfferingPart, stack: ItemStack): boolean {
   if (match.itemIds?.length && !match.itemIds.includes(stack.itemId)) return false;
   if (match.familyId && def.familyId !== match.familyId) return false;
   if (match.category && def.category !== match.category) return false;
+  if (match.categories?.length && !match.categories.includes(def.category)) return false;
   if (match.relicPolarity && def.relic?.polarity !== match.relicPolarity) return false;
   return true;
 }

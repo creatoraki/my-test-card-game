@@ -170,6 +170,25 @@
   animation: tileHalo 2.4s ease-in-out infinite;
 }
 
+/* 月光传送盆: 右下角一枚小月亮, 未点亮为暗银, 点亮后冷蓝发光并缓慢呼吸。 */
+.waystone {
+  position: absolute;
+  right: calc(var(--tile) * -0.08);
+  bottom: calc(var(--tile) * -0.08);
+  width: calc(var(--tile) * 0.32);
+  height: calc(var(--tile) * 0.32);
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle at 35% 35%, #d7dde6 0%, #7d8796 60%, #3b4350 100%);
+  box-shadow: 0 0 0 max(1px, calc(var(--tile) * 0.02)) #0a1018, inset calc(var(--tile) * -0.06) calc(var(--tile) * -0.04) 0 #2a3038;
+}
+
+.waystone[data-lit] {
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #bfe6ff 45%, #5aaee8 100%);
+  box-shadow: 0 0 0 max(1px, calc(var(--tile) * 0.02)) #0a1018, 0 0 calc(var(--tile) * 0.2) #9fd8ff;
+  animation: tileHalo 2.4s ease-in-out infinite;
+}
+
 .num {
   position: absolute;
   left: 50%;

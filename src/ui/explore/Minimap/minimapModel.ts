@@ -1,7 +1,8 @@
 // 小地图数据模型 —— 把房间图翻译成「画哪些格子、每格什么视觉状态、画哪些路」。
 // 纯函数, HUD 缩略图与展开大图共用; 视觉映射只对接已有数据:
-//   当前 / Boss / 精英(未清的战斗房) / 陷阱(未触发的陷阱房) / 已完成 / 未探索 / 暗提示。
-// 宝箱、锁定两种视觉只存在于样式与图例中, 这里不会产出。
+//   当前 / Boss / 精英(未清的战斗房) / 陷阱(未触发的陷阱房) / 已完成 / 未探索 / 暗提示,
+//   以及路牌揭示过类型的未访问普通房(物资房, 借用宝箱视觉)。
+// 锁定视觉只存在于样式与图例中, 这里不会产出。
 
 import { areRoomCuriosCleared, isRoomExplored } from "@/explore/dungeon/dungeonSession";
 import { OPPOSITE_DIR, type DungeonState, type PortalDir, type RoomNode } from "@/explore/dungeon/types";
@@ -23,6 +24,8 @@ export interface MapCell {
   dim: boolean;
   explored: boolean;
   current: boolean;
+  /** 房间里的月光传送盆: 去过该房间或任一座已点亮后才标出。 */
+  waystone?: "lit" | "dark";
 }
 
 export interface MapLink {
@@ -57,18 +60,27 @@ function stateOf(room: RoomNode, dungeon: DungeonState): CellState | null {
 
 function visualOf(room: RoomNode, state: CellState, dungeon: DungeonState): { tone: MapTone; icon: MapIcon } {
   if (room.id === dungeon.currentRoomId) return { tone: "current", icon: "arrow" };
-  const knownThreat = dungeon.threatsKnown || room.visited;
+  const knownThreat = dungeon.threatsKnown || room.visited || Boolean(room.kindKnown);
   if (knownThreat && room.kind === "boss") return { tone: "boss", icon: "boss" };
   if (knownThreat && room.kind === "battle" && !room.threatDefeated) return { tone: "elite", icon: "demon" };
   if (knownThreat && room.kind === "trap" && !areRoomCuriosCleared(room)) return { tone: "trap", icon: "trap" };
   if (state === "visited" && isRoomExplored(room)) {
     return { tone: "cleared", icon: room.kind === "battle" ? "swords" : "check" };
   }
+  if (room.kindKnown && !room.visited && room.kind === "normal") return { tone: "chest", icon: "chest" };
   return { tone: "unknown", icon: "question" };
+}
+
+/** 传送盆标记: 任一座点亮后两座都标出, 否则只标去过的房间。 */
+function waystoneOf(room: RoomNode, anyLit: boolean): MapCell["waystone"] {
+  const stone = room.curios.find((curio) => curio.kind === "waystone");
+  if (!stone || (!room.visited && !anyLit)) return undefined;
+  return stone.lit ? "lit" : "dark";
 }
 
 export function buildMapModel(dungeon: DungeonState): { cells: MapCell[]; links: MapLink[] } {
   const cells: MapCell[] = [];
+  const anyLit = dungeon.order.some((id) => dungeon.rooms[id].curios.some((curio) => curio.kind === "waystone" && curio.lit));
   for (const id of dungeon.order) {
     const room = dungeon.rooms[id];
     const state = stateOf(room, dungeon);
@@ -80,6 +92,7 @@ export function buildMapModel(dungeon: DungeonState): { cells: MapCell[]; links:
       dim: state === "hinted",
       explored: room.visited && isRoomExplored(room),
       current: room.id === dungeon.currentRoomId,
+      waystone: waystoneOf(room, anyLit),
     });
   }
   const shown = new Set(cells.map((cell) => cell.room.id));
