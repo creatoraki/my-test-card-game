@@ -242,8 +242,9 @@
   transition-duration: 0.12s;
 }
 
+/* 加载中：组件同时挂 data-cursor-busy, 由全局样式让黄铜圆环光标转动。 */
 .menu-start:disabled {
-  cursor: wait;
+  cursor: var(--cursor-wait);
   opacity: 0.58;
 }
 .menu-start:disabled .menu-start-motes,

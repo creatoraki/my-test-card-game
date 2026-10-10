@@ -93,7 +93,7 @@
   font-family: var(--font-family);
   font-size: 20px;
   line-height: 28px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: background 160ms ease, color 160ms ease, transform 120ms ease;
 }
 
@@ -112,7 +112,7 @@
 
 .go:disabled {
   opacity: 0.4;
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 
 @keyframes coinDeskIn {

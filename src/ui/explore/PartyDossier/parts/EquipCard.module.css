@@ -200,7 +200,7 @@ button.well:focus-visible {
   align-content: center;
   row-gap: 12px;
   outline: none;
-  cursor: default;
+  cursor: var(--cursor-default);
   background: linear-gradient(170deg, #141312f0, #0a0908f5 70%);
 }
 
@@ -211,7 +211,7 @@ button.well:focus-visible {
 }
 
 .card.locked .well {
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 
 .card.locked .slot {

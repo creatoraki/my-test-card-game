@@ -1,16 +1,27 @@
-const MIN_PRESS_MS = 120;
+import { buildGameCursorCss } from "@/ui/art/cursor";
 
-/** 使用原生光标定位，只管理按下反馈；悬浮态由组件的 CSS 决定。 */
+const MIN_PRESS_MS = 120;
+/** 这些光标下不切换按下态：禁止、加载、隐藏，以及拖拽(由 grabbing 自己表达)。 */
+const NO_PRESS_KEYWORDS = new Set(["not-allowed", "wait", "none", "grab", "grabbing"]);
+
+/** 计算后的 cursor 形如 `url(...) 3 2, pointer`，取末尾回落关键字判断语义。 */
+function cursorKeyword(cursor: string) {
+  return cursor.slice(cursor.lastIndexOf(",") + 1).trim();
+}
+
+/** 注入黄铜指针主题：根节点 --cursor-* 变量 + 加载圆环关键帧。 */
+function installCursorTheme() {
+  const style = document.createElement("style");
+  style.dataset.gameCursor = "";
+  style.textContent = buildGameCursorCss();
+  document.head.appendChild(style);
+  return () => style.remove();
+}
+
+/** 使用原生光标定位，注入指针主题并管理按下反馈；悬浮态由组件的 CSS 决定。 */
 export function installGameCursor() {
   const root = document.documentElement;
-  // 读取 CSS 实际使用的 URL，避免图片优化插件让 JS 导入与 CSS 指向不同文件。
-  const style = getComputedStyle(root);
-  const images = ["--cursor-default", "--cursor-pointer", "--cursor-pressed"].map((name) => {
-    const image = new Image();
-    const url = style.getPropertyValue(name).match(/url\(["']?([^"')]+)["']?\)/)?.[1];
-    if (url) image.src = url;
-    return image;
-  });
+  const disposeTheme = installCursorTheme();
   let pointerId: number | null = null;
   let pressedAt = 0;
   let releaseTimer: number | undefined;
@@ -28,8 +39,7 @@ export function installGameCursor() {
     const target = event.target;
     if (!(target instanceof Element)) return;
     if (target.closest(":disabled, [aria-disabled='true'], [inert]")) return;
-    const cursor = getComputedStyle(target).cursor;
-    if (["not-allowed", "wait", "none"].includes(cursor)) return;
+    if (NO_PRESS_KEYWORDS.has(cursorKeyword(getComputedStyle(target).cursor))) return;
     pointerId = event.pointerId;
     pressedAt = performance.now();
     root.setAttribute("data-cursor-pressed", "");
@@ -64,7 +74,7 @@ export function installGameCursor() {
 
   return () => {
     reset();
-    images.length = 0;
+    disposeTheme();
     window.removeEventListener("pointerdown", onPointerDown, true);
     window.removeEventListener("pointerup", onPointerUp, true);
     window.removeEventListener("pointermove", onPointerMove, true);

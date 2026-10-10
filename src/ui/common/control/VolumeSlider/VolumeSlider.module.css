@@ -18,10 +18,10 @@
   padding: 0;
   background: transparent;
   appearance: none;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 .range:disabled {
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
 }
 .range::-webkit-slider-runnable-track {
   height: 10px;

@@ -144,7 +144,7 @@
   border-color: #273337;
   background: #0d1417;
   color: #637276;
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
   opacity: 0.58;
 }
 

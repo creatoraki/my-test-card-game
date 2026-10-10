@@ -58,7 +58,7 @@
 
 .pod.is-treating:disabled,
 .pod.is-locked:disabled {
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
 }
 
 .lidTop,

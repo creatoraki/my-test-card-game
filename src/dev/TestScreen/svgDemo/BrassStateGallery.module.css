@@ -1,0 +1,12 @@
+.gallery { margin-bottom: 28px; padding: 20px 22px 22px; border: 1px solid #9bb1bd33; border-top: 4px solid #d9a441; background: #0f1a24e6; box-shadow: 0 12px 32px #0008; }
+.title { margin: 0 0 6px; font-size: 26px; color: #d9a441; letter-spacing: 2px; }
+.hint { margin: 0 0 16px; color: #a9bcc4; line-height: 1.6; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.cell { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px 12px; border: 1px solid #9bb1bd33; background: #0a1118; user-select: none; transition: border-color 0.15s, background 0.15s; }
+.cell:hover { border-color: #e8b862aa; background: #16212b; }
+.cell img { display: block; }
+.label { font-size: 20px; color: #f4ead6; }
+.usage { color: #8fa3ad; }
+/* 预览图同步转动：12 帧一圈，与真实指针节奏一致。 */
+.spin { animation: brass-wait-spin var(--cursor-wait-cycle, 960ms) steps(12) infinite; }
+@keyframes brass-wait-spin { to { transform: rotate(360deg); } }

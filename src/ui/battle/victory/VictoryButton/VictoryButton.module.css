@@ -114,7 +114,7 @@
 }
 
 .isBlocked .button {
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
 }
 
 .anchor.isDisabled .glow,

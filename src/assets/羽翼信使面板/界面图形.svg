@@ -46,11 +46,11 @@
     <path d="M14 55L31 27L51 14" fill="none" stroke="#8d6cff" stroke-width="2"/>
   </symbol>
   <symbol id="背包格框" viewBox="0 0 140 140" preserveAspectRatio="none">
-    <path d="M9 1H131L139 9V131L131 139H9L1 131V9Z" fill="#090e22" fill-opacity=".87" stroke="currentColor" stroke-width="1.5"/>
+    <path d="M9 1H131L139 9V131L131 139H9L1 131V9Z" fill="#090e22" fill-opacity=".87" stroke="currentColor" style="stroke-width: var(--frame-stroke-width, 1.5)"/>
     <path d="M5 16V123L16 134H122" fill="none" stroke="currentColor" opacity=".4"/>
   </symbol>
   <symbol id="支付卡框" viewBox="0 0 190 220" preserveAspectRatio="none">
-    <path d="M12 2H178L188 12V208L178 218H12L2 208V12Z" fill="#090d22" fill-opacity=".9" stroke="#d092ff" stroke-width="2"/>
+    <path d="M12 2H178L188 12V208L178 218H12L2 208V12Z" fill="#090d22" fill-opacity=".9" stroke="currentColor" style="stroke-width: var(--frame-stroke-width, 2)"/>
     <g fill="none" stroke="#30254d" opacity=".45"><circle cx="95" cy="75" r="64"/><circle cx="95" cy="75" r="56"/><circle cx="95" cy="75" r="42"/></g>
   </symbol>
   <symbol id="操作按钮框" viewBox="0 0 336 84" preserveAspectRatio="none">

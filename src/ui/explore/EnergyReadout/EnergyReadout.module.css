@@ -7,7 +7,7 @@
   width: 335px;
   height: 215px;
   outline: none;
-  cursor: var(--cursor-help, default);
+  cursor: var(--cursor-help);
   pointer-events: auto;
   transition: filter 160ms ease;
 }

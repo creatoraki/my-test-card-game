@@ -27,7 +27,7 @@
   font: inherit;
   color: #edffdb;
   background: #244732;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
-.release:disabled { opacity: 0.55; cursor: default; }
+.release:disabled { opacity: 0.55; cursor: var(--cursor-default); }
 .release:enabled:hover { background: #386044; }

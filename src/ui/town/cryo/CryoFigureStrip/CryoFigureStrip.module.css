@@ -8,7 +8,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
-  cursor: grab;
+  cursor: var(--cursor-grab);
   touch-action: pan-y;
   user-select: none;
 }
@@ -18,7 +18,7 @@
 }
 
 .viewport:active {
-  cursor: grabbing;
+  cursor: var(--cursor-grabbing);
 }
 
 .track {

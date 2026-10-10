@@ -11,3 +11,41 @@
 .loading {
   padding: 24px;
 }
+
+/* 演示类型切换条：悬浮在顶部居中，避开交互物演示左上角背景按钮与右上角调节面板。 */
+.tabs {
+  position: fixed;
+  left: 50%;
+  top: 16px;
+  z-index: 100;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  transform: translateX(-50%);
+  border: 1px solid #9bb1bd55;
+  background: #0b1722e6;
+  box-shadow: 0 8px 24px #0009;
+}
+
+.tab {
+  min-width: 128px;
+  padding: 8px 18px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #a9bcc4;
+  font-size: 18px;
+  font-family: inherit;
+  cursor: var(--cursor-pointer);
+}
+
+.tab:hover {
+  color: #e9ddc9;
+  background: #173233;
+}
+
+.tabOn,
+.tabOn:hover {
+  border-color: #e8b862;
+  background: #2c2213;
+  color: #f6e6c4;
+}

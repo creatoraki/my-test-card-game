@@ -103,7 +103,7 @@
 .button:disabled {
   color: #6f786b;
   filter: grayscale(0.9) brightness(0.55);
-  cursor: var(--cursor-default, default);
+  cursor: var(--cursor-default);
 }
 
 @keyframes sweep {

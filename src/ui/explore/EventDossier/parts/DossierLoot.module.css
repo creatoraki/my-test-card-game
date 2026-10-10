@@ -70,7 +70,7 @@
   font-family: var(--font-family);
   font-size: 18px;
   line-height: 26px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: background 160ms ease, color 160ms ease;
 }
 

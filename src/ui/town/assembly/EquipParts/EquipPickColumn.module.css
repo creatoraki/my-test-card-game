@@ -48,7 +48,7 @@
 }
 
 .locked {
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
 }
 
 .empty {

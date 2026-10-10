@@ -52,7 +52,7 @@
 }
 
 .row:disabled {
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
 }
 
 .figure {

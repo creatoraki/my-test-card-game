@@ -10,7 +10,7 @@
   align-items: center;
   height: var(--gauge-h);
   color: var(--gauge-color);
-  cursor: var(--cursor-help, default);
+  cursor: var(--cursor-help);
 }
 
 .gauge[data-level="warn"] {

@@ -31,7 +31,7 @@
   background: var(--pip-background, transparent);
   -webkit-backdrop-filter: var(--pip-backdrop-filter, none);
   backdrop-filter: var(--pip-backdrop-filter, none);
-  cursor: help;
+  cursor: var(--cursor-help);
 }
 .pip > b {
   position: absolute;

@@ -223,7 +223,7 @@
   --bay: #3c3f66;
   --stripe: transparent;
   color: #7a7f9e;
-  cursor: var(--cursor-default, default);
+  cursor: var(--cursor-default);
   opacity: 1;
 }
 

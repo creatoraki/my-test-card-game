@@ -21,7 +21,7 @@
   color: var(--ink);
   font-family: var(--font-family);
   text-align: left;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   outline: none;
   transition: filter 180ms ease, transform 180ms ease;
 }
@@ -181,7 +181,7 @@
 }
 
 .button:disabled {
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
   opacity: 0.42;
 }
 

@@ -29,7 +29,7 @@
   border: 1px solid color-mix(in srgb, var(--k) 22%, #1a3640);
   background: #04141bcc;
   color: #b3c1c6;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
   transition: border-color 160ms ease, background-color 160ms ease, box-shadow 200ms ease;
 }
@@ -45,7 +45,7 @@
 }
 
 .member:disabled {
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
   opacity: 0.35;
   filter: grayscale(1);
 }

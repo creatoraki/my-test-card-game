@@ -49,7 +49,7 @@
 }
 
 .tab:disabled {
-  cursor: var(--cursor-default, default);
+  cursor: var(--cursor-default);
 }
 
 .active {

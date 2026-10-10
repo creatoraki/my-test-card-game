@@ -57,7 +57,7 @@
   color: #e8fbfd;
   font-size: 22px;
   line-height: 1;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 
 .counter button:hover {

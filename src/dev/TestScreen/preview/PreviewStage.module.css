@@ -36,7 +36,7 @@
   border: 1px solid #52667b;
   box-shadow: 0 4px 16px #0008;
   font: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 
 .tools button[aria-pressed="true"] {

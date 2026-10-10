@@ -203,7 +203,7 @@
 
 /* ── 不可用 ── */
 .button[data-state="locked"] {
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
   filter: saturate(0.35) brightness(0.55);
 }
 
@@ -212,7 +212,7 @@
   --act-hot: #b9c0c3;
   --act-deep: #1a2023;
   color: #b9c0c3;
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
   opacity: 0.72;
   filter: none;
 }

@@ -232,5 +232,5 @@
   border-color: var(--sx-line);
   box-shadow: none;
   text-shadow: none;
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
 }

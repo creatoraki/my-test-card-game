@@ -21,7 +21,7 @@
   justify-content: center;
   animation: deckIn 320ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   animation-delay: calc(var(--i) * 30ms);
-  cursor: var(--cursor-help, default);
+  cursor: var(--cursor-help);
 }
 
 /* 卡面可见范围: 220×308 按 --scale 缩放后的实际占位。 */

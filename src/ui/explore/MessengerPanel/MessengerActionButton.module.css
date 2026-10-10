@@ -18,7 +18,7 @@
   background: var(--edge);
   font: 700 20px/1.5 "SourceHanSansSC", "Microsoft YaHei", sans-serif;
   letter-spacing: 1px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
   transition: background 160ms ease, color 160ms ease, transform 160ms ease;
 }
@@ -60,4 +60,4 @@
 }
 .confirm:hover:not(:disabled), .confirm:focus-visible { --fill-top: #22667a; background: #a9f2ff; }
 .button:active:not(:disabled) { transform: translateY(1px); }
-.button:disabled { opacity: .42; cursor: default; }
+.button:disabled { opacity: .42; cursor: var(--cursor-default); }

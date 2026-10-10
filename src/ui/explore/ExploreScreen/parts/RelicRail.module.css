@@ -23,7 +23,7 @@
   color: #f5d477;
   background: none;
   border: 0;
-  cursor: var(--cursor-help, default);
+  cursor: var(--cursor-help);
   transition: transform 160ms cubic-bezier(0.2, 0.72, 0.28, 1), filter 160ms ease;
 }
 

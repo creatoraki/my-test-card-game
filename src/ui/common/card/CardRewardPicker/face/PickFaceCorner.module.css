@@ -40,7 +40,7 @@
   height: 38px;
   padding: 0 12px 0 9px;
   color: #ffe9a8;
-  cursor: help;
+  cursor: var(--cursor-help);
   filter: drop-shadow(0 3px 4px #000a);
 }
 

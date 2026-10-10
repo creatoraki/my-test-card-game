@@ -89,7 +89,7 @@
   --ab-color: #6d7d84;
   --ab-edge: #34434a;
   --ab-bg: #0f171b;
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
 }
 
 .btn:disabled .icon {

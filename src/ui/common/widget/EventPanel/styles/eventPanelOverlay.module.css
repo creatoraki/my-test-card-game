@@ -127,7 +127,7 @@
   border-color: #415155;
   background: #101719;
   color: #647476;
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
   opacity: 0.62;
 }
 

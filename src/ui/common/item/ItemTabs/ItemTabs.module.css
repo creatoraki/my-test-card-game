@@ -73,6 +73,6 @@
 }
 
 .item-tab:disabled {
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
   opacity: 0.5;
 }

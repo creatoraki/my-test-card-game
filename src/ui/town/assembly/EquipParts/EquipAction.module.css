@@ -103,7 +103,7 @@
   --core-bottom: var(--sx-bg-lo);
   --ink: var(--sx-dim);
   --halo: transparent;
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
 }
 
 .action:disabled::before {

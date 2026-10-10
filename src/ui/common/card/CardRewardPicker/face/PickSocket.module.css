@@ -8,7 +8,7 @@
   width: 52px;
   height: 52px;
   pointer-events: auto;
-  cursor: help;
+  cursor: var(--cursor-help);
 }
 
 .socketFace {

@@ -100,7 +100,7 @@
   font-size: 12px;
   font-weight: 800;
   line-height: 1;
-  cursor: help;
+  cursor: var(--cursor-help);
 }
 /* 外观交给 TooltipCard(统一悬浮详情), 这里只管落位与悬停显隐。
    ⚠ 提示落在卡面内部, 卡面自带 overflow:hidden, 所以用无头部的窄卡(不超过卡宽)。 */

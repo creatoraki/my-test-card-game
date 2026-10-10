@@ -83,7 +83,7 @@
 
 .expand:disabled {
   opacity: 0.4;
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 
 /* 裁切窗口: 棋盘由 MinimapFocus 以当前房间居中, 超出部分直接裁掉, 不滚动。 */

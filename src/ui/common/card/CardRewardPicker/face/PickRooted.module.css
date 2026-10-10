@@ -37,5 +37,5 @@
 
 .release:disabled {
   opacity: 0.55;
-  cursor: default;
+  cursor: var(--cursor-default);
 }

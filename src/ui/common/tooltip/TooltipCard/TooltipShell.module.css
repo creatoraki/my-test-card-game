@@ -8,5 +8,5 @@
   line-height: 1;
   text-align: left;
   white-space: normal;
-  cursor: default;
+  cursor: var(--cursor-default);
 }

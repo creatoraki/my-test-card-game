@@ -98,7 +98,7 @@
 
 .btn:disabled {
   --c: #5d6f7c;
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
 }
 
 .btn:disabled .icon,

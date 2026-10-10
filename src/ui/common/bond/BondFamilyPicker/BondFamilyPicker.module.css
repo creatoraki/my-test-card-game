@@ -33,7 +33,7 @@
 }
 
 .chip:disabled {
-  cursor: default;
+  cursor: var(--cursor-default);
   opacity: 0.5;
 }
 

@@ -51,7 +51,7 @@
 
 /* 无法处理: 常驻压暗去色, 卡面中段压一条原因签。 */
 .slot[data-locked] {
-  cursor: var(--cursor-default, default);
+  cursor: var(--cursor-default);
 }
 
 .slot[data-locked] .face {

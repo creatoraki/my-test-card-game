@@ -103,7 +103,7 @@
   color: #7f939b;
   background: #101a1eee;
   border-color: #4a5b63;
-  cursor: not-allowed;
+  cursor: var(--cursor-forbidden);
 }
 
 @keyframes maskIn {

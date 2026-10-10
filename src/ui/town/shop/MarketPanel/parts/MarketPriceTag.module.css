@@ -76,6 +76,6 @@
 .is-ready:focus-visible { outline: 2px solid #ffe6b2; outline-offset: -2px; }
 .is-ready:active { transform: translateY(1px); }
 .tag:disabled { opacity: 1; }
-.is-poor { color: #c78f7d; cursor: not-allowed; }
+.is-poor { color: #c78f7d; cursor: var(--cursor-forbidden); }
 .is-sold { color: var(--sx-dim); cursor: var(--cursor-default); filter: saturate(.3); }
 .is-poor .price, .is-sold .price { text-shadow: none; }

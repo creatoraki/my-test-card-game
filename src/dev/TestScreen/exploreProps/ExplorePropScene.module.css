@@ -3,7 +3,7 @@
 /* 名称签挂在地面线下方，绝对定位不占交互物容器高度，避免把物件顶离地面。
    定位与反缩放写在锚点上；按钮本身不带 transform，全站按钮按下的位移不会让它跳位。 */
 .labelAnchor { position: absolute; top: calc(100% + 26px); left: 50%; z-index: 2; transform: translateX(-50%) scale(var(--preview-ui-scale, 1)); transform-origin: top center; }
-.label { display: block; white-space: nowrap; padding: 8px 14px; border: 1px solid #afc7c25e; background: #102425e8; color: #ebf3df; font-size: 18px; font-family: inherit; cursor: pointer; }
+.label { display: block; white-space: nowrap; padding: 8px 14px; border: 1px solid #afc7c25e; background: #102425e8; color: #ebf3df; font-size: 18px; font-family: inherit; cursor: var(--cursor-pointer); }
 .label:hover { border-color: #e8b862aa; background: #173233f0; }
 .labelSelected, .labelSelected:hover { border-color: #e8b862; background: #2c2213f0; color: #f6e6c4; }
 
@@ -11,16 +11,16 @@
 .panel { position: absolute; right: 24px; top: 24px; z-index: 40; display: flex; flex-direction: column; gap: 12px; width: 288px; max-width: calc(100% - 48px); max-height: calc(100% - 140px); overflow-y: auto; padding: 14px 16px; background: #0b1722f0; border: 1px solid #9bb1bd55; }
 .panelHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .panelHeader strong { font-size: 20px; color: #f4ead6; }
-.closeButton { flex: none; width: 32px; height: 32px; padding: 0; border: 1px solid #9bb1bd77; border-radius: 6px; background: #142630; color: #e9ddc9; font-size: 20px; line-height: 1; cursor: pointer; }
+.closeButton { flex: none; width: 32px; height: 32px; padding: 0; border: 1px solid #9bb1bd77; border-radius: 6px; background: #142630; color: #e9ddc9; font-size: 20px; line-height: 1; cursor: var(--cursor-pointer); }
 .closeButton:hover { background: #1d3442; }
 .knobRow { display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .knobInfo { display: flex; flex-direction: column; gap: 4px; align-self: stretch; font-size: 18px; font-variant-numeric: tabular-nums; }
 /* 步进按钮两列网格；按钮数为奇数时最后一个（复位）占满整行。 */
 .nudges { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 4px; }
 .nudges button:last-child:nth-child(odd) { grid-column: 1 / -1; }
-.nudges button { padding: 4px 8px; border: 1px solid #9bb1bd77; border-radius: 6px; background: #142630; color: #e9ddc9; font-size: 18px; font-variant-numeric: tabular-nums; cursor: pointer; }
+.nudges button { padding: 4px 8px; border: 1px solid #9bb1bd77; border-radius: 6px; background: #142630; color: #e9ddc9; font-size: 18px; font-variant-numeric: tabular-nums; cursor: var(--cursor-pointer); }
 .nudges button:hover { background: #1d3442; }
-.printButton { padding: 8px 12px; border: 1px solid #e8b862; border-radius: 8px; background: #2c2213; color: #f6e6c4; font-size: 18px; cursor: pointer; }
+.printButton { padding: 8px 12px; border: 1px solid #e8b862; border-radius: 8px; background: #2c2213; color: #f6e6c4; font-size: 18px; cursor: var(--cursor-pointer); }
 .printButton:hover { background: #3a2c17; }
 
 /* 演示近景：左右无缝素材横向平铺铺满房间；深渊从路面下缘挡住远景。 */
@@ -28,7 +28,7 @@
 .demoAbyss { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; background: #000; }
 
 /* 背景调整入口：悬浮在左上角，与右上角调节面板互斥。 */
-.backdropButton { position: absolute; left: 24px; top: 24px; z-index: 35; min-height: 42px; padding: 8px 18px; border: 1px solid #9bb1bd55; border-radius: 8px; background: #0b1722d9; box-shadow: 0 8px 24px #0009; color: #e9ddc9; font-size: 18px; font-family: inherit; cursor: pointer; }
+.backdropButton { position: absolute; left: 24px; top: 24px; z-index: 35; min-height: 42px; padding: 8px 18px; border: 1px solid #9bb1bd55; border-radius: 8px; background: #0b1722d9; box-shadow: 0 8px 24px #0009; color: #e9ddc9; font-size: 18px; font-family: inherit; cursor: var(--cursor-pointer); }
 .backdropButton:hover { border-color: #e8b862aa; background: #173233f0; }
 .backdropButtonActive, .backdropButtonActive:hover { border-color: #e8b862; background: #2c2213f0; color: #f6e6c4; }
 .offsetRow { display: flex; flex-direction: column; gap: 6px; font-size: 18px; font-variant-numeric: tabular-nums; }

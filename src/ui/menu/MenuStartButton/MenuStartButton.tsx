@@ -96,6 +96,7 @@ export function MenuStartButton({ onClick, disabled = false, right, bottom, widt
       className={s["menu-start"]}
       onClick={onClick}
       disabled={disabled}
+      data-cursor-busy={disabled || undefined}
       aria-label="开始游戏"
       style={
         {

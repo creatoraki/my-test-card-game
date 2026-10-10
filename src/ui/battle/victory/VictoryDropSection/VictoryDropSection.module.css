@@ -73,7 +73,7 @@
   color: #e9f5ed;
   background: #071114cc;
   border: 1px solid color-mix(in srgb, var(--chip-accent) 65%, #405057);
-  cursor: help;
+  cursor: var(--cursor-help);
   outline: none;
   opacity: 0;
   transform: translateX(24px);
