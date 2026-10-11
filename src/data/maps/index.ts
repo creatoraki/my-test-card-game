@@ -88,7 +88,7 @@ export const MAPS: MapDef[] = [
     emoji: "🌆",
     maxEquipRarity: "common",
     roomCount: 12,
-    nearMapVariants: ["neonCity1", "neonCity2", "neonCity3", "neonCity4"],
+    nearMapVariants: ["neonCity1", "neonCity2", "neonCity3", "neonCity4", "neonCity5"],
     battleEncounters: {
       t1: ["n-t1-scout", "n-t1-sweep", "n-t1-drift", "n-t1-signal", "n-t1-radio-drift", "n-t1-twin-weld"],
       t2: [

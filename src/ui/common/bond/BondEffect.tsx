@@ -13,11 +13,11 @@ export function BondEffect({ def, tierIndex = -1 }: { def: BondDef; tierIndex?: 
   );
 
   if (!parts) {
-    return <span className={s.effect}>{def.tiers.map((tier, index) => (
+    // 每档独占一行，门槛点数作为左列标号，换行文字与首行起点对齐。
+    return <span className={`${s.effect} ${s.tiers}`}>{def.tiers.map((tier, index) => (
       <Fragment key={tier.count}>
-        {index > 0 && "；"}
+        <span className={s.mark}>「{number(tier.count, index)}」</span>
         <span className={index === tierIndex ? s.active : undefined}>{tier.desc}</span>
-        （{number(tier.count, index)}）
       </Fragment>
     ))}</span>;
   }

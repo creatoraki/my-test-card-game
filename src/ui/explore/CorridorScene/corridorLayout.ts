@@ -15,6 +15,7 @@ const NEAR_MAP_OFFSET_Y: Record<NearMapVariant, number> = {
   neonCity2: NEON_CITY_NEAR_OFFSET_Y,
   neonCity3: NEON_CITY_NEAR_OFFSET_Y,
   neonCity4: NEON_CITY_NEAR_OFFSET_Y,
+  neonCity5: NEON_CITY_NEAR_OFFSET_Y,
   ecoArk1: ECO_ARK_NEAR_OFFSET_Y,
   ecoArk2: ECO_ARK_NEAR_OFFSET_Y,
   ecoArk3: ECO_ARK_NEAR_OFFSET_Y,

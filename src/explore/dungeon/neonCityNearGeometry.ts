@@ -10,8 +10,9 @@ export const NEON_CITY_NEAR_SOURCE = {
 export const NEON_CITY_NEAR_OFFSET_Y = 12;
 
 export const NEON_CITY_NEAR_SOURCE_GEOMETRY = {
-  neonCity1: { width: 3044, height: NEON_CITY_NEAR_SOURCE.height },
-  neonCity2: { width: 3028, height: NEON_CITY_NEAR_SOURCE.height },
-  neonCity3: { width: 3008, height: NEON_CITY_NEAR_SOURCE.height },
-  neonCity4: { width: 3023, height: NEON_CITY_NEAR_SOURCE.height },
+  neonCity1: { width: 2958, height: NEON_CITY_NEAR_SOURCE.height },
+  neonCity2: { width: 2861, height: NEON_CITY_NEAR_SOURCE.height },
+  neonCity3: { width: 2973, height: NEON_CITY_NEAR_SOURCE.height },
+  neonCity4: { width: 3033, height: NEON_CITY_NEAR_SOURCE.height },
+  neonCity5: { width: 3009, height: NEON_CITY_NEAR_SOURCE.height },
 } as const;

@@ -109,28 +109,4 @@
   text-shadow: -1px 0 1px #000, 1px 0 1px #000, 0 -1px 1px #000, 0 1px 2px #000;
 }
 
-/* 悬停释义: left = 浮在插槽左侧(右上徽记列); top = 浮在插槽上方左对齐(卡外左上标记行)。 */
-.tip {
-  position: absolute;
-  z-index: 2;
-  width: max-content;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 120ms ease, visibility 120ms ease;
-}
-
-.tip[data-at="left"] {
-  top: 0;
-  right: calc(100% + 10px);
-}
-
-.tip[data-at="top"] {
-  bottom: calc(100% + 10px);
-  left: 0;
-}
-
-.socket:hover .tip {
-  opacity: 1;
-  visibility: visible;
-}
+/* 悬停释义由 RailPopover 挂到设计画布，避开卡面缩放与局部层叠上下文。 */

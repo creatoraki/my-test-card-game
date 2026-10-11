@@ -1,6 +1,22 @@
 .effect {
+  display: block;
   font-size: 18px;
   line-height: 1.6;
+}
+
+/* 两列网格：标号列宽度由最宽标号决定，所有档位说明共用同一起点。 */
+.tiers {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 2px;
+  row-gap: 4px;
+  align-items: baseline;
+}
+
+.mark {
+  color: #9fb4c8;
+  white-space: nowrap;
+  font-feature-settings: "halt";
 }
 
 .value {

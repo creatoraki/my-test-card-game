@@ -60,6 +60,8 @@
 /* ── mover: 悬停上弹 / 选中抬高 / 邻卡让位; 投影随高度由紧贴变远散 ── */
 .mover {
   position: relative;
+  /* 卡面与卡外 BUFF 必须位于透明悬停桥之上，才能收到悬浮事件。 */
+  z-index: 1;
   width: 100%;
   height: 100%;
   filter: drop-shadow(3px 0 5px #000a) drop-shadow(0 6px 8px #000b);

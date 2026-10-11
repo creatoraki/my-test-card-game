@@ -11,6 +11,8 @@
   background: repeating-linear-gradient(130deg, transparent 0 140px, #3473ca0a 141px 180px, transparent 181px 240px), linear-gradient(145deg, #122b50, #07152e 46%, #10234a);
   clip-path: inset(0);
   transform-origin: center;
+  /* 整体等比缩放；使用独立 scale 属性，与开合动画的 transform 叠加互不覆盖。 */
+  scale: .9;
   animation: growthIn calc(var(--mr-bar-ms) + var(--mr-reveal-ms)) var(--mr-ease-pop) both;
 }
 .panel[data-closing="true"] { animation: growthOut var(--mr-close-ms) var(--mr-ease-pop) forwards; }

@@ -15,6 +15,7 @@ const NEAR_MAP_ZOOM = {
   neonCity2: NEON_CITY_NEAR_ZOOM,
   neonCity3: NEON_CITY_NEAR_ZOOM,
   neonCity4: NEON_CITY_NEAR_ZOOM,
+  neonCity5: NEON_CITY_NEAR_ZOOM,
   ecoArk1: ECO_ARK_NEAR_ZOOM,
   ecoArk2: ECO_ARK_NEAR_ZOOM,
   ecoArk3: ECO_ARK_NEAR_ZOOM,
