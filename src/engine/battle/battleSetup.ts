@@ -21,8 +21,6 @@ import { getEncounter, getEnemyDef, slotDefId } from "@/data";
 import { initializeArkBuffs } from "../ecoArk/passiveBuffs";
 import { createBondRuntime } from "../bonds/bondState";
 
-const isBattleTest = import.meta.env.BattleTest === "true";
-
 export interface AllyInit {
   id: string;
   charId: string;
@@ -46,6 +44,8 @@ export interface BattleSetup {
   relics?: string[];
   // 已激活的羁绊(局外按装备计数算好的「id + 档位」), 规则行为见 engine/bonds。
   bonds?: BattleBond[];
+  // 测试开关「测试战斗」: 所有敌人只有 1 点生命。由 store 层按调试面板开关注入, 引擎不读环境变量。
+  oneHpEnemies?: boolean;
 }
 
 export function createBattleState(
@@ -96,7 +96,7 @@ export function createBattleState(
     const id = `${defId}#${i}`;
     const suffix = defCounts[defId] > 1 ? `（${(defSeen[defId] ?? 0) + 1}）` : "";
     defSeen[defId] = (defSeen[defId] ?? 0) + 1;
-    const maxHp = isBattleTest ? 1 : Math.max(1, Math.round(def.maxHp * hpMul));
+    const maxHp = setup.oneHpEnemies ? 1 : Math.max(1, Math.round(def.maxHp * hpMul));
     const stats = enemyBaselineStats({ ...def.stats, maxHp });
     stats.attack = Math.round(stats.attack * (mod?.attackMultiplier ?? 1));
     const enemy: Enemy = {

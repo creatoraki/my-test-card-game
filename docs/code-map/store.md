@@ -9,7 +9,8 @@
 | [townStore.ts](../../src/store/town/townStore.ts) | **持久化**（localStorage，键名 `town-profile-v28`，版本号 30） | 城镇档案，存放跨远征的永久资产：角色卡组、装备、经验、居民积分、仓库、编队、阵亡名单、小队天赋、医疗室、图鉴、地图进度、商店与科技。本文件只负责拼装切片、建档 / 重置与「推进一日」。 |
 | [runStore.ts](../../src/store/run/runStore.ts) | 内存 | 一次远征的流程编排：界面路由 `screen`、进出探索、建战斗、战后结算、撤离与回城。单向依赖 `townStore`。本文件只保留状态与路由，编排细节在 `store/run/`。 |
 | [exploreStore.ts](../../src/store/explore/exploreStore.ts) | 内存（出击前会备份城镇档案） | 包裹 `explore/session/` 的远征会话本身。 |
-| [battleStore.ts](../../src/store/battle/battleStore.ts) | 内存 | 包裹战斗引擎。出牌和结束回合会引出敌人行动与弃牌触发，引擎按发生顺序记为 `steps`，UI 逐步回放。 |
+| [battleStore.ts](../../src/store/battle/battleStore.ts) | 内存 | 包裹战斗引擎。出牌和结束回合会引出敌人行动与弃牌触发，引擎按发生顺序记为 `steps`，UI 逐步回放。建局时按测试开关「测试战斗」注入 `oneHpEnemies`。 |
+| [devTestStore.ts](../../src/store/dev/devTestStore.ts) | localStorage | 测试开关(关闭遇敌 / 测试战斗)，仅 `isTest=true` 时生效；`devTestFlag()` 在正式环境恒为 false。 |
 | [sortieStore.ts](../../src/store/sortie/sortieStore.ts) | 内存，**刻意不持久化** | 出击准备的临时会话：选地图、装背包。刷新页面即作废，避免半截的出击状态混进存档。 |
 
 ## townStore 的切片与辅助
@@ -43,7 +44,7 @@
 | [run/expeditionEnd.ts](../../src/store/run/expeditionEnd.ts) | 远征收尾：落袋、通关奖励、结算页切换。 |
 | [run/expeditionActions.ts](../../src/store/run/expeditionActions.ts) | 远征途中换装与「指定角色」类待办。 |
 | [curioActions.ts](../../src/store/explore/curioActions.ts) | 物件决策、选择执行者、打开货商货架、购买。 |
-| [exploreCorridor.ts](../../src/store/explore/exploreCorridor.ts) | 场景内操作：保存站位、站上传送门、伏击检定、行走扣粒子、传送与信标、打开或关闭物件、BOSS 红门、结束遭遇战。 |
+| [exploreCorridor.ts](../../src/store/explore/exploreCorridor.ts) | 场景内操作：保存站位、站上传送门、伏击检定、行走扣粒子、传送与信标、打开或关闭物件、BOSS 红门、测试首领(任意房间直接开打本图首领战)、结束遭遇战。「关闭遇敌」开启时伏击检定直接跳过。 |
 | [exploreGrowthServices.ts](../../src/store/explore/exploreGrowthServices.ts) | 远征途中的装备调校和换卡服务。 |
 | [exploreAftermath.ts](../../src/store/explore/exploreAftermath.ts) | 把远征中的污染、卡牌污染和阵亡角色的装备写回城镇档案。 |
 | [picnicActions.ts](../../src/store/explore/picnicActions.ts) | 野餐结算后，落地遗物带来的污染变化。 |

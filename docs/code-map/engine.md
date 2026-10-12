@@ -17,7 +17,7 @@
 | 文件 | 作用 |
 | --- | --- |
 | [battle.ts](../../src/engine/battle/battle.ts) | 对外的高层操作：`createBattle`、`startRound`、`canPlay` / `playBlockReason`、`playCard`、`discardHandCard`、`redrawHandCard`、`waitTick`、`endRound`。 |
-| [battleSetup.ts](../../src/engine/battle/battleSetup.ts) | 根据遭遇战和队伍快照建局，注入敌人的基础命中和格挡。⚠ 直接读取 `import.meta.env.BattleTest`，开启时敌人只有 1 点生命。 |
+| [battleSetup.ts](../../src/engine/battle/battleSetup.ts) | 根据遭遇战和队伍快照建局，注入敌人的基础命中和格挡。`setup.oneHpEnemies` 为真时敌人只有 1 点生命(由 battleStore 按探索页测试面板「测试战斗」开关注入)。 |
 | [scheduler.ts](../../src/engine/battle/scheduler.ts) | 时刻调度（本作核心）：打出普通牌推进 1 个时刻并结算到点的敌人行动；速攻牌不推进时刻。 |
 | [statusLifecycle.ts](../../src/engine/combat/statusLifecycle.ts) | 按时刻和敌我阵营运行状态的持续与结算。 |
 | [battleChoices.ts](../../src/engine/battle/battleChoices.ts) | 战斗中需要玩家做选择的结算与取消（例如从抽牌堆挑一张）。 |

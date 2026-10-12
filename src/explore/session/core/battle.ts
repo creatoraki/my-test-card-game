@@ -6,8 +6,9 @@ import { rngFloat, rngInt, shuffle } from "@/engine/core/rng";
 import { rollDropTable } from "@/items/drops";
 import type { ItemStack } from "@/items/types";
 import { rollBoons } from "../../core/boons";
-import { hasCorridorRewards, settleCorridorEncounter } from "../../corridor/corridorSession";
-import { currentRoom, syncRoomFromScene } from "../../dungeon/dungeonSession";
+import { canWalkCorridor, hasCorridorRewards, settleCorridorEncounter } from "../../corridor/corridorSession";
+import { currentRoom, roomOf, syncRoomFromScene } from "../../dungeon/dungeonSession";
+import type { RoomNode } from "../../dungeon/types";
 import { fireExploreRelic } from "../../relics/relics";
 import { EXPLORE_RULES } from "../../core/exploreRules";
 import type { BattleTier, ExploreState } from "../../types";
@@ -52,8 +53,9 @@ export function encounterForTier(s: ExploreState, tier: BattleTier): string | nu
 }
 
 // BOSS 红门的战斗: 默认 t5, 固定蓝图守卫可覆盖档位与遭遇; 胜利后结束整趟远征。
-function engageBossBattle(s: ExploreState): boolean {
-  const guard = currentRoom(s)?.guard;
+// room = 守卫所在的 BOSS 房; 正常流程就是当前房间, 测试入口传入本图的 BOSS 房。
+function engageBossBattle(s: ExploreState, room: RoomNode | null = currentRoom(s)): boolean {
+  const guard = room?.guard;
   const tier = guard?.tier ?? "t5";
   const encounterId = guard?.encounterId ?? encounterForTier(s, tier);
   if (!encounterId) return false;
@@ -65,7 +67,7 @@ function engageBossBattle(s: ExploreState): boolean {
     round: s.round,
     segment: -1,
     lane: -1,
-    roomLabel: currentRoom(s)?.label,
+    roomLabel: room?.label,
     eventId: encounterId,
     eventTitle,
     eventKind: "battle",
@@ -87,6 +89,13 @@ export function challengeBoss(s: ExploreState): boolean {
   if (s.phase !== "atNode" || !s.corridor?.bossGateOpen || hasCorridorRewards(s)) return false;
   syncRoomFromScene(s);
   return engageBossBattle(s);
+}
+
+/** 测试入口(仅 isTest 环境的探索调试面板调用): 在任意房间直接开打本图 BOSS 房的首领战。 */
+export function challengeBossForTest(s: ExploreState): boolean {
+  if (!canWalkCorridor(s) || !s.dungeon) return false;
+  syncRoomFromScene(s);
+  return engageBossBattle(s, roomOf(s, s.dungeon.bossRoomId));
 }
 
 // 撤离远征的阶段白名单 = 全部「不限时、等玩家操作」的阶段。

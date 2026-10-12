@@ -1,0 +1,87 @@
+/* 探索页测试面板: 借用小地图霓虹外框(MinimapFrame), 按钮改用琥珀色以示调试用途、与正式 HUD 区分。 */
+
+.panel {
+  --arm: 18px;
+  box-sizing: border-box;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px 14px;
+}
+
+.title {
+  position: relative;
+  z-index: 2;
+  color: #ffd38a;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-align: center;
+}
+
+.button {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 132px;
+  padding: 6px 12px;
+  border: 1px solid #a8742e;
+  background: #241606d0;
+  color: #e9cfa2;
+  font-size: 18px;
+  cursor: var(--cursor-pointer);
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.button:hover:not(:disabled),
+.button:focus-visible {
+  border-color: #ffc062;
+  background: #3a2309e0;
+  color: #fff1d6;
+  outline: none;
+}
+
+.button:disabled {
+  opacity: 0.4;
+  cursor: var(--cursor-default);
+}
+
+/* 开关指示灯: 关 = 暗灰, 开 = 琥珀亮灯。 */
+.lamp {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4a4036;
+  box-shadow: inset 0 0 0 1px #00000080;
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+
+.button[data-on] {
+  border-color: #ffb547;
+  color: #fff1d6;
+}
+
+.button[data-on] .lamp {
+  background: #ffb547;
+  box-shadow: 0 0 8px #ffb547, 0 0 2px #fff3d6;
+}
+
+.boss {
+  justify-content: center;
+  border-color: #c4473a;
+  background: #2a0b08d0;
+  color: #ffc4b8;
+}
+
+.boss:hover:not(:disabled),
+.boss:focus-visible {
+  border-color: #ff6a55;
+  background: #45120ce0;
+  color: #fff0ec;
+}

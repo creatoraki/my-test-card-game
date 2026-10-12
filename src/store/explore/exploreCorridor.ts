@@ -1,5 +1,6 @@
 import { useExploreStore } from "./exploreStore";
-import { challengeBoss, engageRoomThreat } from "@/explore/session";
+import { challengeBoss, challengeBossForTest, engageRoomThreat } from "@/explore/session";
+import { devTestFlag } from "@/store/dev/devTestStore";
 import {
   canWalkCorridor, clampCorridorX,
   closeBossGate, dismissCorridorObject, openBossGate, openCorridorObject,
@@ -56,7 +57,7 @@ export function markStandingPortal(x: number): boolean {
 /** 每累计一段行走时间检查一次暗雷；未命中也必须提交 RNG 的推进(只改顶层 rngState)。 */
 export function checkCorridorAmbush(x: number, facing: -1 | 1): boolean {
   const current = useExploreStore.getState().session;
-  if (!current?.corridor) return false;
+  if (!current?.corridor || devTestFlag("noEncounter")) return false;
   const rolled: ExploreState = { ...current };
   const result = rollCorridorAmbush(rolled);
   if (result === "skip") return false;
@@ -99,6 +100,8 @@ export const closeCorridorObject = () => mutateCorridor(dismissCorridorObject);
 export const openBossGateAt = () => mutateCorridor(openBossGate);
 export const closeBossGatePanel = () => mutateCorridor(closeBossGate);
 export const challengeBossGate = () => mutateCorridor(challengeBoss);
+/** 测试面板「测试首领」: 在任意房间直接开打本图首领战。 */
+export const challengeBossTest = () => mutateCorridor(challengeBossForTest);
 
 /** 演出完成后才建立遭遇战。与开始动画分开，StrictMode 或重复回调不会重复建局。 */
 export function finishCorridorEncounter(): boolean {

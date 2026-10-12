@@ -4,6 +4,7 @@
 // store 不立即替换终态, 而是把 { steps, final } 交给 UI 逐帧回放(见 commit)。
 
 import { create } from "zustand";
+import { devTestFlag } from "@/store/dev/devTestStore";
 import type {
   AnimHit,
   BattleSetup,
@@ -102,7 +103,8 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   seq: 0,
 
   init: (encounterId, setup, seed, mod, meta) => {
-    set({ battle: createBattle(encounterId, setup, seed, mod), meta: meta ?? null, seq: get().seq + 1 });
+    const oneHpEnemies = setup.oneHpEnemies || devTestFlag("oneHpEnemies");
+    set({ battle: createBattle(encounterId, { ...setup, oneHpEnemies }, seed, mod), meta: meta ?? null, seq: get().seq + 1 });
   },
 
   play: (uid, targetId, discardPicks) => {
