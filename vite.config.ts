@@ -2,12 +2,14 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
 import imageOptimize from "./scripts/vite-plugin-image-optimize.mjs";
+import devAssetCache from "./scripts/vite-plugin-dev-asset-cache.mjs";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   // imageOptimize 在 dev 与 build 下行为一致(见插件头部注释), 所以开发时看到的画质
   // 就是线上画质。OPTIMIZE=0 pnpm dev 可退回原始 PNG 做原画对比。
-  plugins: [react(), imageOptimize({ quality: 94 })],
+  // devAssetCache 必须排在 imageOptimize 之后: 只接手被它放行的素材(见插件头部注释)。
+  plugins: [react(), imageOptimize({ quality: 94 }), devAssetCache()],
   envPrefix: ["VITE_", "isTest"],
   server: {
     port: 2333,

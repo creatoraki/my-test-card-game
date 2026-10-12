@@ -13,6 +13,7 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { serveAssetBuffer } from "./lib/serveAssetBuffer.mjs";
 
 const IMAGE_TARGET = /\.(png|jpe?g)$/i;
 const VIDEO_TARGET = /\.(mp4|webm|mov)$/i;
@@ -23,8 +24,6 @@ const BYPASS_QUERY = /[?&](raw|inline)\b/;
 
 const CACHE_DIR = path.resolve("node_modules/.cache/img-optimize");
 const DEV_PREFIX = "/@img-opt/";
-
-const MIME = { ".webp": "image/webp", ".mp4": "video/mp4" };
 
 const mb = (n) => `${(n / 1024 / 1024).toFixed(2)}MB`;
 
@@ -218,32 +217,8 @@ export default function imageOptimize({
         const buf = served.get(name);
         if (!buf) return next();
 
-        const type = MIME[path.extname(name)] ?? "application/octet-stream";
-        // 文件名就是内容哈希 ⇒ 内容一变 URL 必变, 可以放心长缓存,
-        // 免得每次 HMR 都把几十 MB 素材重新推一遍。
-        res.setHeader("Cache-Control", "max-age=31536000, immutable");
-        res.setHeader("Content-Type", type);
-
-        // <video> 会发 Range 请求做分段拉取与 seek; 只会整块回 200 的话
-        // 浏览器行为在各家实现下并不一致(尤其 Safari 直接拒播)。
-        res.setHeader("Accept-Ranges", "bytes");
-        const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range ?? "");
-        if (m) {
-          const start = m[1] ? Number(m[1]) : 0;
-          const end = m[2] ? Math.min(Number(m[2]), buf.length - 1) : buf.length - 1;
-          if (start > end) {
-            res.writeHead(416, { "Content-Range": `bytes */${buf.length}` });
-            return res.end();
-          }
-          res.writeHead(206, {
-            "Content-Range": `bytes ${start}-${end}/${buf.length}`,
-            "Content-Length": end - start + 1,
-          });
-          return res.end(buf.subarray(start, end + 1));
-        }
-
-        res.setHeader("Content-Length", buf.length);
-        res.end(buf);
+        // 被这里放行的素材(WebP 原件等)由 dev-asset-cache 以同样的永久缓存语义提供。
+        serveAssetBuffer(req, res, buf, name);
       });
     },
 

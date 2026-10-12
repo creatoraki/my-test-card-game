@@ -15,7 +15,9 @@ export function MenuScreen() {
       ? preload.failed > 0
         ? `资源准备完成，${preload.failed} 项加载失败`
         : ""
-      : `正在准备美术资源 ${preload.completed} / ${preload.total}`;
+      : preload.status === "loading"
+        ? `正在准备美术资源 ${preload.completed} / ${preload.total}`
+        : "";
 
   return (
     <StageCanvas

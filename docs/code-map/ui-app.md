@@ -20,7 +20,7 @@
 
 | 文件 | 作用 |
 | --- | --- |
-| [assetLoader.ts](../../src/ui/art/loader/assetLoader.ts) / [assetPreloader.ts](../../src/ui/art/loader/assetPreloader.ts) | 素材预加载：图片限 2 个并发并利用空闲时间加载，视频只等首帧；对外提供预加载进度快照。⚠ 要预加载的 URL 必须登记在下面的表中。 |
+| [assetLoader.ts](../../src/ui/art/loader/assetLoader.ts) / [assetPreloader.ts](../../src/ui/art/loader/assetPreloader.ts) | 素材预加载：图片限 2 个并发并利用空闲时间加载，视频只等首帧；对外提供预加载进度快照。[assetPreloadMemory.ts](../../src/ui/art/loader/assetPreloadMemory.ts) 用 localStorage 记住加载成功过的素材 URL（带内容哈希），开屏只预加载新增或改动过的素材。⚠ 要预加载的 URL 必须登记在下面的表中。 |
 | [sceneArt.ts](../../src/ui/art/explore/sceneArt.ts) | 主菜单背景视频、电梯视频、标题图。 |
 | [cardArt.ts](../../src/ui/art/battle/cardArt.ts) / [enemyArt.ts](../../src/ui/art/battle/enemyArt.ts) / [itemArt.tsx](../../src/ui/art/items/itemArt.tsx) | 卡牌大图、敌人立绘（附带用 `alpha-bbox.mjs` 测出的内容框）、物品图标（没有美术的物品回退到内联线框 SVG）。 |
 | [statusArt.ts](../../src/ui/art/battle/statusArt.ts) / [statusAccent.ts](../../src/ui/art/battle/statusAccent.ts) / [buffArt.ts](../../src/ui/art/battle/buffArt.ts) | 战斗状态图标及其主题色；非战斗状态的徽记（培育、组装部件、药剂）。 |

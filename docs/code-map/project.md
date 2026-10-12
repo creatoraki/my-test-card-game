@@ -8,7 +8,7 @@
 | --- | --- |
 | [package.json](../../package.json) | 依赖 React 18、Zustand 4、three；脚本有 dev / build / preview / test / test:watch；包管理器是 pnpm。 |
 | [tsconfig.json](../../tsconfig.json) | 严格模式，`@/*` 指向 `src/*`，模块解析方式为 bundler，只包含 `src`。 |
-| [vite.config.ts](../../vite.config.ts) | React 插件 + 图片优化插件（质量 94）；开发端口 2333；环境变量前缀 `VITE_` / `isTest`；CSS Modules 类名格式 `[name]__[local]___[hash]`。 |
+| [vite.config.ts](../../vite.config.ts) | React 插件 + 图片优化插件（质量 94）+ 开发期素材永久缓存插件；开发端口 2333；环境变量前缀 `VITE_` / `isTest`；CSS Modules 类名格式 `[name]__[local]___[hash]`。 |
 | `.env.development` / `.env.production` / `.env.test` | `isTest` 开关：跳过电梯过场、解锁地图，并在探索页小地图旁挂测试面板(关闭遇敌 / 测试战斗 / 测试首领，见 store/dev/devTestStore)。开发环境为 `true`。 |
 | [index.html](../../index.html) | 提供 `#root`，以 module 脚本加载 `src/main.tsx`。 |
 
@@ -30,6 +30,7 @@
 | 文件 | 作用 |
 | --- | --- |
 | [vite-plugin-image-optimize.mjs](../../scripts/vite-plugin-image-optimize.mjs) | Vite 插件：在模块加载时把 PNG/JPEG 转成 WebP，并给视频降码率；开发和构建行为一致。`OPTIMIZE=0` 可跳过优化，用原图对比。 |
+| [vite-plugin-dev-asset-cache.mjs](../../scripts/vite-plugin-dev-asset-cache.mjs) | Vite 插件（仅开发）：其余素材（WebP 原件等）改写成 `/@asset/<内容哈希>` 地址并永久缓存，素材不改就不再请求；与上一个插件共用 [lib/serveAssetBuffer.mjs](../../scripts/lib/serveAssetBuffer.mjs) 发送。 |
 | [alpha-bbox.mjs](../../scripts/alpha-bbox.mjs) | 测量透明 PNG 的内容框，结果用于敌人立绘登记（`ui/art/battle/enemyArt.ts`）。 |
 | [chroma-cut.mjs](../../scripts/chroma-cut.mjs) | 把纯色底立绘抠成透明 PNG，并裁到角色边界。 |
 | [white-cut.mjs](../../scripts/white-cut.mjs) | 把白底横向循环场景抠成透明 PNG，用作近景层。 |

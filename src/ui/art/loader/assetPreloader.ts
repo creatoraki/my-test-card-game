@@ -1,4 +1,5 @@
 import { preloadImage, preloadVideo, scheduleLowPriority } from "@/ui/art/loader/assetLoader";
+import { loadPreloadedSources, savePreloadedSources } from "@/ui/art/loader/assetPreloadMemory";
 import { CARD_ART_SOURCES } from "@/ui/art/battle/cardArt";
 import { CHARACTER_ART_SOURCES } from "@/ui/common/unit/CharacterPortrait/CharacterPortrait";
 import { ENEMY_ART_SOURCES } from "@/ui/art/battle/enemyArt";
@@ -65,7 +66,8 @@ export const GAME_ASSET_TASKS: readonly AssetTask[] = [
 
 const INITIAL_SNAPSHOT: AssetPreloadSnapshot = {
   status: "idle",
-  total: GAME_ASSET_TASKS.length,
+  // total = 本次开屏实际要预加载的数量(已缓存的不计), 开始预加载时才确定。
+  total: 0,
   completed: 0,
   failed: 0,
 };
@@ -91,12 +93,18 @@ export function getAssetPreloadSnapshot(): AssetPreloadSnapshot {
 export function startGameAssetPreload(): Promise<void> {
   if (preloadPromise) return preloadPromise;
 
-  publish({
-    status: "loading",
-    total: GAME_ASSET_TASKS.length,
-    completed: 0,
-    failed: 0,
-  });
+  // 加载成功过的素材已在浏览器永久缓存里, 只预加载新增 / 改动过的(见 assetPreloadMemory.ts)。
+  const done = loadPreloadedSources();
+  const tasks = GAME_ASSET_TASKS.filter((task) => !done.has(task.src));
+  const allSources = GAME_ASSET_TASKS.map((task) => task.src);
+
+  if (tasks.length === 0) {
+    publish({ status: "ready", total: 0, completed: 0, failed: 0 });
+    preloadPromise = Promise.resolve();
+    return preloadPromise;
+  }
+
+  publish({ status: "loading", total: tasks.length, completed: 0, failed: 0 });
 
   let completed = 0;
   let failed = 0;
@@ -106,33 +114,27 @@ export function startGameAssetPreload(): Promise<void> {
     let activeTasks = 0;
 
     const pump = () => {
-      if (completed === GAME_ASSET_TASKS.length) {
+      if (completed === tasks.length) {
         resolve();
         return;
       }
 
-      while (
-        activeTasks < PRELOAD_TASK_CONCURRENCY &&
-        nextTaskIndex < GAME_ASSET_TASKS.length
-      ) {
-        const task = GAME_ASSET_TASKS[nextTaskIndex];
+      while (activeTasks < PRELOAD_TASK_CONCURRENCY && nextTaskIndex < tasks.length) {
+        const task = tasks[nextTaskIndex];
         nextTaskIndex += 1;
         activeTasks += 1;
 
         const loadTask = task.kind === "image" ? preloadImage(task.src) : preloadVideo(task.src);
         void loadTask
-          .catch(() => {
+          .then(() => {
+            done.add(task.src);
+          }, () => {
             failed += 1;
           })
           .then(() => {
             activeTasks -= 1;
             completed += 1;
-            publish({
-              status: "loading",
-              total: GAME_ASSET_TASKS.length,
-              completed,
-              failed,
-            });
+            publish({ status: "loading", total: tasks.length, completed, failed });
             scheduleLowPriority(pump);
           });
       }
@@ -140,12 +142,9 @@ export function startGameAssetPreload(): Promise<void> {
 
     scheduleLowPriority(pump);
   }).then(() => {
-    publish({
-      status: "ready",
-      total: GAME_ASSET_TASKS.length,
-      completed,
-      failed,
-    });
+    // 失败的不记入, 下次开屏重试。
+    savePreloadedSources(done, allSources);
+    publish({ status: "ready", total: tasks.length, completed, failed });
   });
 
   return preloadPromise;
