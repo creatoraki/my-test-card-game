@@ -7,10 +7,10 @@ import { RailPopover } from "@/ui/common/tooltip/RailPopover";
 import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
 import s from "./ChallengeRail.module.css";
 
-/** 游艺摊押注提示：挂在每个挑战的悬浮说明里，提醒本场有钱币押在挑战数上。 */
+/** 发条擂台押注提示：挂在每个挑战的悬浮说明里，提醒本场有钱币押在挑战数上。 */
 function useBetNote(): string | null {
   const bet = useExploreStore((state) => state.session?.arcadeBet ?? null);
-  return bet ? `游艺摊押注 ${bet.stakes.length} 枚钱币：本场${arcadeGoalLabel(bet.goal)}` : null;
+  return bet ? `发条擂台押注 ${bet.stakes.length} 枚钱币：本场${arcadeGoalLabel(bet.goal)}` : null;
 }
 
 function ChallengeItem({ run, betNote }: { run: ChallengeRun; betNote: string | null }) {

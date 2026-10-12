@@ -12,38 +12,39 @@ const PROP_ASSIGNMENT: Record<CurioKind, CommonPropAssetId> = {
   supplyCrate: "rustSnailShell",
   toolLocker: "stoppedCuckooClock",
   safe: "sleepCatVault",
-  relicCache: "ringLockCase",
+  relicCache: "pearlClam",
   temporaryRelicCache: "stoneShrine",
   // 恢复
   medical: "reverseSakuraSpring",
   // 服务
-  modBench: "appraisalAnvil",
+  modBench: "armorMannequin",
   shrine: "miasmaTapir",
   bondWorkbench: "dreamLoom",
-  perfectnessWorkbench: "memoryAltar",
+  perfectnessWorkbench: "waterwheelGrindstone",
   blacksmith: "triPetalLotus",
   merchant: "robotMerchant",
   dispatch: "wingCourier",
   coinExchange: "bottledTown",
   expConverter: "whaleGramophone",
   salvager: "starSandHourglass",
-  neonArcade: "neonStall",
+  neonArcade: "clockworkArena",
+  fortuneFox: "fortuneFox",
   // 导航
   signpost: "oakSignpost",
   waystone: "moonBasin",
   // 陷阱
-  collapsedCeiling: "thunderLamp",
+  collapsedCeiling: "lightningStump",
   leakingPipe: "sealPillar",
   rogueDrone: "soundBellRack",
   // 生态方舟
-  arkGeneConsole: "wishTree",
-  arkSporeVent: "vineGrate",
+  arkGeneConsole: "mapTortoise",
+  arkSporeVent: "puffball",
   // 新手关
   tutorialArmory: "mossMailbox",
-  tutorialModBench: "appraisalAnvil",
-  tutorialMedical: "potionBench",
+  tutorialModBench: "armorMannequin",
+  tutorialMedical: "jadeRabbitMortar",
   tutorialRelicCache: "stoneShrine",
-  tutorialCashBox: "travelerPack",
+  tutorialCashBox: "potteryPigBank",
 };
 
 function mapKinds<T>(pick: (asset: CommonPropAssetId) => T): Record<CurioKind, T> {

@@ -1,5 +1,5 @@
 // ============================================================================
-// 霓虹游艺摊 —— 押钱币赌下一场战斗完成的挑战数(每场战斗固定抽 2 个挑战词条)。
+// 发条擂台(neonArcade) —— 押钱币赌下一场战斗完成的挑战数(每场战斗固定抽 2 个挑战词条)。
 // · 押「至少 1 个」：达成后每枚钱币升 1 级；押「2 个全部」：达成后每枚升 2 级；
 // · 升级受难度上限约束(普通难度最高银币)，押注时就只收还能升级的钱币；
 // · 押不中钱币没收；战败团灭、战斗中撤离时押注随远征一起作废。
@@ -37,13 +37,13 @@ export function settleArcadeBet(s: ExploreState, kept: number): string | null {
   if (!bet) return null;
   s.arcadeBet = null;
   if (kept < bet.goal) {
-    const note = `游艺摊押注落空（完成 ${kept} 个挑战），${coinNames(bet.stakes)} 被没收`;
+    const note = `擂台押注落空（完成 ${kept} 个挑战），${coinNames(bet.stakes)} 被擂台吞掉`;
     s.log.push(note);
     return note;
   }
   const upgraded = bet.stakes.map((id) => upgradeCoin(s, id, bet.goal));
   addPendingLoot(s, upgraded.map((id) => makeRolledItemStack(s, id, 1)));
-  const note = `游艺摊押注成功：${coinNames(bet.stakes)} 升级为 ${coinNames(upgraded)}`;
+  const note = `擂台押注成功：${coinNames(bet.stakes)} 升级为 ${coinNames(upgraded)}`;
   s.log.push(note);
   return note;
 }

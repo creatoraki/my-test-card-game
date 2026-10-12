@@ -34,19 +34,19 @@ export const UTILITY_CURIOS = {
     }],
   },
   neonArcade: {
-    name: "霓虹游艺摊", role: "service", verb: "押注", size: 210, energyCost: 0,
-    description: `游艺摊的霓虹灯牌写着「赌下一场战斗」。押上最多 ${ARCADE_MAX_STAKES} 枚钱币，赌小队在下一场战斗中完成的挑战数：押中后钱币升级，押不中则全部没收。同一时间只能有一笔押注。`,
+    name: "等人下注的发条擂台", role: "service", verb: "押注", size: 210, energyCost: 0,
+    description: `擂台上两个铁皮骑士拧紧了发条，台前三个投币槽等着押注。投进最多 ${ARCADE_MAX_STAKES} 枚钱币，赌小队下一场战斗完成的挑战数：押中钱币升级，押不中就被擂台吞掉。同一时间只能有一笔押注。`,
     decisions: [
       {
         id: "betOne", label: "押注：至少完成 1 个挑战", gates: ["noActiveBet"],
         offer: { match: { itemIds: ["copper-coin", "silver-coin"] }, min: 1, max: ARCADE_MAX_STAKES, coinStake: true },
-        story: "摊主把钱币收进透明筹码盒，灯牌上亮起「一」字。",
+        story: "钱币落进投币槽，台上的两个铁皮骑士咔哒一声拧紧了发条。",
         effects: [{ type: "PLACE_BET", goal: 1 }],
       },
       {
         id: "betAll", label: "押注：2 个挑战全部完成", gates: ["noActiveBet", "goldUnlocked"],
         offer: { match: { itemIds: ["copper-coin", "silver-coin"] }, min: 1, max: ARCADE_MAX_STAKES, coinStake: true },
-        story: "摊主吹了声口哨，把钱币收进透明筹码盒，灯牌上两个格子同时亮起。",
+        story: "钱币落进投币槽，两个铁皮骑士同时举起了剑，发条绷得咯吱作响。",
         effects: [{ type: "PLACE_BET", goal: 2 }],
       },
     ],

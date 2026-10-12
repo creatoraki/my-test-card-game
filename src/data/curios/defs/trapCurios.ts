@@ -8,12 +8,12 @@ import type { CurioDef } from "../types";
  */
 export const TRAP_CURIOS = {
   collapsedCeiling: {
-    name: "短路的雷萤灯柱",
+    name: "噼啪作响的雷劈树桩",
     role: "trap",
     forced: true,
     verb: "应对",
     size: 220,
-    description: "刚踏进房间，墙边的雷萤灯柱就爆出一串火花，灯罩里的电弧正沿着地面朝队伍乱窜。",
+    description: "刚踏进房间，插在焦黑树桩里的铜钱剑就炸出一串电光，电弧顺着地面朝队伍乱窜。",
     decisions: [
       {
         id: "brace",
@@ -23,19 +23,19 @@ export const TRAP_CURIOS = {
       },
       {
         id: "shield",
-        label: "由执行者拔断供电线",
-        story: "执行者挨了一下电击，硬是拔断了供电线，灯座里的储币盒也被震开，掉出几枚硬币。",
+        label: "由执行者拔出铜钱剑",
+        story: "执行者挨了一下电击，硬是把铜钱剑从树桩里拔了出来，拆下剑上的几枚铜钱。",
         effects: [
           { type: "DAMAGE_MEMBER_PERCENT", target: "actor", percent: 0.08 },
           { type: "GAIN_POOL_ITEM", pool: "scrap", count: 1 },
         ],
         failure: fail(
           0.4,
-          "供电线比预想的更难拔，执行者被电得半跪在地。",
+          "铜钱剑卡得比预想的更深，执行者被电得半跪在地。",
           [{ type: "DAMAGE_MEMBER_PERCENT", target: "actor", percent: 0.12 }],
           byJob("swordsman", {
             convert: {
-              story: "剑士一刀斩断了供电线，劈开的灯座里零件和硬币滚了一地。",
+              story: "剑士一刀劈开了树桩，铜钱剑连同树洞里攒下的零件和铜钱滚了一地。",
               effects: [
                 { type: "GAIN_POOL_ITEM", pool: "scrap", count: 1 },
                 { type: "GAIN_POOL_ITEM", pool: "generalMaterial", count: 1 },

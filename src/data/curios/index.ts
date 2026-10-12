@@ -36,7 +36,7 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {
  *
  * NPC 先占房间名额，剩余名额按本表抽取；锻造师每张地图固定一位。
  * · 地图里的装备只来自眠猫金库的 2 选 1～2（每次抽中率 75%）；
- * · 尘封的环锁密匣与杂兵掉落共同提供永久遗物。
+ * · 半张的珠母巨蚌与杂兵掉落共同提供永久遗物。
  */
 export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> = {
   // 搜刮
@@ -49,6 +49,7 @@ export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> 
   bondWorkbench: 2,
   perfectnessWorkbench: 1,
   shrine: 2,
+  fortuneFox: 2,
   // 工具型服务与导航(传送雕像成对投放，不在本表，见 dungeon/waystonePlan.ts)
   signpost: 5,
   coinExchange: 2,

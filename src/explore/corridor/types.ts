@@ -32,6 +32,7 @@ export type CurioKind =
   | "expConverter"
   | "salvager"
   | "neonArcade"
+  | "fortuneFox"
   | "signpost"
   | "waystone";
 

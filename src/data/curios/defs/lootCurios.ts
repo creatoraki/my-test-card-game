@@ -105,16 +105,16 @@ export const LOOT_CURIOS = {
     ],
   },
   relicCache: {
-    name: "尘封的环锁密匣", role: "loot", verb: "开启", size: 190,
-    description: "密匣落满灰尘，匣盖上的环锁封印仍在微微发光。开启后可直接获得一件随机遗物。",
+    name: "半张的珠母巨蚌", role: "loot", verb: "撬取", size: 190,
+    description: "巨蚌的壳只张开一道缝，珍珠层里裹着一件遗物，壳缝里还卡着前人留下的撬棍。撬开它就能取走遗物，只是蚌壳里积着陈年的黑水。",
     decisions: [{
-      id: "open", label: "开启密匣", story: "环锁一圈圈松开，一件遗物从匣底浮起，被送入待拾取框。",
+      id: "open", label: "撬开蚌壳取出遗物", story: "蚌壳被撬棍一点点顶开，裹着珍珠层的遗物被送入待拾取框。",
       effects: [{ type: "GRANT_RANDOM_RELIC" }],
       failure: fail(
         0.2,
-        "环锁松开时的反冲灌进执行者体内，遗物的光芒也随之熄灭。",
+        "蚌壳猛地合拢，喷出的黑水溅了执行者一身，遗物也被夹回了壳里。",
         [{ type: "ADJUST_POLLUTION", target: "actor", amount: 15 }],
-        withItem({ familyId: "holy-water" }, { chanceDelta: -0.2, note: "圣水浸透封印，让环锁安静地松开" }),
+        withItem({ familyId: "holy-water" }, { chanceDelta: -0.2, note: "圣水浇在蚌唇上，巨蚌安静地松开了壳" }),
       ),
     }],
   },

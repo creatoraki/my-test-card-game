@@ -3,7 +3,7 @@ import type { DossierThemeId } from "@/ui/explore/EventDossier";
 
 /**
  * 物件事件 → 事件档案主题。
- * 物资搜刮走默认青色; 陷阱红色; 恢复绿色; 布谷钟楼与星砂沙漏紫晶; 食秽貘龛暖金; 鉴定铁砧熔铸紫; 成长/改造终端电蓝。
+ * 物资搜刮走默认青色; 陷阱红色; 恢复绿色; 布谷钟楼与星砂沙漏紫晶; 食秽貘龛与叼牌灵狐暖金; 拼甲人台熔铸紫; 成长/改造终端电蓝。
  */
 const CURIO_THEME: Record<CurioKind, DossierThemeId> = {
   arkGeneConsole: "terminal",
@@ -37,6 +37,7 @@ const CURIO_THEME: Record<CurioKind, DossierThemeId> = {
   expConverter: "shrine",
   salvager: "mineral",
   neonArcade: "blacksmith",
+  fortuneFox: "shrine",
   signpost: "supply",
   waystone: "shrine",
 };

@@ -4,16 +4,16 @@ import type { CurioDef } from "../types";
 
 export const CRAFT_CURIOS = {
   modBench: {
-    name: "无主的鉴定铁砧",
+    name: "无主的拼甲人台",
     role: "service",
-    verb: "锻合",
+    verb: "缝合",
     size: 205,
-    description: "铁砧旁不见锻造师，只有鉴定镜还悬在砧面上方。把三件装备摆上砧面，鉴定镜会挑出它们最好的部分，锤炼成一件新的装备。",
+    description: "裁缝不在，人台上那件拼起来的护甲还差最后几针。挑三件装备挂上人台，发光的缝线会把它们最好的部分缝成一件新的装备。",
     decisions: [
       {
         id: "fuseEquipment",
-        label: "选择三件装备摆上砧面",
-        story: "鉴定镜逐一扫过三件装备，铁锤自己落了下来，几轮锤炼之后，三件装备被锻成了一件更高阶的装备。",
+        label: "选择三件装备挂上人台",
+        story: "发光的缝线自己穿过三件装备，一针一针收紧，三件装备被缝成了一件更高阶的装备。",
         select: [[{ match: { category: "equipment" }, count: 3 }]],
         effects: [{ type: "FUSE_EQUIPMENT" }],
       },
@@ -52,6 +52,22 @@ export const CRAFT_CURIOS = {
         story: "遗物挂上钟架，祝福铃自己响了起来，更高阶的祝福正循着铃声靠近。",
         select: [[{ match: { relicPolarity: "blessing" }, count: 1 }]],
         effects: [{ type: "UPGRADE_RELIC" }],
+      },
+    ],
+  },
+  fortuneFox: {
+    name: "叼牌的三尾灵狐",
+    role: "service",
+    verb: "求牌",
+    size: 205,
+    description: "朱漆台上的三尾狐叼着一张牌，摊开的牌阵等人来抽。奉上 2 份临期食品当供品，它会从牌阵里叼出三张，让小队挑走一张。",
+    decisions: [
+      {
+        id: "offerFood",
+        label: "奉上供品求牌",
+        foodCost: 2,
+        story: "灵狐吃完供品，摇着三条尾巴从牌阵里叼出三张牌。",
+        effects: [{ type: "FORGE_DRAW_TAINTED", contaminate: 0 }],
       },
     ],
   },

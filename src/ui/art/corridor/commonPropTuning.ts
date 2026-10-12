@@ -12,15 +12,8 @@ export interface CommonPropTuning {
  * 预览页仍以未调整的基础缩放为准，这样页面里存的旋钮值不会被乘两遍；没登记的素材按 1 倍、不偏移。
  */
 export const COMMON_PROP_TUNING: Partial<Record<CommonPropAssetId, CommonPropTuning>> = {
-  appraisalAnvil: { multiplier: 0.896, offsetY: 2 },
   whaleGramophone: { multiplier: 0.72, offsetY: 10 },
-  travelerPack: { multiplier: 0.803, offsetY: 0 },
-  ringLockCase: { multiplier: 1.273, offsetY: 2 },
-  wishTree: { multiplier: 1.273, offsetY: 0 },
-  potionBench: { multiplier: 0.858, offsetY: 2 },
   moonBasin: { multiplier: 0.604, offsetY: 2 },
-  thunderLamp: { multiplier: 0.821, offsetY: 3 },
-  memoryAltar: { multiplier: 1.218, offsetY: 5 },
   stoneShrine: { multiplier: 0.803, offsetY: 0 },
   wingCourier: { multiplier: 0.645, offsetY: 0 },
   mossMailbox: { multiplier: 0.821, offsetY: 0 },
@@ -33,4 +26,14 @@ export const COMMON_PROP_TUNING: Partial<Record<CommonPropAssetId, CommonPropTun
   miasmaTapir: { multiplier: 0.839, offsetY: 0 },
   reverseSakuraSpring: { multiplier: 0.704, offsetY: 1 },
   bottledTown: { multiplier: 1, offsetY: 0 },
+  pearlClam: { multiplier: 1.485, offsetY: 0 },
+  clockworkArena: { multiplier: 0.769, offsetY: 0 },
+  waterwheelGrindstone: { multiplier: 1, offsetY: 0 },
+  armorMannequin: { multiplier: 0.736, offsetY: 0 },
+  lightningStump: { multiplier: 1, offsetY: 0 },
+  fortuneFox: { multiplier: 0.896, offsetY: 0 },
+  mapTortoise: { multiplier: 0.786, offsetY: 0 },
+  puffball: { multiplier: 0.72, offsetY: 0 },
+  jadeRabbitMortar: { multiplier: 0.839, offsetY: 0 },
+  potteryPigBank: { multiplier: 1, offsetY: 0 },
 };
