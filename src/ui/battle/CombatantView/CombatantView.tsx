@@ -10,6 +10,7 @@ import { EnemySprite } from "@/ui/common/unit/EnemySprite";
 import { enemyArt, enemyIdle } from "@/ui/art/battle/enemyArt";
 import { HitFxLayer, hitFxVars } from "@/ui/battle/fx/HitFxLayer";
 import { EnemyDeathFx, deathGeometry, useDeathTexture } from "@/ui/battle/fx/EnemyDeathFx";
+import { hitPortraitFig, type HitPortrait } from "@/ui/battle/fx/MagicFx";
 import { glslAvailable } from "@/ui/common/fx/GlslSprite";
 import { DEATH, type DeathPhase } from "@/ui/battle/choreo/deathChoreo";
 import { HpBar } from "@/ui/common/bar/HpBar";
@@ -81,6 +82,11 @@ export const CombatantView = memo(function CombatantView({
     [enemySprite, cmb.enemyDefId, placeScale, placeFlip],
   );
   const glslDeath = phase === "vanish" && !!deathTexture && glslAvailable();
+  // 命中特效的立绘贴图(魂魄抽离采样轮廓): 复用死亡贴图, 立绘框换算到受击锚点坐标。
+  const hitPortrait = useMemo<HitPortrait | null>(
+    () => (deathTexture ? { texture: deathTexture, fig: hitPortraitFig(deathGeo, placeScale ?? 1) } : null),
+    [deathTexture, deathGeo, placeScale],
+  );
 
   // --place-*: 手工站位, dx/dy 落到 .combatant 的 translate, scale 由几何变量自然参与
   // (不能走 transform —— 那条已被 hover/前冲/hitShake 占满, 见 CombatantView.module.css)
@@ -182,7 +188,7 @@ export const CombatantView = memo(function CombatantView({
         {phase === "alive" && targetable && hitChance != null && (
           <HitChanceBadge value={hitChance} damage={damagePreview} />
         )}
-        <HitFxLayer hit={hit ?? null} />
+        <HitFxLayer hit={hit ?? null} portrait={hitPortrait} />
         {glslDeath && deathTexture && <EnemyDeathFx texture={deathTexture} geometry={deathGeo} />}
 
         <div className={cx(s["combatant-figure"], m.figure)} {...UNIT_BODY_ATTR}>

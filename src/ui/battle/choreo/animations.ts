@@ -8,6 +8,7 @@ import type { Card, CardAnim } from "@/engine";
 import { CARD_DEFS, type EnemyMove } from "@/data";
 import { THUNDER_TIMELINE } from "@/ui/battle/fx/ThunderRunFx/thunderRunTimeline";
 import { WOLF_TIMELINE } from "@/ui/battle/fx/WolfFangFx/wolfFangTimeline";
+import { MAGIC_ANIM } from "./magicAnimPresets";
 
 // 卡牌定义表的 anim 索引: 卡实例随城镇档案持久化(localStorage), 实例上固化的 anim
 // 副本会在改数据后过期 —— 旧档的卡永远放老特效。anim 是纯表现字段, 故按定义表实时
@@ -116,6 +117,8 @@ export const DISCARD = {
 } as const;
 
 export const ANIM: Record<CardAnim, AnimPreset> = {
+  // 魔法系(预言家 / 咒术师, GLSL): 预设集中在 magicAnimPresets.ts。
+  ...MAGIC_ANIM,
   // —— 攻击系 ——
   // 基础档位 GLSL 命中特效(fx/GlslHitFx): 敌人普攻与大部分元素卡的底特效。
   // impactMs = 爆点(掉血/飘字/受击锚点), 与着色器里的 hitTime() 零点同源;

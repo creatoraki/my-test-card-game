@@ -24,6 +24,7 @@ import { DEATH, vanishOf } from "@/ui/battle/choreo/deathChoreo";
 import type { BattleCameraApi } from "./useBattleCamera";
 import type { HandRenderApi } from "./useHandRender";
 import type { PlaybackApi } from "./usePlayback";
+import { isMagicAnim } from "@/ui/battle/choreo/magicAnimPresets";
 
 export interface BattleChoreoApi {
   startBatch: (steps: ChoreoStep[], final: BattleState, enter?: Camera | null, excludeUid?: string) => void;
@@ -82,8 +83,9 @@ export function useBattleChoreo({
 
   function runSteps(steps: ChoreoStep[], final: BattleState, seq: number, enter: Camera | null, excludeUid?: string) {
     if (!battle) return;
-    // 自然扣血与提前结算共用痛楚表现，时间轴也同步选用其爆点。
-    const plans = choreograph(steps.map((step) => isTormentOnly(step.hits)
+    // 自然扣血与提前结算共用痛楚表现，时间轴也同步选用其爆点;
+    // 卡牌指定了专属魔法特效(咒术师痛楚兑现卡)时保留其特效。
+    const plans = choreograph(steps.map((step) => isTormentOnly(step.hits) && !isMagicAnim(step.anim)
       ? { ...step, anim: "torment" as const } : step), battle);
     const handSeen = new Set(battle.hand);
     if (excludeUid) handSeen.delete(excludeUid);

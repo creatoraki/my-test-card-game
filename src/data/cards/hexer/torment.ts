@@ -11,7 +11,7 @@ export const HEXER_TORMENT_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "slash",
+    anim: "soul-rend",
     effects: [
       { type: "SETTLE_TORMENT", amountFrom: "primaryCurseKinds", maxAmount: 5, lifesteal: 0.3, target: "primary" },
     ],
@@ -25,7 +25,7 @@ export const HEXER_TORMENT_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "fire",
+    anim: "doom-clock",
     effects: [
       { type: "REMOVE_STATUS", curseOnly: true, exceptStatus: "boneRot", target: "primary" },
       { type: "SETTLE_TORMENT", amountFrom: "lastRemovedStatusCount", target: "primary" },
@@ -40,7 +40,7 @@ export const HEXER_TORMENT_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "basic-slash",
+    anim: "curse-nail",
     effects: [
       { type: "SETTLE_TORMENT", amount: 2, target: "primary" },
       { type: "PLAY_AS_FAST", keywordGate: venom(3) },
@@ -55,7 +55,7 @@ export const HEXER_TORMENT_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "blood-slash",
+    anim: "soul-rend",
     effects: [
       { type: "DRAIN_ENEMY_AP", amount: 2, target: "primary" },
       { type: "SETTLE_TORMENT", amountFrom: "lastDrainedAp", target: "primary" },
@@ -70,7 +70,7 @@ export const HEXER_TORMENT_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "rare",
-    anim: "lightning",
+    anim: "soul-rend",
     effects: [
       { type: "SETTLE_TORMENT", amount: 2, target: "primary", keywordGate: late(5, true) },
       { type: "SETTLE_TORMENT", amount: 2, target: "allFoes", keywordGate: late(5) },
@@ -85,7 +85,7 @@ export const HEXER_TORMENT_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "rare",
-    anim: "blood-slash",
+    anim: "soul-rend",
     effects: [
       { type: "GATHER_DEBUFFS", target: "primary" },
       { type: "SETTLE_TORMENT", amount: 5, target: "primary" },

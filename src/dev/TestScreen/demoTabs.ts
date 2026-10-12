@@ -2,6 +2,7 @@
 export const DEMO_TABS = [
   { id: "props", label: "交互物演示" },
   { id: "svg", label: "SVG演示" },
+  { id: "magicFx", label: "攻击动效" },
 ] as const;
 
 export type DemoTabId = (typeof DEMO_TABS)[number]["id"];

@@ -10,7 +10,7 @@ export const PROPHET_TEMPORARY_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "basic",
     temporary: true,
-    anim: "lightning",
+    anim: "star-shard",
     effects: [
       { type: "DAMAGE", multiplier: 0.7, target: "primary" },
       { type: "APPLY_STATUS", status: "starlight", stacks: 1, target: "self", condition: "waterfall" },

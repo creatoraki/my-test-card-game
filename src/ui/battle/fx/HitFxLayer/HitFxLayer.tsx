@@ -16,6 +16,7 @@ import { SakuraFlurryFx } from "@/ui/battle/fx/SakuraFlurryFx";
 import { TwinArrowFx } from "@/ui/battle/fx/TwinArrowFx";
 import { GLSL_HIT_FX } from "@/ui/battle/fx/GlslHitFx";
 import { ThunderRunFx } from "@/ui/battle/fx/ThunderRunFx";
+import { MAGIC_HIT_FX, type HitPortrait } from "@/ui/battle/fx/MagicFx";
 import { ShieldIcon } from "@/ui/common/bar/StatusPips/icons";
 import s from "./HitFxLayer.module.css";
 
@@ -23,10 +24,15 @@ import s from "./HitFxLayer.module.css";
 // 特效着色、命中时序、飘字完全一致 —— 只有承载它们的外壳不同(场上立绘 vs 玻璃头像卡)。
 
 // 签名允许返回 null: 个别 proc 特效可以选择整层不挂载。
-// color = ANIM[*].color, 只有着色器类(GLSL_HIT_FX)需要, 其余组件忽略。
-const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset; color: string }) => JSX.Element | null>> = {
+// color = ANIM[*].color, 只有着色器类(GLSL_HIT_FX / MAGIC_HIT_FX)需要, 其余组件忽略;
+// portrait = 目标立绘贴图, 只有采样立绘的魔法特效(魂魄抽离)读取。
+type ProcFxComponent = (p: { preset: ProcFxPreset; color: string; portrait?: HitPortrait | null }) => JSX.Element | null;
+
+const PROC_FX: Partial<Record<CardAnim, ProcFxComponent>> = {
   // 基础档位(攻击系元素 + 治疗/增益/减益/护盾): GLSL 着色器特效, 取代原 emoji 与护盾图标。
   ...GLSL_HIT_FX,
+  // 魔法系单体(预言家 / 咒术师): GLSL; 全场级的星幕/怨灵潮走 ScreenFxLayer。
+  ...MAGIC_HIT_FX,
   "wolf-fang": WolfFangFx,
   "thunder-run": ThunderRunFx,
   "blade-slash": BladeSlashFx,
@@ -75,7 +81,8 @@ export function hitFxVars(hit: HitFx | null): {
 // 首击特效(斩击/火爆/柔光…) + 伤害/治疗飘字, 命中时刻挂载。
 // key={hit.seq}: 连续命中时强制重挂载以重放动画。
 // 特效相对最近的定位祖先(= 单位根节点)定位, 故本组件必须挂在 .combatant 内部。
-export function HitFxLayer({ hit }: { hit: HitFx | null }) {
+// portrait: 本单位的立绘贴图(敌人传余烬焚解预热的那张), 我方头像栏不传, 特效自行退回兜底轮廓。
+export function HitFxLayer({ hit, portrait = null }: { hit: HitFx | null; portrait?: HitPortrait | null }) {
   const preset = hit ? ANIM[hit.anim] : null;
   const proc = preset?.proc;
   const Proc = hit ? PROC_FX[hit.anim] : undefined;
@@ -102,7 +109,7 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
           {/* 全场级特效(preset.stage)由 ScreenFxLayer 只挂一份, 这里只留空锚点: 它按
               data-vfx-anchor 回查各目标的受击点, 在同一爆点给每个目标落刀痕。 */}
           {preset.stage ? null : Proc && proc ? (
-            <Proc preset={proc} color={preset.color} />
+            <Proc preset={proc} color={preset.color} portrait={portrait} />
           ) : (
             <span className={s["vfx-emoji"]}>{preset.emoji}</span>
           )}

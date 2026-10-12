@@ -54,7 +54,7 @@ export const PROPHET_UTILITY_CARDS: CardDef[] = [
     targeting: "self",
     rarity: "uncommon",
     exhaust: true,
-    anim: "lightning",
+    anim: "gravity-lens",
     effects: [
       {
         type: "CHOOSE_HAND_CARD",

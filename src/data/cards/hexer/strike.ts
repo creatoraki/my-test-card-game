@@ -11,7 +11,7 @@ export const HEXER_STRIKE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "shot",
+    anim: "curse-nail",
     effects: [
       { type: "APPLY_STATUS", status: "doom", stacks: 1, duration: 2, target: "primary" },
       { type: "DAMAGE", multiplier: 0.7, target: "primary" },
@@ -27,7 +27,7 @@ export const HEXER_STRIKE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "smash",
+    anim: "doom-clock",
     effects: [
       { type: "DAMAGE", multiplier: 1.5, target: "primary" },
       { type: "GAIN_ENEMY_AP", amount: 2, target: "primary" },
@@ -42,7 +42,7 @@ export const HEXER_STRIKE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "blood-slash",
+    anim: "soul-rend",
     effects: [
       {
         type: "DAMAGE",
@@ -61,7 +61,7 @@ export const HEXER_STRIKE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "slash",
+    anim: "binding-hex",
     // 两条操控互斥: 恶毒未满足按 80%, 满足按 120%。伤害由目标自身打出, 咒术师本身不造成伤害。
     effects: [
       { type: "PUPPET_STRIKE", multiplier: 0.8, target: "randomFoe", excludePrimary: true, keywordGate: venom(3, true) },
@@ -77,7 +77,7 @@ export const HEXER_STRIKE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "rare",
-    anim: "lightning",
+    anim: "doom-clock",
     effects: [
       { type: "DAMAGE", multiplier: 1.5, target: "primary" },
       { type: "EXECUTE", executePct: 0.25, executeBossPct: 0.15, target: "primary", keywordGate: venom(4) },

@@ -12,7 +12,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "torment",
+    anim: "doom-clock",
     effects: [
       {
         type: "APPLY_STATUS",
@@ -41,7 +41,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "debuff",
+    anim: "binding-hex",
     effects: [
       {
         type: "APPLY_STATUS",
@@ -69,7 +69,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "torment",
+    anim: "binding-hex",
     effects: [
       {
         type: "SPREAD_STATUS",
@@ -92,7 +92,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "torment",
+    anim: "doom-clock",
     effects: [
       {
         type: "APPLY_STATUS",
@@ -113,7 +113,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "debuff",
+    anim: "soul-rend",
     effects: [
       { type: "RANDOM_HEX", duration: 2, target: "primary" },
       { type: "REVEAL_CARDS", revealMode: "scryPick", amount: 3, keywordGate: late(3) },
@@ -128,7 +128,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "allFoes",
     rarity: "common",
-    anim: "torment",
+    anim: "spirit-tide",
     effects: [
       {
         type: "APPLY_STATUS",
@@ -149,7 +149,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "fast",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "lightning",
+    anim: "talisman-seal",
     effects: [
       {
         type: "APPLY_STATUS",
@@ -170,7 +170,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "shot",
+    anim: "curse-nail",
     effects: [
       { type: "APPLY_STATUS", status: "soulLock", stacks: 1, target: "primary" },
       {
@@ -191,7 +191,7 @@ export const HEXER_CURSE_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "debuff",
+    anim: "binding-hex",
     effects: [
       {
         type: "SWAP_CURSES",

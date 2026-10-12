@@ -104,7 +104,8 @@ export function pickShot(ctx: ShotContext): ShotPreset {
   const base =
     // 全场级特效不论剩几个目标都用自己的取景: 风刃横贯整排, 单体镜头会把它裁掉。
     ctx.anim === "gale-sweep" ? SHOTS.gale
-      : ctx.targetCount >= 2 ? SHOTS.aoe
+      // 魔法全场级(星幕/怨灵潮)画布不随镜头缩放, 单目标也用群攻取景, 免得目标被推近后特效显小。
+      : ctx.targetCount >= 2 || ANIM[ctx.anim].stage ? SHOTS.aoe
       : ctx.anim === "wolf-fang" ? SHOTS.wolf
       : ctx.anim === "thunder-run" ? SHOTS.thunder
         : ctx.anim === "blade-slash" ? SHOTS.blade

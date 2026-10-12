@@ -2,6 +2,7 @@ import type { BattleState } from "@/engine";
 import { ANIM, type HitFx } from "@/ui/battle/choreo/animations";
 import { HurtVignette } from "@/ui/battle/fx/HurtVignette";
 import { GaleSweepFx, type GaleTarget } from "@/ui/battle/fx/GaleSweepFx";
+import { MagicStageFx } from "@/ui/battle/fx/MagicFx";
 import s from "./ScreenFxLayer.module.css";
 
 interface Props {
@@ -48,6 +49,16 @@ export function ScreenFxLayer({ hits, playerIds, fxRate }: Props) {
       {glitchHit && <div key={glitchHit.seq} className={s["battle-glitch"]} aria-hidden />}
       {twinHit && <div key={twinHit.seq} className={s["battle-twin"]} aria-hidden />}
       {thunderHit && <div key={thunderHit.seq} className={s["battle-thunder"]} aria-hidden />}
+      {(stage?.hit.anim === "star-curtain" || stage?.hit.anim === "spirit-tide") && (
+        <MagicStageFx
+          key={stage.hit.seq}
+          kind={stage.hit.anim}
+          color={ANIM[stage.hit.anim].color}
+          impactMs={ANIM[stage.hit.anim].proc?.impactMs ?? 0}
+          targets={stage.targets}
+          fxRate={fxRate}
+        />
+      )}
       {stage?.hit.anim === "gale-sweep" && (
         <GaleSweepFx
           key={stage.hit.seq}

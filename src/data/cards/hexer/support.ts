@@ -11,7 +11,7 @@ export const HEXER_SUPPORT_CARDS: CardDef[] = [
     cardType: "fast",
     targeting: "foe",
     rarity: "common",
-    anim: "debuff",
+    anim: "talisman-seal",
     effects: [
       { type: "APPLY_STATUS", status: "stall", stacks: 1, target: "primary" },
       { type: "DELAY_ENEMY_ACT", amount: 1, target: "primary", keywordGate: late(3) },
@@ -26,7 +26,7 @@ export const HEXER_SUPPORT_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "debuff",
+    anim: "talisman-seal",
     effects: [
       { type: "STRIP_STATUS", statusKind: "buff", amount: 1, target: "primary" },
       { type: "APPLY_STATUS", status: "seal", stacks: 1, duration: 2, target: "primary" },
@@ -41,7 +41,7 @@ export const HEXER_SUPPORT_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "torment",
+    anim: "spirit-tide",
     effects: [
       {
         type: "APPLY_STATUS",

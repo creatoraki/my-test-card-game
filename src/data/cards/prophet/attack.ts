@@ -10,7 +10,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "common",
     starPay: true,
-    anim: "lightning",
+    anim: "star-shard",
     effects: [
       { type: "DAMAGE", multiplier: 0.7, target: "primary" },
       { type: "MARK_CARDS", mark: "cometTail", markPick: "handRandom", amountFrom: "activeCardStarSpent" },
@@ -25,7 +25,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "lightning",
+    anim: "star-shard",
     effects: [
       { type: "DAMAGE", multiplier: 0.7, target: "primary" },
       { type: "MARK_CARDS", amount: 1, mark: "countercurrent", markPick: "handBottom" },
@@ -41,7 +41,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "common",
     starPay: true,
-    anim: "lightning",
+    anim: "twin-orbit",
     effects: [
       { type: "DAMAGE", multiplier: 1.1, target: "primary" },
       { type: "ADD_CARD_TO_HAND", cardId: "companion-star", condition: "fullyStarPaid" },
@@ -56,7 +56,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "allFoes",
     rarity: "common",
-    anim: "shot",
+    anim: "star-curtain",
     effects: [
       {
         type: "DAMAGE",
@@ -75,7 +75,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "lightning",
+    anim: "meteor-fall",
     effects: [
       {
         type: "PLAY_STAT_BONUS",
@@ -96,7 +96,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "lightning",
+    anim: "twin-orbit",
     effects: [
       { type: "DAMAGE", multiplier: 0.4, target: "primary" },
       // 0 费在没有其他可打出的手牌时也能触发瀑布；额外伤害完全按当前费用缩放，无保底。
@@ -120,7 +120,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "common",
     starPay: true,
-    anim: "lightning",
+    anim: "astral-verdict",
     effects: [
       { type: "DAMAGE", multiplier: 1.8, target: "primary" },
       {
@@ -142,7 +142,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "uncommon",
     starPay: true,
-    anim: "lightning",
+    anim: "meteor-fall",
     effects: [
       {
         type: "PLAY_STAT_BONUS",
@@ -168,7 +168,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "uncommon",
     starPay: true,
-    anim: "lightning",
+    anim: "gravity-lens",
     effects: [
       { type: "DAMAGE", multiplier: 1.1, target: "primary" },
       {
@@ -190,7 +190,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     targeting: "allFoes",
     rarity: "uncommon",
     starPay: true,
-    anim: "lightning",
+    anim: "star-curtain",
     effects: [
       { type: "DAMAGE", multiplier: 0.8, target: "allFoes" },
       // 敌人的拍点在行动前扣减: 2 拍恰好覆盖目标的下一次行动。
@@ -206,7 +206,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "lightning",
+    anim: "astral-verdict",
     effects: [
       { type: "DAMAGE", multiplier: 1, target: "primary" },
       { type: "CHOOSE_HAND_CARD", handChoiceAction: "grantStarPact", condition: "waterfall" },
@@ -222,7 +222,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "rare",
     starPay: true,
-    anim: "lightning",
+    anim: "meteor-fall",
     effects: [
       { type: "DAMAGE", multiplier: 1.2, target: "primary" },
       {
@@ -243,7 +243,7 @@ export const PROPHET_ATTACK_CARDS: CardDef[] = [
     targeting: "foe",
     rarity: "rare",
     starPay: true,
-    anim: "lightning",
+    anim: "gravity-lens",
     effects: [
       { type: "DAMAGE", multiplier: 1.5, target: "primary" },
       { type: "APPLY_STATUS", status: "cascade", stacks: 1, duration: 1, target: "self", condition: "waterfall" },

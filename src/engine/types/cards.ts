@@ -22,6 +22,11 @@ export type CardRarity = "basic" | Rarity;
 //           swift-slash 瞬斩(程序化 CSS: 刃光一闪 → 斩线裂开 → 火花顺势前冲，总长 420ms，基础攻击专用)
 //           basic-slash 快斩·单刀弧斩(程序化 CSS: 预兆 → 刃出 → 60ms 停顿 → 爆点，总长 560ms，普通攻击底特效)
 //           keen-edge 锐利刀锋斩(程序化 CSS: 聚光起势 → 横扫爆点 → 金属余鸣 → 光尘衰减，总长 1750ms，按锐利刀锋.wav 包络编排)
+//   魔法系(GLSL, ui/battle/fx/MagicFx, 时间轴见 magicFxTimeline.ts):
+//           预言家 star-shard 碎星矢 / twin-orbit 双星轨 / meteor-fall 星陨 / astral-verdict 星盘裁决 /
+//                  gravity-lens 引力透镜 / star-curtain 星幕(全场级)
+//           咒术师 curse-nail 咒钉 / talisman-seal 符咒 / binding-hex 缠丝怨咒 / doom-clock 死兆钟盘 /
+//                  soul-rend 魂魄抽离(采样立绘) / spirit-tide 怨灵潮(全场级)
 //   辅助系(柔和光效): heal 治疗 / shield 护盾 / buff 增益
 // 纯 UI 表现字段, 引擎逻辑不读取。UI 侧有兜底推断(见 ui/animations.ts)。
 export type CardAnim =
@@ -46,6 +51,18 @@ export type CardAnim =
   | "lunar-ring"
   | "sakura-flurry"
   | "twin-arrow"
+  | "star-shard"
+  | "twin-orbit"
+  | "meteor-fall"
+  | "astral-verdict"
+  | "gravity-lens"
+  | "star-curtain"
+  | "curse-nail"
+  | "talisman-seal"
+  | "binding-hex"
+  | "doom-clock"
+  | "soul-rend"
+  | "spirit-tide"
   | "heal"
   | "shield"
   | "buff"
