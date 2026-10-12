@@ -1,4 +1,4 @@
-.root { position: fixed; inset: 0; overflow: hidden; background: #080e11; color: #e9ddc9; font-size: 18px; }
+.root { position: fixed; inset: 0; overflow: hidden; background: #000; color: #e9ddc9; font-size: 18px; }
 .canvas { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center; }
 /* 名称签挂在地面线下方，绝对定位不占交互物容器高度，避免把物件顶离地面。
    定位与反缩放写在锚点上；按钮本身不带 transform，全站按钮按下的位移不会让它跳位。 */
@@ -23,9 +23,10 @@
 .printButton { padding: 8px 12px; border: 1px solid #e8b862; border-radius: 8px; background: #2c2213; color: #f6e6c4; font-size: 18px; cursor: var(--cursor-pointer); }
 .printButton:hover { background: #3a2c17; }
 
-/* 演示近景：左右无缝素材横向平铺铺满房间；深渊从路面下缘挡住远景。 */
+/* 纯黑远景不叠加彩色雾；近景透明区域与路面下方均露出黑底。 */
+.demoFar { position: absolute; inset: 0; z-index: 0; background: #000; pointer-events: none; }
 .demoNear { position: absolute; left: 0; z-index: 1; background-repeat: repeat-x; background-position: left top; }
-.demoAbyss { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; background: #000; }
+.demoVignette { position: absolute; inset: 0; z-index: 20; box-shadow: inset 0 0 180px 50px #000a; pointer-events: none; }
 
 /* 背景调整入口：悬浮在左上角，与右上角调节面板互斥。 */
 .backdropButton { position: absolute; left: 24px; top: 24px; z-index: 35; min-height: 42px; padding: 8px 18px; border: 1px solid #9bb1bd55; border-radius: 8px; background: #0b1722d9; box-shadow: 0 8px 24px #0009; color: #e9ddc9; font-size: 18px; font-family: inherit; cursor: var(--cursor-pointer); }

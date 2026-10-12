@@ -36,28 +36,23 @@ export const CHALLENGE_DEFS: Record<ChallengeId, ChallengeDef> = {
     desc: "第 1 回合不打出任何牌",
     dropBonus: 0.3,
   },
-  no_wait: {
-    id: "no_wait",
-    title: "当机立断",
-    desc: "整场战斗不得使用等待",
-    dropBonus: 0.3,
-  },
-  content: {
-    id: "content",
-    title: "知足",
-    desc: "整场不通过出牌效果额外抽牌",
-    dropBonus: 0.3,
-  },
-  plain: {
-    id: "plain",
-    title: "返璞归真",
-    desc: "整场只打出基础与普通稀有度的牌",
-    dropBonus: 0.3,
-  },
   honorable: {
     id: "honorable",
     title: "光明磊落",
     desc: "整场不得对敌人施加任何负面状态",
+    dropBonus: 0.3,
+  },
+
+  steady: {
+    id: "steady",
+    title: "稳扎稳打",
+    desc: "整场不得打出速攻牌",
+    dropBonus: 0.3,
+  },
+  focus_fire: {
+    id: "focus_fire",
+    title: "聚焦",
+    desc: "同一回合内造成的所有伤害必须集中于同一名敌人",
     dropBonus: 0.3,
   },
 
@@ -66,18 +61,6 @@ export const CHALLENGE_DEFS: Record<ChallengeId, ChallengeDef> = {
     id: "restraint",
     title: "克制",
     desc: "每回合都保留至少 1 点法力值结束回合",
-    dropBonus: 0.4,
-  },
-  no_discard: {
-    id: "no_discard",
-    title: "敝帚自珍",
-    desc: "整场不得丢弃任何手牌",
-    dropBonus: 0.4,
-  },
-  steady: {
-    id: "steady",
-    title: "稳扎稳打",
-    desc: "整场不得打出速攻牌",
     dropBonus: 0.4,
   },
   ascending: {
@@ -104,16 +87,10 @@ export const CHALLENGE_DEFS: Record<ChallengeId, ChallengeDef> = {
     desc: "第一个倒下的敌人必须是开场时生命上限最高的敌人",
     dropBonus: 0.4,
   },
-  focus_fire: {
-    id: "focus_fire",
-    title: "聚焦",
-    desc: "同一回合内造成的所有伤害必须集中于同一名敌人",
-    dropBonus: 0.5,
-  },
-  low_cost: {
-    id: "low_cost",
-    title: "轻装上阵",
-    desc: "整场不得打出费用大于 1 的牌",
+  lone_blade: {
+    id: "lone_blade",
+    title: "独当一面",
+    desc: "整场只有一名成员对敌人造成伤害",
     dropBonus: 0.5,
   },
 
@@ -122,12 +99,6 @@ export const CHALLENGE_DEFS: Record<ChallengeId, ChallengeDef> = {
     id: "untouched",
     title: "及时治疗",
     desc: "战斗结束时, 所有成员当前生命 = 当前体力极限",
-    dropBonus: 0.6,
-  },
-  lone_blade: {
-    id: "lone_blade",
-    title: "独当一面",
-    desc: "整场只有一名成员对敌人造成伤害",
     dropBonus: 0.6,
   },
   massacre: {

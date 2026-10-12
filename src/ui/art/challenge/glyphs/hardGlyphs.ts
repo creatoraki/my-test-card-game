@@ -1,4 +1,4 @@
-// 高难档挑战图标: 及时治疗 / 独当一面 / 大屠杀 / 轮转。
+// 挑战图标: 及时治疗 / 独当一面 / 大屠杀 / 轮转。
 import { PixelCanvas } from "../pixel/PixelCanvas";
 import { CORAL, CREAM, GOLD, GREEN, INK, RED, SKY, STEEL, TEAL, VIOLET } from "../pixel/palette";
 

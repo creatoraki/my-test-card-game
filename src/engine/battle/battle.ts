@@ -31,7 +31,6 @@ import {
   checkChallengesOnEndTurn,
   checkChallengesOnRoundSettle,
   noteChallengeRedraw,
-  noteChallengeWait,
 } from "../challenges";
 import { flushAutoPlays, moveToDiscard, withDiscardRecorder } from "../deck/discard";
 import { firePassive, isPassive, recycleHandPassives } from "../combat/passive";
@@ -179,7 +178,6 @@ export function redrawHandCard(state: BattleState, uid: string): boolean {
 export function waitTick(state: BattleState, rec?: FxRecorder): boolean {
   if (state.pendingChoice || state.phase !== "player" || state.waitsThisRound >= partyWaitLimit(state)) return false;
   state.waitsThisRound += 1;
-  noteChallengeWait(state);
   runRelicHook(state, "onWait");
   log(state, `⏳ 待机 —— 推进 ${RULES.timeline.waitAdvance} 时刻`);
   // 倒吊人 9 的悬置选择: 先等玩家选完(或放弃)再推进, 见 choiceResolve.settleDeferredAdvance。

@@ -1,5 +1,6 @@
 import { NEON_CITY_NEAR_ART } from "@/ui/art/corridor/neonCityNearArt";
 import { NEON_CITY_NEAR_SOURCE_GEOMETRY } from "@/explore/dungeon/neonCityNearGeometry";
+import abandonedCorridor from "@/assets/explore-corridor/废弃楼层/近景/废弃楼层走廊模板1.png";
 
 export { NEON_CITY_NEAR_SOURCE as DEMO_NEAR_SOURCE } from "@/explore/dungeon/neonCityNearGeometry";
 
@@ -13,6 +14,12 @@ export interface DemoNearArt {
 }
 
 export const DEMO_NEAR_LAYERS: readonly DemoNearArt[] = [
+  {
+    id: "abandoned-corridor-1",
+    name: "废弃楼层走廊模板1",
+    src: abandonedCorridor,
+    width: 3072,
+  },
   ...Object.entries(NEON_CITY_NEAR_ART).map(([variant, src], index) => ({
     id: `neon-street-${index + 1}`,
     name: `霓虹街区模板${index + 1}`,

@@ -9,7 +9,6 @@ import type {
   BattleState,
   Card,
   Combatant,
-  DiscardReason,
   EffectDescriptor,
   EffectType,
 } from "../types";
@@ -18,12 +17,11 @@ import { breakChallenge, isLive } from "./core";
 import { MERCY_MAX_DAMAGE, RESTRAINT_MIN_MANA, ROTATION_MIN_OWNERS, SWIFT_WIN_LAST_ROUND } from "./defs";
 
 // ---------------------------------------------------------------------------
-// 牌面效果扫描 —— 背水一战 / 知足按牌面静态判定(不看本次是否真的治疗到 / 抽到),
+// 牌面效果扫描 —— 背水一战按牌面静态判定(不看本次是否真的治疗到),
 // 含培育 / 词条 / 嵌套的命中后效果。待选后续、羁绊自动出牌都不经过 playCard 的结算窗口,
 // 静态判定才能让「打出这张牌就算」的口径对玩家可预期。
 // ---------------------------------------------------------------------------
 const HEAL_EFFECTS = new Set<EffectType>(["HEAL", "INDEMNITY_HEAL", "RESTORE_HP_LIMIT"]);
-const DRAW_EFFECTS = new Set<EffectType>(["DRAW"]);
 const NESTED_KEYS = ["onKill", "onHit", "onCrit", "onEachRemoved", "onNoneRemoved", "followUp"] as const;
 
 function effectsContain(effects: EffectDescriptor[] | undefined, types: Set<EffectType>): boolean {
@@ -71,7 +69,7 @@ export function checkChallengesOnRoundSettle(state: BattleState): void {
 }
 
 // ---------------------------------------------------------------------------
-// 出牌时判定 —— 轻装上阵 / 养精蓄锐 / 稳扎稳打 / 循序渐进 / 返璞归真 / 背水一战 / 知足
+// 出牌时判定 —— 养精蓄锐 / 稳扎稳打 / 循序渐进 / 背水一战
 // played 是刚写进 playedThisRound 的出牌记录: cost 为实际结算费用(已含减免, 即手牌上看到的数字),
 // cardType 为实际计入的类型(含流光 / 无声咒等「视为速攻」)。
 // ---------------------------------------------------------------------------
@@ -80,9 +78,6 @@ export function noteChallengePlay(
   card: Card,
   played: BattleState["playedThisRound"][number],
 ): void {
-  if (played.cost > RULES.combat.lowCostApMax) {
-    breakChallenge(state, "low_cost", `打出了 ${played.cost} 费的「${card.name}」`);
-  }
   if (state.round === 1) {
     breakChallenge(state, "slow_start", `第 1 回合打出了「${card.name}」`);
   }
@@ -94,36 +89,16 @@ export function noteChallengePlay(
   if (prev && played.cost <= prev.cost) {
     breakChallenge(state, "ascending", `「${card.name}」${played.cost} 费未高于上一张的 ${prev.cost} 费`);
   }
-  if (card.rarity === "uncommon" || card.rarity === "rare") {
-    breakChallenge(state, "plain", `打出了${card.rarity === "rare" ? "稀有" : "罕见"}牌「${card.name}」`);
-  }
   if (isLive(state, "no_heal") && cardContains(card, HEAL_EFFECTS)) {
     breakChallenge(state, "no_heal", `使用了治疗卡牌「${card.name}」`);
   }
-  if (isLive(state, "content") && cardContains(card, DRAW_EFFECTS)) {
-    breakChallenge(state, "content", `打出了带抽牌效果的「${card.name}」`);
-  }
 }
 
 // ---------------------------------------------------------------------------
-// 手牌操作判定 —— 不改初衷(换牌) / 当机立断(等待)
+// 手牌操作判定 —— 不改初衷(换牌)
 // ---------------------------------------------------------------------------
 export function noteChallengeRedraw(state: BattleState): void {
   breakChallenge(state, "no_redraw", "使用了换牌");
-}
-
-export function noteChallengeWait(state: BattleState): void {
-  breakChallenge(state, "no_wait", "使用了等待");
-}
-
-// ---------------------------------------------------------------------------
-// 弃牌时判定 —— 敝帚自珍。手动 / 效果 / 代价丢弃都算(不论由哪张牌、哪个被动引起);
-// 换牌、回合结束清理、打出进弃牌堆、被动卡回收、羁绊弃牌都不算。
-// ---------------------------------------------------------------------------
-const COUNTED_DISCARDS = new Set<DiscardReason>(["manual", "effect", "cost"]);
-
-export function noteChallengeDiscard(state: BattleState, reason: DiscardReason, cardName: string): void {
-  if (COUNTED_DISCARDS.has(reason)) breakChallenge(state, "no_discard", `丢弃了「${cardName}」`);
 }
 
 // ---------------------------------------------------------------------------

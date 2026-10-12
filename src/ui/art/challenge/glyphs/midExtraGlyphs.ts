@@ -1,34 +1,6 @@
-// 中等档挑战图标(续): 敝帚自珍 / 稳扎稳打 / 循序渐进 / 背水一战 / 速战速决 / 擒贼擒王。
+// 挑战图标: 稳扎稳打 / 循序渐进 / 背水一战 / 速战速决 / 擒贼擒王。
 import { PixelCanvas } from "../pixel/PixelCanvas";
-import { CORAL, CREAM, GOLD, GREEN, INK, PINK, RED, SKY, STEEL, TEAL } from "../pixel/palette";
-
-/** 敝帚自珍: 系着红绳的旧扫帚, 旁边一颗小心心。 */
-export function drawNoDiscard() {
-  const c = new PixelCanvas();
-
-  const heart = new PixelCanvas();
-  heart.disc(5, 6, 2.6, PINK.base).disc(10, 6, 2.6, PINK.base);
-  heart.poly([[2.4, 7], [12.6, 7], [7.5, 12.5]], PINK.base);
-  heart.shade(PINK.base, PINK.hi, PINK.lo);
-  c.stamp(heart, INK);
-
-  const handle = new PixelCanvas();
-  handle.line(28, 1, 15, 17, GOLD.lo, 2);
-  handle.shade(GOLD.lo, GOLD.base, GOLD.dk);
-  c.stamp(handle, INK);
-
-  const bristles = new PixelCanvas();
-  bristles.poly([[9, 19], [15, 22], [12, 31], [1, 27]], GOLD.base);
-  bristles.shade(GOLD.base, GOLD.hi, GOLD.lo);
-  bristles.line(11, 21, 5, 28, GOLD.lo).line(13, 22, 9, 30, GOLD.lo).line(10, 20, 3, 25, GOLD.lo);
-  c.stamp(bristles, INK);
-
-  const band = new PixelCanvas();
-  band.poly([[11, 16], [17, 19], [15, 23], [9, 20]], RED.base);
-  band.shade(RED.base, RED.hi, RED.lo);
-  c.stamp(band, INK);
-  return c.outline(INK);
-}
+import { CORAL, CREAM, GOLD, GREEN, INK, RED, SKY, STEEL, TEAL } from "../pixel/palette";
 
 /** 稳扎稳打: 慢慢爬的小乌龟。 */
 export function drawSteady() {

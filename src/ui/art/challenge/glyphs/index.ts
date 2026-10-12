@@ -2,9 +2,9 @@
 import type { ChallengeId } from "@/engine";
 import type { PixelCanvas, Px } from "../pixel/PixelCanvas";
 import { drawMercy, drawNoRedraw, drawSlowStart } from "./basicGlyphs";
-import { drawContent, drawHonorable, drawNoWait, drawPlain } from "./basicExtraGlyphs";
-import { drawFocusFire, drawLowCost, drawRestraint } from "./midGlyphs";
-import { drawAscending, drawNoDiscard, drawNoHeal, drawRegicide, drawSteady, drawSwiftWin } from "./midExtraGlyphs";
+import { drawHonorable } from "./basicExtraGlyphs";
+import { drawFocusFire, drawRestraint } from "./midGlyphs";
+import { drawAscending, drawNoHeal, drawRegicide, drawSteady, drawSwiftWin } from "./midExtraGlyphs";
 import { drawLoneBlade, drawMassacre, drawRotation, drawUntouched } from "./hardGlyphs";
 
 export const GLYPH_SIZE = 32;
@@ -13,19 +13,14 @@ const DRAWERS: Record<ChallengeId, () => PixelCanvas> = {
   mercy: drawMercy,
   no_redraw: drawNoRedraw,
   slow_start: drawSlowStart,
-  no_wait: drawNoWait,
-  content: drawContent,
-  plain: drawPlain,
   honorable: drawHonorable,
   restraint: drawRestraint,
-  no_discard: drawNoDiscard,
   steady: drawSteady,
   ascending: drawAscending,
   no_heal: drawNoHeal,
   swift_win: drawSwiftWin,
   regicide: drawRegicide,
   focus_fire: drawFocusFire,
-  low_cost: drawLowCost,
   untouched: drawUntouched,
   lone_blade: drawLoneBlade,
   massacre: drawMassacre,

@@ -1,6 +1,6 @@
-// 中等档挑战图标: 克制 / 聚焦 / 轻装上阵。
+// 挑战图标: 克制 / 聚焦。
 import { PixelCanvas } from "../pixel/PixelCanvas";
-import { CREAM, GOLD, INK, RED, SKY, STEEL, TEAL } from "../pixel/palette";
+import { CREAM, GOLD, INK, RED, SKY, STEEL } from "../pixel/palette";
 
 /** 克制: 被铁链横勒的法力水晶。 */
 export function drawRestraint() {
@@ -60,36 +60,3 @@ export function drawFocusFire() {
   return c;
 }
 
-/** 轻装上阵: 随风斜飘的羽毛。 */
-export function drawLowCost() {
-  const c = new PixelCanvas();
-
-  const wind = new PixelCanvas();
-  wind.rect(2, 6, 8, 1, SKY.hi).rect(4, 9, 5, 1, SKY.base);
-  wind.rect(22, 25, 7, 1, SKY.hi).rect(24, 28, 5, 1, SKY.base);
-  c.stamp(wind);
-
-  // 羽轴沿 (4,28) → (28,3); t 为沿轴进度, d 为到轴的有符号距离。
-  const ax = 4, ay = 28, bx = 28, by = 3;
-  const len = Math.hypot(bx - ax, by - ay);
-  const ux = (bx - ax) / len, uy = (by - ay) / len;
-  const project = (x: number, y: number) => {
-    const t = ((x - ax) * ux + (y - ay) * uy) / len;
-    const d = (x - ax) * -uy + (y - ay) * ux;
-    return { t, d };
-  };
-  const halfWidth = (t: number) => (t < 0.22 || t > 1 ? 0 : 5.6 * Math.sin(Math.PI * Math.min(1, (t - 0.22) / 0.8)) ** 0.7 + 0.6);
-  const notch = (t: number, d: number) => d > 0 && [0.46, 0.7].some((n) => Math.abs(t - n) < 0.03 && d > 2.4);
-
-  const feather = new PixelCanvas();
-  feather.paint((x, y) => { const { t, d } = project(x, y); return Math.abs(d) <= halfWidth(t) && !notch(t, d) && d < 0; }, TEAL.base);
-  feather.paint((x, y) => { const { t, d } = project(x, y); return Math.abs(d) <= halfWidth(t) && !notch(t, d) && d >= 0; }, TEAL.lo);
-  feather.recolor(TEAL.base, TEAL.hi, (x, y) => project(x + 0.5, y + 0.5).t > 0.82);
-  feather.recolor(TEAL.lo, TEAL.base, (x, y) => project(x + 0.5, y + 0.5).t > 0.82);
-  feather.shade(TEAL.base, TEAL.hi, null);
-  feather.shade(TEAL.lo, null, TEAL.dk);
-  feather.paint((x, y) => { const { t, d } = project(x, y); return t >= 0 && t <= 0.96 && Math.abs(d) <= 0.6; }, CREAM.base);
-  feather.recolor(CREAM.base, CREAM.lo, (x, y) => project(x + 0.5, y + 0.5).t < 0.22);
-  c.stamp(feather, INK);
-  return c.outline(INK);
-}
