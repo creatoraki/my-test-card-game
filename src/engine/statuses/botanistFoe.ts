@@ -2,6 +2,7 @@
 
 import type { Enemy, StatusCtx, StatusDef } from "../types";
 import { advanceCultivate, cultivateCanAdvance } from "../deck/cultivate";
+import { runRelicHook } from "../relics/types";
 
 // 捕虫夹: 触发那一招的伤害倍率。
 export const INSECT_TRAP_DAMAGE_MULT = 0.7;
@@ -14,6 +15,7 @@ function delaySlowedMove(c: StatusCtx, delta: number): void {
   const enemy = owner as Enemy;
   if (enemy.nextActTick == null) return;
   enemy.nextActTick += delta;
+  runRelicHook(c.state, "onEnemyActDelayed", enemy.id);
   (c.inst.data ??= {}).delayed = (c.inst.data.delayed ?? 0) + delta;
   c.ops.log(c.state, `${enemy.emoji} ${enemy.name} 的${enemy.intent.name}推迟 ${delta} 时刻`);
 }

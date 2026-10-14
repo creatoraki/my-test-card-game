@@ -43,6 +43,8 @@ import { beginArkAttack, finishArkAttack } from "../ecoArk/guard";
 import { flushArkCardPlayed, queueArkCardPlayed } from "../ecoArk/sentry";
 import { bloodPactHpCost, consumeBondPlay, payWithBloodPact, starReturnsToHand } from "../bonds/bondPlay";
 import { openBondChoices } from "../bonds/bondRound";
+import { openRelicChoices } from "../relics/choices";
+import { returnCardToHand } from "../deck/returnToHand";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
@@ -156,6 +158,7 @@ export function playCard(
   state.activeCardStarSpent = starPayment;
   if (starPayment > 0) applyStatus(state, owner.id, "starlight", -starPayment);
   state.resources[RULES.resource.name] -= manaPayment;
+  card.nextPlayCostReduction = 0;
   state.hand = state.hand.filter((x) => x !== uid);
   state.pendingDiscardPicks = [...(playOptions?.discardPicks ?? [])];
   state.activeCardUid = uid;
@@ -222,6 +225,7 @@ export function playCard(
         ) {
           state.pendingChoice.sourceCardUid = uid;
         }
+        if (cultivated) runRelicHook(state, "onMatureCardPlayed", card);
         resetCultivate(card);
         const fastPlays = state.playedThisRound.filter((played) => played.cardType === "fast").length;
         const returnsToHand = card.playReturn?.when === "fastPlaysThisRound" &&
@@ -233,15 +237,12 @@ export function playCard(
         const starReturns = !returnsToHand && !hexReturns && state.hand.length < partyHandLimit(state) &&
           starReturnsToHand(state, card, playedType === "fast" || state.hexPlay.asFast);
         if (card.exhaust) exhaustCard(state, uid);
-        else if (starReturns) state.hand.push(uid);
+        else if (starReturns) returnCardToHand(state, card);
         else if (returnsToHand || hexReturns) {
-          state.hand.push(uid);
           const costDelta = returnsToHand ? card.playReturn!.costDelta : 1;
-          if (costDelta > 0) {
-            card.costStacks = (card.costStacks ?? 0) + costDelta;
-            if (!card.marks?.includes("returnTax")) (card.marks ??= []).push("returnTax");
-          }
-          log(state, `${card.name} 返回手牌，本回合费用增加 ${costDelta}`);
+          const beforeStacks = card.costStacks ?? 0;
+          returnCardToHand(state, card, costDelta);
+          log(state, `${card.name} 返回手牌，本回合费用增加 ${(card.costStacks ?? 0) - beforeStacks}`);
         } else moveToDiscard(state, uid, "play");
 
         for (const ref of card.keywords ?? []) {
@@ -327,6 +328,7 @@ export function playCard(
   if (!state.pendingChoice) withDiscardRecorder(rec, () => flushAutoPlays(state, rec));
   checkEnd(state);
   // 隐者 6 的预知: 本张牌的弃牌联动全部结算完, 且没有别的待选时才弹出。
+  openRelicChoices(state);
   openBondChoices(state);
 
   if (state.phase === "player") {
@@ -335,6 +337,7 @@ export function playCard(
     // 出牌留下了待选(选手牌 / 弃牌堆 / 抽牌堆等): 先等玩家完成选择再推进, 见 choiceResolve.ts。
     if (state.pendingChoice) state.deferredTickAdvance = adv;
     else if (adv > 0) withDiscardRecorder(rec, () => advanceTick(state, adv, rec));
+    openRelicChoices(state);
   }
 
   return true;

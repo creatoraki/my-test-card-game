@@ -18,10 +18,11 @@ interface Props {
   title?: string;
   onClose: () => void;
   choiceMode?: boolean;
+  cancelable?: boolean;
   onPick?: (uid: string) => void;
 }
 
-export function PileDrawer({ battle, pile, uids, title, onClose, choiceMode = false, onPick }: Props) {
+export function PileDrawer({ battle, pile, uids, title, onClose, choiceMode = false, cancelable = true, onPick }: Props) {
   const [shown, setShown] = useState<Pile | null>(pile);
   const [closing, setClosing] = useState(false);
   const [hover, setHover] = useState<{ uid: string; x: number; y: number } | null>(null);
@@ -43,7 +44,7 @@ export function PileDrawer({ battle, pile, uids, title, onClose, choiceMode = fa
   }, []);
 
   const requestClose = () => {
-    if (closing) return;
+    if (closing || !cancelable) return;
     setClosing(true);
     setHover(null);
     closeTimerRef.current = setTimeout(onClose, 150);
@@ -54,7 +55,7 @@ export function PileDrawer({ battle, pile, uids, title, onClose, choiceMode = fa
     const onKey = (event: KeyboardEvent) => event.key === "Escape" && requestClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [shown, closing, onClose]);
+  }, [shown, closing, onClose, cancelable]);
 
   if (!shown) return null;
   const sourceUids = uids ?? pileUids(battle, shown);
@@ -86,7 +87,7 @@ export function PileDrawer({ battle, pile, uids, title, onClose, choiceMode = fa
             <span className={s.kicker}>牌堆查看</span>
             <h2>{heading}</h2>
           </div>
-          <button className={s.close} type="button" aria-label="关闭牌堆" onClick={requestClose}>×</button>
+          {cancelable && <button className={s.close} type="button" aria-label="关闭牌堆" onClick={requestClose}>×</button>}
         </div>
         {cards.length ? (
           <div className={s.grid}>

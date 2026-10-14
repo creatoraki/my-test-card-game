@@ -4,10 +4,12 @@ import { COMMON_RELIC_BEHAVIORS } from "./behaviors/common";
 import { FINE_RELIC_BEHAVIORS } from "./behaviors/fine";
 import { RARE_RELIC_BEHAVIORS } from "./behaviors/rare";
 import { BLESSING_BOX_RELIC_BEHAVIORS } from "./behaviors/blessingBox";
+import { MECHANISM_RELIC_BEHAVIORS } from "./behaviors/mechanisms";
 
-// 战斗内遗物行为, 按稀有度(一次性渠道按来源)分文件 —— 与 data/items/relics/<极性>/<稀有度|来源>.ts 一一对应。
+// 战斗内遗物行为按稀有度 / 来源登记；普通机制联动遗物另按机制拆分模块。
 export const RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
   ...COMMON_RELIC_BEHAVIORS,
+  ...MECHANISM_RELIC_BEHAVIORS,
   ...BLESSING_BOX_RELIC_BEHAVIORS,
   ...FINE_RELIC_BEHAVIORS,
   ...RARE_RELIC_BEHAVIORS,

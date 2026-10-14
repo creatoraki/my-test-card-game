@@ -31,6 +31,7 @@ import { beginArkAttack, finishArkAttack } from "../ecoArk/guard";
 import { flushArkCardPlayed, queueArkCardPlayed } from "../ecoArk/sentry";
 import { runRelicHook } from "../relics/types";
 import { hermitManualTriggers } from "../bonds/bondPlay";
+import { returnCardToHand } from "./returnToHand";
 
 export { withDiscardRecorder, takeDiscardSnapshot } from "../cards/cardFx";
 
@@ -61,8 +62,7 @@ function returnToHand(state: BattleState, card: Card, beforeMove?: () => void): 
     return;
   }
   beforeMove?.();
-  state.discard = state.discard.filter((id) => id !== card.uid);
-  state.hand.push(card.uid);
+  returnCardToHand(state, card);
   ops.log(state, `${card.name} 回到手牌（累计 ${card.discardStacks} 层）`);
 }
 
@@ -198,10 +198,14 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
       const beforeHp = snapshotHp(state);
       const previousCardCost = state.activeCardCost;
       const previousCardType = state.activeCardType;
+      const previousCardUid = state.activeCardUid;
+      const previousPrimaryId = state.activeCardPrimaryId;
       const previousCardStacks = state.activeCardStacks;
       const previousCardResonance = state.activeCardResonance;
       state.activeCardCost = cardCost(state, card);
       state.activeCardType = card.cardType;
+      state.activeCardUid = card.uid;
+      state.activeCardPrimaryId = primaryId;
       state.activeCardStacks = card.discardStacks ?? 0;
       state.activeCardResonance = card.resonanceStacks ?? 0;
       let resolution!: EffectResolution;
@@ -218,6 +222,8 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
       } finally {
         state.activeCardCost = previousCardCost;
         state.activeCardType = previousCardType;
+        state.activeCardUid = previousCardUid;
+        state.activeCardPrimaryId = previousPrimaryId;
         state.activeCardStacks = previousCardStacks;
         state.activeCardResonance = previousCardResonance;
       }

@@ -219,6 +219,7 @@ export interface EffectDescriptor {
   maxDuration?: number; // EXTEND_STATUS: 延长后的剩余拍数上限; 延长量可用 amountFrom + maxAmount 取自计数
   settlePct?: number; // SETTLE_INSURANCE: 只理赔当前层数的这一比例(向下取整)
   keepStacks?: boolean; // SETTLE_INSURANCE: 理赔后不扣除层数
+  excessOnly?: boolean; // CONSUME_INSURANCE: 只消耗超额保险(超出持有者已损失生命的层数)
   claimTransferred?: boolean; // TRANSFER_INSURANCE: 转入的部分立即理赔, 目标原有保险保留
   prophecy?: ProphecyId; // START_PROPHECY: 预言 id
 }

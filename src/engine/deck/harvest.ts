@@ -4,6 +4,7 @@
 import type { BattleState, Card } from "../types";
 import { pierceOf, removePierce } from "../combat/pierce";
 import { log } from "../core/ops";
+import { runRelicHook } from "../relics/types";
 
 export function beginHarvest(state: BattleState, card: Card, primaryId: string | undefined): void {
   state.harvest = null;
@@ -20,6 +21,7 @@ export function finishHarvest(state: BattleState): void {
   const removed = removePierce(state, harvest.targetId, harvest.stacks);
   const target = state.combatants[harvest.targetId];
   if (removed > 0 && target) log(state, `${target.emoji} ${target.name} 被采收 ${removed} 层穿孔`);
+  if (removed > 0) runRelicHook(state, "onPierceRemoved", harvest.targetId, removed);
 }
 
 export function harvestedPierce(state: BattleState): number {

@@ -5,6 +5,7 @@ import { attackDamage, damageMasteryOf, offenseStatOf } from "../combat/stats";
 import { counterOf } from "../combat/counters";
 import { getStatusDef } from "../statuses";
 import { applyPierce } from "../combat/pierce";
+import { runRelicHook } from "../relics/types";
 
 interface DamageDeps {
   resolveTargets: (
@@ -66,6 +67,11 @@ export function applyDamageEffect(
   let critTriggered = false;
   let firstHitTarget: string | undefined;
   let firstCritTarget: string | undefined;
+  const attackCardUid = state.activeCardUid;
+  const attackCard = attackCardUid ? state.cards[attackCardUid] : undefined;
+  const isCardAttack = attackCard?.ownerCharId === sourceId && src?.team === "player";
+  if (isCardAttack && attackCardUid && hits > 0)
+    runRelicHook(state, "onCardAttackStarted", attackCardUid, hits);
 
   for (let i = 0; i < hits; i++) {
     const hitTargets = effect.randomPerHit && effect.target === "randomFoe"
@@ -117,6 +123,7 @@ export function applyDamageEffect(
       if (result === "missed") resolution.missed.push(id);
       else if (result === "hit") {
         resolution.hit.push(id);
+        if (isCardAttack && attackCardUid) runRelicHook(state, "onCardAttackHit", attackCardUid, id);
         hitTriggered = true;
         firstHitTarget ??= id;
         if (effect.pierceOnHit && !state.fullDraw.hitIds.includes(id))

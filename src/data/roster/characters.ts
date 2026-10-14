@@ -263,7 +263,7 @@ export const CHARACTERS: CharacterDef[] = [
       ...basicStartingCardIds("actuary"),
       "initial-premium",
       "emergency-disbursement",
-      "early-claim",
+      "subrogation",
     ],
     // 《精算师改版方案 · 总览》: 普通 15 / 罕见 10 / 稀有 5。
     pools: {
@@ -276,8 +276,8 @@ export const CHARACTERS: CharacterDef[] = [
         "policy-pledge",
         "risk-reserve",
         "subrogation",
-        "policy-extension",
-        "installment-claim",
+        "breach-penalty",
+        "excess-recovery",
         "cash-value",
         "risk-exposure",
         "dividend",
@@ -289,11 +289,11 @@ export const CHARACTERS: CharacterDef[] = [
         "post-disaster-underwriting",
         "reinsurance",
         "liquidation",
-        "triage",
+        "systemic-risk",
         "risk-assessment",
         "group-policy",
         "commission",
-        "no-claim-bonus",
+        "premium-refund",
         "beneficiary",
       ],
       rare: [

@@ -42,10 +42,10 @@ export function releaseSquadBuff(
   for (let i = 0; i < count; i++) resolve(state, ASSEMBLE_RELEASE_EFFECTS[id], sourceId, undefined);
 }
 
-function applyGain(state: BattleState, effect: EffectDescriptor): void {
+function applyGain(state: BattleState, effect: EffectDescriptor, sourceId: string): void {
   if (effect.squadBuffPick === "choose") {
     if (!state.pendingChoice)
-      state.pendingChoice = { kind: "pickSquadBuff", options: [...ASSEMBLE_IDS] };
+      state.pendingChoice = { kind: "pickSquadBuff", options: [...ASSEMBLE_IDS], sourceId };
     return;
   }
   if (effect.squadBuffPick === "purify") {
@@ -54,10 +54,10 @@ function applyGain(state: BattleState, effect: EffectDescriptor): void {
   }
   if (effect.squadBuffPick === "randomMissing") {
     const missing = missingAssembleIds(state);
-    if (missing.length > 0) gainSquadBuff(state, rngPick(state, missing));
+    if (missing.length > 0) gainSquadBuff(state, rngPick(state, missing), sourceId);
     return;
   }
-  if (effect.squadBuff) gainSquadBuff(state, effect.squadBuff);
+  if (effect.squadBuff) gainSquadBuff(state, effect.squadBuff, sourceId);
 }
 
 function applyRemove(state: BattleState, effect: EffectDescriptor): void {
@@ -97,7 +97,7 @@ export function applyAssembleEffect(
   sourceId: string,
   resolve: ResolveEffectsFn,
 ): void {
-  if (effect.type === "GAIN_SQUAD_BUFF") applyGain(state, effect);
+  if (effect.type === "GAIN_SQUAD_BUFF") applyGain(state, effect, sourceId);
   else if (effect.type === "REMOVE_SQUAD_BUFF") applyRemove(state, effect);
   else if (effect.type === "RELEASE_SQUAD_BUFF") applyRelease(state, effect, sourceId, resolve);
 }

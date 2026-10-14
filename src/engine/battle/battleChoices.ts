@@ -20,6 +20,8 @@ import { applyGraft, canGraft, graftCandidates } from "../deck/graft";
 import { exhaustCard } from "../deck/exhaust";
 import { availableHand, cardLocked } from "../ecoArk/shared";
 import { suspendable } from "../bonds/behaviors/chrono";
+import { returnCardToHand } from "../deck/returnToHand";
+import { playableHandUids } from "../cards/passiveCards";
 
 export function resolvePendingChoice(state: BattleState, uid: string): boolean {
   const choice = state.pendingChoice;
@@ -46,10 +48,13 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
       resolvePurify(state, id, choice.options);
       return true;
     }
-    if (state.squadBuffs.some((entry) => entry.id === uid)) return false;
+    const alreadyOwned = state.squadBuffs.some((entry) => entry.id === id);
     state.pendingChoice = null;
-    gainSquadBuff(state, id);
-    log(state, `获得 ${name}`);
+    if (!gainSquadBuff(state, id, choice.sourceId)) {
+      state.pendingChoice = choice;
+      return false;
+    }
+    if (!alreadyOwned) log(state, `获得 ${name}`);
     return true;
   }
   if (choice.kind === "pickFromDraw" && choice.toTop) {
@@ -64,6 +69,10 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
     if (!choice.options.includes(uid) || !state.draw.includes(uid) || state.hand.length >= partyHandLimit(state))
       return false;
     state.draw = state.draw.filter((drawUid) => drawUid !== uid);
+    if (choice.restToBottom) {
+      const rest = choice.options.filter((option) => option !== uid && state.draw.includes(option));
+      state.draw = [...state.draw.filter((drawUid) => !rest.includes(drawUid)), ...rest];
+    }
     state.hand.push(uid);
     const card = state.cards[uid];
     if (card) {
@@ -81,7 +90,11 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
     if (!state.hand.includes(uid) || cardLocked(state, uid)) return false;
     const card = state.cards[uid];
     let dominoMarkConsumed = false;
-    if (choice.action === "bondSuspend") {
+    if (choice.action === "grantMindsEye") {
+      if (!card || !playableHandUids(state).includes(uid) || card.marks?.includes("mindsEye")) return false;
+      (card.marks ??= []).push("mindsEye");
+      log(state, `软木刀镡：${card.name} 获得心眼`);
+    } else if (choice.action === "bondSuspend") {
       // 倒吊人 9: 牌离开手牌进入悬置区, 下回合开始自动打出。
       if (!suspendable(state, uid)) return false;
       state.hand = state.hand.filter((handUid) => handUid !== uid);
@@ -155,10 +168,8 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
   }
 
   if (!state.discard.includes(uid) || state.hand.length >= partyHandLimit(state)) return false;
-  state.discard = state.discard.filter((id) => id !== uid);
-  state.hand.push(uid);
   const card = state.cards[uid];
-  if (card) resetCultivate(card);
+  if (!card || !returnCardToHand(state, card)) return false;
   if (card && choice.recoverMark) {
     card.marks ??= [];
     if (!card.marks.includes(choice.recoverMark)) card.marks.push(choice.recoverMark);
@@ -171,8 +182,10 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
 
 export function cancelPendingChoice(state: BattleState): boolean {
   if (!state.pendingChoice) return false;
+  if (state.pendingChoice.kind === "pickFromDraw" && state.pendingChoice.restToBottom) return false;
   // 选手牌一般是已发生结算的一部分, 不能放弃; 倒吊人的悬置是「可以选择」, 允许跳过。
-  if (state.pendingChoice.kind === "pickHandCard" && state.pendingChoice.action !== "bondSuspend") return false;
+  if (state.pendingChoice.kind === "pickHandCard" &&
+    state.pendingChoice.action !== "bondSuspend" && state.pendingChoice.action !== "grantMindsEye") return false;
   // 组装成功后的保留 / 提纯的分类选择属于已发生的结算, 不能放弃。
   if (state.pendingChoice.kind === "pickSquadBuff" &&
     (state.pendingChoice.mode === "keep" || state.pendingChoice.mode === "purify")) return false;

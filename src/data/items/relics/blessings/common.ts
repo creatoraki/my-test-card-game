@@ -1,7 +1,9 @@
 import { defineRelics } from "../defineRelic";
+import { COMMON_MECHANISM_RELIC_ENTRIES } from "./commonMechanisms";
 
 // 普通档祝福遗物(普通渠道)。一次性渠道的普通档遗物按来源分文件: picnic.ts / blessingBox.ts。
 export const COMMON_BLESSING_RELIC_DEFS = defineRelics("blessing", "common", [
+  ...COMMON_MECHANISM_RELIC_ENTRIES,
   {
     id: "relic-warm-match",
     name: "余温火柴",

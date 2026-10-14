@@ -46,6 +46,8 @@ import { availableHand, cardLocked } from "../ecoArk/shared";
 import { clearRoots } from "../ecoArk/resources";
 import { bondManaCarry, hermitRoundEnd, openBondChoices, startBondRound } from "../bonds/bondRound";
 import { playSuspendedCards } from "../bonds/bondAutoPlay";
+import { returnCardToHand } from "../deck/returnToHand";
+import { openRelicChoices } from "../relics/choices";
 export { releaseRoot } from "../ecoArk/resources";
 
 export { bloodPactCostOf, canPlay, playBlockReason, playCard } from "./playCard";
@@ -88,8 +90,7 @@ function recoverNotoCards(state: BattleState): void {
       log(state, `${card.name} 纳刀取回失败`);
       continue;
     }
-    state.discard = state.discard.filter((uid) => uid !== card.uid);
-    state.hand.push(card.uid);
+    returnCardToHand(state, card);
     card.marks ??= [];
     if (!card.marks.includes("noto")) card.marks.push("noto");
     resetCultivate(card);
@@ -148,6 +149,7 @@ export function startRound(state: BattleState): void {
   recoverNotoCards(state);
   fireRelic(state, { type: "roundStart" });
   runRelicHook(state, "onRoundStart");
+  openRelicChoices(state);
 
   checkEnd(state);
 }
@@ -186,6 +188,7 @@ export function waitTick(state: BattleState, rec?: FxRecorder): boolean {
     return true;
   }
   withDiscardRecorder(rec, () => advanceTick(state, RULES.timeline.waitAdvance, rec));
+  openRelicChoices(state);
   return true;
 }
 
@@ -198,6 +201,7 @@ export function discardHandCard(state: BattleState, uid: string, rec?: FxRecorde
   log(state, `${card.name} 已丢弃`);
   flushAutoPlays(state, rec);
   checkEnd(state);
+  openRelicChoices(state);
   openBondChoices(state);
   return true;
 }

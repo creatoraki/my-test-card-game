@@ -18,6 +18,7 @@ export interface LogEntry {
 export interface BattleRelic {
   id: string;
   counter: number;
+  activeCardUid?: string; // 多段攻击等遗物本次选中的卡牌实例
   // 行为型遗物的战斗内运行态。只存数字，保持可 structuredClone。
   data?: Record<string, number>;
 }
@@ -69,6 +70,7 @@ export interface BattleState {
   lastDiscardBatchFast: number;
   lastRecoverBatchFast: number;
   pendingChoice: PendingChoice | null;
+  relicChoices?: PendingChoice[]; // 当前动作结束后依次打开的遗物选择
   // 出牌留下待选时暂缓的时刻推进: 选择完成(或放弃)后再推进, 敌人不会抢在选牌结算之前行动。
   deferredTickAdvance: number;
   pendingDiscardPicks: string[];

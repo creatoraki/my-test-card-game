@@ -34,7 +34,7 @@ export function cardCost(state: BattleState | null, card: Card): number {
   // 羁绊: 恶魔 12 直接免费; 力量 9 让本回合第一张重攻 −1。
   const bond = bondCostRule(state, card);
   if (bond.override != null) return bond.override;
-  return Math.max(0, (override ?? auraCost ?? card.cost) + delta + stackDelta + markDelta + returnDelta + bond.delta);
+  return Math.max(0, (override ?? auraCost ?? card.cost) + delta + stackDelta + markDelta + returnDelta + bond.delta - (card.nextPlayCostReduction ?? 0));
 }
 
 export function starPayable(card: Card): boolean {

@@ -8,6 +8,8 @@ import coinsurance from "@/assets/buffs/状态/出牌规则/共保体.webp";
 import solvency from "@/assets/buffs/状态/资源规则/偿付能力.webp";
 import highRisk from "@/assets/buffs/状态/触发联动/高风险.webp";
 import zanshinFocus from "@/assets/buffs/状态/属性强化/残心·凝神.webp";
+// 占位素材: 定损暂无正式图标。
+import assessedClaim from "@/assets/占位素材.webp";
 
 export const ADDITIONAL_STATUS_ART: Record<string, string> = {
   surplus,
@@ -18,5 +20,6 @@ export const ADDITIONAL_STATUS_ART: Record<string, string> = {
   coinsurance,
   solvency,
   highRisk,
+  assessedClaim,
   zanshinFocus,
 };

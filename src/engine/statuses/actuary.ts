@@ -31,7 +31,7 @@ export const ACTUARY_STATUS_DEFS: Record<string, StatusDef> = {
     durationStartsImmediately: true,
     maxStacks: 1,
   },
-  // 假装受伤 —— 急诊模组与《分诊》的产物: 只作为「本回合被打过」的替身标记, 自身不带任何结算钩子,
+  // 假装受伤 —— 急诊模组的产物: 只作为「本回合被打过」的替身标记, 自身不带任何结算钩子,
   // 因此不触发保险增值、风险准备金与止损。
   // ★ durationStartsImmediately: 与保险同一口径, 持续 N 回合 = 含施加当回合在内的 N 个回合,
   //   所以 duration 1 正好只覆盖打出模组卡的这一回合。
@@ -45,6 +45,18 @@ export const ACTUARY_STATUS_DEFS: Record<string, StatusDef> = {
     maxStacks: 1,
     stackMode: "max",
     refreshMode: "max",
+  },
+  // 定损 —— 《灾后核保》附带。持有期间所有理赔只回复已损失的生命, 没用完的保险续回给持有者(见 actuary/claims)。
+  assessedClaim: {
+    id: "assessedClaim",
+    name: "定损",
+    emoji: "📏",
+    kind: "buff",
+    durationStartsImmediately: true,
+    maxStacks: 1,
+    stackMode: "max",
+    refreshMode: "max",
+    desc: "持有期间，所有理赔只回复已损失的生命，不产生溢额；没用完的保险重新附加给自己，持续 2 回合。",
   },
   deductible: {
     id: "deductible",

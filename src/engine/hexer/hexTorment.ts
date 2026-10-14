@@ -5,6 +5,7 @@ import type { BattleState, EffectDescriptor, StatusInstance } from "../types";
 import { ops } from "../core/ops";
 import { counterOf } from "../combat/counters";
 import { syncSegments } from "../statuses/stacking";
+import { runRelicHook } from "../relics/types";
 
 export const TORMENT_STATUS = "boneRot";
 
@@ -38,7 +39,10 @@ export function settleTorment(state: BattleState, effect: EffectDescriptor, sour
   if (beats <= 0) return;
   let dealt = 0;
   for (const id of targetIds) {
-    for (let beat = 0; beat < beats; beat++) {
+    if (!tormentOf(state, id)) continue;
+    const info = { targetId: id, beats };
+    runRelicHook(state, "beforeTormentSettle", info);
+    for (let beat = 0; beat < info.beats; beat++) {
       const torment = tormentOf(state, id);
       if (!torment) break;
       ops.dealDamage(state, undefined, id, torment.stacks, {

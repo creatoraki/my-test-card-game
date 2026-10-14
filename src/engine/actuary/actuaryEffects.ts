@@ -10,8 +10,8 @@ import { reduceStatusStacks } from "../statuses/stacking";
 import {
   claimInsurance,
   dropLifeline,
+  excessInsuranceOf,
   insuranceOf,
-  insuranceWasHit,
   removeInsurance,
 } from "./claims";
 
@@ -40,7 +40,7 @@ function settle(state: BattleState, effect: EffectDescriptor, sourceId: string, 
     if (effect.settlePct == null) {
       const stacks = insurance.stacks;
       removeInsurance(target, insurance);
-      claimInsurance(state, sourceId, id, stacks * multiplier);
+      claimInsurance(state, sourceId, id, stacks, { multiplier });
       continue;
     }
     const part = Math.floor(insurance.stacks * effect.settlePct);
@@ -49,11 +49,12 @@ function settle(state: BattleState, effect: EffectDescriptor, sourceId: string, 
       reduceStatusStacks(insurance, part);
       if (insurance.stacks <= 0) removeInsurance(target, insurance);
     }
-    claimInsurance(state, sourceId, id, part * multiplier);
+    claimInsurance(state, sourceId, id, part, { multiplier, deducted: !effect.keepStacks });
   }
 }
 
-// 消耗保险(保单质押 / 现金价值): 不回复生命, 消耗量写入 lastConsumedStatusStacks; 寿险随之移除。
+// 消耗保险(保单质押 / 现金价值 / 超额追偿): 不回复生命, 消耗量写入 lastConsumedStatusStacks; 寿险随之移除。
+// excessOnly = 只消耗超额部分(超出持有者已损失生命的层数), 再与 consumePct / maxStacks 取较小值。
 function consume(state: BattleState, effect: EffectDescriptor, targetIds: string[]): void {
   state.lastConsumedStatusStacks = 0;
   for (const id of targetIds) {
@@ -61,6 +62,7 @@ function consume(state: BattleState, effect: EffectDescriptor, targetIds: string
     const insurance = insuranceOf(target);
     if (!target || !insurance) continue;
     let limit = insurance.stacks;
+    if (effect.excessOnly) limit = Math.min(limit, excessInsuranceOf(target, insurance));
     if (effect.consumePct != null) limit = Math.min(limit, Math.floor(insurance.stacks * effect.consumePct));
     if (effect.maxStacks != null) limit = Math.min(limit, Math.floor(effect.maxStacks));
     const consumed = reduceStatusStacks(insurance, limit);
@@ -79,14 +81,12 @@ function transfer(state: BattleState, effect: EffectDescriptor, sourceId: string
   if (!target?.alive) return;
   let total = 0;
   let duration = 0;
-  let hit = false;
   for (const id of state.playerIds) {
     const ally = state.combatants[id];
     const insurance = insuranceOf(ally);
     if (!ally?.alive || id === targetId || !insurance) continue;
     total += insurance.stacks;
     duration = Math.max(duration, insurance.duration ?? 0);
-    hit ||= insuranceWasHit(insurance);
     removeInsurance(ally, insurance);
   }
   if (total <= 0) return;
@@ -95,7 +95,7 @@ function transfer(state: BattleState, effect: EffectDescriptor, sourceId: string
     claimInsurance(state, sourceId, targetId, total);
     return;
   }
-  ops.applyStatus(state, targetId, "insurance", total, duration > 0 ? duration : undefined, hit ? { hit: 1 } : undefined, sourceId);
+  ops.applyStatus(state, targetId, "insurance", total, duration > 0 ? duration : undefined, undefined, sourceId);
 }
 
 // 灾后核保: 保险补足到已损失生命(本次增量上限 = stacksFromStat), 随后剩余回合设为 duration。

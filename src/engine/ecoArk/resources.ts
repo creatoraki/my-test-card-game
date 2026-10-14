@@ -5,6 +5,7 @@ import { partyManaPerRound } from "../combat/stats";
 import { rngPick } from "../core/rng";
 import { ARK, arkEnemy, livingEnemies } from "./shared";
 import { syncCollateralBuff } from "./collateralBuff";
+import { runRelicHook } from "../relics/types";
 
 export function heldManaTotal(state: BattleState): number {
   return livingEnemies(state).reduce((sum, enemy) => sum + (enemy.ark?.heldMana ?? 0), 0);
@@ -60,7 +61,10 @@ export function returnCollateral(state: BattleState, enemy: Enemy): void {
     if (!card || !owner?.alive) continue;
     delete card.rooted;
     // 押品返还是原卡取回，不受抽牌的手牌上限阻挡。
-    if (!state.hand.includes(uid)) state.hand.push(uid);
+    if (!state.hand.includes(uid)) {
+      state.hand.push(uid);
+      runRelicHook(state, "onCardReturned", { card, costDelta: 0 });
+    }
     log(state, `「${card.name}」解除扣押，返回手牌`);
   }
   if (heldMana > 0) {

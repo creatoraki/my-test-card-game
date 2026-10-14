@@ -184,6 +184,7 @@ export interface Card extends CardDef {
   holdRounds?: number;
   resonanceStacks?: number; // 手牌内共鸣强化次数; 离手后清零
   costStacks?: number; // 回手负担 BUFF 的费用加成层数，回合结束清零
+  nextPlayCostReduction?: number; // 下一次打出的费用减免，支付后消耗
   notoPending?: boolean; // 纳刀待取回标记
   marks?: string[];
   cultivateLeft?: number;
@@ -204,7 +205,7 @@ export type PendingChoice =
       sourceCardUid: string;
       ownerCharId: string;
       // bondSuspend: 倒吊人 9 的悬置(可放弃)。
-      action: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks" | "grantStarPact" | "graft" | "bondSuspend";
+      action: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks" | "grantStarPact" | "graft" | "bondSuspend" | "grantMindsEye";
       remaining: number;
       followUp?: EffectDescriptor[];
     }
@@ -215,11 +216,12 @@ export type PendingChoice =
       mark?: string;
       // true = 选中的牌置于抽牌堆顶而不是加入手牌(隐者 6 的预知)。
       toTop?: boolean;
+      restToBottom?: boolean; // 选中的牌入手，其余展示牌置于抽牌堆底
     }
   | {
       kind: "pickSquadBuff";
       options: string[];
       // gain 获得 / remove 移除 / release 移除并释放 / keep 组装成功后保留(贤者之石) / purify 提纯选择缺失字母
       mode?: "gain" | "remove" | "release" | "keep" | "purify";
-      sourceId?: string; // release: 释放效果的施放者
+      sourceId?: string; // gain / release: 获得部件或释放效果的施放者
     };

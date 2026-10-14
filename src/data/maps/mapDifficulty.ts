@@ -10,6 +10,7 @@ export type MapDifficulty = "normal" | "hard" | "abyss";
 export const MAP_DIFFICULTY_IDS: readonly MapDifficulty[] = ["normal", "hard", "abyss"];
 const TUTORIAL_DIFFICULTY_IDS: readonly MapDifficulty[] = ["normal"];
 const NORMAL_ROOM_COUNT = 9;
+const isTest = import.meta.env.isTest === "true";
 
 export interface MapDifficultyDef {
   id: MapDifficulty;
@@ -122,6 +123,7 @@ export function isDifficultyUnlocked(
   requireMap(mapId);
   if (difficulty === "normal") return true;
   if (!mapHasDifficulty(mapId)) return false;
+  if (isTest) return true;
   const previous: MapDifficulty = difficulty === "hard" ? "normal" : "hard";
   return clearedKeys.includes(difficultyKey(mapId, previous));
 }

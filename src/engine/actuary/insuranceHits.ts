@@ -9,7 +9,7 @@
 import type { BattleState, Combatant, DamageCtx } from "../types";
 import { ops } from "../core/ops";
 import { growInsurance } from "../combat/insurance";
-import { claimInsurance, dropLifeline, insuranceOf, markInsuranceHit, removeInsurance } from "./claims";
+import { claimInsurance, dropLifeline, insuranceOf, removeInsurance } from "./claims";
 import { hasStatus } from "./actuaryRules";
 
 const INSURANCE_GROWTH = 1.2;
@@ -44,24 +44,21 @@ function triggerLifeline(state: BattleState, ownerId: string): void {
   if (!insurance) return;
   const stacks = insurance.stacks;
   removeInsurance(owner, insurance);
-  claimInsurance(state, insurance.sourceId, ownerId, stacks * LIFELINE_CLAIM_MULTIPLIER);
+  claimInsurance(state, insurance.sourceId, ownerId, stacks, { multiplier: LIFELINE_CLAIM_MULTIPLIER });
 }
 
-// 视为受到一次敌方直接攻击: 保险增值并记录受击, 随后结算止损(按增值后的层数, 不扣层数)。
+// 视为受到一次敌方直接攻击: 保险增值, 随后结算止损(按增值后的层数, 不扣层数)。
 function onStruck(state: BattleState, ownerId: string, growth: number): void {
   const owner = state.combatants[ownerId];
   if (!owner?.alive) return;
   const insurance = insuranceOf(owner);
-  if (insurance) {
-    growInsurance(state, ownerId, insurance, growth);
-    markInsuranceHit(insurance);
-  }
+  if (insurance) growInsurance(state, ownerId, insurance, growth);
   const stopLoss = owner.statuses.find((status) => status.id === "stopLoss");
   if (!stopLoss) return;
   owner.statuses = owner.statuses.filter((status) => status !== stopLoss);
   ops.log(state, `${owner.emoji} ${owner.name} 的止损生效`);
   const current = insuranceOf(owner);
-  if (current) claimInsurance(state, current.sourceId, ownerId, current.stacks);
+  if (current) claimInsurance(state, current.sourceId, ownerId, current.stacks, { deducted: false });
 }
 
 // 共同海损的分摊: 失去生命(不吃护盾与防御), 视为受到一次直接攻击 —— 增值、急诊记录、止损;

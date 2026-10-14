@@ -5,7 +5,7 @@ import type { BattleState } from "@/engine";
 
 export function useSuspendSkip(battle: BattleState | null, animating: boolean, skip: () => void): void {
   const active = battle?.pendingChoice?.kind === "pickHandCard" &&
-    battle.pendingChoice.action === "bondSuspend" && !animating;
+    (battle.pendingChoice.action === "bondSuspend" || battle.pendingChoice.action === "grantMindsEye") && !animating;
 
   useEffect(() => {
     if (!active) return;

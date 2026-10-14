@@ -274,10 +274,11 @@ export function useBattleActions({
 
   // 倒吊人·悬停的悬置是「可以选择」: 允许跳过, 跳过后补上待机的时刻推进。
   const skipSuspend = useCallback(() => {
-    if (battle?.pendingChoice?.kind !== "pickHandCard" || battle.pendingChoice.action !== "bondSuspend") return;
+    if (battle?.pendingChoice?.kind !== "pickHandCard" ||
+      (battle.pendingChoice.action !== "bondSuspend" && battle.pendingChoice.action !== "grantMindsEye")) return;
     if (cancelChoice()) {
       resetHandHover();
-      showBattleToast("已跳过悬置");
+      showBattleToast(battle.pendingChoice.action === "grantMindsEye" ? "已跳过心眼赋予" : "已跳过悬置");
     }
   }, [battle, cancelChoice]);
 

@@ -24,19 +24,6 @@ export const ACTUARY_SUPPORT_CARDS: CardDef[] = [
     text: "消耗目标身上至多 30 层保险，每消耗 10 层获得 1 点法力（上限 3 点）；抽 1 张牌。",
   },
   {
-    id: "policy-extension",
-    name: "保单展期",
-    ownerCharId: "actuary",
-    cost: 0,
-    cardType: "fast",
-    targeting: "ally",
-    rarity: "common",
-    anim: "buff",
-    keywords: [{ id: "echo", effects: [] }],
-    effects: [{ type: "EXTEND_STATUS", status: "insurance", amount: 1, maxDuration: 3, target: "primary" }],
-    text: "目标的保险剩余回合 +1（至多 3 回合）；回响。",
-  },
-  {
     id: "cash-value",
     name: "现金价值",
     ownerCharId: "actuary",
@@ -47,7 +34,7 @@ export const ACTUARY_SUPPORT_CARDS: CardDef[] = [
     anim: "shield",
     keywords: [{ id: "echo", effects: [] }],
     effects: [
-      { type: "CONSUME_INSURANCE", consumePct: 0.5, target: "primary" },
+      { type: "CONSUME_INSURANCE", excessOnly: true, target: "primary" },
       {
         type: "GAIN_SHIELD",
         amount: 0,
@@ -56,7 +43,7 @@ export const ACTUARY_SUPPORT_CARDS: CardDef[] = [
         target: "primary",
       },
     ],
-    text: "消耗目标一半的保险（向下取整），使其获得等量的护盾；回响。",
+    text: "消耗目标的超额保险（超出其已损失生命的层数），使其获得等量的护盾；回响。",
   },
   {
     id: "dividend",

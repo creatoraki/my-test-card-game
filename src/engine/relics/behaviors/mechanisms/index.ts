@@ -1,0 +1,11 @@
+import { HAND_RELIC_BEHAVIORS } from "./hand";
+import { GARDEN_RELIC_BEHAVIORS } from "./garden";
+import { COMBAT_RELIC_BEHAVIORS } from "./combat";
+import { ASSEMBLY_PROPHECY_RELIC_BEHAVIORS } from "./assemblyProphecy";
+
+export const MECHANISM_RELIC_BEHAVIORS = {
+  ...HAND_RELIC_BEHAVIORS,
+  ...GARDEN_RELIC_BEHAVIORS,
+  ...COMBAT_RELIC_BEHAVIORS,
+  ...ASSEMBLY_PROPHECY_RELIC_BEHAVIORS,
+};

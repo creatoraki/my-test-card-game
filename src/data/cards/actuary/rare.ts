@@ -33,16 +33,17 @@ export const ACTUARY_RARE_CARDS: CardDef[] = [
     rarity: "rare",
     anim: "buff",
     effects: [
+      { type: "HEAL", multiplier: 0.15, target: "allAllies" },
       {
         type: "APPLY_STATUS",
         status: "insurance",
-        stacksFromStat: { stat: "healPower", multiplier: 0.3 },
+        stacksFromStat: { stat: "healPower", multiplier: 0.15 },
         duration: 2,
         target: "allAllies",
       },
       { type: "APPLY_STATUS", status: "generalAverage", stacks: 1, target: "allAllies" },
     ],
-    text: "全体队友各附加相当于治愈力 30% 的保险，持续 2 回合；本回合内，我方任一单位受到敌方直接攻击时，伤害平均分摊给所有存活队友，分摊到伤害的队友都视为受到一次直接攻击（触发保险增值与急诊）。",
+    text: "全体队友各回复相当于治愈力 15% 的生命，并各附加相当于治愈力 15% 的保险，持续 2 回合；本回合内，我方任一单位受到敌方直接攻击时，伤害平均分摊给所有存活队友，分摊到伤害的队友都视为受到一次直接攻击（触发保险增值与急诊）。",
   },
   {
     id: "coinsurance-pool",

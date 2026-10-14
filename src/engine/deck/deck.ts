@@ -61,6 +61,7 @@ export function addCardCopyToHand(state: BattleState, sourceCard: Card): void {
     voidCard: true,
     discardStacks: undefined,
     costStacks: undefined,
+    nextPlayCostReduction: undefined,
     notoPending: undefined,
     resonanceStacks: undefined,
   });
@@ -98,5 +99,6 @@ export function witherCards(state: BattleState): void {
     exhaustCard(state, uid);
     log(state, `${card.name} 枯萎，变为枯萎的果实`);
     notifyCultivateStage(state, card, "withered");
+    runRelicHook(state, "onCultivateWithered", card);
   }
 }

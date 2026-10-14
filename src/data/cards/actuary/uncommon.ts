@@ -1,6 +1,6 @@
 import type { CardDef } from "@/engine/types";
 
-// 精算师罕见卡(《精算师改版方案 · 罕见卡》)。被动卡《佣金》《无赔优待》持在手中即改写理赔规则,
+// 精算师罕见卡(《精算师改版方案 · 罕见卡》)。被动卡《佣金》《保费返还》持在手中即改写理赔规则,
 // 不监听被动事件, 由 engine/actuary/claims 直接读取手牌。
 export const ACTUARY_UNCOMMON_CARDS: CardDef[] = [
   {
@@ -40,8 +40,9 @@ export const ACTUARY_UNCOMMON_CARDS: CardDef[] = [
         target: "primary",
         condition: "targetAttackedThisRound",
       },
+      { type: "APPLY_STATUS", status: "assessedClaim", stacks: 1, duration: 2, target: "primary" },
     ],
-    text: "将一名队友的保险层数提高到等于其已损失生命（本次至多增加相当于治愈力 70% 的层数），保险剩余回合设为 2；急诊：剩余回合改为设为 1，本回合结束时即理赔。",
+    text: "将一名队友的保险层数提高到等于其已损失生命（本次至多增加相当于治愈力 70% 的层数），保险剩余回合设为 2，并使其获得定损，持续 2 回合；急诊：剩余回合改为设为 1，本回合结束时即理赔。",
   },
   {
     id: "reinsurance",
@@ -51,15 +52,9 @@ export const ACTUARY_UNCOMMON_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "ally",
     rarity: "uncommon",
-    anim: "buff",
+    anim: "heal",
     effects: [
-      {
-        type: "APPLY_STATUS",
-        status: "insurance",
-        stacksFromStat: { stat: "healPower", multiplier: 0.2 },
-        duration: 2,
-        target: "primary",
-      },
+      { type: "HEAL", multiplier: 0.2, target: "primary" },
       // 先按当前盈余追加保险, 再消耗全部盈余。
       {
         type: "APPLY_STATUS",
@@ -71,19 +66,19 @@ export const ACTUARY_UNCOMMON_CARDS: CardDef[] = [
       },
       { type: "CONSUME_STATUS", status: "surplus", target: "self" },
     ],
-    text: "为一名队友附加相当于治愈力 20% 的保险，持续 2 回合；消耗全部盈余，额外附加等同于消耗量 150% 的保险。",
+    text: "回复一名队友相当于治愈力 20% 的生命；消耗全部盈余，为其附加等同于消耗量 150% 的保险，持续 2 回合。",
   },
   {
     id: "liquidation",
     name: "清算",
     ownerCharId: "actuary",
-    cost: 2,
+    cost: 1,
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
     anim: "shot",
     effects: [
-      { type: "DAMAGE", multiplier: 0.5, target: "primary" },
+      { type: "DAMAGE", multiplier: 0.4, target: "primary" },
       // 先按当前盈余追加固定伤害, 再消耗全部盈余。
       {
         type: "DAMAGE",
@@ -96,19 +91,28 @@ export const ACTUARY_UNCOMMON_CARDS: CardDef[] = [
       },
       { type: "CONSUME_STATUS", status: "surplus", target: "self" },
     ],
-    text: "对一名敌人造成 {0} 点伤害；消耗全部盈余，追加等同于消耗量的固定伤害（不受攻击力影响）。",
+    text: "对一名敌人造成 40% 攻击力伤害；消耗全部盈余，追加等同于消耗量的固定伤害（不受攻击力影响）。",
   },
   {
-    id: "triage",
-    name: "分诊",
+    id: "systemic-risk",
+    name: "系统性风险",
     ownerCharId: "actuary",
-    cost: 0,
-    cardType: "fast",
-    targeting: "ally",
+    cost: 2,
+    cardType: "normal",
+    targeting: "allFoes",
     rarity: "uncommon",
-    anim: "buff",
-    effects: [{ type: "APPLY_STATUS", status: "feignInjury", stacks: 1, duration: 1, target: "primary" }],
-    text: "一名队友获得假装受伤，持续 1 回合：本回合视为已受到攻击，可以满足急诊。",
+    anim: "shot",
+    effects: [
+      {
+        type: "DAMAGE",
+        multiplier: 0.45,
+        target: "allFoes",
+        bonusMultiplierFrom: "partyInsuranceStacks",
+        bonusMultiplierPer: 0.015,
+        maxBonusMultiplier: 0.6,
+      },
+    ],
+    text: "对全体敌人造成 45% 攻击力伤害；每 1 层全队保险额外增加 1.5% 攻击倍率，最多增加 60%。",
   },
   {
     id: "risk-assessment",
@@ -139,22 +143,23 @@ export const ACTUARY_UNCOMMON_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "ally",
     rarity: "uncommon",
-    anim: "buff",
+    anim: "heal",
     // echoExtend 必须排在 echo 之后: 先完成回响挂号, 再让全体回响持续 +1 回合。
     keywords: [
       { id: "echo", effects: [] },
       { id: "echoExtend", effects: [] },
     ],
     effects: [
+      { type: "HEAL", multiplier: 0.25, target: "primary" },
       {
         type: "APPLY_STATUS",
         status: "insurance",
-        stacksFromStat: { stat: "healPower", multiplier: 0.5 },
+        stacksFromStat: { stat: "healPower", multiplier: 0.25 },
         duration: 2,
         target: "primary",
       },
     ],
-    text: "为一名队友附加相当于治愈力 50% 的保险，持续 2 回合；回响。结算完毕后，所有带有回响的队友回响持续 +1 回合。",
+    text: "回复一名队友相当于治愈力 25% 的生命，并附加相当于治愈力 25% 的保险，持续 2 回合；回响。结算完毕后，所有带有回响的队友回响持续 +1 回合。",
   },
   {
     id: "commission",
@@ -170,8 +175,8 @@ export const ACTUARY_UNCOMMON_CARDS: CardDef[] = [
     text: "被动：每次理赔时，精算师获得等同于本次理赔回复量 20% 的盈余（不减少回复量）。",
   },
   {
-    id: "no-claim-bonus",
-    name: "无赔优待",
+    id: "premium-refund",
+    name: "保费返还",
     ownerCharId: "actuary",
     cost: 0,
     cardType: "passive",
@@ -180,7 +185,7 @@ export const ACTUARY_UNCOMMON_CARDS: CardDef[] = [
     anim: "buff",
     effects: [],
     passive: { on: [], effects: [] },
-    text: "被动：保险自然到期时，若存续期间持有者从未受到敌方直接攻击，本次理赔的回复量提高 50%。",
+    text: "被动：每次理赔产生溢额时，持有者获得等同于溢额 50% 的护盾（溢额照常改道受益人或计入盈余）。",
   },
   {
     id: "beneficiary",

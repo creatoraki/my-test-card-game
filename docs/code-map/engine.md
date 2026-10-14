@@ -58,7 +58,7 @@
 
 | 文件 | 作用 |
 | --- | --- |
-| [actuary/claims.ts](../../src/engine/actuary/claims.ts) | 理赔统一入口 `claimInsurance`：回复生命 → 佣金抽成 → 溢额（受益人改道 → 按比例计入盈余）；保险自然到期（含无赔优待）；寿险随保险移除。 |
+| [actuary/claims.ts](../../src/engine/actuary/claims.ts) | 理赔统一入口 `claimInsurance`：回复生命 → 佣金抽成 → 保费返还（溢额转护盾） → 溢额（受益人改道 → 按比例计入盈余）；保险自然到期；超额保险查询；寿险随保险移除。 |
 | [actuary/surplus.ts](../../src/engine/actuary/surplus.ts) | 盈余入账与上限（治愈力 100%，偿付能力翻倍）。出口卡走通用 `CONSUME_STATUS` 与 `actuarySurplus` 计数。 |
 | [actuary/insuranceHits.ts](../../src/engine/actuary/insuranceHits.ts) | 保险的受击联动：增值（高风险 ×1.5）、止损、寿险、共同海损分摊。各状态钩子只转发到这里，同一次伤害只结算一遍。 |
 | [actuary/actuaryEffects.ts](../../src/engine/actuary/actuaryEffects.ts) | 精算师效果分发：`SETTLE_INSURANCE`（全额 / 部分 / 不扣层）、`CONSUME_INSURANCE`、`TRANSFER_INSURANCE`、`TOP_UP_INSURANCE`、`INDEMNITY_HEAL`。 |

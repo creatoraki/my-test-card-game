@@ -34,6 +34,12 @@ export function SquadBuffPicker({ battle, onPick, onCancel }: Props) {
   );
   const mode: PickerMode = choice.mode ?? "gain";
   const copy = MODE_COPY[mode];
+  const canReleaseDuplicate = mode === "gain" && battle.relics.some((relic) =>
+    relic.id === "relic-scrap-box" && !relic.data?.used,
+  );
+  const hint = canReleaseDuplicate
+    ? "选择一个部件；本场首次选择已持有部件时，释放一次并保留它"
+    : copy.hint;
   const cancel = copy.cancelable ? onCancel : undefined;
   if (!options.length) return null;
 
@@ -50,21 +56,24 @@ export function SquadBuffPicker({ battle, onPick, onCancel }: Props) {
           <div>
             <span className={s.kicker}>配方选择</span>
             <h2 id="squad-buff-picker-title">{copy.title}</h2>
-            <p>{copy.hint}</p>
+            <p>{hint}</p>
           </div>
           {cancel && <button className={s.close} type="button" aria-label="取消选择" onClick={cancel}>×</button>}
         </div>
         <div className={s.options}>
           {options.map((id) => {
             const def = SQUAD_BUFF_DEFS[id];
-            const desc = mode === "purify" ? `获得${assembleRewardCategoryName(id)}奖励` : def.desc;
+            const releasesDuplicate = canReleaseDuplicate && battle.squadBuffs.some((entry) => entry.id === id);
+            const verb = releasesDuplicate ? "释放" : copy.verb;
+            const desc = mode === "purify" ? `获得${assembleRewardCategoryName(id)}奖励`
+              : releasesDuplicate ? `已持有：释放一次，不移除。${def.desc}` : def.desc;
             return (
               <button
                 key={id}
                 className={s.option}
                 type="button"
                 onClick={() => onPick(id)}
-                aria-label={`${copy.verb}${def.name}`}
+                aria-label={`${verb}${def.name}`}
               >
                 <span className={s.emoji} aria-hidden="true">
                   <img src={assembleBuffArtOf(id)} alt="" />

@@ -1,6 +1,7 @@
 // 手牌操作效果 —— 从 effects.ts 拆出的牌堆、手牌与卡牌实例操作。
 
 import type { Ally, BattleState, Card, EffectDescriptor } from "../types";
+import { returnCardToHand } from "../deck/returnToHand";
 import type { EffectResolution, ResolveEffectsFn } from "./effects";
 import { ops } from "../core/ops";
 import { drawCards, addCardCopyToHand } from "../deck/deck";
@@ -105,9 +106,7 @@ function applyRecover(state: BattleState, effect: EffectDescriptor, sourceId: st
       const card = state.cards[uid];
       if (card?.cardType === "fast") recoveredFastCount += 1;
       recoverMark(card, effect.recoverMark);
-      state.discard = state.discard.filter((id) => id !== uid);
-      state.hand.push(uid);
-      if (card) resetCultivate(card);
+      if (card) returnCardToHand(state, card);
       pool.splice(pool.indexOf(uid), 1);
       recovered += 1;
     }

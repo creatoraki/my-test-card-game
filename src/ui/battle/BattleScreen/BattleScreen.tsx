@@ -191,6 +191,7 @@ export function BattleScreen() {
       devour: "请选择要吞噬的手牌",
       stripMarks: "请选择要分解的手牌",
       grantStarPact: "请选择要赋予星契的手牌",
+      grantMindsEye: "软木刀镡：选择 1 张手牌赋予心眼（右键或 Esc 跳过）",
       graft: "请选择要嫁接的其他角色手牌",
       bondSuspend: "倒吊人·悬停：选择 1 张手牌悬置，下回合开始自动打出（右键或 Esc 跳过）",
     };
@@ -337,9 +338,11 @@ export function BattleScreen() {
           pile={openPile}
           uids={battle.pendingChoice?.kind === "pickFromDraw" ? battle.pendingChoice.options : undefined}
           title={battle.pendingChoice?.kind === "pickFromDraw"
-            ? battle.pendingChoice.toTop ? "隐者·提灯：选择 1 张置于抽牌堆顶" : "占星术：选择 1 张加入手牌"
+            ? battle.pendingChoice.restToBottom ? "应验书签：选择 1 张加入手牌，另一张置于堆底"
+              : battle.pendingChoice.toTop ? "隐者·提灯：选择 1 张置于抽牌堆顶" : "占星术：选择 1 张加入手牌"
             : undefined}
           choiceMode={battle.pendingChoice?.kind === "recoverFromDiscard" || battle.pendingChoice?.kind === "pickFromDraw"}
+          cancelable={!(battle.pendingChoice?.kind === "pickFromDraw" && battle.pendingChoice.restToBottom)}
           onPick={battle.pendingChoice?.kind === "pickFromDraw" ? actions.pickFromDraw : actions.pickFromDiscard}
           onClose={actions.closePile}
         />

@@ -1,6 +1,7 @@
 import type { BattleState, Card, EffectDescriptor } from "../types";
 import { RULES } from "../core/battleRules";
 import { pierceOf, removePierce } from "../combat/pierce";
+import { runRelicHook } from "../relics/types";
 
 export interface FullDrawState {
   hitIds: string[];
@@ -36,6 +37,7 @@ export function resolveFullDraw(state: BattleState, card: Card, primaryId?: stri
   }
 
   state.fullDraw = { hitIds, removed };
+  for (const id of hitIds) runRelicHook(state, "onPierceRemoved", id, removed[id]);
 }
 
 export function fullDrawGateMatches(state: BattleState, gate: NonNullable<EffectDescriptor["fullDraw"]>): boolean {

@@ -6,6 +6,7 @@ import { foesOf } from "../combat/targeting";
 import { getStatusDef } from "../statuses";
 import { runStatusTickNow } from "../combat/statusLifecycle";
 import { reduceStatusStacks } from "../statuses/stacking";
+import { runRelicHook } from "../relics/types";
 
 function consumeStatus(state: BattleState, effect: EffectDescriptor, targetIds: string[]): void {
   state.lastConsumedStatusStacks = 0;
@@ -48,8 +49,14 @@ function spreadStatus(state: BattleState, effect: EffectDescriptor, sourceId: st
 function tickStatusNow(state: BattleState, effect: EffectDescriptor, targetIds: string[]): void {
   if (!effect.status) return;
   const times = Math.max(1, Math.floor(effect.amount ?? 1));
-  for (const id of targetIds)
-    for (let i = 0; i < times; i++) runStatusTickNow(state, id, effect.status);
+  for (const id of targetIds) {
+    for (let i = 0; i < times; i++) {
+      const target = state.combatants[id];
+      if (!target?.alive || !target.statuses.some((status) => status.id === effect.status && status.stacks > 0)) break;
+      runStatusTickNow(state, id, effect.status);
+      if (effect.status === "poison") runRelicHook(state, "onPoisonTriggered", id);
+    }
+  }
 }
 
 // 焚尽: 移除目标的全部灼烧, 立即造成"每段层数 × 剩余结算次数"之和的伤害(× multiplier)。
@@ -73,6 +80,7 @@ function incinerate(state: BattleState, effect: EffectDescriptor, targetIds: str
       unblockable: true,
       noLimitLoss: true,
     });
+    runRelicHook(state, "onIncinerated", id);
   }
 }
 

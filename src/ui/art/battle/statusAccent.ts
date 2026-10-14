@@ -29,6 +29,7 @@ export const STATUS_ACCENT: Record<string, string> = {
   deductible: "#7ee0d2",
   surplus: "#f2c66d",
   stopLoss: "#ff8f6b",
+  assessedClaim: "#9fe0a8",
   lifeline: "#ffd1e8",
   beneficiary: "#ffd27a",
   generalAverage: "#6fa8dc",

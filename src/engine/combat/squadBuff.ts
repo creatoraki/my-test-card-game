@@ -1,6 +1,7 @@
 import type { Ally, BattleState } from "../types";
 import { ops } from "../core/ops";
 import { rngPick } from "../core/rng";
+import { runRelicHook } from "../relics/types";
 
 export const ASSEMBLE_IDS = ["assembleA", "assembleB", "assembleC", "assembleD"] as const;
 export type AssembleId = (typeof ASSEMBLE_IDS)[number];
@@ -80,8 +81,12 @@ export function consumeAllSquadBuffs(state: BattleState): AssembleId[] {
   return consumed;
 }
 
-export function gainSquadBuff(state: BattleState, id: AssembleId): boolean {
-  if (hasSquadBuff(state, id)) return false;
+export function gainSquadBuff(state: BattleState, id: AssembleId, sourceId?: string): boolean {
+  if (hasSquadBuff(state, id)) {
+    const info = { componentId: id, sourceId, released: false };
+    runRelicHook(state, "onDuplicateAssembly", info);
+    return info.released;
+  }
   state.squadBuffs.push({ id });
   checkAssembly(state);
   return true;
@@ -106,7 +111,10 @@ function grantAssembleReward(state: BattleState, missing: AssembleId): void {
   const pool = state.squadBuffRewardPools[category];
   const allies = aliveAllies(state);
   if (pool.length > 0 && allies.length > 0) {
+    const beforeHand = new Set(state.hand);
     ops.addCardToHand(state, rngPick(state, [...pool]), rngPick(state, allies).charId);
+    const rewardUid = state.hand.find((uid) => !beforeHand.has(uid));
+    if (rewardUid) runRelicHook(state, "onAssemblyReward", state.cards[rewardUid]);
   }
   ops.log(state, `组装成功：缺少 ${SQUAD_BUFF_DEFS[missing].name}，获得${REWARD_CATEGORY_NAMES[category]}奖励`);
 }

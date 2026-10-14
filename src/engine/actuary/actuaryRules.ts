@@ -9,7 +9,7 @@ export const ACTUARY_ID = "actuary";
 
 // 手牌中改写规则的被动卡(持有期间生效, 不走被动事件)。
 export const COMMISSION_CARD_ID = "commission";
-export const NO_CLAIM_BONUS_CARD_ID = "no-claim-bonus";
+export const PREMIUM_REFUND_CARD_ID = "premium-refund";
 export const CONTINGENCY_PLAN_CARD_ID = "contingency-plan";
 
 export function hasStatus(cmb: Combatant | undefined, statusId: string): boolean {

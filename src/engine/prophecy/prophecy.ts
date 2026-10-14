@@ -8,6 +8,7 @@ import type { BattleState, EffectDescriptor, ProphecyEvent } from "../types";
 import { ops } from "../core/ops";
 import { resolveEffects } from "../effects/effects";
 import { ILL_OMEN_MARK, prophecyByStatus } from "./prophecyDefs";
+import { runRelicHook } from "../relics/types";
 import {
   activeProphecy,
   clearIllOmenMarks,
@@ -25,15 +26,16 @@ function settle(state: BattleState, active: ActiveProphecy, fulfilled: boolean):
   if (def.id === "illOmen") clearIllOmenMarks(state, fulfilled);
   ops.log(state, `${def.emoji} 预言·${def.name}${fulfilled ? "应验" : "落空"}`);
   const effects: EffectDescriptor[] = (fulfilled ? def.onFulfill : def.onFail) ?? [];
-  if (effects.length === 0 || !state.combatants[ownerId]?.alive) return;
   // 预言奖励不是自动出牌的一部分, 即使在自动出牌途中应验也要照常汇星。
   const suppress = state.autoPlaySuppress;
   state.autoPlaySuppress = false;
   try {
-    resolveEffects(state, effects, ownerId, undefined);
+    if (effects.length > 0 && state.combatants[ownerId]?.alive)
+      resolveEffects(state, effects, ownerId, undefined);
   } finally {
     state.autoPlaySuppress = suppress;
   }
+  runRelicHook(state, "onProphecySettled", fulfilled, ownerId);
 }
 
 export function prophecyEvent(state: BattleState, event: ProphecyEvent): void {

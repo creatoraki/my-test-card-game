@@ -40,6 +40,36 @@ export interface RelicBehavior {
   afterEnemyDeath?: (ctx: RelicBehaviorContext, targetId: string) => void;
   onCardPlayRecorded?: (ctx: RelicBehaviorContext, played: PlayedCardInfo) => void;
   onCardDiscarded?: (ctx: RelicBehaviorContext, cardUid: string, reason: DiscardReason) => void;
+  onCardReturned?: (ctx: RelicBehaviorContext, info: CardReturnInfo) => void;
+  onCardAttackStarted?: (ctx: RelicBehaviorContext, cardUid: string, hits: number) => void;
+  onCardAttackHit?: (ctx: RelicBehaviorContext, cardUid: string, targetId: string) => void;
+  onMatureCardPlayed?: (ctx: RelicBehaviorContext, card: Card) => void;
+  onCultivateWithered?: (ctx: RelicBehaviorContext, card: Card) => void;
+  onPierceRemoved?: (ctx: RelicBehaviorContext, targetId: string, stacks: number) => void;
+  onIncinerated?: (ctx: RelicBehaviorContext, targetId: string) => void;
+  onPoisonTriggered?: (ctx: RelicBehaviorContext, targetId: string) => void;
+  afterInsuranceClaim?: (ctx: RelicBehaviorContext, targetId: string, healed: number) => void;
+  onDuplicateAssembly?: (ctx: RelicBehaviorContext, info: DuplicateAssemblyInfo) => void;
+  onAssemblyReward?: (ctx: RelicBehaviorContext, card: Card) => void;
+  beforeTormentSettle?: (ctx: RelicBehaviorContext, info: TormentSettleInfo) => void;
+  onEnemyActDelayed?: (ctx: RelicBehaviorContext, targetId: string) => void;
+  onProphecySettled?: (ctx: RelicBehaviorContext, fulfilled: boolean, ownerId: string) => void;
+}
+
+export interface CardReturnInfo {
+  card: Card;
+  costDelta: number;
+}
+
+export interface TormentSettleInfo {
+  targetId: string;
+  beats: number;
+}
+
+export interface DuplicateAssemblyInfo {
+  componentId: string;
+  sourceId?: string;
+  released: boolean;
 }
 
 export interface CritChanceInfo {
@@ -112,6 +142,20 @@ type HookArgs = {
   afterEnemyDeath: [string]; // 敌人已经完成死亡(alive = false)之后
   onCardPlayRecorded: [PlayedCardInfo]; // 出牌记录写入 playedThisRound 之后
   onCardDiscarded: [string, DiscardReason]; // 计数类弃牌(主动 / 效果 / 费用 / 羁绊)之后
+  onCardReturned: [CardReturnInfo]; // 真正回手后、叠加回手负担前
+  onCardAttackStarted: [string, number]; // 实际解析攻击段数后、第一段命中前
+  onCardAttackHit: [string, string]; // 卡牌攻击命中后，包含护盾完全吸收
+  onMatureCardPlayed: [Card]; // 成熟牌效果完成后、培育阶段重置前
+  onCultivateWithered: [Card];
+  onPierceRemoved: [string, number];
+  onIncinerated: [string];
+  onPoisonTriggered: [string]; // 毒发，不含自然拍点
+  afterInsuranceClaim: [string, number]; // 实际回复生命量，不含溢额
+  onDuplicateAssembly: [DuplicateAssemblyInfo];
+  onAssemblyReward: [Card];
+  beforeTormentSettle: [TormentSettleInfo];
+  onEnemyActDelayed: [string];
+  onProphecySettled: [boolean, string]; // 原有奖励全部结算后
 };
 
 export type RelicHook = keyof HookArgs;

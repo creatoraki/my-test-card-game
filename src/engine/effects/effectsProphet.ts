@@ -3,6 +3,7 @@
 import type { BattleState, EffectDescriptor, Enemy } from "../types";
 import { ops } from "../core/ops";
 import { startProphecy } from "../prophecy/prophecyState";
+import { runRelicHook } from "../relics/types";
 
 function delayEnemyActs(state: BattleState, effect: EffectDescriptor, targetIds: string[]): void {
   const amount = Math.max(0, Math.floor(effect.amount ?? 1));
@@ -13,6 +14,7 @@ function delayEnemyActs(state: BattleState, effect: EffectDescriptor, targetIds:
     const target = enemy as Enemy;
     if (target.nextActTick == null) continue;
     target.nextActTick += amount;
+    runRelicHook(state, "onEnemyActDelayed", id);
     ops.log(state, `${target.emoji} ${target.name} 的${target.intent.name}推迟 ${amount} 时刻`);
   }
 }

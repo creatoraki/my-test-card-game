@@ -1,6 +1,6 @@
 import type { CardDef } from "@/engine/types";
 
-// 精算师普通卡 · 治疗(《精算师改版方案 · 普通卡》)。
+// 精算师普通卡 · 治疗(《精算师改版方案 · 普通卡》)。纯上保险的卡统一改为"立即回复一部分 + 附加一部分保险"。
 export const ACTUARY_HEAL_CARDS: CardDef[] = [
   {
     id: "initial-premium",
@@ -10,12 +10,13 @@ export const ACTUARY_HEAL_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "ally",
     rarity: "common",
-    anim: "buff",
+    anim: "heal",
     effects: [
+      { type: "HEAL", multiplier: 0.25, target: "primary" },
       {
         type: "APPLY_STATUS",
         status: "insurance",
-        stacksFromStat: { stat: "healPower", multiplier: 0.5 },
+        stacksFromStat: { stat: "healPower", multiplier: 0.25 },
         duration: 2,
         target: "primary",
         condition: "targetNotAttackedThisRound",
@@ -23,13 +24,13 @@ export const ACTUARY_HEAL_CARDS: CardDef[] = [
       {
         type: "APPLY_STATUS",
         status: "insurance",
-        stacksFromStat: { stat: "healPower", multiplier: 0.8 },
+        stacksFromStat: { stat: "healPower", multiplier: 0.55 },
         duration: 2,
         target: "primary",
         condition: "targetAttackedThisRound",
       },
     ],
-    text: "为一名队友附加 {0} 层保险，持续 2 回合；急诊：改为 {1} 层。",
+    text: "回复一名队友相当于治愈力 25% 的生命，并附加相当于治愈力 25% 的保险，持续 2 回合；急诊：保险改为相当于治愈力 55%。",
   },
   {
     id: "emergency-disbursement",
@@ -41,10 +42,11 @@ export const ACTUARY_HEAL_CARDS: CardDef[] = [
     rarity: "common",
     anim: "heal",
     effects: [
+      { type: "HEAL", multiplier: 0.2, target: "primary", condition: "targetNotAttackedThisRound" },
       {
         type: "APPLY_STATUS",
         status: "insurance",
-        stacksFromStat: { stat: "healPower", multiplier: 0.4 },
+        stacksFromStat: { stat: "healPower", multiplier: 0.2 },
         duration: 1,
         target: "primary",
         condition: "targetNotAttackedThisRound",
@@ -57,7 +59,7 @@ export const ACTUARY_HEAL_CARDS: CardDef[] = [
       },
       { type: "DRAW", amount: 1, condition: "targetAttackedThisRound" },
     ],
-    text: "为一名队友附加相当于治愈力 40% 的保险，持续 1 回合；急诊：改为立即回复相当于治愈力 40% 的生命，并抽 1 张牌。",
+    text: "回复一名队友相当于治愈力 20% 的生命，并附加相当于治愈力 20% 的保险，持续 1 回合；急诊：改为立即回复相当于治愈力 40% 的生命，并抽 1 张牌。",
   },
   {
     id: "early-claim",
@@ -88,18 +90,19 @@ export const ACTUARY_HEAL_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "ally",
     rarity: "common",
-    anim: "buff",
+    anim: "heal",
     keywords: [{ id: "echo", effects: [] }],
     effects: [
+      { type: "HEAL", multiplier: 0.2, target: "primary" },
       {
         type: "APPLY_STATUS",
         status: "insurance",
-        stacksFromStat: { stat: "healPower", multiplier: 0.4 },
+        stacksFromStat: { stat: "healPower", multiplier: 0.2 },
         duration: 2,
         target: "primary",
       },
     ],
-    text: "为一名队友附加相当于治愈力 40% 的保险，持续 2 回合；回响。",
+    text: "回复一名队友相当于治愈力 20% 的生命，并附加相当于治愈力 20% 的保险，持续 2 回合；回响。",
   },
   {
     id: "deductible-clause",
@@ -122,32 +125,6 @@ export const ACTUARY_HEAL_CARDS: CardDef[] = [
       { type: "APPLY_STATUS", status: "deductible", stacks: 1, duration: 2, target: "primary" },
     ],
     text: "为一名队友附加相当于治愈力 55% 的保险，持续 2 回合，并使其受到的伤害降低 20%，持续 2 回合；回响。",
-  },
-  {
-    id: "installment-claim",
-    name: "分期赔付",
-    ownerCharId: "actuary",
-    cost: 1,
-    cardType: "fast",
-    targeting: "ally",
-    rarity: "common",
-    anim: "heal",
-    effects: [
-      {
-        type: "SETTLE_INSURANCE",
-        settlePct: 0.5,
-        target: "primary",
-        condition: "targetNotAttackedThisRound",
-      },
-      {
-        type: "SETTLE_INSURANCE",
-        settlePct: 0.5,
-        keepStacks: true,
-        target: "primary",
-        condition: "targetAttackedThisRound",
-      },
-    ],
-    text: "立即理赔目标保险的一半（向下取整），并扣除对应层数；急诊：本次理赔不扣除层数。",
   },
   {
     id: "risk-exposure",
