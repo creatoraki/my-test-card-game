@@ -15,6 +15,7 @@
 // ★ 「队员宿舍 = 编队页」是个特例: 编队是**顶层全屏页**(不是设施内场景), 但进出照样播这段换场 ——
 //   像素铺满的那一刻才切 screen, 返回时由 town/townReturn.ts 的标记让本组件挂载即补播反向段。
 //   右下出击坞的「编队」按钮走的也是同一条路(见 enterFormation)。
+// ★ 建筑有开放条件(见 buildingUnlock.ts): 未开放的楼在全景上盖蒙版挂锁, enterFacility 也会拦下。
 // ⚠ **出击不是设施**: 它连这段换场都不播, 直接切到顶层全屏页(见右下的 StationDock)。
 
 import {
@@ -57,6 +58,7 @@ import { StationHud } from "./parts/StationHud";
 import { StationSettingsPanel } from "./parts/StationSettings";
 import { StationLayer } from "./parts/StationLayer";
 import { buildingOfFacility, type StationBuilding } from "./stationBuildings";
+import { useBuildingLocks } from "./buildingUnlock";
 import { guardSortie, useFormationTodo } from "../FormationTodo";
 import s from "./TownScreen.module.css";
 
@@ -109,6 +111,8 @@ export function TownScreen() {
   const openFormation = useRunStore((state) => state.openFormation);
   const openSortie = useRunStore((state) => state.openSortie);
   const formationTodo = useFormationTodo();
+  // 未开放的建筑(规则见 buildingUnlock.ts): 全景上挂锁, 进不去。
+  const locks = useBuildingLocks();
 
   // 从顶层全屏页(编队)回来的那一次: 本组件是全新挂载的, 若照常停在 idle, 那段反向换场就没了。
   // ⚠ 用 peek 而不是一次性的 take —— StrictMode 下 useState 的初值函数会跑两次, 消费统一放
@@ -164,7 +168,7 @@ export function TownScreen() {
 
   function enterFacility(target: StationBuilding) {
     setSettingsOpen(false);
-    if (phase !== "idle") return;
+    if (phase !== "idle" || locks[target.id]) return;
     clearTimers();
     finishedRef.current = false;
     setBuilding(target);
@@ -279,6 +283,7 @@ export function TownScreen() {
       <div className={s["station-layer"]} data-visible={phase !== "inside" && stationShown}>
         <StationLayer
           onEnter={enterFacility}
+          locks={locks}
           pickedId={phase === "entering" ? building?.id ?? null : null}
         />
       </div>

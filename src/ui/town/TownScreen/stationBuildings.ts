@@ -5,6 +5,7 @@
 // ★ 坐标系与画布(ui/app/shared/stage.ts 的 1920×1080 设计 px)完全一致: SVG viewBox 与招牌锚点
 //   直接用它, 任何分辨率下构图逐 px 一致。
 // ★ 加一栋建筑 = 这里描一条轮廓 + 在 FACILITY_BINDING 里加一行, 组件一行都不用动。
+// ★ 解锁条件不在这里, 见同目录 buildingUnlock.ts。
 
 import {
   ASSEMBLY_BG_ART,
@@ -24,6 +25,7 @@ const BUILDING_CONTOURS = [
     label: "工房",
     // y 让开左上角终端面板(底边 148)。
     sign: { x: 322, y: 180, anchorX: 380, anchorY: 358 },
+    lock: { x: 560, y: 290 },
     path: `M 359 179
       L 599 125 L 605 119 L 673 140 L 674 79
       Q 679 75 684 80 L 685 145 L 714 153
@@ -39,6 +41,7 @@ const BUILDING_CONTOURS = [
     id: "supplies",
     label: "医疗室",
     sign: { x: 1055, y: 145, anchorX: 995, anchorY: 345 },
+    lock: { x: 885, y: 290 },
     path: `M 773 207
       L 811 198 L 811 193 L 816 191 L 816 183
       L 824 182 L 829 188 L 829 197 L 851 196
@@ -63,6 +66,7 @@ const BUILDING_CONTOURS = [
     id: "sleeping-pods",
     label: "队员宿舍",
     sign: { x: 1676, y: 150, anchorX: 1610, anchorY: 356 },
+    lock: { x: 1425, y: 300 },
     path: `M 1227 174
       L 1240 158 L 1266 154 L 1272 144 L 1290 139
       L 1327 135 L 1337 128 L 1356 124 L 1391 118
@@ -86,6 +90,7 @@ const BUILDING_CONTOURS = [
     id: "workshop",
     label: "商店",
     sign: { x: 150, y: 473, anchorX: 221, anchorY: 657 },
+    lock: { x: 360, y: 595 },
     path: `M 221 511
       L 326 479 L 326 469 L 350 460 L 370 465
       L 376 472 L 391 467 Q 397 465 404 469
@@ -107,6 +112,7 @@ const BUILDING_CONTOURS = [
     id: "power-station",
     label: "档案机",
     sign: { x: 957, y: 625, anchorX: 890, anchorY: 828 },
+    lock: { x: 790, y: 792 },
     path: `M 646 801
       L 665 796 L 688 803 L 701 799 L 703 768
       L 709 760 L 718 738 L 739 733 L 780 740
@@ -119,6 +125,7 @@ const BUILDING_CONTOURS = [
     id: "laboratory",
     label: "研究中心",
     sign: { x: 1788, y: 490, anchorX: 1698, anchorY: 691 },
+    lock: { x: 1400, y: 690 },
     path: `M 1076 673
       L 1197 641 L 1409 588 L 1412 565
       Q 1413 554 1423 548 L 1477 530 L 1491 531
@@ -171,6 +178,8 @@ export interface StationBuilding extends FacilityBinding {
   label: string;
   /** 竖排招牌的挂点与引线锚点(设计 px)。 */
   sign: { x: number; y: number; anchorX: number; anchorY: number };
+  /** 未开放时锁头的中心点(设计 px), 落在建筑立面的视觉重心上。 */
+  lock: { x: number; y: number };
   /** 建筑剪影, 同时是命中区。 */
   path: string;
 }

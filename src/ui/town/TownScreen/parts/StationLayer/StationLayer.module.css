@@ -1,5 +1,11 @@
 /* 建筑热区与招牌。所有尺寸都是 SVG 用户单位 = 设计 px(viewBox 1920×1080), 与画布同一坐标系。 */
 
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .scene {
   display: block;
   width: 100%;
@@ -140,6 +146,63 @@
 .building[data-picked="true"] .signConnector {
   opacity: 1;
   stroke-width: 2.5;
+}
+
+/* ===================== 未开放 ===================== */
+/* 沿剪影的三层蒙版: 压暗 → 斜纹 → 琥珀色虚线描边。悬停时只把描边提亮, 不亮青色光效。 */
+.building[data-locked="true"] .hitArea {
+  cursor: var(--cursor-forbidden);
+}
+
+.lockMask {
+  pointer-events: none;
+}
+
+.maskShade {
+  fill: #03070bc7;
+}
+
+.maskHatch {
+  opacity: 0.55;
+}
+
+.hatchStripe {
+  fill: #ffb04d1f;
+}
+
+.maskEdge {
+  fill: none;
+  stroke: #ffb04d;
+  stroke-width: 2;
+  stroke-dasharray: 10 7;
+  stroke-linejoin: round;
+  opacity: 0.4;
+  filter: drop-shadow(0 0 3px #ff9a2e);
+  transition: opacity 140ms ease-out;
+}
+
+.building[data-locked="true"]:hover .maskEdge,
+.building[data-locked="true"]:focus-visible .maskEdge {
+  opacity: 0.95;
+}
+
+/* 招牌跟着熄灯: 整块压暗, 悬停也不点亮。 */
+.building[data-locked="true"] .billboard {
+  cursor: var(--cursor-forbidden);
+  opacity: 0.45;
+  filter: grayscale(0.8);
+}
+
+.building[data-locked="true"]:hover .signPanel,
+.building[data-locked="true"]:focus-visible .signPanel {
+  fill: #071d21ed;
+  filter: drop-shadow(0 4px 6px #001512b3);
+}
+
+.building[data-locked="true"]:hover .signConnector,
+.building[data-locked="true"]:focus-visible .signConnector {
+  opacity: 0.65;
+  stroke-width: 1.5;
 }
 
 @keyframes orbit {
