@@ -39,6 +39,12 @@ export function rollBoons(
   });
 }
 
+// 无需二次交互的额外奖励: 胜利结算「全部拾取」会一并领取(箱子当场开启, 开出物随战利品进背包)。
+// 抽牌 / 换牌要进选牌界面, 不在此列, 仍需单独点击。
+const DIRECT_BOON_KINDS: ReadonlySet<BattleBoonKind> = new Set(["healDew", "equipCrate", "moduleCrate"]);
+
+export const isDirectBoon = (kind: BattleBoonKind): boolean => DIRECT_BOON_KINDS.has(kind);
+
 export function takeBoon(s: ExploreState, uid: string): PendingBoon | null {
   const index = s.pendingBoons.findIndex((boon) => boon.uid === uid);
   if (index < 0) return null;

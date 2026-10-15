@@ -73,6 +73,20 @@
 :global([data-hand-card][data-card-type="fast"]) .hc-cost-crystal {
   filter: var(--hc-crystal-filter, drop-shadow(0 2px 3px #01132ee6) drop-shadow(0 0 5px #d68a3c));
 }
+/* 费用不足(法力不够): 水晶"断电" —— 去色压暗、熄掉辉光, 数字褪成灰白; 整卡其余部分照常可读。
+   ⚠ 直接写 filter 不走 --hc-crystal-filter: 放大卡面把那个钩子设成了 none, 走变量会被吞掉。
+   ⚠ 选择器必须排在上面普/速两条之后(同特异性靠先后取胜)。 */
+:global([data-hand-card][data-unaffordable]) .hc-cost-crystal {
+  filter: grayscale(1) brightness(0.55) contrast(0.85) drop-shadow(0 2px 3px #000000b3);
+  transition: filter 0.25s ease;
+}
+:global([data-hand-card][data-unaffordable]) .hc-cost {
+  color: #8d939b;
+  text-shadow: 0 1px 2px #000000cc;
+}
+:global([data-hand-card][data-unaffordable]) .hc-cost-value {
+  -webkit-text-stroke-color: #1c1e22;
+}
 /* ★ --hc-crystal-filter / --hc-cost-stroke(-color) / --hc-cost-shadow / --hc-cost-nudge 是放大卡面的钩子:
    华丽水晶自带同色外发光, 不再叠全站辉光; 数字描边按宝石色调着色(paint-order 让描边垫在字形下面, 实际露出一半宽度);
    nudge 让数字相对宝石做亚像素级微调; stretch 横向拉宽数字(BebasNeue 是窄体, 设计稿数字更宽)。缺省即原值。 */

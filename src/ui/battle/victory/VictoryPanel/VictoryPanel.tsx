@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { RULES } from "@/engine";
 import { getItemDef } from "@/data";
+import { isDirectBoon } from "@/explore/core/boons";
 import { useExploreStore } from "@/store/explore/exploreStore";
 import { useRunStore } from "@/store/run/runStore";
 import { useTownStore } from "@/store/town/townStore";
@@ -37,6 +38,7 @@ export function VictoryPanel() {
   const abandonLoot = useExploreStore((state) => state.abandonLoot);
   const abandonBoons = useExploreStore((state) => state.abandonBoons);
   const discardItem = useExploreStore((state) => state.discardItem);
+  const takeBoon = useExploreStore((state) => state.takeBoonAction);
   const characters = useTownStore((state) => state.characters);
   const [confirmingAbandon, setConfirmingAbandon] = useState(false);
   const [continueNudge, setContinueNudge] = useState(false);
@@ -49,6 +51,8 @@ export function VictoryPanel() {
   const pendingBoons = session?.pendingBoons ?? [];
   const pendingCardOffer = session?.pendingCardOffer ?? null;
   const pendingCardReplace = session?.pendingCardReplace ?? null;
+  const directBoonUids = pendingBoons.filter((boon) => isDirectBoon(boon.kind)).map((boon) => boon.uid);
+  const canTakeAll = pendingLoot.length > 0 || directBoonUids.length > 0;
   const pendingRewardCount = pendingLoot.length + pendingBoons.length + (pendingCardOffer ? 1 : 0) + (pendingCardReplace ? 1 : 0);
   const timing = victoryTiming();
   const pulseSignature = Object.fromEntries(backpack.map((stack) => [stack.uid, stack.count]));
@@ -112,6 +116,12 @@ export function VictoryPanel() {
       return;
     }
     confirmExpReport();
+  };
+  // 全部拾取: 先领掉无需二次交互的额外奖励(箱子开出的物品落进战利品), 再把战利品整体收进背包。
+  // ⚠ 顺序不能反: 箱子开出物是 takeBoon 时才加进 pendingLoot 的, takeAll 会从 store 现读最新列表。
+  const handleTakeAll = () => {
+    directBoonUids.forEach((uid) => takeBoon(uid));
+    trayRef.current?.takeAll();
   };
   const handleAbandon = () => {
     abandonLoot();
@@ -212,7 +222,7 @@ export function VictoryPanel() {
               ) : (
                 <div key="actions" className={s["footer-state"]}>
                   <VictoryButton tone="danger" disabled={!pendingRewardCount} onClick={() => setConfirmingAbandon(true)}>放弃剩余</VictoryButton>
-                  <VictoryButton tone="primary" disabled={!pendingLoot.length} onClick={() => trayRef.current?.takeAll()}>全部拾取</VictoryButton>
+                  <VictoryButton tone="primary" disabled={!canTakeAll} onClick={handleTakeAll}>全部拾取</VictoryButton>
                 </div>
               )}
             </div>

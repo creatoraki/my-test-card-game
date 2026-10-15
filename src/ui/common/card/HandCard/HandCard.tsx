@@ -202,6 +202,8 @@ export const HandCard = memo(function HandCard({
           data-selected={selected ? "" : undefined}
           data-leaving={leaving ? "" : undefined}
           data-unplayable={!playable && !unaffordable && !passive ? "" : undefined}
+          // 费用不足: 只让费用水晶"断电"变灰(见 HandCard.face.module.css), 整卡仍保持可读。
+          data-unaffordable={unaffordable && !passive ? "" : undefined}
           data-passive={passive ? "" : undefined}
           data-discarding={discarding ? "" : undefined}
           data-purged={purged ? "" : undefined}
