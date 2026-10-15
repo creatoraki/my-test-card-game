@@ -21,11 +21,13 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
   type ReactNode,
 } from "react";
+import { isTestMode } from "@/store/dev/devTestStore";
 import { useRunStore } from "@/store/run/runStore";
 import { useTownStore } from "@/store/town/townStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
@@ -58,11 +60,11 @@ import { StationHud } from "./parts/StationHud";
 import { StationSettingsPanel } from "./parts/StationSettings";
 import { StationLayer } from "./parts/StationLayer";
 import { buildingOfFacility, type StationBuilding } from "./stationBuildings";
-import { useBuildingLocks } from "./buildingUnlock";
+import { useBuildingLocks, type BuildingLocks } from "./buildingUnlock";
+import { useBuildingReveal } from "./buildingReveal";
 import { guardSortie, useFormationTodo } from "../FormationTodo";
 import s from "./TownScreen.module.css";
 
-const isTest = import.meta.env.isTest === "true";
 const FACILITIES_WITH_OWN_BACK = new Set(["shop", "museum", "assembly", "worklog", "cryo"]);
 
 // ===================== 设施内容登记处 =====================
@@ -111,8 +113,6 @@ export function TownScreen() {
   const openFormation = useRunStore((state) => state.openFormation);
   const openSortie = useRunStore((state) => state.openSortie);
   const formationTodo = useFormationTodo();
-  // 未开放的建筑(规则见 buildingUnlock.ts): 全景上挂锁, 进不去。
-  const locks = useBuildingLocks();
 
   // 从顶层全屏页(编队)回来的那一次: 本组件是全新挂载的, 若照常停在 idle, 那段反向换场就没了。
   // ⚠ 用 peek 而不是一次性的 take —— StrictMode 下 useState 的初值函数会跑两次, 消费统一放
@@ -130,6 +130,16 @@ export function TownScreen() {
   // 它在 PixelSwap 之上, 不跟着走的话会浮在已经换好的设施背景上。
   const [stationShown, setStationShown] = useState(!returning);
   const exit = useFacilityExitRegistry();
+  // 未开放的建筑(规则见 buildingUnlock.ts): 全景上挂锁, 进不去。条件刚满足的楼在全景
+  // 可交互时逐栋播一次开锁(buildingReveal.ts), 播完的那几栋立即视同开放。
+  const lockState = useBuildingLocks();
+  const reveal = useBuildingReveal(lockState.pendingReveal, phase === "idle" && stationShown);
+  const locks = useMemo(() => {
+    if (!reveal.opened.size) return lockState.locks;
+    const next: BuildingLocks = { ...lockState.locks };
+    reveal.opened.forEach((id) => delete next[id]);
+    return next;
+  }, [lockState.locks, reveal.opened]);
   const exitingRef = useRef(false);
 
   // 定时器句柄集中管理: 卸载时一并清掉, 避免演出中途切界面导致卸载后 setState。
@@ -229,7 +239,7 @@ export function TownScreen() {
   }
 
   function grantTestRewards() {
-    if (!isTest) return;
+    if (!isTestMode()) return;
     grantExp(awakened, 2000);
     bankLoot(10000);
   }
@@ -284,6 +294,7 @@ export function TownScreen() {
         <StationLayer
           onEnter={enterFacility}
           locks={locks}
+          unlocking={reveal.unlocking}
           pickedId={phase === "entering" ? building?.id ?? null : null}
         />
       </div>
@@ -322,7 +333,7 @@ export function TownScreen() {
             open={settingsOpen}
             onClose={() => setSettingsOpen(false)}
             onResetProfile={resetProfile}
-            onTestReward={isTest ? grantTestRewards : undefined}
+            onTestReward={grantTestRewards}
           />
         </>
       )}

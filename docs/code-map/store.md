@@ -10,7 +10,7 @@
 | [runStore.ts](../../src/store/run/runStore.ts) | 内存 | 一次远征的流程编排：界面路由 `screen`、进出探索、建战斗、战后结算、撤离与回城。单向依赖 `townStore`。本文件只保留状态与路由，编排细节在 `store/run/`。 |
 | [exploreStore.ts](../../src/store/explore/exploreStore.ts) | 内存（出击前会备份城镇档案） | 包裹 `explore/session/` 的远征会话本身。 |
 | [battleStore.ts](../../src/store/battle/battleStore.ts) | 内存 | 包裹战斗引擎。出牌和结束回合会引出敌人行动与弃牌触发，引擎按发生顺序记为 `steps`，UI 逐步回放。建局时按测试开关「测试战斗」注入 `oneHpEnemies`。 |
-| [devTestStore.ts](../../src/store/dev/devTestStore.ts) | localStorage | 测试开关(关闭遇敌 / 测试战斗)，仅 `isTest=true` 时生效；`devTestFlag()` 在正式环境恒为 false。 |
+| [devTestStore.ts](../../src/store/dev/devTestStore.ts) | localStorage | 测试模式总开关(据点设置面板切换) + 关闭遇敌 / 测试战斗子开关；`useTestMode()` / `isTestMode()` 读总开关，`devTestFlag()` 在测试模式关闭时恒为 false。 |
 | [sortieStore.ts](../../src/store/sortie/sortieStore.ts) | 内存，**刻意不持久化** | 出击准备的临时会话：选地图、装背包。刷新页面即作废，避免半截的出击状态混进存档。 |
 
 ## townStore 的切片与辅助

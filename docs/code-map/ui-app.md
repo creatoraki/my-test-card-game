@@ -56,5 +56,5 @@
 | 目录 | 作用 |
 | --- | --- |
 | [menu/MenuScreen](../../src/ui/menu/MenuScreen/MenuScreen.tsx) + [MenuStartButton](../../src/ui/menu/MenuStartButton/MenuStartButton.tsx) | 主菜单：显示预加载进度，就绪后进入据点。开始按钮用同一张 PNG 的透明通道做遮罩，叠三层特效。 |
-| [elevator/ElevatorScene](../../src/ui/elevator/ElevatorScene/ElevatorScene.tsx) | 出击时的电梯下降视频过场，结束后调用 `runStore.finishRide`。环境变量 `isTest=true` 时跳过。 |
+| [elevator/ElevatorScene](../../src/ui/elevator/ElevatorScene/ElevatorScene.tsx) | 出击时的电梯下降视频过场，结束后调用 `runStore.finishRide`。测试模式开启时跳过(进场那一刻读一次)。 |
 | [result/EndScreen](../../src/ui/result/EndScreen/EndScreen.tsx) | 远征结算页，通关、撤离、团灭共用。`endSummary.ts` 汇总远征记录，`endChoreo.ts` 负责演出时序；`parts/` 包括结论横幅、队伍名单、战利品、通关奖励、奖杯栏、事件掉落带。 |

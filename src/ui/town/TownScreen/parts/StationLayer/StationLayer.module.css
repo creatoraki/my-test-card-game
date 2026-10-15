@@ -149,7 +149,7 @@
 }
 
 /* ===================== 未开放 ===================== */
-/* 沿剪影的三层蒙版: 压暗 → 斜纹 → 琥珀色虚线描边。悬停时只把描边提亮, 不亮青色光效。 */
+/* 沿剪影的三层蒙版: 压暗 → 斜纹 → 红色虚线描边。悬停时只把描边提亮, 不亮青色光效。 */
 .building[data-locked="true"] .hitArea {
   cursor: var(--cursor-forbidden);
 }
@@ -167,17 +167,17 @@
 }
 
 .hatchStripe {
-  fill: #ffb04d1f;
+  fill: #ff4d4d1f;
 }
 
 .maskEdge {
   fill: none;
-  stroke: #ffb04d;
+  stroke: #ff4d4d;
   stroke-width: 2;
   stroke-dasharray: 10 7;
   stroke-linejoin: round;
   opacity: 0.4;
-  filter: drop-shadow(0 0 3px #ff9a2e);
+  filter: drop-shadow(0 0 3px #ff2e2e);
   transition: opacity 140ms ease-out;
 }
 
@@ -203,6 +203,52 @@
 .building[data-locked="true"]:focus-visible .signConnector {
   opacity: 0.65;
   stroke-width: 1.5;
+}
+
+/* ===================== 开锁演出 ===================== */
+/* 时间轴对齐锁头着色器(ui/art/lock/padlockUnlock.glsl.ts): 0.7s 锁头开始碎散时蒙版褪去,
+   剪影沿轮廓闪一圈青光, 招牌同步亮回来。总长 1.5s(buildingReveal.ts)。 */
+.building[data-unlocking="true"] .hitArea {
+  cursor: var(--cursor-default);
+}
+
+.building[data-unlocking="true"] .lockMask {
+  animation: maskLift 700ms 650ms ease-in both;
+}
+
+.building[data-unlocking="true"] .maskEdge {
+  stroke: #56ffe3;
+  filter: drop-shadow(0 0 4px #30eaca);
+  opacity: 0.9;
+  transition: stroke 400ms ease, opacity 400ms ease;
+}
+
+.building[data-unlocking="true"] .highlight {
+  animation: unlockFlash 1500ms ease-out both;
+}
+
+.building[data-unlocking="true"] .orbit {
+  animation-play-state: running;
+  animation-duration: 1.2s;
+}
+
+.building[data-unlocking="true"] .billboard {
+  animation: billboardWake 900ms 600ms ease-out both;
+}
+
+@keyframes maskLift {
+  to { opacity: 0; }
+}
+
+@keyframes unlockFlash {
+  0%, 42% { opacity: 0; }
+  58% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes billboardWake {
+  from { opacity: 0.45; filter: grayscale(0.8); }
+  to { opacity: 1; filter: grayscale(0); }
 }
 
 @keyframes orbit {

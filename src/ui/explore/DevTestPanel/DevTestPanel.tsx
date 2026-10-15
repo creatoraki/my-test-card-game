@@ -1,23 +1,23 @@
-// 探索页测试面板 —— 只在环境变量 isTest=true 时挂载, 排在左上角小地图右侧。
+// 探索页测试面板 —— 只在测试模式开启时挂载(据点设置面板切换), 排在左上角小地图右侧。
 // 两个开关(关闭遇敌 / 测试战斗)存于 store/dev/devTestStore, 一个动作按钮直接开打本图首领战。
 
 import type { MouseEvent } from "react";
 import type { ExploreState } from "@/explore/types";
 import { canWalkCorridor } from "@/explore/corridor/corridorSession";
-import { IS_TEST_ENV, useDevTestStore, type DevTestToggles } from "@/store/dev/devTestStore";
+import { useDevTestStore, type DevTestToggles } from "@/store/dev/devTestStore";
 import { challengeBossTest } from "@/store/explore/exploreCorridor";
 import { setTransitionOrigin } from "@/ui/app/shared/transitionOrigin";
 import frame from "@/ui/explore/Minimap/MinimapFrame.module.css";
 import s from "./DevTestPanel.module.css";
 
-const TOGGLES: { key: keyof DevTestToggles; label: string }[] = [
+const TOGGLES: { key: Exclude<keyof DevTestToggles, "testMode">; label: string }[] = [
   { key: "noEncounter", label: "关闭遇敌" },
   { key: "oneHpEnemies", label: "测试战斗" },
 ];
 
 export function DevTestPanel({ session }: { session: ExploreState }) {
   const toggles = useDevTestStore();
-  if (!IS_TEST_ENV) return null;
+  if (!toggles.testMode) return null;
   const bossReady = canWalkCorridor(session);
 
   const startBoss = (event: MouseEvent<HTMLButtonElement>) => {

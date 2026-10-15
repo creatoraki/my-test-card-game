@@ -7,6 +7,7 @@
 // ★ 招牌是竖排中文 + 引线锚点, 位置(sign.x/y 与 anchorX/anchorY)也在建筑表里。
 // ★ 未开放的建筑(locks 里有它): 剪影上盖一层沿轮廓的暗色斜纹蒙版 + 一把 GLSL 锁头;
 //   点它不会进设施, 只让锁头抖一下并亮出开放条件。
+// ★ 开锁演出(unlocking 里有它): 锁头碎散, 蒙版褪去, 剪影沿轮廓闪一圈青光。排程见 buildingReveal.ts。
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import {
@@ -31,9 +32,11 @@ export interface StationLayerProps {
   pickedId?: BuildingId | null;
   /** 未开放的建筑 → 开放条件。 */
   locks: BuildingLocks;
+  /** 正在播开锁演出的建筑(同时仍在 locks 里)。 */
+  unlocking: ReadonlySet<BuildingId>;
 }
 
-export function StationLayer({ onEnter, pickedId = null, locks }: StationLayerProps) {
+export function StationLayer({ onEnter, pickedId = null, locks, unlocking }: StationLayerProps) {
   const id = useId().replace(/:/g, "");
   const [hoveredId, setHoveredId] = useState<BuildingId | null>(null);
   const [deniedId, setDeniedId] = useState<BuildingId | null>(null);
@@ -45,6 +48,7 @@ export function StationLayer({ onEnter, pickedId = null, locks }: StationLayerPr
       onEnter(building);
       return;
     }
+    if (unlocking.has(building.id)) return;
     window.clearTimeout(denyTimer.current);
     setDeniedId(building.id);
     denyTimer.current = window.setTimeout(() => setDeniedId(null), DENY_MS);
@@ -77,6 +81,7 @@ export function StationLayer({ onEnter, pickedId = null, locks }: StationLayerPr
         {STATION_BUILDINGS.map((building, index) => {
           const href = `#${id}-${building.id}`;
           const reason = locks[building.id];
+          const opening = unlocking.has(building.id);
           return (
             <g
               key={building.id}
@@ -87,7 +92,8 @@ export function StationLayer({ onEnter, pickedId = null, locks }: StationLayerPr
               aria-disabled={reason ? true : undefined}
               data-building={building.id}
               data-picked={pickedId === building.id}
-              data-locked={!!reason}
+              data-locked={!!reason && !opening}
+              data-unlocking={opening}
               onClick={() => activate(building)}
               onKeyDown={(event) => handleKeyDown(event, building)}
               onPointerEnter={() => setHoveredId(building.id)}
@@ -96,13 +102,14 @@ export function StationLayer({ onEnter, pickedId = null, locks }: StationLayerPr
               onBlur={() => setHoveredId((current) => (current === building.id ? null : current))}
             >
               <use href={href} className={s.hitArea} />
-              {reason ? (
+              {reason && (
                 <g className={s.lockMask} aria-hidden="true">
                   <use href={href} className={s.maskShade} />
                   <use href={href} className={s.maskHatch} fill={`url(#${id}-hatch)`} />
                   <use href={href} className={s.maskEdge} />
                 </g>
-              ) : (
+              )}
+              {(!reason || opening) && (
                 <g className={s.highlight} aria-hidden="true">
                   <use href={href} className={s.halo} />
                   <use href={href} className={s.edge} />
@@ -124,6 +131,7 @@ export function StationLayer({ onEnter, pickedId = null, locks }: StationLayerPr
             reason={reason}
             hovered={hoveredId === building.id}
             denying={deniedId === building.id}
+            unlocking={unlocking.has(building.id)}
             seed={index * 0.37}
           />
         ) : null;

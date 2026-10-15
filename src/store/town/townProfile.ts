@@ -66,6 +66,7 @@ export function freshProfile(includeInitialExp = true): {
   techTree: TechTreeState;
   codex: CodexState;
   seenGuides: string[];
+  revealedBuildings: string[];
 } {
   const characters: Record<string, CharacterState> = {};
   for (const c of CHARACTERS) characters[c.id] = freshCharacter(c);
@@ -91,6 +92,7 @@ export function freshProfile(includeInitialExp = true): {
     techTree: { levels: {} },
     codex: { items: [], cards: [], enemies: [] },
     seenGuides: [],
+    revealedBuildings: [],
   };
 }
 

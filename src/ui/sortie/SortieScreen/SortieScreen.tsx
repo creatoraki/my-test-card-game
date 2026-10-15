@@ -8,6 +8,7 @@ import {
   type MapDifficulty,
 } from "@/data";
 import type { ItemStack } from "@/items/types";
+import { useTestMode } from "@/store/dev/devTestStore";
 import { useRunStore } from "@/store/run/runStore";
 import { useSortieStore } from "@/store/sortie/sortieStore";
 import { useTownStore } from "@/store/town/townStore";
@@ -26,7 +27,6 @@ import {
 import { usePanelMorph, type Rect } from "@/ui/common/frame/panelMorph";
 import s from "./SortieScreen.module.css";
 
-const isTest = import.meta.env.isTest === "true";
 const RELIC_PANEL_RECT: Record<"relic", Rect> = {
   relic: { x: 360, y: 130, w: 1200, h: 760 },
 };
@@ -43,6 +43,7 @@ export function SortieScreen() {
   const cancel = useSortieStore((state) => state.cancel);
   const clear = useSortieStore((state) => state.clear);
   const party = useTownStore((state) => state.party);
+  const isTest = useTestMode();
   const clearedMaps = useTownStore((state) => state.clearedMaps);
   const clearedDifficulties = useTownStore((state) => state.clearedDifficulties);
   const dailyClearRewards = useTownStore((state) => state.dailyClear.rewards);
@@ -67,6 +68,7 @@ export function SortieScreen() {
     selectedMapId,
     selectedDifficulty,
     clearedDifficulties,
+    isTest,
   );
   const lockReason = selectedMap?.locked || !isTest ? mapLockReason(selectedMapId, clearedMaps) : null;
 
@@ -76,7 +78,7 @@ export function SortieScreen() {
   }, [maps, selectedMapId]);
 
   useEffect(() => {
-    if (!selectedMapId || isDifficultyUnlocked(selectedMapId, selectedDifficulty, clearedDifficulties)) return;
+    if (!selectedMapId || isDifficultyUnlocked(selectedMapId, selectedDifficulty, clearedDifficulties, isTest)) return;
     setSelectedDifficulty("normal");
   }, [selectedMapId, selectedDifficulty, clearedDifficulties]);
 

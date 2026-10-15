@@ -1,9 +1,12 @@
+import { useDevTestStore } from "@/store/dev/devTestStore";
 import { confirm } from "@/ui/common/control/ConfirmDialog";
 import {
   AudioSettingsRows,
   SettingsAction,
   SettingsActions,
   SettingsPanelShell,
+  SettingsSection,
+  SettingsToggleRow,
 } from "@/ui/common/control/SettingsPanel";
 import s from "./StationSettingsPanel.module.css";
 
@@ -11,7 +14,8 @@ export interface StationSettingsPanelProps {
   open: boolean;
   onClose: () => void;
   onResetProfile: () => void;
-  onTestReward?: () => void;
+  /** 测试奖励: 只在测试模式开启时露出按钮。 */
+  onTestReward: () => void;
 }
 
 export function StationSettingsPanel({
@@ -20,6 +24,8 @@ export function StationSettingsPanel({
   onResetProfile,
   onTestReward,
 }: StationSettingsPanelProps) {
+  const testMode = useDevTestStore((state) => state.testMode);
+  const toggleTest = useDevTestStore((state) => state.toggle);
   const askReset = () => {
     confirm({
       title: "重置存档",
@@ -42,6 +48,14 @@ export function StationSettingsPanel({
       scrimClassName={s.scrim}
     >
       <AudioSettingsRows />
+      <SettingsSection title="调试">
+        <SettingsToggleRow
+          name="测试模式"
+          note="开放全部地图与建筑，跳过电梯过场"
+          on={testMode}
+          onToggle={() => toggleTest("testMode")}
+        />
+      </SettingsSection>
       <SettingsActions>
         <SettingsAction
           name="重置存档"
@@ -50,7 +64,7 @@ export function StationSettingsPanel({
           danger
           onClick={askReset}
         />
-        {onTestReward && (
+        {testMode && (
           <SettingsAction
             name="测试奖励"
             note="2000 经验 · 10000 积分"

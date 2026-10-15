@@ -67,6 +67,19 @@
   text-shadow: var(--ui-glow);
 }
 
+/* 开关行的名称按字数自适应, 说明文字吃掉中间剩余宽度。 */
+.rowNameAuto {
+  width: auto;
+}
+
+.rowNote {
+  flex: 1;
+  min-width: 0;
+  color: var(--ui-label);
+  font-size: 18px;
+  line-height: 1.3;
+}
+
 .toggle {
   flex: none;
   min-width: 116px;
@@ -86,6 +99,7 @@
 .compact .section + .section { padding-top: 16px; padding-bottom: 0; }
 .compact .row { min-height: 58px; padding: 8px 14px; gap: 12px; }
 .compact .rowName { width: 44px; font-size: 18px; }
+.compact .rowNameAuto { width: auto; }
 .compact .toggle { min-width: 90px; min-height: 36px; height: 36px; padding: 0 12px; }
 .compact .actions { grid-auto-rows: 64px; gap: 12px; }
 .compact .action {

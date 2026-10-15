@@ -1,13 +1,14 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { isTestMode } from "@/store/dev/devTestStore";
 import { useRunStore } from "@/store/run/runStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
 import { playBgm, setBgmSuspended, stopBgm } from "@/ui/audio";
 import { ELEVATOR_DESCENT_VIDEO } from "@/ui/art/explore/sceneArt";
 import s from "./ElevatorScene.module.css";
 
-const isTest = import.meta.env.isTest === "true";
-
 export function ElevatorScene() {
+  // 测试模式跳过过场: 只在挂载那一刻读一次, 过场中途切开关不影响本次。
+  const [isTest] = useState(isTestMode);
   const videoRef = useRef<HTMLVideoElement>(null);
   const doneRef = useRef(false);
   const finishRide = useRunStore((state) => state.finishRide);

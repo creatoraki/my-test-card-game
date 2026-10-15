@@ -7,11 +7,12 @@
   pointer-events: none;
 }
 
-/* GlslSprite 的画布自带 pointer-events: auto, 这里提高特异性压回去, 让点击落到下面的剪影。 */
+/* GlslSprite 的画布自带 pointer-events: auto, 这里提高特异性压回去, 让点击落到下面的剪影。
+   偏移 = 画布尺寸的一半(lockPrograms.ts 的 PADLOCK_GEOMETRY)。 */
 .lock .sprite {
   position: absolute;
-  left: -90px;
-  top: -90px;
+  left: -110px;
+  top: -110px;
   pointer-events: none;
 }
 
@@ -26,10 +27,10 @@
   gap: 2px;
   padding: 8px 18px 10px;
   white-space: nowrap;
-  background: linear-gradient(180deg, #2a1806f0, #120a04f2);
-  border: 1px solid #ffb04d99;
+  background: linear-gradient(180deg, #2a0808f0, #120404f2);
+  border: 1px solid #ff4d4d99;
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  box-shadow: inset 0 0 14px #ff9a2e33;
+  box-shadow: inset 0 0 14px #ff2e2e33;
   opacity: 0;
   transform: translate(-50%, -6px);
   transition: opacity 160ms ease-out, transform 160ms ease-out;
@@ -41,28 +42,45 @@
 }
 
 .state {
-  color: #ffc46e;
+  color: #ff7a6e;
   font-size: 18px;
   font-weight: 700;
   letter-spacing: 4px;
-  text-shadow: 0 0 6px #ff9a2e99;
+  text-shadow: 0 0 6px #ff2e2e99;
 }
 
 .reason {
-  color: #ffe9c8;
+  color: #ffe0dc;
   font-size: 20px;
   font-weight: 600;
   text-shadow: 0 1px 2px #000;
 }
 
-/* 拒绝进入: 条件牌描边转红并横向抖一下, 与锁头着色器的急抖同拍。 */
+/* 拒绝进入: 条件牌描边提亮并横向抖一下, 与锁头着色器的急抖同拍。 */
 .isDenying .plate {
-  border-color: #ff5a3ccc;
+  border-color: #ff8a70;
   animation: plateDeny 420ms ease-out;
 }
 
 .isDenying .state {
-  color: #ff7a5c;
+  color: #ffb3a0;
+}
+
+/* 开锁: 条件牌换成据点青, 跟着锁头一起停留到碎散结束再淡出(时长对齐 buildingReveal.ts)。 */
+.isUnlocking .plate {
+  background: linear-gradient(180deg, #06262af0, #031214f2);
+  border-color: #56ffe3b3;
+  box-shadow: inset 0 0 14px #30eaca40;
+  animation: plateUnlock 1500ms ease-out both;
+}
+
+.isUnlocking .state {
+  color: #8affea;
+  text-shadow: 0 0 6px #30eaca;
+}
+
+.isUnlocking .reason {
+  color: #e5fff5;
 }
 
 @keyframes plateDeny {
@@ -71,4 +89,10 @@
   40% { translate: 5px 0; }
   60% { translate: -3px 0; }
   80% { translate: 2px 0; }
+}
+
+@keyframes plateUnlock {
+  0%, 25% { opacity: 0; }
+  40%, 80% { opacity: 1; }
+  100% { opacity: 0; }
 }

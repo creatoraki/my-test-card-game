@@ -22,7 +22,7 @@ export function ExploreInventory({ session, inventory }: { session: ExploreState
         corridor={session.corridor}
         onExpand={inventory.allowed ? expandAtlas : undefined}
       />}
-      {/* 测试面板: 组件内自行判断 isTest 环境变量, 正式环境不渲染。 */}
+      {/* 测试面板: 组件内自行判断测试模式, 关闭时不渲染。 */}
       <DevTestPanel session={session} />
     </div>
     {/* 信标传送选房改在展开大图里进行, 小地图只显示当前房间周边, 远处的房间点不到。 */}

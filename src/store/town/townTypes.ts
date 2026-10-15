@@ -89,6 +89,7 @@ export interface TownStore extends CurioTownSlice {
   squadTalent: SquadTalentState;
   codex: CodexState;
   seenGuides: string[]; // 已看过的新手引导 id, 随存档永久记录
+  revealedBuildings: string[]; // 已播过解锁演出的据点建筑 id(规则见 ui/town/TownScreen/buildingUnlock.ts)
   initialized: boolean;
 
   ensureProfile: () => void; // 幂等: 首次进城镇时建档
@@ -97,6 +98,7 @@ export interface TownStore extends CurioTownSlice {
   syncDailyClear: MapProgressSlice["syncDailyClear"];
   takeDailyClearReward: MapProgressSlice["takeDailyClearReward"];
   markGuideSeen: (id: string) => void;
+  markBuildingRevealed: (id: string) => void; // 解锁演出播完后记录, 已记录则保持不变
   recordCodex: (patch: Partial<CodexState>) => void;
   recordSortieRelics: (ids: string[]) => void;
   bankLoot: (amount: number) => void; // 远征结束落袋

@@ -10,7 +10,6 @@ export type MapDifficulty = "normal" | "hard" | "abyss";
 export const MAP_DIFFICULTY_IDS: readonly MapDifficulty[] = ["normal", "hard", "abyss"];
 const TUTORIAL_DIFFICULTY_IDS: readonly MapDifficulty[] = ["normal"];
 const NORMAL_ROOM_COUNT = 9;
-const isTest = import.meta.env.isTest === "true";
 
 export interface MapDifficultyDef {
   id: MapDifficulty;
@@ -119,11 +118,13 @@ export function isDifficultyUnlocked(
   mapId: string,
   difficulty: MapDifficulty,
   clearedKeys: readonly string[],
+  /** 测试模式: 有难度分级的地图全部难度开放。 */
+  testMode = false,
 ): boolean {
   requireMap(mapId);
   if (difficulty === "normal") return true;
   if (!mapHasDifficulty(mapId)) return false;
-  if (isTest) return true;
+  if (testMode) return true;
   const previous: MapDifficulty = difficulty === "hard" ? "normal" : "hard";
   return clearedKeys.includes(difficultyKey(mapId, previous));
 }
@@ -132,8 +133,9 @@ export function difficultyLockReason(
   mapId: string,
   difficulty: MapDifficulty,
   clearedKeys: readonly string[],
+  testMode = false,
 ): string | null {
-  if (isDifficultyUnlocked(mapId, difficulty, clearedKeys)) return null;
+  if (isDifficultyUnlocked(mapId, difficulty, clearedKeys, testMode)) return null;
   if (difficulty === "normal") return null;
   if (!mapHasDifficulty(mapId)) return "暂未开放";
   return difficulty === "hard"

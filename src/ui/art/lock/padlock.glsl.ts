@@ -1,11 +1,14 @@
 /**
  * 未开放建筑的锁头：全息刻度环 + 悬浮的金属挂锁(钢锁梁、黄铜包边锁身、警示斜纹、发光锁孔)。
  * 坐标：设计 px，p 以画布中心为原点，y 向上。
- * uActive = 「拒绝进入」反馈：锁头横向抖动、警示色切到告警红并整体闪一下。
+ * uActive = 「拒绝进入」反馈：锁头横向抖动、警示色切到更亮的告警色并整体闪一下。
+ * uUnlock = 1 时播开锁：锁孔亮起转青 → 锁梁弹起 → 锁头碎成方块散去，刻度环外扩消失。
  */
 export const GLSL_PADLOCK_UNIFORMS = /* glsl */ `
-uniform vec3 uGlow;   // 常态警示色
-uniform vec3 uAlert;  // 拒绝进入时的告警色
+uniform vec3 uGlow;    // 常态警示色
+uniform vec3 uAlert;   // 拒绝进入时的告警色
+uniform vec3 uOpen;    // 开锁时转成的据点青色
+uniform float uUnlock; // 1 = 开锁演出(uPhase 从挂载起算, 时间轴见 padlockUnlock.glsl.ts)
 `;
 
 export const GLSL_PADLOCK = /* glsl */ `

@@ -1,6 +1,7 @@
 import { memo, useMemo, type CSSProperties } from "react";
 import { isMapUnlocked, mapLockReason, type MapDef, type MapDifficulty } from "@/data";
 import type { ItemStack } from "@/items/types";
+import { useTestMode } from "@/store/dev/devTestStore";
 import { cx } from "@/ui/common/shared/cx";
 import { COPY_COUNT, MIDDLE_COPY, useInfiniteBand } from "@/ui/sortie/hooks";
 import { isMotionActive, type StepMotion } from "@/ui/sortie/SortieScreen/sortieStepTransition";
@@ -8,8 +9,6 @@ import { MapSelectChrome } from "./MapSelectChrome";
 import { MapDifficultyPanel } from "./MapDifficultyPanel";
 import MapSlice from "./MapSlice";
 import s from "./MapSelectStep.module.css";
-
-const isTest = import.meta.env.isTest === "true";
 
 interface Props {
   maps: readonly MapDef[];
@@ -35,6 +34,7 @@ function MapSelectStep({
   onSelectDifficulty,
 }: Props) {
   const active = isMotionActive(motion);
+  const isTest = useTestMode();
   const selected = maps.find((map) => map.id === selectedMapId) ?? maps[0];
   const selectedIndex = selected ? Math.max(0, maps.findIndex((map) => map.id === selected.id)) : 0;
   const mapCount = maps.length;
@@ -44,7 +44,7 @@ function MapSelectStep({
       locked: Boolean(map.locked) || (!isTest && !isMapUnlocked(map.id, clearedMaps)),
       reason: map.locked || !isTest ? mapLockReason(map.id, clearedMaps) : null,
     })),
-    [maps, clearedMaps],
+    [maps, clearedMaps, isTest],
   );
 
   const { virtualIndex, isMoving, isResetting, shift, listRef, select, onListTransitionEnd } =

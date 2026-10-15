@@ -1,12 +1,15 @@
 // 据点建筑的解锁规则 —— 「哪栋楼要通关什么才开放」全在这一张表里。
 //
-// ★ 进度直接读 townStore 的通关记录(clearedMaps / clearedDifficulties), 不另存解锁状态:
+// ★ 开放与否直接读 townStore 的通关记录(clearedMaps / clearedDifficulties), 不另存解锁状态:
 //   通关一次即永久开放, 重置档案后自然回到初始状态。
 // ★ 表里没登记的建筑 = 一开始就开放(目前只有队员宿舍)。
 // ★ 改解锁条件只动 BUILDING_UNLOCKS, 组件一行都不用动。
+// ★ 条件刚满足的楼先保持上锁, 等据点全景播完一次解锁演出(buildingReveal.ts)才真正开放;
+//   「已播过」记在存档 revealedBuildings 里, 每栋楼只播一次。
 
 import { useMemo } from "react";
 import { MAP_DIFFICULTIES, MAPS, difficultyKey, type MapDifficulty } from "@/data";
+import { useTestMode } from "@/store/dev/devTestStore";
 import { useTownStore } from "@/store/town/townStore";
 import type { BuildingId } from "./stationBuildings";
 
@@ -54,9 +57,33 @@ export function buildingLocks(progress: ClearProgress): BuildingLocks {
   return locks;
 }
 
-/** 当前存档下各建筑的锁定状态, 通关记录一变就重算。 */
-export function useBuildingLocks(): BuildingLocks {
+export interface BuildingLockState {
+  /** 全景上要挂锁的建筑(含条件已满足、还在等解锁演出的)。点了进不去。 */
+  locks: BuildingLocks;
+  /** 条件已满足、但解锁演出还没播过的建筑, 按表顺序。 */
+  pendingReveal: BuildingId[];
+}
+
+const OPEN_ALL: BuildingLockState = { locks: {}, pendingReveal: [] };
+
+/**
+ * 当前存档下各建筑的锁定状态, 通关记录一变就重算。
+ * ★ 测试模式全部开放、不播演出也不记「已播」—— 关掉测试模式后, 真实进度达成的楼照样补播一次。
+ */
+export function useBuildingLocks(): BuildingLockState {
+  const testMode = useTestMode();
   const clearedMaps = useTownStore((state) => state.clearedMaps);
   const clearedDifficulties = useTownStore((state) => state.clearedDifficulties);
-  return useMemo(() => buildingLocks({ clearedMaps, clearedDifficulties }), [clearedMaps, clearedDifficulties]);
+  const revealed = useTownStore((state) => state.revealedBuildings);
+  return useMemo(() => {
+    if (testMode) return OPEN_ALL;
+    const locks = buildingLocks({ clearedMaps, clearedDifficulties });
+    const pendingReveal: BuildingId[] = [];
+    for (const [id, requirement] of Object.entries(BUILDING_UNLOCKS) as [BuildingId, UnlockRequirement][]) {
+      if (locks[id] || revealed.includes(id)) continue;
+      pendingReveal.push(id);
+      locks[id] = requirementText(requirement);
+    }
+    return { locks, pendingReveal };
+  }, [testMode, clearedMaps, clearedDifficulties, revealed]);
 }

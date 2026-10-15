@@ -89,6 +89,7 @@ export const useTownStore = create<TownStore>()(
       squadTalent: { badgeId: null, nodes: [] },
       codex: { items: [], cards: [], enemies: [] },
       seenGuides: [],
+      revealedBuildings: [],
       ...createEquipCraftSlice(set, get),
       ...createMapProgressSlice(set, get),
       ...createShopSlice(set, get),
@@ -122,6 +123,12 @@ export const useTownStore = create<TownStore>()(
         const { seenGuides } = get();
         if (seenGuides.includes(id)) return;
         set({ seenGuides: [...seenGuides, id] });
+      },
+
+      markBuildingRevealed: (id) => {
+        const { revealedBuildings } = get();
+        if (revealedBuildings.includes(id)) return;
+        set({ revealedBuildings: [...revealedBuildings, id] });
       },
 
       recordSortieRelics: (ids) => {
@@ -222,6 +229,7 @@ export const useTownStore = create<TownStore>()(
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
     // v32: 配额物资与通关奖励每日随机生成并共同持久化。
-    { name: TOWN_PROFILE_KEY, version: 32 },
+    // ⚠ v33: 新增 revealedBuildings 据点建筑解锁演出记录, 旧档不兼容, 版本号失配让旧档自然失效重建。
+    { name: TOWN_PROFILE_KEY, version: 33 },
   ),
 );

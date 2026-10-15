@@ -9,6 +9,7 @@ import {
   type MapDifficulty,
 } from "@/data";
 import type { ItemStack } from "@/items/types";
+import { useTestMode } from "@/store/dev/devTestStore";
 import { useTownStore } from "@/store/town/townStore";
 import { HoverTooltip } from "@/ui/common/tooltip/HoverTooltip";
 import { TooltipCard } from "@/ui/common/tooltip/TooltipCard";
@@ -42,6 +43,7 @@ function MapDifficultyPanel({
     point: TooltipPoint;
   } | null>(null);
   const active = isMotionActive(motion);
+  const isTest = useTestMode();
   const aidStacks = useTownStore((state) => state.dailyClear.aidSupplies[difficultyKey(mapId, difficulty)]);
   const groupedRewards = useMemo(
     () => Object.values(rewards.reduce<Record<string, ItemStack>>((result, stack) => {
@@ -73,8 +75,8 @@ function MapDifficultyPanel({
           <div className={s.difficultyRow} aria-label="选择地图难度">
             {difficultyIds.map((id) => {
               const definition = getMapDifficulty(id);
-              const unlocked = isDifficultyUnlocked(mapId, id, clearedKeys);
-              const reason = difficultyLockReason(mapId, id, clearedKeys);
+              const unlocked = isDifficultyUnlocked(mapId, id, clearedKeys, isTest);
+              const reason = difficultyLockReason(mapId, id, clearedKeys, isTest);
               return (
                 <span
                   key={id}
