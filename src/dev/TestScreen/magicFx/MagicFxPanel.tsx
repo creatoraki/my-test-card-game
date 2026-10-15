@@ -5,7 +5,7 @@ import s from "./MagicFxShowcase.module.css";
 
 const RATES = [0.25, 0.5, 1] as const;
 const COUNTS = [1, 3] as const;
-const OWNERS = ["预言家", "咒术师"] as const;
+const OWNERS = ["预言家", "咒术师", "植物学家"] as const;
 const CARD_NAME = new Map(CARD_DEFS.map((def) => [def.id, def.name]));
 
 export interface MagicFxControls {
@@ -47,7 +47,7 @@ export function MagicFxPanel({ spec, onPick, controls }: { spec: MagicFxSpec; on
         <span className={s.timing}>爆点 {spec.impactMs} 毫秒 · 全长 {spec.totalMs} 毫秒</span>
       </p>
       <div className={s.cards}>
-        <span className={s.controlLabel}>分配卡牌</span>
+        <span className={s.controlLabel}>{spec.planned ? "拟分配卡牌" : "分配卡牌"}</span>
         {spec.cards.map((id) => (
           <span key={id} className={s.card} style={{ "--spec-color": spec.color } as CSSProperties}>
             {CARD_NAME.get(id) ?? id}

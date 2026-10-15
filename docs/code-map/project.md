@@ -8,7 +8,7 @@
 | --- | --- |
 | [package.json](../../package.json) | 依赖 React 18、Zustand 4、three；脚本有 dev / build / preview / test / test:watch；包管理器是 pnpm。 |
 | [tsconfig.json](../../tsconfig.json) | 严格模式，`@/*` 指向 `src/*`，模块解析方式为 bundler，只包含 `src`。 |
-| [vite.config.ts](../../vite.config.ts) | React 插件 + 图片优化插件（质量 94）+ 开发期素材永久缓存插件；开发端口 2333；环境变量前缀 `VITE_` / `isTest`；CSS Modules 类名格式 `[name]__[local]___[hash]`。 |
+| [vite.config.ts](../../vite.config.ts) | React 插件 + 图片优化插件（质量 94）+ 开发期素材永久缓存插件；开发端口 2333；发布和产物预览路径 `/neon-city/`，本地开发路径 `/`；环境变量前缀 `VITE_` / `isTest`；CSS Modules 类名格式 `[name]__[local]___[hash]`。 |
 | `.env.development` / `.env.production` / `.env.test` | `isTest` 开关：跳过电梯过场、解锁地图，并在探索页小地图旁挂测试面板(关闭遇敌 / 测试战斗 / 测试首领，见 store/dev/devTestStore)。开发环境为 `true`。 |
 | [index.html](../../index.html) | 提供 `#root`，以 module 脚本加载 `src/main.tsx`。 |
 

@@ -5,7 +5,9 @@ import imageOptimize from "./scripts/vite-plugin-image-optimize.mjs";
 import devAssetCache from "./scripts/vite-plugin-dev-asset-cache.mjs";
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ command, isPreview }) => ({
+  // 线上和产物预览使用独立路径，本地开发仍从根路径进入。
+  base: command === "build" || isPreview === true ? "/neon-city/" : "/",
   // imageOptimize 在 dev 与 build 下行为一致(见插件头部注释), 所以开发时看到的画质
   // 就是线上画质。OPTIMIZE=0 pnpm dev 可退回原始 PNG 做原画对比。
   // devAssetCache 必须排在 imageOptimize 之后: 只接手被它放行的素材(见插件头部注释)。
@@ -31,4 +33,4 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
-});
+}));

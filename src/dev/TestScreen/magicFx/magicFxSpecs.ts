@@ -2,19 +2,23 @@ import type { GlslProgramDef } from "@/ui/common/fx/GlslSprite";
 import { CARD_DEFS } from "@/data";
 import { ANIM } from "@/ui/battle/choreo/animations";
 import { MAGIC_PROGRAMS, MAGIC_TIMELINE, type MagicFxKind } from "@/ui/battle/fx/MagicFx";
+import type { BotanistFxKind } from "@/ui/battle/fx/BotanistFx";
+import { BOTANIST_FX_SPECS } from "./botanistFxSpecs";
 
 /**
- * 一种魔法攻击特效的演示规格。着色器、时间轴、主色全部取自战斗模块(ui/battle/fx/MagicFx 与 ANIM)，
- * 分配卡牌按卡牌定义表的 anim 实时反查；演示页只补名称与说明文字。
+ * 一种攻击特效的演示规格。预言家/咒术师的着色器、时间轴、主色全部取自战斗模块(ui/battle/fx/MagicFx 与 ANIM)，
+ * 分配卡牌按卡牌定义表的 anim 实时反查；植物学家的见 botanistFxSpecs(尚未接入战斗)。演示页只补名称与说明文字。
  */
 export interface MagicFxSpec {
-  id: MagicFxKind;
+  id: MagicFxKind | BotanistFxKind;
   name: string;
-  owner: "预言家" | "咒术师";
+  owner: "预言家" | "咒术师" | "植物学家";
   color: string;
   mode: "single" | "stage";
   desc: string;
   cards: readonly string[];
+  /** 尚未接入战斗：cards 为拟分配卡牌。 */
+  planned?: boolean;
   impactMs: number;
   totalMs: number;
   program: GlslProgramDef;
@@ -43,7 +47,7 @@ const DEMO_TEXT: readonly DemoText[] = [
   { id: "spirit-tide", name: "怨灵潮", owner: "咒术师", desc: "全屏群攻：十八只拖尾怨灵从施法者身后呼啸横扫全场，每个目标被一只大怨灵扑中，爪痕撕开、魂屑炸散。" },
 ];
 
-export const MAGIC_FX_SPECS: readonly MagicFxSpec[] = DEMO_TEXT.map((text) => {
+const MAGIC_SPECS: readonly MagicFxSpec[] = DEMO_TEXT.map((text) => {
   const programDef = MAGIC_PROGRAMS[text.id];
   return {
     ...text,
@@ -56,3 +60,6 @@ export const MAGIC_FX_SPECS: readonly MagicFxSpec[] = DEMO_TEXT.map((text) => {
     cards: CARD_DEFS.filter((def) => def.anim === text.id).map((def) => def.id),
   };
 });
+
+/** 演示页全部特效：预言家、咒术师各 6 种 + 植物学家 5 种。 */
+export const MAGIC_FX_SPECS: readonly MagicFxSpec[] = [...MAGIC_SPECS, ...BOTANIST_FX_SPECS];

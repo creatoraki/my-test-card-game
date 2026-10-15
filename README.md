@@ -44,6 +44,8 @@ npm run preview
 
 ## 目录结构
 
+部署到阿里云服务器见 [部署说明](docs/deployment.md)，包含生成上传包、Nginx 配置和公网访问步骤。
+
 ```text
 my-test-card-game/
 ├─ *.md                    # 世界观、系统设计与评审记录
