@@ -45,21 +45,22 @@ function main() {
   const archivePath = join(outputDir, `neon-city-${version}.tar.gz`);
   mkdirSync(stagingDir, { recursive: true });
   cpSync(distDir, join(stagingDir, "site"), { recursive: true });
-  for (const name of ["install.sh", "nginx.conf", "neon-city.conf"]) {
-    // Windows 检出可能生成 CRLF，上传到 Linux 的脚本和配置统一使用 LF。
-    const content = readFileSync(join(scriptDir, name), "utf8").replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
-    writeFileSync(join(stagingDir, name), content, "utf8");
-  }
-
   const result = spawnSync("tar", [
-    "-czf", archivePath, "-C", stagingDir, "site", "install.sh", "nginx.conf", "neon-city.conf",
+    "-czf", archivePath, "-C", stagingDir, "site",
   ], { stdio: "inherit" });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error("压缩失败，请确认本机 tar 命令可用。");
 
+  // 入口脚本独立于压缩包，服务器无需手动解压就能一键部署。
+  const deployScript = readFileSync(join(scriptDir, "deploy.sh"), "utf8")
+    .replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
+  writeFileSync(join(outputDir, "deploy.sh"), deployScript, "utf8");
+
   console.log(`部署包已生成：\n${archivePath}`);
-  console.log("请将此文件上传到服务器 /home/admin，后续步骤见 docs/deployment.md。");
-  console.log("压缩包只包含静态网站及部署脚本，不包含源码、环境文件或本地依赖。");
+  console.log("请将压缩包和同目录的 deploy.sh 上传到服务器 /home/admin。");
+  console.log("服务器一键部署命令：bash /home/admin/deploy.sh");
+  console.log("后续步骤见 docs/deployment.md。");
+  console.log("压缩包只包含静态网站；日常部署不修改或重载 Nginx。");
 }
 
 try {
