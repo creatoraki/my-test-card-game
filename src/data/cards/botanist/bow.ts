@@ -11,7 +11,7 @@ export const BOTANIST_BOW_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "shot",
+    anim: "thorn-arrow",
     effects: [
       { type: "DAMAGE", multiplier: 0.4, hits: 2, pierceOnHit: 1, pierceOnPoisonedHit: 1, target: "primary" },
     ],
@@ -25,7 +25,7 @@ export const BOTANIST_BOW_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "slash",
+    anim: "thorn-whip",
     volley: { threshold: 2 },
     effects: [
       { type: "CHOOSE_HAND_CARD", amount: 2, handChoiceAction: "cultivateTick", fullDraw: "hit" },
@@ -41,7 +41,7 @@ export const BOTANIST_BOW_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "shot",
+    anim: "thorn-arrow",
     harvest: true,
     // 采收加在攻击力属性上, 只在本卡结算时生效; 攻击倍率始终是 90%。
     effects: [
@@ -58,7 +58,7 @@ export const BOTANIST_BOW_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "slash",
+    anim: "vine-tide",
     harvest: true,
     effects: [
       { type: "DAMAGE", multiplier: 0.6, target: "primary" },
@@ -92,7 +92,7 @@ export const BOTANIST_BOW_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "shot",
+    anim: "thorn-arrow",
     // 满层判定在本卡附加穿孔之前: 两条伤害按先后互斥, 满层分支不附加穿孔, 层数不变。
     effects: [
       {
@@ -124,7 +124,7 @@ export const BOTANIST_BOW_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "allFoes",
     rarity: "uncommon",
-    anim: "slash",
+    anim: "vine-tide",
     volley: { threshold: 3 },
     // 群体控制: 满弓逐个敌人判定, 只眩晕自身满弓的敌人。
     effects: [
@@ -142,7 +142,7 @@ export const BOTANIST_BOW_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "shot",
+    anim: "flytrap-bite",
     effects: [
       { type: "DAMAGE", multiplier: 0.9, target: "primary" },
       { type: "APPLY_STATUS", status: "insectTrap", stacks: 1, duration: 2, target: "primary" },
@@ -178,7 +178,7 @@ export const BOTANIST_BOW_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "rare",
-    anim: "shot",
+    anim: "thorn-arrow",
     harvest: true,
     // 锋芒数值固定, 采收层数只决定持续回合: 每 3 层 1 回合(穿孔上限 10 层 ⇒ 最多 3 回合)。
     effects: [

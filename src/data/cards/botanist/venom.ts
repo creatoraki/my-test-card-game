@@ -10,7 +10,7 @@ export const BOTANIST_VENOM_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "poison",
+    anim: "thorn-arrow",
     volley: { threshold: 2 },
     effects: [
       { type: "DAMAGE", multiplier: 0.7, target: "primary" },
@@ -26,7 +26,7 @@ export const BOTANIST_VENOM_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "poison",
+    anim: "spore-bloom",
     effects: [
       { type: "DAMAGE", multiplier: 0.4, target: "primary" },
       { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.3 }, duration: 2, target: "primary" },
@@ -86,7 +86,7 @@ export const BOTANIST_VENOM_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "poison",
+    anim: "flytrap-bite",
     // 两条伤害互斥: 都不改变中毒, 先判定的分支结算后, 后一条的条件必然不成立。
     effects: [
       {
@@ -117,7 +117,7 @@ export const BOTANIST_VENOM_CARDS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "uncommon",
-    anim: "poison",
+    anim: "thorn-whip",
     harvest: true,
     effects: [
       { type: "DAMAGE", multiplier: 0.6, target: "primary" },

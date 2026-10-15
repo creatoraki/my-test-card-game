@@ -1,7 +1,7 @@
 /* 舞台可用区域：面板之上的全部空间，设计尺寸舞台在其中居中等比缩放。 */
 .area {
   position: absolute;
-  inset: 72px 16px 350px;
+  inset: 72px 16px 140px;
   display: flex;
   align-items: center;
   justify-content: center;

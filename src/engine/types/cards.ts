@@ -27,6 +27,9 @@ export type CardRarity = "basic" | Rarity;
 //                  gravity-lens 引力透镜 / star-curtain 星幕(全场级)
 //           咒术师 curse-nail 咒钉 / talisman-seal 符咒 / binding-hex 缠丝怨咒 / doom-clock 死兆钟盘 /
 //                  soul-rend 魂魄抽离(采样立绘) / spirit-tide 怨灵潮(全场级)
+//   植物系(GLSL, ui/battle/fx/BotanistFx, 时间轴见 botanistFxTimeline.ts):
+//           植物学家 thorn-arrow 棘藤箭 / thorn-whip 荆棘鞭笞 / flytrap-bite 食人花噬咬 /
+//                    spore-bloom 毒孢菌爆 / vine-tide 藤蔓缠绕(全场级)
 //   辅助系(柔和光效): heal 治疗 / shield 护盾 / buff 增益
 // 纯 UI 表现字段, 引擎逻辑不读取。UI 侧有兜底推断(见 ui/animations.ts)。
 export type CardAnim =
@@ -63,6 +66,11 @@ export type CardAnim =
   | "doom-clock"
   | "soul-rend"
   | "spirit-tide"
+  | "thorn-arrow"
+  | "thorn-whip"
+  | "flytrap-bite"
+  | "spore-bloom"
+  | "vine-tide"
   | "heal"
   | "shield"
   | "buff"

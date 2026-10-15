@@ -8,7 +8,7 @@ import s from "./MagicFxShowcase.module.css";
 /** 循环播放时两次之间的间隔(ms，按实际时间计)。 */
 const LOOP_GAP = 600;
 
-/** 攻击动效演示：预言家 / 咒术师各 6 种 GLSL 魔法攻击 + 植物学家 5 种(含全屏群攻)，并标注分配到的卡牌。 */
+/** 攻击动效演示：按角色分组(预言家 / 咒术师各 6 种、植物学家 5 种，含全屏群攻)，并标注分配到的卡牌。 */
 export function MagicFxShowcase() {
   const [specId, setSpecId] = useState<string>(MAGIC_FX_SPECS[0].id);
   const [playId, setPlayId] = useState(0);

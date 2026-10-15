@@ -1,8 +1,9 @@
-import type { BattleState } from "@/engine";
+import type { BattleState, CardAnim } from "@/engine";
 import { ANIM, type HitFx } from "@/ui/battle/choreo/animations";
 import { HurtVignette } from "@/ui/battle/fx/HurtVignette";
 import { GaleSweepFx, type GaleTarget } from "@/ui/battle/fx/GaleSweepFx";
-import { MagicStageFx } from "@/ui/battle/fx/MagicFx";
+import { MagicStageFx, MAGIC_STAGE_FX, type StageFxDef } from "@/ui/battle/fx/MagicFx";
+import { BOTANIST_STAGE_FX } from "@/ui/battle/fx/BotanistFx";
 import s from "./ScreenFxLayer.module.css";
 
 interface Props {
@@ -10,6 +11,9 @@ interface Props {
   playerIds: BattleState["playerIds"];
   fxRate: number;
 }
+
+// GLSL 全场级特效: 魔法(星幕 / 怨灵潮) + 植物学家(藤蔓缠绕), 共用 MagicStageFx 宿主。
+const GLSL_STAGE_FX: Partial<Record<CardAnim, StageFxDef>> = { ...MAGIC_STAGE_FX, ...BOTANIST_STAGE_FX };
 
 // 全场级特效(AnimPreset.stage): 整次出牌只挂一份, 覆盖本次全部受击目标。
 // 护航代挡的单位不算目标(它演举盾), 全部落空的目标只吃风痕、不落刀痕。
@@ -32,6 +36,7 @@ export function ScreenFxLayer({ hits, playerIds, fxRate }: Props) {
     ([id, hit]) => playerIds.includes(id) && hit.floats.some((float) => float.tone === "dmg"),
   )?.[1];
   const stage = stageFx(hits);
+  const glslStage = stage ? GLSL_STAGE_FX[stage.hit.anim] : undefined;
 
   return (
     <>
@@ -49,10 +54,10 @@ export function ScreenFxLayer({ hits, playerIds, fxRate }: Props) {
       {glitchHit && <div key={glitchHit.seq} className={s["battle-glitch"]} aria-hidden />}
       {twinHit && <div key={twinHit.seq} className={s["battle-twin"]} aria-hidden />}
       {thunderHit && <div key={thunderHit.seq} className={s["battle-thunder"]} aria-hidden />}
-      {(stage?.hit.anim === "star-curtain" || stage?.hit.anim === "spirit-tide") && (
+      {stage && glslStage && (
         <MagicStageFx
           key={stage.hit.seq}
-          kind={stage.hit.anim}
+          def={glslStage}
           color={ANIM[stage.hit.anim].color}
           impactMs={ANIM[stage.hit.anim].proc?.impactMs ?? 0}
           targets={stage.targets}

@@ -102,4 +102,38 @@ float pollen(vec2 q, float cell, float rise, float seed) {
   float r = 1.4 + 1.6 * h;
   return step(0.55, h) * glowOf(d, r) * (1.0 - smoothstep(r * 2.0, r * 5.0, d)) * tw;
 }
+
+/**
+ * 极坐标重复: 把 p 折进 n 等分扇区中最近的一格, 返回 (切向偏移, 径向偏移 r - R);
+ * spin 为整体转角(逆时针为正)。用于环上等距排布的刺、叶、囊等纹章元素。
+ */
+vec2 polarFold(vec2 p, float n, float R, float spin) {
+  float sec = 2.0 * PI / n;
+  float a = atan(p.y, p.x) - spin;
+  float am = mod(a + sec * 0.5, sec) - sec * 0.5;
+  float r = length(p);
+  return vec2(r * sin(am), r * cos(am) - R);
+}
+
+/**
+ * 一记三重冲击环(自 p 原点外扩): 厚暗带 + 亮边 + 主色外圈错位; lt 为起爆后秒数,
+ * size 为外扩距离, power 为强度, wob 为环边按角度起伏的幅度(0 = 正圆)。
+ */
+void shockRings(inout vec4 c, vec2 p, float lt, float size, float power, vec3 dark, float wob) {
+  if (lt <= 0.0) return;
+  float r0 = length(p);
+  float a = atan(p.y, p.x);
+  for (int i = 0; i < 3; i++) {
+    float fi = float(i);
+    float li = lt - fi * 0.06;
+    float kr = prog(li, 0.0, 0.42);
+    if (li <= 0.0 || kr >= 1.0) continue;
+    float R = 30.0 + size * easeOut3(kr) + wob * kr * sin(a * 7.0 + fi * 2.1 + uSeed * 6.0);
+    float w = mix(18.0, 2.0, kr);
+    float fade = (1.0 - kr) * power * (1.0 - fi * 0.25);
+    paint(c, dark, fillAA(abs(r0 - R) - w) * fade * 0.55);
+    emit(c, hotColor(0.75), fillAA(abs(r0 - R - w) - 1.6) * fade);
+    emit(c, uColor, (fillAA(abs(r0 - R - w - 6.0) - 2.0) + glowOf(abs(r0 - R - w - 6.0), 8.0) * 0.6) * fade);
+  }
+}
 `;

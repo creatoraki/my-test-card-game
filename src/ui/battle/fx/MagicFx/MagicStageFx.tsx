@@ -1,5 +1,5 @@
 // ============================================================================
-// 魔法攻击 · 全场级特效(星幕 / 怨灵潮): ScreenFxLayer 每次出牌只挂一份, 画布铺满战斗画布,
+// GLSL 全场级特效(魔法: 星幕 / 怨灵潮; 植物学家: 藤蔓缠绕): ScreenFxLayer 每次出牌只挂一份, 画布铺满战斗画布,
 // 各目标的 HitFxLayer 只留空锚点(见 AnimPreset.stage), 只演受击抖动与飘字。
 //   · 目标在敌人平面里由相机 rig 逐帧写变换, 这里每帧按 data-vfx-anchor 回查受击点,
 //     折回设计坐标(左下原点)后直接写进 uniforms 对象 —— 宿主每帧读同一个对象, 无需重渲染;
@@ -10,8 +10,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { GlslSprite, glslAvailable } from "@/ui/common/fx/GlslSprite";
 import { hexToRgb } from "@/ui/battle/fx/GlslHitFx";
-import { MAGIC_PROGRAMS } from "./magicFxPrograms";
-import { MAGIC_TIMELINE, type MagicFxKind } from "./magicFxTimeline";
+import { MAGIC_PROGRAMS, type MagicFxProgram } from "./magicFxPrograms";
+import { MAGIC_TIMELINE } from "./magicFxTimeline";
 import s from "./MagicFx.module.css";
 
 const PIXEL_RATIO = 1;
@@ -37,8 +37,19 @@ function anchorLookup(root: ParentNode) {
   };
 }
 
-export function MagicStageFx({ kind, color, impactMs, targets, fxRate }: {
-  kind: MagicFxKind;
+/** 全场级特效的程序与总长; ScreenFxLayer 按 CardAnim 查表挂载。 */
+export interface StageFxDef {
+  spec: MagicFxProgram;
+  totalMs: number;
+}
+
+export const MAGIC_STAGE_FX = {
+  "star-curtain": { spec: MAGIC_PROGRAMS["star-curtain"], totalMs: MAGIC_TIMELINE["star-curtain"].total },
+  "spirit-tide": { spec: MAGIC_PROGRAMS["spirit-tide"], totalMs: MAGIC_TIMELINE["spirit-tide"].total },
+} satisfies Record<string, StageFxDef>;
+
+export function MagicStageFx({ def, color, impactMs, targets, fxRate }: {
+  def: StageFxDef;
   color: string;
   impactMs: number;
   targets: MagicStageTarget[];
@@ -55,7 +66,7 @@ export function MagicStageFx({ kind, color, impactMs, targets, fxRate }: {
   const [uniforms] = useState<StageUniforms>(() => ({
     uColor: hexToRgb(color),
     uImpact: impactMs / 1000,
-    uTotal: MAGIC_TIMELINE[kind].total / 1000,
+    uTotal: def.totalMs / 1000,
     uT0: [0, 0],
     uT1: [0, 0],
     uT2: [0, 0],
@@ -93,7 +104,7 @@ export function MagicStageFx({ kind, color, impactMs, targets, fxRate }: {
     <div ref={wrapRef} className={s["magic-stage"]} aria-hidden>
       {size && (
         <GlslSprite
-          program={MAGIC_PROGRAMS[kind].program}
+          program={def.spec.program}
           width={size.w}
           height={size.h}
           uniforms={uniforms}
